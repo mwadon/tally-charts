@@ -53,7 +53,7 @@ Each high-level chart sets defaults (e.g. `BarChart`: history `hatch-fade`, last
 
 ### Rendering hatching
 
-- **SVG:** each `<Chart>` renders one shared `<defs>` holding one `<pattern>` per tone actually used (registered by the building blocks). IDs are scoped with `useId`, so they're deterministic during server rendering and don't clash between charts. Pattern strokes read the CSS variables, so a theme change needs no re-render. `hatch-fade` adds a gradient `<mask>`.
+- **SVG:** each `<Chart>` renders one shared `<defs>` holding one `<pattern>` for each of the six tones (always all six, so server and client output are identical) and two fade masks. IDs are scoped with `useId`, so they're deterministic during server rendering and don't clash between charts. Pattern colors and stroke width read the CSS variables, so a theme change needs no re-render. Pattern attributes can't use CSS variables, so the root reads the hatch angle and gap tokens from computed style after mount (server rendering uses the defaults). `hatch-fade` adds a gradient `<mask>`.
 - **HTML pieces:** `repeating-linear-gradient` driven by the same tokens, so legend swatches, meters and inline bars match the SVG exactly.
 
 ## 3. Architecture
@@ -64,18 +64,18 @@ Four layers, each depending only on the ones above it.
 
 Pure, unit-tested functions:
 
-- Scale setup on top of `d3-scale` (linear, band, point, time); nice ticks; domain inference with padding for flat or single-value data.
+- Scales: band scales from `d3-scale`; a small built-in linear scale using `d3-array` `ticks`/`nice`. (`d3-scale`'s linear scale alone costs about 7.6 KB min+gzip because of d3-format/d3-interpolate/d3-color, which would break the 8 KB `core` budget.) Point and time scales arrive with `LineChart` (0.5). Nice ticks; domain inference with padding for flat or single-value data.
 - Layout: waterfall steps (cumulative start/end per step, automatic `gain`/`loss`), bridge columns (remaining + leaked cap), dot binning and stacking (histogram), waffle column packing, strip-plot row stacking and medians, heatmap threshold bins.
 - `thresholds(breaks, tones, labels)` → a tone-by function plus legend entries with counts.
 - Formatters on `Intl.NumberFormat`: `currency`, `currency-compact`, `percent`, `pts`, `number`, `hours`; true minus sign (−) and explicit `+` on changes.
 
-Runtime dependencies: `d3-scale`, `d3-shape`, `d3-array` only.
+Runtime dependencies: `d3-scale` (band only), `d3-array`, and `d3-shape` (from 0.3) only.
 
 ### 3.2 `<Chart>` root
 
-- **Size:** `ResizeObserver` on the container for width; `height` or `aspectRatio` for height (no layout shift). Server rendering uses `initialWidth` (default 640) and re-lays out on the client.
-- **Scales:** declared as props (`x={{ type: 'band', padding: 0.3 }}`, `y={{ domain: [0, 40] }}`), domains inferred from data when omitted, exposed via context.
-- **Pattern registry:** building blocks register the tones/fills they use; the root renders `<defs>`.
+- **Size:** `ResizeObserver` on the container for width (or a fixed `width` prop, which turns measuring off); `height` or `aspectRatio` for height (no layout shift). Server rendering uses `initialWidth` (default 640) and re-lays out on the client.
+- **Scales:** declared as props, including the field each axis reads (`x={{ type: 'band', field: 'week', padding: 0.3 }}`, `y={{ field: 'margin', domain: [0, 40] }}`). Domains are inferred from `<Chart data>` and the field when omitted. Inference happens in the root during render, so server and client output match. Building blocks use the chart's fields unless they pass their own `x`/`y`.
+- **Pattern defs:** the root renders the shared `<defs>` (see Section 2).
 - **Interaction store:** active id, source (hover/focus/controlled), `activeId` / `onActiveChange` / `onSelect`.
 - **Layers:** an `<svg>` for marks plus an absolutely positioned HTML layer for tooltips, callouts and multi-line labels.
 - **Accessibility:** `role="figure"`, accessible name from `title`, accessible description from `description`, live region, optional hidden `dataTable`.
@@ -94,9 +94,9 @@ Data comes from the block's own `data` prop or is inherited from `<Chart data>`.
 Example (12-week card):
 
 ```tsx
-<Chart data={weeks} height={240} x={{ type: 'band', padding: 0.3 }} y={{ domain: [0, 40] }}>
+<Chart data={weeks} height={240} x={{ type: 'band', field: 'week', padding: 0.3 }} y={{ field: 'margin', domain: [0, 40] }}>
   <Target y={38} label="Target 38%" />
-  <Bars x="week" y="margin" fill={(d, i, all) => (i === all.length - 1 ? 'solid' : 'hatch-fade')} />
+  <Bars fill={(d, i, all) => (i === all.length - 1 ? 'solid' : 'hatch-fade')} />
   <ValueLabel at="last" format={(v) => v.toFixed(1)} />
   <Axis side="bottom" ticks="ends" />
 </Chart>
@@ -183,7 +183,7 @@ Thin compositions of the building blocks (about 80–150 lines each), source lin
   - **Presets:** `'currency' | 'currency-compact' | 'percent' | 'pts' | 'number' | 'hours'`
   - **Custom:** any `(v: number) => string`
   - **`fmt` export:** the presets are also exported as plain functions (`fmt.currencyCompact(82400)`, `fmt.pts(-1.6)`) for use in labels and tooltips; they honor `ChartsProvider` defaults when called inside it via `useFormat()`
-  - **App defaults:** `<ChartsProvider locale currency>`. Without it the library falls back to the browser's locale and USD.
+  - **App defaults:** `<ChartsProvider locale currency>`. Without it the library defaults to `en-US` and USD (a fixed default keeps server and client output identical; using the browser's locale would cause hydration mismatches).
 - **Extension:**
   - **`children`:** high-level charts render `children` inside their `<Chart>` after their own marks (extra `Target`, `Callout`, custom blocks reading the same scales).
   - **Part attributes:** every element has `data-ch-part`, `data-ch-tone`, `data-ch-fill` for CSS targeting; class names are not API.
@@ -239,7 +239,7 @@ Example:
 ## 9. Tooling and packaging
 
 - **Repo layout:** pnpm workspace with `packages/tally-charts` and `apps/storybook`. Docs site deferred to 1.0.
-- **Build:** `tsup` (ESM + `.d.ts`). ESM-only; `sideEffects: ["*.css"]`.
+- **Build:** `tsdown` (ESM + `.d.ts`; tsup is maintenance-only). TypeScript pinned to 6.x until the tooling (Storybook prop docs) supports the TypeScript 7 native compiler. ESM-only; `sideEffects: ["*.css"]`.
 - **Subpath exports:** `tally-charts` (charts, building blocks, small UI pieces), `tally-charts/core`, `tally-charts/theme.css`.
 - **Peer dependencies:** `react` and `react-dom` 18 or 19.
 - **Code quality:** TypeScript strict, Biome (lint + format), Changesets.
