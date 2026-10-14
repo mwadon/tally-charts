@@ -221,6 +221,22 @@
   font-weight: 500;
 }
 
+[data-ch-part="row-label"] {
+  fill: var(--ch-ink);
+  font-size: 15px;
+}
+
+[data-ch-part="row-label"][data-ch-muted="true"],
+[data-ch-part="row-sublabel"] {
+  fill: var(--ch-ink-muted);
+  font-size: 13px;
+}
+
+[data-ch-part="row-divider"] {
+  stroke: var(--ch-grid);
+  stroke-width: 1;
+}
+
 [data-ch-part="target"] {
   stroke: var(--ch-ink);
   stroke-width: 1;
