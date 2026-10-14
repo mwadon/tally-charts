@@ -14,7 +14,10 @@ export interface ConnectorProps {
   links: readonly ConnectorLink[]
   /** Pulls the start back from the far edge of `from`, in px. Default 0. */
   fromInset?: number
-  /** Pushes the end into `to`, in px, e.g. to meet a bar that sits at the bottom of its band. Default 0. */
+  /**
+   * Pushes the end into `to`, in px, e.g. to meet a bar that sits at the bottom of its band.
+   * Default 0.
+   */
   toInset?: number
 }
 

@@ -113,7 +113,9 @@
 
 /* Only hit areas take pointer events; layered bars never cover the hit area below them. */
 [data-ch-part="bar"],
-[data-ch-part="bar-track"] {
+[data-ch-part="bar-track"],
+[data-ch-part="column-highlight"],
+[data-ch-part="connector"] {
   pointer-events: none;
 }
 
