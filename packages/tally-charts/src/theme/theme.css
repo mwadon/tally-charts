@@ -115,7 +115,8 @@
 [data-ch-part="bar"],
 [data-ch-part="bar-track"],
 [data-ch-part="column-highlight"],
-[data-ch-part="connector"] {
+[data-ch-part="connector"],
+[data-ch-part="area"] {
   pointer-events: none;
 }
 
@@ -211,6 +212,16 @@
 
 [data-ch-dimmed="true"] {
   opacity: var(--ch-dim-opacity);
+}
+
+[data-ch-animate="true"] [data-ch-part="area"] {
+  animation: ch-fade var(--ch-duration) var(--ch-ease) both;
+}
+
+@keyframes ch-fade {
+  from {
+    opacity: 0;
+  }
 }
 
 /* ---------- Labels and reference marks ---------- */

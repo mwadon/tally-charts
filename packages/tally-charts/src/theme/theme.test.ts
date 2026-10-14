@@ -36,10 +36,11 @@ describe('theme.css', () => {
     expect(css).toContain(token)
   })
 
-  it('keeps connectors and column highlights out of pointer events', () => {
+  it('keeps connectors, column highlights and areas out of pointer events', () => {
     const rule = css.match(/\[data-ch-part="bar"\],[\s\S]*?\{([^}]*)\}/)
     expect(rule?.[0]).toContain('[data-ch-part="column-highlight"]')
     expect(rule?.[0]).toContain('[data-ch-part="connector"]')
+    expect(rule?.[0]).toContain('[data-ch-part="area"]')
     expect(rule?.[1]).toContain('pointer-events: none')
   })
 
