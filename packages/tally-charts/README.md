@@ -3,7 +3,7 @@
 Opinionated React charts for narrative business dashboards: hatched means plan or reference,
 solid means actual, pink means loss, and targets are first-class.
 
-> Status: 0.2. The API may change before 1.0.
+> Status: 0.3. The API may change before 1.0.
 
 ```bash
 npm i tally-charts
@@ -61,6 +61,13 @@ import { BarChart, ComparisonBars, RankedBars } from 'tally-charts'
 - `BarChart`: history `hatch-fade`, last bar `solid`, optional target and value label; `orientation="horizontal"` puts categories on the left.
 - `ComparisonBars`: hatched plan bar over a solid actual bar, the overrun as a separate pink segment, and a `$640 → $1,060  +$420` / "On plan" column. `overIsBad={false}` for revenue-like rows.
 - `RankedBars`: label, bar on a faint track, value; sorted by size; `layout="stacked"` for drill columns. Bars show magnitudes, so negative "lost" amounts extend right and keep their sign in the text. Selection uses `selectedId` + `onSelect`; ids are the original data index unless you pass `id`.
+- `WaterfallChart`: horizontal steps from a start value to a calculated end, with dotted
+  connectors. Start is hatched neutral, steps are `loss`/`gain`, the end is solid accent. The
+  domain leaves out zero by default, like a 34%–38% gap chart. Row ids are `'start'`,
+  `step.id ?? index`, `'end'`.
+- `BridgeChart`: vertical columns of what remains after each step, with the leaked (or gained)
+  part as a hatched cap, a gradient joining the totals, and a highlighted last column. `callout`
+  pins a pill above the last column. Column ids are `'start'` and `step.id ?? index`.
 - `onSelect` and `onActiveChange` receive your original data object as `point.datum`.
 
 ## Small pieces
@@ -69,6 +76,12 @@ HTML, styled by the same tokens: `Stat`, `Delta` (▲/▼ pill toned by `good="u
 (progress + target tick), `RangeMeter` (actual dot → hatched gap → plan ring), `InlineBar`
 (table-cell bar), `DotCount`, `Legend`, `TooltipPill`. Colored text mixes the tone with
 `--ch-ink` (`--ch-tone-text-mix`, default 55%) to stay readable.
+
+Building blocks added in 0.3: `Connector` (dotted lines between bands at a value),
+`ColumnHighlight` (soft backdrop behind one band), `Area` (gradient through band centres) and
+`Callout` (a pill pinned to one point, with an optional stem). Callouts live in the HTML overlay:
+they appear after mount and are hidden from screen readers, so put the same facts in the title,
+description or data.
 
 ## Several React roots on one page
 

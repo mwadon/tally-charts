@@ -1,10 +1,12 @@
 import {
   Axis,
   Bars,
+  BridgeChart,
   Chart,
   ComparisonBars,
   Delta,
   DotCount,
+  fmt,
   InlineBar,
   Meter,
   RangeMeter,
@@ -13,6 +15,7 @@ import {
   Target,
   Tooltip,
   ValueLabel,
+  WaterfallChart,
 } from '../src'
 
 export const weeks = [
@@ -103,5 +106,50 @@ export function SmallPieces() {
       <InlineBar value={12.3} max={40} target={38} label="Margin" />
       <DotCount count={29} label="29 jobs" />
     </div>
+  )
+}
+
+export const gapSteps = [
+  { label: 'Labor overruns', value: -1.6, meta: 7700 },
+  { label: 'Material variance', value: -1.1, meta: 5300 },
+  { label: 'Callbacks', value: -0.7, meta: 3400 },
+  { label: 'Discounting', value: -0.4, meta: 1900 },
+  { label: 'Other', value: -0.2, meta: 1000 },
+]
+
+export function UnderTarget() {
+  return (
+    <WaterfallChart
+      title="Why it is under target"
+      start={{ label: 'Target', value: 38 }}
+      steps={gapSteps}
+      end={{ label: 'Actual' }}
+      format="percent"
+      domain={[34, 38]}
+      stepLabel={(s) => `${fmt.pts(s.value)} · ${fmt.currencyCompact(s.meta ?? 0)}`}
+    />
+  )
+}
+
+export const leakSteps = [
+  { label: 'After discount', value: -260, note: 'discount' },
+  { label: 'After labor', value: -260, note: 'labor overrun' },
+  { label: 'After callback', value: -240, note: 'callback' },
+  { label: 'Actual profit', value: -100, note: 'materials' },
+]
+
+export function ProfitBridge() {
+  return (
+    <BridgeChart
+      title="Planned $1,260, kept $400"
+      start={{ label: 'Planned profit', value: 1260 }}
+      steps={leakSteps}
+      format="currency"
+      callout={[
+        { value: '$400', label: 'kept' },
+        { value: '12.3%', label: 'margin' },
+        { value: '32%', label: 'of plan' },
+      ]}
+    />
   )
 }

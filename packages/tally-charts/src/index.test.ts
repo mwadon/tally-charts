@@ -31,6 +31,12 @@ describe('public entry points', () => {
     'RangeMeter',
     'InlineBar',
     'DotCount',
+    'WaterfallChart',
+    'BridgeChart',
+    'Connector',
+    'ColumnHighlight',
+    'Area',
+    'Callout',
   ])('main exports %s', (name) => {
     expect(main).toHaveProperty(name)
   })

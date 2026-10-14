@@ -38,6 +38,22 @@
     "gzip": true
   },
   {
+    "name": "WaterfallChart",
+    "path": "dist/index.js",
+    "import": "{ WaterfallChart }",
+    "ignore": ["react", "react-dom"],
+    "limit": "15 KB",
+    "gzip": true
+  },
+  {
+    "name": "BridgeChart",
+    "path": "dist/index.js",
+    "import": "{ BridgeChart }",
+    "ignore": ["react", "react-dom"],
+    "limit": "15 KB",
+    "gzip": true
+  },
+  {
     "name": "Small UI pieces",
     "path": "dist/index.js",
     "import": "{ Stat, Delta, Meter, RangeMeter, InlineBar, DotCount }",

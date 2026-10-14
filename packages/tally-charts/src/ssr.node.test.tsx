@@ -2,10 +2,34 @@
 import { version } from 'react'
 import { renderToString } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
-import { DrillColumn, EstimateVsActual, LastTwelveWeeks, SmallPieces } from '../test/fixtures'
+import {
+  DrillColumn,
+  EstimateVsActual,
+  LastTwelveWeeks,
+  ProfitBridge,
+  SmallPieces,
+  UnderTarget,
+} from '../test/fixtures'
 import { Chart } from './react/Chart'
 
 describe('server rendering', () => {
+  it('renders the 0.3 charts without a DOM, deterministically', () => {
+    for (const Example of [UnderTarget, ProfitBridge]) {
+      const html = renderToString(<Example />)
+      expect(html).toBe(renderToString(<Example />))
+      expect(html).not.toContain('NaN')
+    }
+    const waterfall = renderToString(<UnderTarget />)
+    expect(waterfall).toContain('−1.6 pts · $7.7K')
+    expect(waterfall.match(/data-ch-part="connector"/g)).toHaveLength(6)
+    const bridge = renderToString(<ProfitBridge />)
+    expect(bridge).toContain('−$260 discount')
+    expect(bridge).toContain('data-ch-part="column-highlight"')
+    expect(bridge).toContain('data-ch-part="area"')
+    // The callout lives in the HTML overlay, which only exists after mount.
+    expect(bridge).not.toContain('data-ch-part="callout"')
+  })
+
   it('renders without a DOM', async () => {
     expect(typeof document).toBe('undefined')
     const html = renderToString(<LastTwelveWeeks />)
