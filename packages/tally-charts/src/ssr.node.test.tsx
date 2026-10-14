@@ -32,7 +32,7 @@ describe('server rendering', () => {
     expect(figure).toContain('aspect-ratio:2')
     // The 640px-wide server svg must not give the box an automatic min-height in narrow containers.
     expect(figure).toContain('min-height:0')
-    expect(figure).toContain('overflow:hidden')
+    expect(figure).not.toContain('overflow')
     expect(figure).not.toMatch(/[";]height:/)
   })
 

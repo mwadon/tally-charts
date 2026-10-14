@@ -175,11 +175,12 @@ export function Chart<D>({
   const descId = `${chartId}-desc`
 
   // While measuring, CSS keeps the box at the right height before the real width is known.
-  // `minHeight: 0` and `overflow: hidden` stop the not-yet-resized svg from stretching the box
-  // (an aspect-ratio box otherwise gets an automatic min-height from its content).
+  // `minHeight: 0` stops the not-yet-resized svg from stretching the box (an aspect-ratio box
+  // otherwise gets an automatic min-height from its content). No overflow clipping: tooltips and
+  // edge labels may extend past the figure.
   const sizeStyle: CSSProperties =
     height === undefined && aspectRatio && width === undefined
-      ? { aspectRatio: String(aspectRatio), minHeight: 0, overflow: 'hidden' }
+      ? { aspectRatio: String(aspectRatio), minHeight: 0 }
       : { height: h }
 
   return (
