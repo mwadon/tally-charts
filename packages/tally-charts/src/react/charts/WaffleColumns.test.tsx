@@ -1,0 +1,130 @@
+import { fireEvent, render, screen, within } from '@testing-library/react'
+import { describe, expect, it, vi } from 'vitest'
+import { WaffleColumns, type WaffleColumnsProps } from './WaffleColumns'
+
+type Week = { week: string; leaked: number | null; month: string }
+const weeks: Week[] = [
+  { week: 'Aug 3', leaked: 8, month: 'August' },
+  { week: 'Aug 10', leaked: 12, month: 'August' },
+  { week: 'Sep 7', leaked: 24, month: 'September' },
+  { week: 'Sep 14', leaked: 10, month: 'September' },
+]
+
+// unit 2 → 4, 6, 12 and 5 dots; 2 across → the tallest column has 6 rows.
+// 400 × 200 with 8px top and 28px bottom: 164px of plot height, cells of 164/6 px.
+function renderWaffle(props: Partial<WaffleColumnsProps<Week>> = {}) {
+  return render(
+    <WaffleColumns<Week>
+      data={weeks}
+      x="week"
+      y="leaked"
+      group="month"
+      unit={2}
+      width={400}
+      height={200}
+      title="Profit leaked"
+      animate={false}
+      {...props}
+    />,
+  )
+}
+
+const parts = (root: HTMLElement, selector: string) => [...root.querySelectorAll(selector)]
+const dots = (root: HTMLElement) => parts(root, '[data-ch-part="dot"]')
+const peakDots = (root: HTMLElement) =>
+  dots(root).filter(
+    (d) => d.getAttribute('data-ch-tone') === 'loss' && !d.hasAttribute('data-ch-soft'),
+  )
+
+describe('<WaffleColumns>', () => {
+  it('draws a column of dots per period, bottom-up', () => {
+    const { container } = renderWaffle()
+    expect(dots(container)).toHaveLength(27)
+    const bottom = Math.max(...dots(container).map((d) => Number(d.getAttribute('cy'))))
+    expect(bottom).toBeCloseTo(164 - 164 / 6 / 2)
+  })
+
+  it('tones groups and makes the peak solid', () => {
+    const { container } = renderWaffle()
+    const august = dots(container).filter((d) => d.getAttribute('data-ch-tone') === 'neutral')
+    expect(august).toHaveLength(10)
+    expect(august.every((d) => d.getAttribute('data-ch-soft') === 'true')).toBe(true)
+    expect(peakDots(container)).toHaveLength(12)
+  })
+
+  it('labels each group under its columns', () => {
+    const { container } = renderWaffle()
+    const labels = parts(container, '[data-ch-part="group-label"]')
+    expect(labels.map((t) => t.textContent)).toEqual(['August', 'September'])
+    expect(labels[1]).toHaveAttribute('data-ch-tone', 'loss')
+  })
+
+  it('pins the peak callout', () => {
+    const { container } = renderWaffle()
+    const callout = container.querySelector('[data-ch-part="callout"]')
+    expect(callout).toHaveTextContent('Peak')
+    expect(callout).toHaveTextContent('Sep 7')
+    expect(callout).toHaveTextContent('24')
+  })
+
+  it('activates a whole column from anywhere above it', () => {
+    const onActiveChange = vi.fn()
+    const { container } = renderWaffle({ onActiveChange })
+    const xs = peakDots(container).map((d) => Number(d.getAttribute('cx')))
+    const center = (Math.min(...xs) + Math.max(...xs)) / 2
+    const layer = container.querySelector('[data-ch-part="pointer-layer"]') as Element
+    fireEvent.pointerMove(layer, { clientX: center, clientY: 2 })
+    expect(onActiveChange).toHaveBeenLastCalledWith(2, expect.objectContaining({ datum: weeks[2] }))
+    expect(peakDots(container).some((d) => d.hasAttribute('data-ch-dimmed'))).toBe(false)
+    expect(dots(container).filter((d) => d.hasAttribute('data-ch-dimmed'))).toHaveLength(15)
+  })
+
+  it('moves column to column with the keyboard', () => {
+    const { container } = renderWaffle()
+    const figure = screen.getByRole('figure', { name: 'Profit leaked' })
+    for (let i = 0; i < 3; i++) fireEvent.keyDown(figure, { key: 'ArrowRight' })
+    expect(container.querySelector('[aria-live]')?.textContent).toBe('Sep 7, 24')
+  })
+
+  it('draws an empty column for a missing value', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const { container } = renderWaffle({
+      data: weeks.map((w) => (w.week === 'Aug 10' ? { ...w, leaked: null } : w)),
+    })
+    expect(dots(container)).toHaveLength(21)
+    expect(container.textContent).not.toContain('NaN')
+    expect(warn).toHaveBeenCalledTimes(1)
+    expect(warn.mock.calls[0]?.[0]).toContain('WaffleColumns skipped')
+  })
+
+  it('picks a unit when none is given', () => {
+    const { container } = renderWaffle({ unit: undefined })
+    expect(dots(container)).toHaveLength(27)
+  })
+
+  it('keeps every column solid when peak is off', () => {
+    const { container } = renderWaffle({ peak: false, callout: false })
+    expect(dots(container).some((d) => d.hasAttribute('data-ch-soft'))).toBe(false)
+    expect(container.querySelector('[data-ch-part="callout"]')).toBeNull()
+  })
+
+  it('renders a hidden data table', () => {
+    renderWaffle()
+    const table = screen.getByRole('table', { name: 'Profit leaked' })
+    expect(
+      within(table)
+        .getAllByRole('columnheader')
+        .map((th) => th.textContent),
+    ).toEqual(['week', 'leaked', 'month'])
+  })
+
+  it('keeps geometry finite at zero width', () => {
+    const { container } = renderWaffle({ width: 0 })
+    for (const el of parts(container, 'circle, rect')) {
+      for (const name of ['cx', 'cy', 'r', 'x', 'y', 'width', 'height']) {
+        const value = el.getAttribute(name)
+        if (value !== null) expect(Number.isFinite(Number(value))).toBe(true)
+      }
+    }
+  })
+})

@@ -242,6 +242,11 @@
   font-weight: 500;
 }
 
+[data-ch-part="group-label"] {
+  fill: var(--ch-ink-muted);
+  font-size: 13px;
+}
+
 [data-ch-part="pointer-layer"][data-ch-selectable="true"] {
   cursor: pointer;
 }
