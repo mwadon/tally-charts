@@ -5,6 +5,8 @@ import type { Accessor } from '../../core/types'
 import { useChart } from '../context'
 
 export interface ValueLabelProps<D> {
+  /** Defaults to <Chart data>. */
+  data?: readonly D[]
   at?: 'first' | 'last' | 'all' | number
   x?: Accessor<D, string | number>
   y?: Accessor<D, string | number>
@@ -14,13 +16,15 @@ export interface ValueLabelProps<D> {
 }
 
 /** Value text at the outer end of bars, computed from the same geometry as <Bars>. */
-export function ValueLabel<D>({ at = 'all', x, y, format, offset = 6 }: ValueLabelProps<D>) {
+const LABEL_HEIGHT = 14
+
+export function ValueLabel<D>({ data, at = 'all', x, y, format, offset = 6 }: ValueLabelProps<D>) {
   const ctx = useChart('ValueLabel')
   const getX = toFieldGetter(x) ?? ctx.x.field
   const getY = toFieldGetter(y) ?? ctx.y.field
   if (!getX || !getY) return null
   const { orientation, bars } = computeBars({
-    data: ctx.data,
+    data: data ?? ctx.data,
     ids: [],
     x: ctx.x,
     y: ctx.y,
@@ -41,25 +45,31 @@ export function ValueLabel<D>({ at = 'all', x, y, format, offset = 6 }: ValueLab
   return (
     <g data-ch-part="value-labels">
       {selected.map((bar) => {
-        const negative = bar.value < 0
-        return orientation === 'vertical' ? (
+        if (orientation === 'vertical') {
+          // Outward from the bar end, unless that would push the label out of the plot.
+          const below =
+            bar.dir === 'down' && bar.anchor.y + offset + LABEL_HEIGHT <= ctx.innerHeight
+          return (
+            <text
+              key={bar.index}
+              data-ch-part="value-label"
+              x={bar.anchor.x}
+              y={below ? bar.anchor.y + offset : bar.anchor.y - offset}
+              textAnchor="middle"
+              dominantBaseline={below ? 'hanging' : 'auto'}
+            >
+              {fmt(bar.value)}
+            </text>
+          )
+        }
+        const left = bar.dir === 'left'
+        return (
           <text
             key={bar.index}
             data-ch-part="value-label"
-            x={bar.anchor.x}
-            y={negative ? bar.anchor.y + offset : bar.anchor.y - offset}
-            textAnchor="middle"
-            dominantBaseline={negative ? 'hanging' : 'auto'}
-          >
-            {fmt(bar.value)}
-          </text>
-        ) : (
-          <text
-            key={bar.index}
-            data-ch-part="value-label"
-            x={negative ? bar.anchor.x - offset : bar.anchor.x + offset}
+            x={left ? bar.anchor.x - offset : bar.anchor.x + offset}
             y={bar.anchor.y}
-            textAnchor={negative ? 'end' : 'start'}
+            textAnchor={left ? 'end' : 'start'}
             dominantBaseline="middle"
           >
             {fmt(bar.value)}

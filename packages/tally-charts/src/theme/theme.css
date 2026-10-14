@@ -108,6 +108,16 @@
   cursor: pointer;
 }
 
+/* Only hit areas take pointer events; layered bars never cover the hit area below them. */
+[data-ch-part="bar"],
+[data-ch-part="bar-track"] {
+  pointer-events: none;
+}
+
+[data-ch-part="bar-track"] {
+  fill: color-mix(in srgb, var(--ch-grid) 55%, transparent);
+}
+
 .ch-overlay {
   position: absolute;
   pointer-events: none;

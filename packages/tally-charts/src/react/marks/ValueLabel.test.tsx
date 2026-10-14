@@ -47,4 +47,38 @@ describe('<ValueLabel>', () => {
   it('labels a bar by index', () => {
     expect(texts(renderLabels(1).container)).toEqual(['20.0'])
   })
+
+  it('labels its own data', () => {
+    const { container } = render(
+      <Chart
+        data={weeks}
+        width={200}
+        height={120}
+        margin={{ top: 0, right: 0, bottom: 0, left: 0 }}
+        x={{ type: 'band', field: 'week', padding: 0 }}
+        y={{ field: 'margin', domain: [0, 20] }}
+      >
+        <ValueLabel data={[{ week: 'W2', margin: 5 }]} format={(v) => v.toFixed(1)} />
+      </Chart>,
+    )
+    expect(texts(container)).toEqual(['5.0'])
+  })
+
+  it('keeps the label of a value below the domain inside the plot', () => {
+    const { container } = render(
+      <Chart
+        data={[{ week: 'W1', margin: -5 }]}
+        width={200}
+        height={120}
+        margin={{ top: 0, right: 0, bottom: 0, left: 0 }}
+        x={{ type: 'band', field: 'week', padding: 0 }}
+        y={{ field: 'margin', domain: [10, 40] }}
+      >
+        <ValueLabel />
+      </Chart>,
+    )
+    const label = container.querySelector('[data-ch-part="value-label"]')
+    expect(label).toHaveAttribute('y', '114')
+    expect(label).toHaveAttribute('dominant-baseline', 'auto')
+  })
 })

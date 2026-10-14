@@ -239,4 +239,45 @@ describe('<Bars>', () => {
     fireEvent.keyDown(screen.getByRole('figure'), { key: 'End' })
     expect(container.querySelector('[aria-live]')).toHaveTextContent('Week of W2, 20')
   })
+
+  it('draws thinner bars inside the band', () => {
+    const { container } = renderBars({ size: 20 })
+    expect(bars(container)[0]).toHaveAttribute('x', '40')
+    expect(bars(container)[0]).toHaveAttribute('width', '20')
+  })
+
+  it('runs a bar from a start value', () => {
+    const { container } = renderBars({ from: () => 5 })
+    // y domain [0, 20] over 120px: 5 → 90, 10 → 60.
+    expect(bars(container)[0]).toHaveAttribute('y', '60')
+    expect(bars(container)[0]).toHaveAttribute('height', '30')
+  })
+
+  it('draws a track behind each bar across the value range', () => {
+    const { container } = renderBars({ track: true })
+    const tracks = [...container.querySelectorAll('[data-ch-part="bar-track"]')]
+    expect(tracks).toHaveLength(2)
+    expect(tracks[0]).toHaveAttribute('y', '0')
+    expect(tracks[0]).toHaveAttribute('height', '120')
+  })
+
+  it('registers nothing and draws no hit areas when not interactive', () => {
+    const onActiveChange = vi.fn()
+    const { container } = renderBars({ interactive: false }, { onActiveChange })
+    expect(hits(container)).toHaveLength(0)
+    fireEvent.keyDown(container.querySelector('figure') as Element, { key: 'ArrowRight' })
+    expect(onActiveChange).not.toHaveBeenCalled()
+  })
+
+  it('announces ariaLabel text', () => {
+    const { container } = renderBars({ ariaLabel: (d) => `Week ${d.week}` })
+    fireEvent.keyDown(container.querySelector('figure') as Element, { key: 'ArrowRight' })
+    expect(container.querySelector('[aria-live]')).toHaveTextContent('Week W1')
+  })
+
+  it('stretches hit areas over the chart margins', () => {
+    const { container } = renderBars({}, { margin: { top: 10, right: 0, bottom: 20, left: 0 } })
+    expect(hits(container)[0]).toHaveAttribute('y', '-10')
+    expect(hits(container)[0]).toHaveAttribute('height', '120')
+  })
 })
