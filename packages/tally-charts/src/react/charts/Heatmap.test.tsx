@@ -214,4 +214,133 @@ describe('<Heatmap>', () => {
     expect(screen.getByText('No data')).toBeInTheDocument()
     expect(screen.queryByRole('grid')).toBeNull()
   })
+
+  it('selects with Space and Enter and prevents the default of both', () => {
+    const onSelect = vi.fn()
+    const { container } = renderHeatmap({ onSelect })
+    const first = cells(container)[0] as HTMLElement
+    expect(fireEvent.keyDown(first, { key: ' ' })).toBe(false)
+    expect(onSelect).toHaveBeenLastCalledWith(
+      'Dallas:Labor',
+      expect.objectContaining({ value: 14800 }),
+    )
+    expect(fireEvent.keyDown(first, { key: 'Enter' })).toBe(false)
+    expect(onSelect).toHaveBeenCalledTimes(2)
+  })
+
+  it('selects on click', () => {
+    const onSelect = vi.fn()
+    const { container } = renderHeatmap({ onSelect })
+    fireEvent.click(cells(container)[2] as HTMLElement)
+    expect(onSelect).toHaveBeenCalledWith(
+      'Dallas:Callbacks',
+      expect.objectContaining({ value: 3100 }),
+    )
+  })
+
+  it('clamps ArrowUp and ArrowLeft at the top-left edge', () => {
+    const { container } = renderHeatmap()
+    const all = cells(container)
+    act(() => all[0]?.focus())
+    expect(fireEvent.keyDown(all[0] as HTMLElement, { key: 'ArrowUp' })).toBe(false)
+    expect(fireEvent.keyDown(all[0] as HTMLElement, { key: 'ArrowLeft' })).toBe(false)
+    expect(document.activeElement).toBe(all[0])
+  })
+
+  it('handles Escape only when a cell is active', () => {
+    const { container } = renderHeatmap()
+    const first = cells(container)[0] as HTMLElement
+    expect(fireEvent.keyDown(first, { key: 'Escape' })).toBe(true)
+    act(() => first.focus())
+    expect(fireEvent.keyDown(first, { key: 'Escape' })).toBe(false)
+    expect(container.querySelector('[data-ch-active]')).toBeNull()
+    expect(fireEvent.keyDown(first, { key: 'Escape' })).toBe(true)
+  })
+
+  it('caps breaks at four with one warning', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const { container } = renderHeatmap({ breaks: [1000, 2000, 4000, 7000, 13000] })
+    const legend = container.querySelector('[data-ch-part="legend"]') as HTMLElement
+    expect(within(legend).getAllByRole('listitem')).toHaveLength(5)
+    expect(warn).toHaveBeenCalledTimes(1)
+    expect(warn.mock.calls[0]?.[0]).toContain('at most 5 bins')
+    warn.mockRestore()
+  })
+
+  it('uses level 3 and a single label without breaks', () => {
+    const { container } = renderHeatmap({ breaks: [] })
+    expect(levels(cells(container))).toEqual(['3', '3', '3', '3', '3', '3'])
+    const legend = container.querySelector('[data-ch-part="legend"]') as HTMLElement
+    expect(texts(within(legend).getAllByRole('listitem'))).toEqual(['All values'])
+    expect(levels([...legend.querySelectorAll('.ch-swatch')])).toEqual(['3'])
+  })
+
+  it('falls back to default labels when binLabels has the wrong length', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const { container } = renderHeatmap({ binLabels: ['Only one'] })
+    const legend = container.querySelector('[data-ch-part="legend"]') as HTMLElement
+    expect(texts(within(legend).getAllByRole('listitem'))[0]).toBe('Under $4K')
+    expect(warn).toHaveBeenCalledTimes(1)
+    expect(warn.mock.calls[0]?.[0]).toContain('binLabels')
+    warn.mockRestore()
+  })
+
+  it('clears the active cell when focus leaves the grid', () => {
+    const onActiveChange = vi.fn()
+    const { container } = renderHeatmap({ onActiveChange })
+    const first = cells(container)[0] as HTMLElement
+    act(() => first.focus())
+    expect(first).toHaveAttribute('data-ch-active', 'true')
+    act(() => first.blur())
+    expect(onActiveChange).toHaveBeenLastCalledWith(null, null)
+    expect(container.querySelector('[data-ch-active]')).toBeNull()
+  })
+
+  it('keeps one tab stop on the first cell when the focused cell disappears', () => {
+    const { container, rerender } = renderHeatmap()
+    act(() => cells(container)[4]?.focus())
+    expect(cells(container)[4]).toHaveAttribute('tabindex', '0')
+    rerender(
+      <Heatmap<Leak>
+        data={leaks}
+        row="branch"
+        column="cause"
+        value="amount"
+        breaks={[4000, 7000, 13000]}
+        rows={['Dallas']}
+        title="Where it leaks"
+      />,
+    )
+    const stops = container.querySelectorAll('[tabindex="0"]')
+    expect(stops).toHaveLength(1)
+    expect(stops[0]).toBe(cells(container)[0])
+  })
+
+  it('reports hover and focus in controlled mode but renders only the prop', () => {
+    const onActiveChange = vi.fn()
+    const { container } = renderHeatmap({ activeId: 'Austin:Labor', onActiveChange })
+    fireEvent.pointerEnter(cells(container)[1] as HTMLElement)
+    expect(onActiveChange).toHaveBeenLastCalledWith('Dallas:Materials', expect.anything())
+    act(() => cells(container)[2]?.focus())
+    expect(onActiveChange).toHaveBeenLastCalledWith('Dallas:Callbacks', expect.anything())
+    expect(container.querySelectorAll('[data-ch-active]')).toHaveLength(1)
+    expect(cells(container)[3]).toHaveAttribute('data-ch-active', 'true')
+  })
+
+  it('does not go stale when a controlled parent ignores a change', async () => {
+    const onActiveChange = vi.fn()
+    const { container } = renderHeatmap({ activeId: 'Dallas:Labor', onActiveChange })
+    const second = cells(container)[1] as HTMLElement
+    fireEvent.pointerEnter(second)
+    fireEvent.pointerEnter(second)
+    expect(onActiveChange).toHaveBeenCalledTimes(1)
+    await Promise.resolve()
+    // The parent still says Dallas:Labor, so the same move is reported again...
+    fireEvent.pointerEnter(second)
+    expect(onActiveChange).toHaveBeenCalledTimes(2)
+    await Promise.resolve()
+    // ...and moving to the id the parent already holds is not a change.
+    fireEvent.pointerEnter(cells(container)[0] as HTMLElement)
+    expect(onActiveChange).toHaveBeenCalledTimes(2)
+  })
 })

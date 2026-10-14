@@ -233,6 +233,8 @@ export function Heatmap<D>({
   // Kept in step with renders; a second call in the same event must see the first one's id.
   const activeRef = useRef(active)
   activeRef.current = active
+  const activeProp = useRef(activeId)
+  activeProp.current = activeId
   const [focusId, setFocusId] = useState<string | null>(null)
   const refs = useRef(new Map<string, HTMLElement>())
   const tabId = focusId !== null && byId.has(focusId) ? focusId : (model.cells[0]?.[0]?.id ?? null)
@@ -240,7 +242,15 @@ export function Heatmap<D>({
   const setActive = (next: string | null) => {
     if (next === activeRef.current) return
     activeRef.current = next
-    if (!controlled) setInnerActive(next)
+    if (controlled) {
+      // The parent decides. Drop the optimistic value once the event is over, so a parent that
+      // ignores the change doesn't leave the ref stale.
+      queueMicrotask(() => {
+        activeRef.current = activeProp.current ?? null
+      })
+    } else {
+      setInnerActive(next)
+    }
     onActiveChange?.(next, next === null ? null : (byId.get(next) ?? null))
   }
 
@@ -253,7 +263,11 @@ export function Heatmap<D>({
       return
     }
     if (event.key === 'Escape') {
-      setActive(null)
+      // Only handled when it clears something, so an enclosing dialog can still close.
+      if (activeRef.current !== null) {
+        event.preventDefault()
+        setActive(null)
+      }
       return
     }
     if (!MOVES.has(event.key)) return
