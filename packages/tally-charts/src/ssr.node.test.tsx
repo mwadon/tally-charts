@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest'
 import { LastTwelveWeeks } from '../test/fixtures'
 
 describe('server rendering', () => {
-  it('renders without a DOM', () => {
+  it('renders without a DOM', async () => {
     expect(typeof document).toBe('undefined')
     const html = renderToString(<LastTwelveWeeks />)
     expect(html).toContain('<svg')
@@ -12,6 +12,8 @@ describe('server rendering', () => {
     expect(html).toContain('<pattern')
     expect(html).toContain('Target 38%')
     expect(html).toContain('width="640"')
+    // The hydration test hydrates this exact node-rendered markup.
+    await expect(html).toMatchFileSnapshot('./__snapshots__/last-twelve-weeks.ssr.html')
   })
 
   it('is deterministic', () => {
