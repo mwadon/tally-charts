@@ -15,6 +15,7 @@ import { type DotItem, Dots } from '../marks/Dots'
 import { NearestPointer } from '../marks/NearestPointer'
 import { RowLabels } from '../marks/RowLabels'
 import { Tooltip } from '../overlays/Tooltip'
+import { toneVar } from '../ui/util'
 import { type ChartPassThroughProps, headerOf, toNumber, userCallbacks } from './shared'
 
 export interface StripSeries<D> {
@@ -126,9 +127,11 @@ function StripRows<D>(props: {
   })
   return (
     <>
+      <Dots dots={items} radius={props.radius} />
+      {/* After the dots, so the dashes stay visible through a stack of same-tone dots. */}
       <g data-ch-part="medians">
         {medians.map((m) => (
-          <g key={m.key}>
+          <g key={m.key} style={toneVar(m.tone)}>
             <line
               data-ch-part="median"
               data-ch-tone={m.tone}
@@ -136,7 +139,6 @@ function StripRows<D>(props: {
               x2={m.x}
               y1={m.top}
               y2={m.bottom}
-              style={{ stroke: `var(--ch-${m.tone})` }}
             />
             <text
               data-ch-part="median-label"
@@ -144,14 +146,12 @@ function StripRows<D>(props: {
               x={m.x + 4}
               y={m.top}
               dominantBaseline="middle"
-              style={{ fill: `var(--ch-${m.tone})` }}
             >
               {m.text}
             </text>
           </g>
         ))}
       </g>
-      <Dots dots={items} radius={props.radius} />
       <NearestPointer radius={Math.max(12, props.radius * 3)} />
     </>
   )

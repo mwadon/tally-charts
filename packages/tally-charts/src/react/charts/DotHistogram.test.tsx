@@ -76,6 +76,24 @@ describe('<DotHistogram>', () => {
     expect(container.querySelector('[data-ch-part="callout-stem"]')).not.toBeNull()
   })
 
+  it('lifts the callout clear of the taller stacks it spans', () => {
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (
+      this: HTMLElement,
+    ) {
+      const pill = this.dataset.chPart === 'callout'
+      return { width: pill ? 300 : 0, height: pill ? 30 : 0 } as DOMRect
+    })
+    // Five jobs at 15% stack higher than #2's own two-dot stack, under the 300px pill.
+    const tall: Job[] = [21, 22, 23, 24, 25].map((n) => ({ id: n, margin: 15.2 }))
+    const { container } = renderHistogram({ data: [...jobs, ...tall], calloutId: 2 })
+    const pill = container.querySelector('[data-ch-part="callout"]') as HTMLElement
+    const bottom = Number.parseFloat(pill.style.top) + 30
+    const top = Math.min(
+      ...dots(container).map((d) => Number(d.getAttribute('cy')) - Number(d.getAttribute('r'))),
+    )
+    expect(bottom).toBeLessThan(top)
+  })
+
   it('activates the nearest dot on hover and reports the user datum', () => {
     const onActiveChange = vi.fn()
     const { container } = renderHistogram({ onActiveChange })

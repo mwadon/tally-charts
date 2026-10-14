@@ -63,6 +63,16 @@ describe('<StripPlot>', () => {
     expect(labels[1]).toHaveAttribute('data-ch-tone', 'loss')
   })
 
+  it('draws the medians over the dots in an inked tint of the row tone', () => {
+    const { container } = renderStrip()
+    const lastDot = dots(container).at(-1) as Element
+    const median = container.querySelector('[data-ch-part="median"]') as Element
+    // Drawn later, so the dashes stay visible through a stack of same-tone dots.
+    expect(lastDot.compareDocumentPosition(median) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    const group = median.parentElement as HTMLElement
+    expect(group.style.getPropertyValue('--ch-swatch-color')).toBe('var(--ch-accent-soft)')
+  })
+
   it('labels the rows on the left', () => {
     const { container } = renderStrip()
     expect(parts(container, '[data-ch-part="row-label"]').map((t) => t.textContent)).toEqual([

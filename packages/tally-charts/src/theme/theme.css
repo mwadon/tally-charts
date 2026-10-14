@@ -232,12 +232,15 @@
   stroke-width: 2;
 }
 
+/* Medians use the inked tone mix of tinted text: visible over their own dots, ≥ 4.5:1 labels. */
 [data-ch-part="median"] {
+  stroke: color-mix(in srgb, var(--ch-swatch-color) var(--ch-tone-text-mix), var(--ch-ink));
   stroke-width: 1.5;
   stroke-dasharray: 3 3;
 }
 
 [data-ch-part="median-label"] {
+  fill: color-mix(in srgb, var(--ch-swatch-color) var(--ch-tone-text-mix), var(--ch-ink));
   font-size: 13px;
   font-weight: 500;
 }

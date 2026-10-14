@@ -50,4 +50,13 @@ describe('theme.css', () => {
   it('disables motion for reduced-motion users', () => {
     expect(css).toContain('@media (prefers-reduced-motion: reduce)')
   })
+
+  it('paints medians and their labels in the inked tone mix, like tinted text', () => {
+    const mix = 'color-mix(in srgb, var(--ch-swatch-color) var(--ch-tone-text-mix), var(--ch-ink))'
+    expect(css).toMatch(
+      /\[data-ch-part="median"\] \{[^}]*stroke: color-mix\(in srgb, var\(--ch-swatch-color\) var\(--ch-tone-text-mix\), var\(--ch-ink\)\)/,
+    )
+    expect(css).toMatch(/\[data-ch-part="median-label"\] \{[^}]*fill: color-mix/)
+    expect(css).toContain(mix)
+  })
 })

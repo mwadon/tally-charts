@@ -68,12 +68,15 @@ interface HistogramRow<D> {
 }
 
 const MARGIN: Margin = { top: 28, right: 8, bottom: 28, left: 8 }
+/** Space between the pinned pill and the tallest stack under it, in px. */
+const CALLOUT_GAP = 6
 
 function HistogramDots<D>(props: {
   rows: readonly HistogramRow<D>[]
   binWidth: number
   maxRadius: number
   minRadius: number
+  calloutId: Id | undefined
   warn: Warn
 }) {
   const ctx = useChart('DotHistogram')
@@ -110,10 +113,22 @@ function HistogramDots<D>(props: {
       },
     ]
   })
+  // The pinned pill rises above every stack it spans, not just its own.
+  const clearance = (left: number, right: number) => {
+    let limit = Number.POSITIVE_INFINITY
+    for (const d of layout.dots) {
+      if (d.cx + layout.radius < left || d.cx - layout.radius > right) continue
+      limit = Math.min(limit, d.cy - layout.radius - CALLOUT_GAP)
+    }
+    return limit
+  }
   return (
     <>
       <Dots dots={items} radius={layout.radius} />
       <NearestPointer radius={Math.max(12, layout.radius * 2 + 4)} />
+      {props.calloutId !== undefined ? (
+        <Callout id={props.calloutId} stem clearance={clearance} />
+      ) : null}
     </>
   )
 }
@@ -224,6 +239,7 @@ export function DotHistogram<D>({
         binWidth={width}
         maxRadius={maxRadius}
         minRadius={minRadius}
+        calloutId={calloutId}
         warn={warn}
       />
       {axis === 'none' ? null : (
@@ -233,7 +249,6 @@ export function DotHistogram<D>({
           format={typeof format === 'function' ? (v) => format(Number(v)) : format}
         />
       )}
-      {calloutId !== undefined ? <Callout id={calloutId} stem /> : null}
       {tooltip ? <Tooltip /> : null}
       {children}
     </Chart>
