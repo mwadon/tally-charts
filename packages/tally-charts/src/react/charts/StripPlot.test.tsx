@@ -112,6 +112,20 @@ describe('<StripPlot>', () => {
     expect(container.textContent).not.toContain('NaN')
   })
 
+  it('falls back to index ids on duplicate ids, keeping every dot reachable', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const { container } = renderStrip({ id: (d) => (d.job === 'C' ? 'C' : 'A') })
+    const figure = screen.getByRole('figure', { name: 'Dallas installs' })
+    const seen = new Set<string>()
+    for (let i = 0; i < 3; i++) {
+      fireEvent.keyDown(figure, { key: 'ArrowRight' })
+      seen.add(container.querySelector('[aria-live]')?.textContent ?? '')
+    }
+    expect(seen.size).toBe(3)
+    expect(warn).toHaveBeenCalledTimes(1)
+    expect(warn.mock.calls[0]?.[0]).toContain('duplicate id')
+  })
+
   it('renders a hidden data table with one column per series', () => {
     renderStrip()
     const table = screen.getByRole('table', { name: 'Dallas installs' })

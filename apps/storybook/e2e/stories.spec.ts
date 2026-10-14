@@ -154,9 +154,9 @@ test('the dot histogram walks bins with the arrow keys', async ({ page }) => {
   const chart = page.getByRole('figure', { name: 'Jobs by margin this week' })
   await chart.focus()
   await page.keyboard.press('ArrowRight')
-  await expect(chart.locator('[aria-live]')).toHaveText('#5700, 3.1%')
+  await expect(chart.locator('[aria-live]')).toHaveText('#5600, 3.1%')
   await page.keyboard.press('ArrowRight')
-  await expect(chart.locator('[aria-live]')).toHaveText('#5701, 4.2%')
+  await expect(chart.locator('[aria-live]')).toHaveText('#5601, 4.2%')
 })
 
 test('hovering near a strip dot shows its tooltip', async ({ page }) => {

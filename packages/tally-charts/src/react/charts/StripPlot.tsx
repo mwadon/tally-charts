@@ -1,11 +1,12 @@
 import { useMemo } from 'react'
-import { resolveAccessor } from '../../core/accessor'
+import { resolveAccessor, resolveIds } from '../../core/accessor'
 import { medianOf, stackStrip } from '../../core/dots'
 import type { FormatSpec, Formatter } from '../../core/format'
 import { niceDomain } from '../../core/linear'
 import { inferLinearDomain } from '../../core/scale'
 import type { TickSpec } from '../../core/ticks'
 import type { Accessor, Id, Tone } from '../../core/types'
+import { createWarner } from '../../core/warn'
 import { Chart } from '../Chart'
 import { useFormat } from '../ChartsProvider'
 import { type Margin, useChart } from '../context'
@@ -180,23 +181,24 @@ export function StripPlot<D>({
   ...chart
 }: StripPlotProps<D>) {
   const { create } = useFormat()
+  const warn = useMemo(() => createWarner(), [])
   const fmt = useMemo(() => create(format), [create, format])
 
   const rows = useMemo(() => {
-    const getId = id ? resolveAccessor(id) : undefined
+    const ids = resolveIds(data, id, warn)
     const getLabel = label ? resolveAccessor(label) : undefined
     const getters = series.map((s) => resolveAccessor(s.value))
     return data.map(
       (d, i): StripRow<D> => ({
         key: String(i),
-        rowId: getId ? getId(d, i) : i,
+        rowId: ids[i] ?? i,
         datum: d,
         index: i,
         name: getLabel ? String(getLabel(d, i) ?? '') : '',
         values: getters.map((get) => toNumber(get(d, i))),
       }),
     )
-  }, [data, id, label, series])
+  }, [data, id, label, series, warn])
 
   const resolvedDomain =
     domain ??

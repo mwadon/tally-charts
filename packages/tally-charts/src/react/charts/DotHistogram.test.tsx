@@ -153,6 +153,27 @@ describe('<DotHistogram>', () => {
     expect(warn.mock.calls[0]?.[0]).toContain('more dots than fit')
   })
 
+  it('falls back to index ids on duplicate ids, keeping every dot reachable', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const { container } = renderHistogram({
+      data: [
+        { id: 1, margin: 3 },
+        { id: 1, margin: 20 },
+        { id: 2, margin: 40 },
+      ],
+      label: (_d, i) => `job ${i}`,
+    })
+    const figure = screen.getByRole('figure', { name: 'Jobs by margin' })
+    const seen = new Set<string>()
+    for (let i = 0; i < 3; i++) {
+      fireEvent.keyDown(figure, { key: 'ArrowRight' })
+      seen.add(container.querySelector('[aria-live]')?.textContent ?? '')
+    }
+    expect([...seen]).toEqual(['job 0, 3.0%', 'job 1, 20.0%', 'job 2, 40.0%'])
+    expect(warn).toHaveBeenCalledTimes(1)
+    expect(warn.mock.calls[0]?.[0]).toContain('duplicate id')
+  })
+
   it('renders a hidden data table with the threshold group', () => {
     renderHistogram()
     const table = screen.getByRole('table', { name: 'Jobs by margin' })

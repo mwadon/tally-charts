@@ -108,6 +108,20 @@ describe('<WaffleColumns>', () => {
     expect(container.querySelector('[data-ch-part="callout"]')).toBeNull()
   })
 
+  it('falls back to index ids on duplicate ids, keeping every column reachable', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const { container } = renderWaffle({ id: 'month' })
+    const figure = screen.getByRole('figure', { name: 'Profit leaked' })
+    const seen = new Set<string>()
+    for (let i = 0; i < 4; i++) {
+      fireEvent.keyDown(figure, { key: 'ArrowRight' })
+      seen.add(container.querySelector('[aria-live]')?.textContent ?? '')
+    }
+    expect([...seen]).toEqual(['Aug 3, 8', 'Aug 10, 12', 'Sep 7, 24', 'Sep 14, 10'])
+    expect(warn).toHaveBeenCalledTimes(1)
+    expect(warn.mock.calls[0]?.[0]).toContain('duplicate id')
+  })
+
   it('renders a hidden data table', () => {
     renderWaffle()
     const table = screen.getByRole('table', { name: 'Profit leaked' })

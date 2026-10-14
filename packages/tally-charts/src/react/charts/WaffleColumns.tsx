@@ -1,6 +1,6 @@
 import { tickStep } from 'd3-array'
 import { useMemo } from 'react'
-import { resolveAccessor } from '../../core/accessor'
+import { resolveAccessor, resolveIds } from '../../core/accessor'
 import type { FormatSpec, Formatter } from '../../core/format'
 import type { Accessor, Id, Tone } from '../../core/types'
 import { packWaffle } from '../../core/waffle'
@@ -190,7 +190,7 @@ export function WaffleColumns<D>({
   const rows = useMemo(() => {
     const getX = resolveAccessor(x)
     const getY = resolveAccessor(y)
-    const getId = id ? resolveAccessor(id) : undefined
+    const ids = resolveIds(data, id, warn)
     const getGroup = group ? resolveAccessor(group) : undefined
     const base = data.map((d, i) => ({
       d,
@@ -198,7 +198,7 @@ export function WaffleColumns<D>({
       label: String(getX(d, i) ?? ''),
       value: toNumber(getY(d, i)),
       group: getGroup ? String(getGroup(d, i) ?? '') : '',
-      rowId: getId ? getId(d, i) : i,
+      rowId: ids[i] ?? i,
     }))
     const groups = [...new Set(base.map((b) => b.group).filter(Boolean))]
     const toneOf = (g: string): Tone => {
@@ -224,7 +224,7 @@ export function WaffleColumns<D>({
         soft: peak && i !== peakIndex,
       }),
     )
-  }, [data, x, y, id, group, groupTone, peak])
+  }, [data, x, y, id, group, groupTone, peak, warn])
 
   const missing = rows.find((r) => !Number.isFinite(r.value))
   if (DEV && missing) {

@@ -1,6 +1,6 @@
 import { tickStep } from 'd3-array'
 import { useMemo } from 'react'
-import { resolveAccessor } from '../../core/accessor'
+import { resolveAccessor, resolveIds } from '../../core/accessor'
 import { binDots } from '../../core/dots'
 import type { FormatSpec, Formatter } from '../../core/format'
 import { niceDomain } from '../../core/linear'
@@ -163,7 +163,7 @@ export function DotHistogram<D>({
 
   const rows = useMemo(() => {
     const getValue = resolveAccessor(value)
-    const getId = id ? resolveAccessor(id) : undefined
+    const ids = resolveIds(data, id, warn)
     const getLabel = label ? resolveAccessor(label) : undefined
     return data.map((d, i): HistogramRow<D> => {
       const v = toNumber(getValue(d, i))
@@ -177,7 +177,7 @@ export function DotHistogram<D>({
       const text = fmt(v)
       return {
         key: String(i),
-        rowId: getId ? getId(d, i) : i,
+        rowId: ids[i] ?? i,
         datum: d,
         index: i,
         value: v,
@@ -191,7 +191,7 @@ export function DotHistogram<D>({
             : [{ value: text }],
       }
     })
-  }, [data, value, id, label, segments, toneBy, fmt])
+  }, [data, value, id, label, segments, toneBy, fmt, warn])
 
   const missing = rows.find((r) => !Number.isFinite(r.value))
   if (DEV && missing) {
