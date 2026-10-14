@@ -1,0 +1,16 @@
+[
+  {
+    "name": "tally-charts/core",
+    "path": "dist/core/index.js",
+    "limit": "8 KB",
+    "gzip": true
+  },
+  {
+    "name": "Chart + Bars + Axis + Target + Tooltip",
+    "path": "dist/index.js",
+    "import": "{ Chart, Bars, Axis, Target, Tooltip }",
+    "ignore": ["react", "react-dom"],
+    "limit": "15 KB",
+    "gzip": true
+  }
+]
