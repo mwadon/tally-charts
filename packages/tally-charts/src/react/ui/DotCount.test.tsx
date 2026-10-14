@@ -1,0 +1,39 @@
+import { render } from '@testing-library/react'
+import { describe, expect, it } from 'vitest'
+import { DotCount } from './DotCount'
+
+const dots = (root: HTMLElement) => root.querySelectorAll('.ch-dot')
+
+describe('<DotCount>', () => {
+  it('draws one dot per item and labels the count', () => {
+    const { container } = render(<DotCount count={29} label="29 jobs" />)
+    expect(dots(container)).toHaveLength(29)
+    expect(container.querySelector('.ch-dot-count-label')).toHaveTextContent('29 jobs')
+    expect(container.querySelector('.ch-dot-grid')).toHaveAttribute('aria-hidden', 'true')
+  })
+
+  it('caps the dots at max but keeps the full count in the label', () => {
+    const { container } = render(<DotCount count={40} max={10} />)
+    expect(dots(container)).toHaveLength(10)
+    expect(container.querySelector('.ch-dot-count-label')).toHaveTextContent('40')
+  })
+
+  it('wraps rows at perRow', () => {
+    const { container } = render(<DotCount count={4} perRow={15} />)
+    expect(container.querySelector('.ch-dot-grid')).toHaveStyle({
+      gridTemplateColumns: 'repeat(15, 8px)',
+    })
+  })
+
+  it('keeps the count readable when the label is hidden', () => {
+    const { container } = render(<DotCount count={3} label={null} />)
+    expect(container.querySelector('.ch-dot-count-label')).toBeNull()
+    expect(container.querySelector('.ch-sr-only')).toHaveTextContent('3')
+  })
+
+  it('draws nothing for a bad count', () => {
+    const { container } = render(<DotCount count={Number.NaN} />)
+    expect(dots(container)).toHaveLength(0)
+    expect(container.querySelector('.ch-dot-count-label')).toHaveTextContent('0')
+  })
+})

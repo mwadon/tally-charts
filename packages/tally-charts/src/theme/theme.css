@@ -335,8 +335,13 @@
   border-radius: 50%;
 }
 
-.ch-swatch[data-ch-fill="hatch"],
-.ch-swatch[data-ch-fill="hatch-fade"] {
+/* Every HTML fill (legend swatches, meters, inline bars) paints --ch-swatch-color this way. */
+.ch-fillable {
+  background: var(--ch-swatch-color);
+}
+
+.ch-fillable[data-ch-fill="hatch"],
+.ch-fillable[data-ch-fill="hatch-fade"] {
   /* Same stripe direction as the SVG patterns: gradient runs perpendicular to the stripes. */
   background: repeating-linear-gradient(
     calc((var(--ch-hatch-angle) + 90) * 1deg),
@@ -408,6 +413,165 @@
   gap: 12px;
   color: var(--ch-ink-muted);
   font-size: 15px;
+}
+
+.ch-meter {
+  display: grid;
+  gap: 10px;
+}
+
+.ch-meter-track,
+.ch-inline-bar {
+  position: relative;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ch-grid) 55%, transparent);
+}
+
+.ch-meter-track {
+  height: 12px;
+}
+
+.ch-meter-fill {
+  height: 100%;
+  border-radius: 999px;
+}
+
+.ch-meter-target,
+.ch-inline-bar-target {
+  position: absolute;
+  width: 2px;
+  margin-left: -1px;
+  border-radius: 1px;
+  background: var(--ch-ink);
+}
+
+.ch-meter-target {
+  top: -6px;
+  bottom: -6px;
+}
+
+.ch-meter-labels {
+  position: relative;
+  height: 16px;
+  color: var(--ch-ink-muted);
+  font-size: 13px;
+}
+
+.ch-meter-target-label {
+  position: absolute;
+  top: 0;
+  white-space: nowrap;
+}
+
+.ch-range {
+  display: grid;
+  gap: 6px;
+  font-variant-numeric: var(--ch-font-numeric);
+}
+
+.ch-range-labels {
+  position: relative;
+  height: 18px;
+  font-size: 14px;
+}
+
+.ch-range-labels > span {
+  position: absolute;
+  top: 0;
+  white-space: nowrap;
+}
+
+.ch-range-ref-label {
+  color: var(--ch-ink);
+}
+
+.ch-range-track {
+  position: relative;
+  height: 18px;
+}
+
+.ch-range-track::before {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 0;
+  left: 0;
+  height: 2px;
+  margin-top: -1px;
+  background: var(--ch-grid);
+}
+
+.ch-range-gap {
+  position: absolute;
+  top: 50%;
+  height: 8px;
+  margin-top: -4px;
+}
+
+.ch-range-dot,
+.ch-range-ring {
+  position: absolute;
+  top: 50%;
+  box-sizing: border-box;
+  width: 16px;
+  height: 16px;
+  margin: -8px 0 0 -8px;
+  border-radius: 50%;
+}
+
+.ch-range-dot {
+  background: var(--ch-swatch-color);
+}
+
+.ch-range-ring {
+  border: 3px solid var(--ch-range-ref-color);
+  background: var(--ch-surface);
+}
+
+.ch-range-scale {
+  display: flex;
+  justify-content: space-between;
+  color: var(--ch-ink-muted);
+  font-size: 12px;
+}
+
+.ch-inline-bar {
+  display: inline-block;
+  height: 8px;
+  vertical-align: middle;
+}
+
+.ch-inline-bar-fill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  border-radius: 999px;
+}
+
+.ch-inline-bar-target {
+  top: -5px;
+  bottom: -5px;
+}
+
+.ch-dot-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--ch-ink-muted);
+  font-size: 14px;
+}
+
+.ch-dot-grid {
+  display: grid;
+  gap: 5px;
+}
+
+.ch-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--ch-swatch-color) 45%, transparent);
 }
 
 /* ---------- Motion off ---------- */

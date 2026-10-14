@@ -23,7 +23,7 @@ export function Legend({ items, shape = 'bar', className }: LegendProps) {
         <li key={i} className="ch-legend-item">
           <span
             aria-hidden="true"
-            className="ch-swatch"
+            className="ch-swatch ch-fillable"
             data-ch-tone={item.tone}
             data-ch-fill={item.fill ?? 'solid'}
             data-ch-shape={item.shape ?? shape}
