@@ -1,10 +1,18 @@
 import { describe, expect, it } from 'vitest'
-import { DEFAULT_HATCH, fadeMaskId, paintFor, patternId, readHatchGeometry } from './patterns'
+import {
+  DEFAULT_HATCH,
+  DEFAULT_RADIUS,
+  fadeMaskId,
+  paintFor,
+  patternId,
+  readHatchGeometry,
+  readRadius,
+} from './patterns'
 
 describe('patterns', () => {
   it('builds chart-scoped ids', () => {
     expect(patternId('c1', 'loss')).toBe('c1-hatch-loss')
-    expect(fadeMaskId('c1', 'x')).toBe('c1-fade-x')
+    expect(fadeMaskId('c1', 'left')).toBe('c1-fade-left')
   })
 
   it('paints solid fills with the tone token', () => {
@@ -15,11 +23,18 @@ describe('patterns', () => {
     expect(paintFor('c1', 'accent', 'hatch')).toEqual({ fill: 'url(#c1-hatch-accent)' })
   })
 
-  it('adds the fade mask for hatch-fade', () => {
-    expect(paintFor('c1', 'accent', 'hatch-fade', 'x')).toEqual({
+  it('adds the fade mask that matches the bar direction', () => {
+    expect(paintFor('c1', 'accent', 'hatch-fade')).toEqual({
       fill: 'url(#c1-hatch-accent)',
-      mask: 'url(#c1-fade-x)',
+      mask: 'url(#c1-fade-up)',
     })
+    expect(paintFor('c1', 'accent', 'hatch-fade', 'down').mask).toBe('url(#c1-fade-down)')
+  })
+
+  it('reads the corner radius token and falls back to the default', () => {
+    expect(readRadius({ getPropertyValue: () => ' 6px' })).toBe(6)
+    expect(readRadius({ getPropertyValue: () => '' })).toBe(DEFAULT_RADIUS)
+    expect(readRadius({ getPropertyValue: () => '-2px' })).toBe(DEFAULT_RADIUS)
   })
 
   it('reads hatch geometry from CSS custom properties', () => {

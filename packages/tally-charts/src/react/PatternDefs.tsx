@@ -1,3 +1,4 @@
+import type { BarDirection } from '../core/bars'
 import { TONES } from '../core/types'
 import { fadeMaskId, type HatchGeometry, patternId } from '../theme/patterns'
 
@@ -6,9 +7,17 @@ export interface PatternDefsProps {
   geometry: HatchGeometry
 }
 
+/** Gradient end points per direction: offset 0 (opaque) sits at the bar's outer end. */
+const FADES: { dir: BarDirection; x1: number; y1: number; x2: number; y2: number }[] = [
+  { dir: 'up', x1: 0, y1: 0, x2: 0, y2: 1 },
+  { dir: 'down', x1: 0, y1: 1, x2: 0, y2: 0 },
+  { dir: 'right', x1: 1, y1: 0, x2: 0, y2: 0 },
+  { dir: 'left', x1: 0, y1: 0, x2: 1, y2: 0 },
+]
+
 /**
- * One hatch pattern per tone (always all six, so server and client markup match) and two
- * fade masks. Colors and stroke width come from CSS variables; angle and gap are attributes.
+ * One hatch pattern per tone (always all six, so server and client markup match) and four
+ * fade masks, one per bar direction. Colors and stroke width come from CSS variables; angle and gap are attributes.
  */
 export function PatternDefs({ chartId, geometry }: PatternDefsProps) {
   const { gap } = geometry
@@ -39,20 +48,17 @@ export function PatternDefs({ chartId, geometry }: PatternDefsProps) {
           />
         </pattern>
       ))}
-      <linearGradient id={`${chartId}-fade-gradient-y`} x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0" stopColor="#fff" stopOpacity={1} />
-        <stop offset="1" stopColor="#fff" stopOpacity={0.3} />
-      </linearGradient>
-      <linearGradient id={`${chartId}-fade-gradient-x`} x1="1" y1="0" x2="0" y2="0">
-        <stop offset="0" stopColor="#fff" stopOpacity={1} />
-        <stop offset="1" stopColor="#fff" stopOpacity={0.3} />
-      </linearGradient>
-      <mask id={fadeMaskId(chartId, 'y')} maskContentUnits="objectBoundingBox">
-        <rect width={1} height={1} fill={`url(#${chartId}-fade-gradient-y)`} />
-      </mask>
-      <mask id={fadeMaskId(chartId, 'x')} maskContentUnits="objectBoundingBox">
-        <rect width={1} height={1} fill={`url(#${chartId}-fade-gradient-x)`} />
-      </mask>
+      {FADES.map(({ dir, ...ends }) => (
+        <linearGradient key={`g-${dir}`} id={`${chartId}-fade-gradient-${dir}`} {...ends}>
+          <stop offset="0" stopColor="#fff" stopOpacity={1} />
+          <stop offset="1" stopColor="#fff" stopOpacity={0.3} />
+        </linearGradient>
+      ))}
+      {FADES.map(({ dir }) => (
+        <mask key={`m-${dir}`} id={fadeMaskId(chartId, dir)} maskContentUnits="objectBoundingBox">
+          <rect width={1} height={1} fill={`url(#${chartId}-fade-gradient-${dir})`} />
+        </mask>
+      ))}
     </defs>
   )
 }

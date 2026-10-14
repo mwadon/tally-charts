@@ -10,7 +10,7 @@ import {
 import { createScale, type ScaleSpec } from '../core/scale'
 import type { Id } from '../core/types'
 import { createWarner, type Warn } from '../core/warn'
-import { DEFAULT_HATCH, readHatchGeometry } from '../theme/patterns'
+import { DEFAULT_HATCH, DEFAULT_RADIUS, readHatchGeometry, readRadius } from '../theme/patterns'
 import { useFormat } from './ChartsProvider'
 import { ChartContext, type ChartContextValue, type Margin } from './context'
 import { navigate, useInteraction } from './interaction'
@@ -45,6 +45,11 @@ export interface ChartProps<D> {
   empty?: ReactNode
   className?: string
   style?: CSSProperties
+  /**
+   * Prefix for pattern and mask ids. React's `useId` is only unique within one root, so set this
+   * when charts render in several React roots on one page.
+   */
+  chartId?: string
   children?: ReactNode
 }
 
@@ -72,10 +77,12 @@ export function Chart<D>({
   empty,
   className,
   style,
+  chartId: chartIdProp,
   children,
 }: ChartProps<D>) {
   const rootRef = useRef<HTMLElement>(null)
-  const chartId = `ch-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`
+  const reactId = useId()
+  const chartId = `ch-${(chartIdProp ?? reactId).replace(/[^a-zA-Z0-9_-]/g, '')}`
   const measured = useWidth(rootRef, initialWidth, width === undefined)
   const w = Math.max(0, width ?? measured)
   const h = Math.max(0, height ?? (aspectRatio ? Math.round(w / aspectRatio) : DEFAULT_HEIGHT))
@@ -100,12 +107,15 @@ export function Chart<D>({
   const interaction = useInteraction({ activeId, onActiveChange })
   const [overlay, setOverlay] = useState<HTMLDivElement | null>(null)
   const [hatch, setHatch] = useState(DEFAULT_HATCH)
+  const [radius, setRadius] = useState(DEFAULT_RADIUS)
 
   useIsoLayoutEffect(() => {
     const el = rootRef.current
     if (!el) return
-    const next = readHatchGeometry(getComputedStyle(el))
+    const computed = getComputedStyle(el)
+    const next = readHatchGeometry(computed)
     setHatch((prev) => (prev.angle === next.angle && prev.gap === next.gap ? prev : next))
+    setRadius(readRadius(computed))
   }, [])
 
   const effectiveActiveId = interaction.activePoint ? interaction.activePoint.id : null
@@ -141,6 +151,7 @@ export function Chart<D>({
     format: formatters.create,
     warn,
     dimInactive,
+    radius,
     activeId: effectiveActiveId,
     activePoint: interaction.activePoint,
     points: interaction.points,
@@ -159,13 +170,19 @@ export function Chart<D>({
   const titleId = `${chartId}-title`
   const descId = `${chartId}-desc`
 
+  // While measuring, CSS keeps the box at the right height before the real width is known.
+  const sizeStyle: CSSProperties =
+    height === undefined && aspectRatio && width === undefined
+      ? { aspectRatio: String(aspectRatio) }
+      : { height: h }
+
   return (
     <figure
       ref={rootRef}
       data-ch-root=""
       data-ch-animate={animate ? 'true' : 'false'}
       className={className}
-      style={{ height: h, ...style }}
+      style={{ ...sizeStyle, ...style }}
       aria-labelledby={title ? titleId : undefined}
       aria-describedby={description ? descId : undefined}
       tabIndex={isEmpty ? undefined : 0}

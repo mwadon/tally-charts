@@ -32,6 +32,23 @@ const hits = (root: HTMLElement) => [...root.querySelectorAll('[data-ch-part="ba
 describe('<Bars>', () => {
   afterEach(() => vi.restoreAllMocks())
 
+  it('fades negative bars toward their baseline', () => {
+    const { container } = renderBars(
+      { fill: 'hatch-fade' },
+      { data: [{ week: 'W1', margin: -10 }], y: { field: 'margin', domain: [-20, 20] } },
+    )
+    const style = (bars(container)[0] as SVGElement).getAttribute('style') ?? ''
+    expect(style).toMatch(/fade-down/)
+  })
+
+  it('uses the chart radius unless radius is set', () => {
+    const { container, unmount } = renderBars()
+    expect(bars(container)[0]).toHaveAttribute('rx', '3')
+    unmount()
+    const square = renderBars({ radius: 0 })
+    expect(bars(square.container)[0]).toHaveAttribute('rx', '0')
+  })
+
   it('draws one bar per datum using the chart fields', () => {
     const { container } = renderBars()
     const [a, b] = bars(container)

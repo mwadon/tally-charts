@@ -65,7 +65,7 @@
   /* Distance between stripes in px. Unitless: read by JS too. */
   --ch-hatch-gap: 6;
   --ch-font-numeric: tabular-nums;
-  --ch-radius: 4px;
+  --ch-radius: 3px;
   --ch-duration: 400ms;
   --ch-ease: cubic-bezier(0.2, 0, 0, 1);
   --ch-dim-opacity: 0.35;

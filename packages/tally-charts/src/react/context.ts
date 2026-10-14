@@ -25,6 +25,8 @@ export interface ChartContextValue {
   format: (spec?: FormatSpec, options?: Pick<FormatOptions, 'signed'>) => Formatter
   warn: Warn
   dimInactive: boolean
+  /** Default bar corner radius in px, from `--ch-radius`. */
+  radius: number
   activeId: Id | null
   activePoint: ChartPoint | null
   points: ChartPoint[]

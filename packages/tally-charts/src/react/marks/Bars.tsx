@@ -18,7 +18,7 @@ export interface BarsProps<D> {
   id?: Accessor<D, Id>
   tone?: PerItem<D, Tone>
   fill?: PerItem<D, Fill>
-  /** Corner radius in px. Default 3. */
+  /** Corner radius in px. Default: the `--ch-radius` token (3px). */
   radius?: number
   /** Value format for tooltips and announcements. Default 'number'. */
   format?: FormatSpec
@@ -74,7 +74,7 @@ export function Bars<D>(props: BarsProps<D>) {
   const toneOf = resolvePerItem<D, Tone>(props.tone ?? 'accent')
   const fillOf = resolvePerItem<D, Fill>(props.fill ?? 'solid')
   const vertical = layout.orientation === 'vertical'
-  const radius = props.radius ?? 3
+  const radius = props.radius ?? ctx.radius
   const dimming = ctx.dimInactive && ctx.activeId !== null
 
   return (
@@ -84,7 +84,7 @@ export function Bars<D>(props: BarsProps<D>) {
         const datum = bar.datum as D
         const tone = toneOf(datum, bar.index, data)
         const fill = fillOf(datum, bar.index, data)
-        const paint = paintFor(ctx.chartId, tone, fill, vertical ? 'y' : 'x')
+        const paint = paintFor(ctx.chartId, tone, fill, bar.dir)
         const active = bar.id === ctx.activeId
         // Geometry is also set as CSS so browsers that support it can transition x/y/width/height.
         const style = {

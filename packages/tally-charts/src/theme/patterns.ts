@@ -1,6 +1,5 @@
+import type { BarDirection } from '../core/bars'
 import type { Fill, Tone } from '../core/types'
-
-export type FadeAxis = 'x' | 'y'
 
 export interface HatchGeometry {
   /** Stripe direction in degrees from horizontal. */
@@ -11,20 +10,24 @@ export interface HatchGeometry {
 
 export const DEFAULT_HATCH: HatchGeometry = { angle: 45, gap: 6 }
 
+/** Bar corner radius in px when `--ch-radius` can't be read (server rendering). */
+export const DEFAULT_RADIUS = 3
+
 export const patternId = (chartId: string, tone: Tone) => `${chartId}-hatch-${tone}`
 
-export const fadeMaskId = (chartId: string, axis: FadeAxis) => `${chartId}-fade-${axis}`
+/** One mask per bar direction: opaque at the bar's outer end, faded toward its baseline. */
+export const fadeMaskId = (chartId: string, dir: BarDirection) => `${chartId}-fade-${dir}`
 
 export interface Paint {
   fill: string
   mask?: string
 }
 
-export function paintFor(chartId: string, tone: Tone, fill: Fill, fadeAxis: FadeAxis = 'y'): Paint {
+export function paintFor(chartId: string, tone: Tone, fill: Fill, dir: BarDirection = 'up'): Paint {
   if (fill === 'solid') return { fill: `var(--ch-${tone})` }
   const pattern = `url(#${patternId(chartId, tone)})`
   if (fill === 'hatch') return { fill: pattern }
-  return { fill: pattern, mask: `url(#${fadeMaskId(chartId, fadeAxis)})` }
+  return { fill: pattern, mask: `url(#${fadeMaskId(chartId, dir)})` }
 }
 
 export function readHatchGeometry(
@@ -36,4 +39,9 @@ export function readHatchGeometry(
     angle: Number.isFinite(angle) ? angle : DEFAULT_HATCH.angle,
     gap: Number.isFinite(gap) && gap > 0 ? gap : DEFAULT_HATCH.gap,
   }
+}
+
+export function readRadius(style: Pick<CSSStyleDeclaration, 'getPropertyValue'>): number {
+  const radius = Number.parseFloat(style.getPropertyValue('--ch-radius'))
+  return Number.isFinite(radius) && radius >= 0 ? radius : DEFAULT_RADIUS
 }

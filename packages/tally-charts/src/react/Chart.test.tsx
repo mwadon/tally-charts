@@ -33,6 +33,25 @@ function PointsProbe({ ids }: { ids: Id[] }) {
 }
 
 describe('<Chart>', () => {
+  it('uses chartId as the pattern id prefix', () => {
+    const { container } = render(<Chart width={100} chartId="revenue" />)
+    expect(container.querySelector('#ch-revenue-hatch-accent')).not.toBeNull()
+  })
+
+  it('exposes the default corner radius through context', () => {
+    let ctx: ChartContextValue | undefined
+    render(
+      <Chart width={100}>
+        <Probe
+          onContext={(c) => {
+            ctx = c
+          }}
+        />
+      </Chart>,
+    )
+    expect(ctx?.radius).toBe(3)
+  })
+
   it('renders a named, described figure that is one tab stop', () => {
     render(
       <Chart
@@ -110,8 +129,8 @@ describe('<Chart>', () => {
       </>,
     )
     const ids = [...container.querySelectorAll('pattern, mask')].map((el) => el.id)
-    expect(ids).toHaveLength(16)
-    expect(new Set(ids).size).toBe(16)
+    expect(ids).toHaveLength(20)
+    expect(new Set(ids).size).toBe(20)
   })
 
   it('keeps geometry finite at zero width', () => {
