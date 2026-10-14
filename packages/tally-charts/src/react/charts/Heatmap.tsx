@@ -55,7 +55,10 @@ export interface HeatmapProps<D> {
   totalLabel?: string
   /** Legend of the bins under the grid. Default true. */
   legend?: boolean
-  /** Base tone of the sequential levels. Default 'loss'. */
+  /**
+   * Base tone of the sequential levels and the legend. Default: a `--ch-seq-base` set on an
+   * ancestor, else loss. Every tone keeps cell text at 4.5:1 or more in both themes.
+   */
   tone?: Tone
   /** Accessible name of the grid. */
   title?: string
@@ -142,7 +145,7 @@ export function Heatmap<D>({
   totals = true,
   totalLabel = 'Total',
   legend = true,
-  tone = 'loss',
+  tone,
   title,
   description,
   activeId,
@@ -289,11 +292,21 @@ export function Heatmap<D>({
 
   const valueText = (v: number | undefined): ReactNode =>
     v !== undefined && Number.isFinite(v) ? fmt(v) : <NoData />
-  const rootStyle = { '--ch-seq-base': `var(--ch-${tone})`, ...style } as CSSProperties
+  // Only an explicit tone overrides a --ch-seq-base set on an ancestor; data-ch-seq-tone picks
+  // that tone's level mixes in theme.css, and the legend inside inherits them.
+  const rootStyle = (tone ? { '--ch-seq-base': `var(--ch-${tone})`, ...style } : style) as
+    | CSSProperties
+    | undefined
+  const rootProps = {
+    className: cx('ch-heatmap', className),
+    'data-ch-part': 'heatmap',
+    'data-ch-seq-tone': tone,
+    style: rootStyle,
+  }
 
   if (model.rows.length === 0 || model.columns.length === 0) {
     return (
-      <div className={cx('ch-heatmap', className)} data-ch-part="heatmap" style={rootStyle}>
+      <div {...rootProps}>
         <div data-ch-part="empty" className="ch-empty">
           {empty ?? 'No data'}
         </div>
@@ -302,7 +315,7 @@ export function Heatmap<D>({
   }
 
   return (
-    <div className={cx('ch-heatmap', className)} data-ch-part="heatmap" style={rootStyle}>
+    <div {...rootProps}>
       {title ? (
         <span hidden id={titleId}>
           {title}
@@ -320,7 +333,11 @@ export function Heatmap<D>({
         aria-labelledby={title ? titleId : undefined}
         aria-describedby={description ? descId : undefined}
         style={{ '--ch-heatmap-columns': model.columns.length } as CSSProperties}
-        onPointerLeave={() => setActive(null)}
+        onPointerLeave={(event) => {
+          // Keyboard focus keeps its cell active; the pointer only clears what it activated.
+          const focused = event.currentTarget.contains(document.activeElement)
+          setActive(focused && focusId !== null && byId.has(focusId) ? focusId : null)
+        }}
         onBlur={(event) => {
           if (!event.currentTarget.contains(event.relatedTarget)) setActive(null)
         }}

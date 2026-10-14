@@ -157,6 +157,18 @@ describe('<Heatmap>', () => {
     expect(container.querySelector('[data-ch-active]')).toBeNull()
   })
 
+  it('keeps the keyboard-focused cell active when the pointer leaves', () => {
+    const onActiveChange = vi.fn()
+    const { container } = renderHeatmap({ onActiveChange })
+    const first = cells(container)[0] as HTMLElement
+    act(() => first.focus())
+    fireEvent.pointerEnter(cells(container)[2] as HTMLElement)
+    expect(cells(container)[2]).toHaveAttribute('data-ch-active', 'true')
+    fireEvent.pointerLeave(screen.getByRole('grid'))
+    expect(first).toHaveAttribute('data-ch-active', 'true')
+    expect(onActiveChange).not.toHaveBeenCalledWith(null, null)
+  })
+
   it('follows a controlled activeId', () => {
     const { container } = renderHeatmap({ activeId: 'Austin:Labor' })
     expect(cells(container)[3]).toHaveAttribute('data-ch-active', 'true')
@@ -203,10 +215,20 @@ describe('<Heatmap>', () => {
     expect(warn.mock.calls[0]?.[0]).toContain('sorted')
   })
 
-  it('recolors the levels with tone', () => {
-    const { container } = renderHeatmap({ tone: 'accent' })
+  it('recolors the levels and the legend with tone', () => {
+    const { container } = renderHeatmap({ tone: 'warn' })
     const root = container.querySelector('[data-ch-part="heatmap"]') as HTMLElement
-    expect(root.style.getPropertyValue('--ch-seq-base')).toBe('var(--ch-accent)')
+    expect(root.style.getPropertyValue('--ch-seq-base')).toBe('var(--ch-warn)')
+    // Keys the per-tone level mixes in theme.css; the legend inherits them from the root.
+    expect(root).toHaveAttribute('data-ch-seq-tone', 'warn')
+    expect(root.querySelector('[data-ch-part="legend"]')).not.toBeNull()
+  })
+
+  it('leaves --ch-seq-base to an ancestor without tone', () => {
+    const { container } = renderHeatmap()
+    const root = container.querySelector('[data-ch-part="heatmap"]') as HTMLElement
+    expect(root.style.getPropertyValue('--ch-seq-base')).toBe('')
+    expect(root).not.toHaveAttribute('data-ch-seq-tone')
   })
 
   it('shows an empty state without data', () => {

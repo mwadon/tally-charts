@@ -77,16 +77,59 @@
 /* ---------- Sequential levels ---------- */
 /* Resolved on each element from an inherited --ch-seq-base (default: loss), so a base set on
    any ancestor, or Heatmap's `tone`, recolors charts, heatmaps and legends alike. Levels 1–4
-   keep --ch-ink text at 4.5:1 or more in both themes; level 5 is darkened for white text. */
+   mix the base into --ch-surface and carry --ch-ink text; level 5 mixes it with black for
+   white text. The default shares keep 4.5:1 for loss and accent in both themes. */
 [data-ch-root],
 .ch-legend,
 .ch-heatmap {
-  --ch-seq-1: color-mix(in srgb, var(--ch-seq-base, var(--ch-loss)) 12%, var(--ch-surface));
-  --ch-seq-2: color-mix(in srgb, var(--ch-seq-base, var(--ch-loss)) 30%, var(--ch-surface));
-  --ch-seq-3: color-mix(in srgb, var(--ch-seq-base, var(--ch-loss)) 50%, var(--ch-surface));
-  --ch-seq-4: color-mix(in srgb, var(--ch-seq-base, var(--ch-loss)) 65%, var(--ch-surface));
-  --ch-seq-5: color-mix(in srgb, var(--ch-seq-base, var(--ch-loss)) 75%, #000);
+  --ch-seq-1: color-mix(
+    in srgb,
+    var(--ch-seq-base, var(--ch-loss)) var(--ch-seq-mix-1, 12%),
+    var(--ch-surface)
+  );
+  --ch-seq-2: color-mix(
+    in srgb,
+    var(--ch-seq-base, var(--ch-loss)) var(--ch-seq-mix-2, 30%),
+    var(--ch-surface)
+  );
+  --ch-seq-3: color-mix(
+    in srgb,
+    var(--ch-seq-base, var(--ch-loss)) var(--ch-seq-mix-3, 50%),
+    var(--ch-surface)
+  );
+  --ch-seq-4: color-mix(
+    in srgb,
+    var(--ch-seq-base, var(--ch-loss)) var(--ch-seq-mix-4, 65%),
+    var(--ch-surface)
+  );
+  --ch-seq-5: color-mix(in srgb, var(--ch-seq-base, var(--ch-loss)) var(--ch-seq-mix-5, 75%), #000);
   --ch-seq-ink-strong: #fff;
+}
+
+/* Per-tone shares for the other tones, set by Heatmap's `tone` and inherited by its legend:
+   light tones darken level 5 further, and bright tones lighten the ramp so the dark theme's
+   ink keeps 4.5:1. theme.test.ts checks every tone × theme × level. */
+[data-ch-seq-tone="accent-soft"] {
+  --ch-seq-mix-5: 60%;
+}
+
+[data-ch-seq-tone="neutral"] {
+  --ch-seq-mix-5: 66%;
+}
+
+[data-ch-seq-tone="warn"] {
+  --ch-seq-mix-1: 10%;
+  --ch-seq-mix-2: 24%;
+  --ch-seq-mix-3: 38%;
+  --ch-seq-mix-4: 50%;
+  --ch-seq-mix-5: 56%;
+}
+
+[data-ch-seq-tone="gain"] {
+  --ch-seq-mix-2: 27%;
+  --ch-seq-mix-3: 42%;
+  --ch-seq-mix-4: 54%;
+  --ch-seq-mix-5: 60%;
 }
 
 /* ---------- Chart root ---------- */
