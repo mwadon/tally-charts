@@ -6,7 +6,7 @@ import { useChart } from '../context'
 import { useRegisterPoints } from '../useRegisterPoints'
 import { NearestPointer, type NearestPointerProps } from './NearestPointer'
 
-function Points({ at }: { at: [Id, number, number][] }) {
+function Points({ at, hit }: { at: [Id, number, number][]; hit?: [number, number][] }) {
   const ctx = useChart('Points')
   useRegisterPoints(
     ctx,
@@ -16,6 +16,8 @@ function Points({ at }: { at: [Id, number, number][] }) {
       datum: null,
       x,
       y,
+      hitX: hit?.[index]?.[0],
+      hitY: hit?.[index]?.[1],
       label: String(id),
       segments: [],
     })),
@@ -74,6 +76,28 @@ describe('<NearestPointer>', () => {
     const { container } = renderLayer({ axis: 'x' }, { onActiveChange })
     fireEvent.pointerMove(layer(container), { clientX: 78, clientY: 5 })
     expect(onActiveChange).toHaveBeenLastCalledWith('b', expect.objectContaining({ id: 'b' }))
+  })
+
+  it('measures to the hit centre when a point sets one', () => {
+    const onActiveChange = vi.fn()
+    const { container } = render(
+      <Chart
+        width={200}
+        height={100}
+        margin={{ top: 0, right: 0, bottom: 0, left: 0 }}
+        x={{ domain: [0, 1] }}
+        y={{ domain: [0, 1] }}
+        onActiveChange={onActiveChange}
+      >
+        <Points at={[['a', 20, 20]]} hit={[[20, 60]]} />
+        <NearestPointer />
+      </Chart>,
+    )
+    // The anchor (20, 20) is 40px away, outside the radius; the hit centre is right here.
+    fireEvent.pointerMove(layer(container), { clientX: 20, clientY: 60 })
+    expect(onActiveChange).toHaveBeenLastCalledWith('a', expect.objectContaining({ id: 'a' }))
+    fireEvent.pointerMove(layer(container), { clientX: 20, clientY: 20 })
+    expect(onActiveChange).toHaveBeenLastCalledWith(null, null)
   })
 
   it('selects the nearest point on click and is selectable only with onSelect', () => {

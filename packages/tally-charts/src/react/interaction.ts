@@ -119,6 +119,8 @@ export function samePoints(
       p.index === q.index &&
       p.x === q.x &&
       p.y === q.y &&
+      p.hitX === q.hitX &&
+      p.hitY === q.hitY &&
       p.label === q.label &&
       p.datum === q.datum &&
       p.group?.key === q.group?.key &&

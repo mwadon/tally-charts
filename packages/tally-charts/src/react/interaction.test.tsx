@@ -137,6 +137,12 @@ describe('samePoints', () => {
     ).toBe(true)
   })
 
+  it('treats points with a changed hit centre as different', () => {
+    const a = pts(['a'])
+    expect(samePoints(a, [{ ...(a[0] as ChartPoint), hitX: 1 }])).toBe(false)
+    expect(samePoints(a, [{ ...(a[0] as ChartPoint), hitY: 1 }])).toBe(false)
+  })
+
   it('treats points with a changed index as different', () => {
     const a = pts(['a'])
     expect(samePoints(a, [{ ...(a[0] as ChartPoint), index: 3 }])).toBe(false)

@@ -24,8 +24,9 @@ export function NearestPointer({ radius = 24, axis = 'xy' }: NearestPointerProps
     let best: ChartPoint | undefined
     let bestDistance = Number.POSITIVE_INFINITY
     for (const point of ctx.points) {
-      const distance =
-        axis === 'x' ? Math.abs(point.x - px) : Math.hypot(point.x - px, point.y - py)
+      const hx = point.hitX ?? point.x
+      const hy = point.hitY ?? point.y
+      const distance = axis === 'x' ? Math.abs(hx - px) : Math.hypot(hx - px, hy - py)
       if (distance <= radius && distance < bestDistance) {
         best = point
         bestDistance = distance

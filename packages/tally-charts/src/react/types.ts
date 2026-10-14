@@ -20,6 +20,10 @@ export interface ChartPoint {
   datum: unknown
   x: number
   y: number
+  /** Hit-test centre for NearestPointer; defaults to x/y. */
+  hitX?: number
+  /** Hit-test centre for NearestPointer; defaults to x/y. */
+  hitY?: number
   /** Screen-reader text, e.g. "Sep 21, 34.0%". */
   label: string
   segments: TooltipSegment[]

@@ -106,6 +106,20 @@ describe('<DotHistogram>', () => {
     expect(onActiveChange).toHaveBeenLastCalledWith(2, expect.objectContaining({ datum: jobs[1] }))
   })
 
+  it('hovering a stacked dot picks that dot, not the one below', () => {
+    const onActiveChange = vi.fn()
+    const { container } = renderHistogram({ onActiveChange })
+    // #2 and #3 share a bin; #3 sits on top of #2.
+    const upper = dots(container)[2]
+    const r = Number(upper?.getAttribute('r'))
+    const layer = container.querySelector('[data-ch-part="pointer-layer"]') as Element
+    fireEvent.pointerMove(layer, {
+      clientX: Number(upper?.getAttribute('cx')),
+      clientY: Number(upper?.getAttribute('cy')) + 0.6 * r,
+    })
+    expect(onActiveChange).toHaveBeenLastCalledWith(3, expect.objectContaining({ datum: jobs[2] }))
+  })
+
   it('moves across bins and up stacks with the arrow keys', () => {
     const { container } = renderHistogram()
     const figure = screen.getByRole('figure', { name: 'Jobs by margin' })

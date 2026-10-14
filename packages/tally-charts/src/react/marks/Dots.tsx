@@ -46,6 +46,8 @@ export function Dots({ dots, radius, interactive = true }: DotsProps) {
           datum: d.datum,
           x: d.cx,
           y: d.cy - r,
+          hitX: d.cx,
+          hitY: d.cy,
           label: d.label,
           segments: d.segments ?? [{ value: d.label }],
           group: d.group,
