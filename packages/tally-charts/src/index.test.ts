@@ -54,6 +54,10 @@ describe('public entry points', () => {
     'runningTotals',
     'areaPath',
     'thresholds',
+    'binDots',
+    'stackStrip',
+    'medianOf',
+    'packWaffle',
   ])('core exports %s', (name) => {
     expect(core).toHaveProperty(name)
   })

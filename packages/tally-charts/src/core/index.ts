@@ -11,6 +11,8 @@ export type {
   BarRect,
 } from './bars'
 export { computeBars } from './bars'
+export type { BinnedDot, DotBinInput, DotBinLayout, StripDot, StripInput } from './dots'
+export { binDots, medianOf, stackStrip } from './dots'
 export type {
   FormatOptions,
   FormatPreset,
@@ -36,5 +38,7 @@ export type { MeasureTick, Tick, TickAnchor, TickSpec } from './ticks'
 export { bandTicks, estimateWidth, linearTicks, thinTicks } from './ticks'
 export type { Accessor, Fill, Id, PerItem, Tone } from './types'
 export { TONES } from './types'
+export type { WaffleCell, WaffleLayout } from './waffle'
+export { packWaffle } from './waffle'
 export type { Warn } from './warn'
 export { createWarner, isDev } from './warn'
