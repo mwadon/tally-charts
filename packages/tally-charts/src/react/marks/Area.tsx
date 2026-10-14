@@ -16,6 +16,11 @@ export interface AreaProps<D> {
   tone?: Tone
   /** Opacity at the top of the gradient; it fades to 0 at the baseline. Default 0.22. */
   opacity?: number
+  /**
+   * Fill only the gaps between bands, each from one band's far edge to the next band's near edge,
+   * so bars drawn over the area keep their own fill. Default false: one area through the centres.
+   */
+  between?: boolean
 }
 
 // Only numbers and non-blank numeric strings count; null, booleans, '' and objects are missing.
@@ -27,7 +32,14 @@ const toNumber = (raw: unknown) =>
       : Number.NaN
 
 /** A soft gradient area through the band centres, e.g. joining the tops of bridge columns. */
-export function Area<D>({ data, x, y, tone = 'accent', opacity = 0.22 }: AreaProps<D>) {
+export function Area<D>({
+  data,
+  x,
+  y,
+  tone = 'accent',
+  opacity = 0.22,
+  between = false,
+}: AreaProps<D>) {
   const ctx = useChart('Area')
   const gradientId = `${ctx.chartId}-area-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`
   if (ctx.x.kind !== 'band' || ctx.y.kind !== 'linear') {
@@ -54,15 +66,34 @@ export function Area<D>({ data, x, y, tone = 'accent', opacity = 0.22 }: AreaPro
   const clamp = (px: number) => Math.min(Math.max(r0, r1), Math.max(Math.min(r0, r1), px))
   const [d0, d1] = linear.domain()
   const baseline = clamp(linear(Math.min(Math.max(0, Math.min(d0, d1)), Math.max(d0, d1))))
-  const half = band.bandwidth() / 2
+  const size = band.bandwidth()
   const rows = (data ?? ctx.data) as readonly D[]
-  const points = rows.flatMap((d, i) => {
+  const columns = rows.flatMap((d, i) => {
     const start = band(String(getX(d, i)))
     const value = toNumber(getY(d, i))
     if (start === undefined || !Number.isFinite(value)) return []
-    return [{ x: start + half, y: clamp(linear(value)) }]
+    return [{ start, y: clamp(linear(value)) }]
   })
-  const path = areaPath(points, baseline)
+  const path = between
+    ? columns
+        .slice(1)
+        .map((b, i) => {
+          const a = columns[i]
+          return a
+            ? areaPath(
+                [
+                  { x: a.start + size, y: a.y },
+                  { x: b.start, y: b.y },
+                ],
+                baseline,
+              )
+            : ''
+        })
+        .join('')
+    : areaPath(
+        columns.map((c) => ({ x: c.start + size / 2, y: c.y })),
+        baseline,
+      )
   if (!path) return null
   return (
     <g data-ch-part="area-group">

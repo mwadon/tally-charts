@@ -20,6 +20,12 @@ export interface CalloutProps {
   offset?: number
   /** Hide while any point is active, so the tooltip takes over. Default true. */
   hideWhileActive?: boolean
+  /**
+   * Given the pill's left and right edge in plot px, the y in plot px its bottom must stay above,
+   * e.g. the top of the labels it would otherwise cover. The pill rises past `offset` to clear it.
+   * A non-finite result sets no limit.
+   */
+  clearance?: (left: number, right: number) => number
 }
 
 /**
@@ -33,6 +39,7 @@ export function Callout({
   stem = false,
   offset = 10,
   hideWhileActive = true,
+  clearance,
 }: CalloutProps) {
   const ctx = useChart('Callout')
   const ref = useRef<HTMLDivElement>(null)
@@ -49,16 +56,23 @@ export function Callout({
   const point = ctx.points.find((p) => p.id === id)
   if (!ctx.overlay || !point || (hideWhileActive && ctx.activeId !== null)) return null
 
-  const position = placeTooltip({
-    x: point.x,
-    y: point.y,
-    width: size.width,
-    height: size.height,
-    minX: -ctx.margin.left,
-    maxX: ctx.innerWidth + ctx.margin.right,
-    minY: -ctx.margin.top,
-    offset,
-  })
+  const place = (gap: number) =>
+    placeTooltip({
+      x: point.x,
+      y: point.y,
+      width: size.width,
+      height: size.height,
+      minX: -ctx.margin.left,
+      maxX: ctx.innerWidth + ctx.margin.right,
+      minY: -ctx.margin.top,
+      offset: gap,
+    })
+  let position = place(offset)
+  if (clearance) {
+    // The horizontal position does not depend on the offset, so the span is known up front.
+    const limit = clearance(position.left, position.left + size.width)
+    if (Number.isFinite(limit) && point.y - offset > limit) position = place(point.y - limit)
+  }
   const above = position.placement === 'top'
   const stemTop = above ? position.top + size.height : point.y
   const stemHeight = Math.max(0, above ? point.y - stemTop : position.top - point.y)

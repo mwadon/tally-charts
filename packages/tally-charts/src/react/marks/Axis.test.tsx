@@ -102,4 +102,14 @@ describe('<Axis>', () => {
     )
     expect(marked).toEqual([null, 'true', null])
   })
+
+  it('labels only the extent it is given on a padded scale', () => {
+    const { container } = render(
+      <Chart {...frame} width={340} x={{ domain: [30, 64] }} y={{ type: 'band', domain: ['a'] }}>
+        <Axis side="bottom" ticks="ends" extent={[34, 64]} />
+      </Chart>,
+    )
+    expect(labels(container)).toEqual(['34', '64'])
+    expect(container.querySelector('[data-ch-part="axis-label"]')).toHaveAttribute('x', '40')
+  })
 })

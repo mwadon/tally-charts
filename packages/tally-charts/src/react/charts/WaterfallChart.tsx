@@ -11,7 +11,7 @@ import { useFormat } from '../ChartsProvider'
 import { type Margin, useChart } from '../context'
 import type { DataTableSpec } from '../DataTable'
 import { Axis, type AxisFormat } from '../marks/Axis'
-import { Bars } from '../marks/Bars'
+import { Bars, type BarsProps } from '../marks/Bars'
 import { Connector, type ConnectorLink } from '../marks/Connector'
 import { RowLabels } from '../marks/RowLabels'
 import { Tooltip } from '../overlays/Tooltip'
@@ -53,7 +53,12 @@ export interface WaterfallChartProps<S extends WaterfallStep = WaterfallStep>
   startTone?: Tone
   /** Default 'accent' (solid). */
   endTone?: Tone
-  /** Value domain. Default: the totals' range without forcing zero, rounded to nice ticks. */
+  /**
+   * Value domain. Default: the totals' range without forcing zero, rounded to nice ticks. When it
+   * leaves out zero, the scale runs a little past its lower end (upper end for negative values), so
+   * the start and end bars stay visible even when a total equals the domain's end; the axis still
+   * labels the domain itself.
+   */
   domain?: readonly [number, number]
   /** Default 64. */
   rowHeight?: number
@@ -90,12 +95,39 @@ interface WaterfallRow<S> {
 }
 
 const AXIS_SPACE = 28
+/** Room for the row label above each bar, in px: the bar sits right under its own label. */
+const LABEL_SPACE = 26
+/** Extra scale range past a domain end that leaves out zero, as a share of the domain's span. */
+const BASE_PAD = 0.12
 
-/** Connectors meet bars that sit at the bottom of their row band. */
+/** Where a row's bar starts inside its band: under the label, but never past the band's end. */
+const barTop = (band: number, barSize: number) => Math.max(0, Math.min(LABEL_SPACE, band - barSize))
+
+/**
+ * Pads the end of the domain the start and end bars grow from (the clamped zero baseline), so a
+ * total on that end still draws a bar. Domains that include zero need no padding.
+ */
+function padDomain([d0, d1]: readonly [number, number]): [number, number] {
+  const lo = Math.min(d0, d1)
+  const hi = Math.max(d0, d1)
+  const pad = (hi - lo) * BASE_PAD
+  if (lo > 0) return [lo - pad, hi]
+  if (hi < 0) return [lo, hi + pad]
+  return [lo, hi]
+}
+
+/** Connectors run from the bottom of one bar to the top of the next. */
 function StepConnectors({ links, barSize }: { links: ConnectorLink[]; barSize: number }) {
   const ctx = useChart('WaterfallChart')
   const band = ctx.y.kind === 'band' ? ctx.y.scale.bandwidth() : 0
-  return <Connector links={links} toInset={Math.max(0, band - barSize)} />
+  const top = barTop(band, barSize)
+  return <Connector links={links} fromInset={Math.max(0, band - top - barSize)} toInset={top} />
+}
+
+function StepBars<S>(props: BarsProps<WaterfallRow<S>> & { size: number }) {
+  const ctx = useChart('WaterfallChart')
+  const band = ctx.y.kind === 'band' ? ctx.y.scale.bandwidth() : 0
+  return <Bars<WaterfallRow<S>> {...props} align="start" offset={barTop(band, props.size)} />
 }
 
 export function WaterfallChart<S extends WaterfallStep = WaterfallStep>({
@@ -197,7 +229,7 @@ export function WaterfallChart<S extends WaterfallStep = WaterfallStep>({
   }
 
   const drawn = useMemo(() => rows.filter((r) => r.valid), [rows])
-  const resolvedDomain =
+  const valueDomain =
     domain ??
     niceDomain(
       inferLinearDomain(
@@ -205,6 +237,7 @@ export function WaterfallChart<S extends WaterfallStep = WaterfallStep>({
         false,
       ),
     )
+  const resolvedDomain = padDomain(valueDomain)
   const links: ConnectorLink[] = drawn.slice(1).flatMap((b, i) => {
     const a = drawn[i]
     return a ? [{ at: a.to, from: a.key, to: b.key }] : []
@@ -256,7 +289,7 @@ export function WaterfallChart<S extends WaterfallStep = WaterfallStep>({
       dataTable={table}
     >
       {connectors ? <StepConnectors links={links} barSize={barSize} /> : null}
-      <Bars<WaterfallRow<S>>
+      <StepBars<S>
         data={drawn}
         x="to"
         from={(r) => r.from}
@@ -265,14 +298,15 @@ export function WaterfallChart<S extends WaterfallStep = WaterfallStep>({
         tone={(r) => r.tone}
         fill={(r) => r.fill}
         size={barSize}
-        align="end"
         format={format}
         ariaLabel={ariaOf}
         tooltip={segmentsOf}
       />
       <RowLabels<WaterfallRow<S>> text="label" position="above" />
       <RowLabels<WaterfallRow<S>> side="right" text="text" position="above" tone={toneOfText} />
-      {axis === 'none' ? null : <Axis side="bottom" ticks={axis} format={axisFmt} />}
+      {axis === 'none' ? null : (
+        <Axis side="bottom" ticks={axis} format={axisFmt} extent={valueDomain} />
+      )}
       {tooltip ? <Tooltip /> : null}
       {children}
     </Chart>

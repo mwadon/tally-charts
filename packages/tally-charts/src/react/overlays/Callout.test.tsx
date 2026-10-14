@@ -1,5 +1,5 @@
 import { fireEvent, render } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { Chart } from '../Chart'
 import { Bars } from '../marks/Bars'
 import { Callout, type CalloutProps } from './Callout'
@@ -65,6 +65,23 @@ describe('<Callout>', () => {
     const { container } = renderCallout({ id: 0, hideWhileActive: false })
     fireEvent.pointerEnter(container.querySelectorAll('[data-ch-part="bar-hit"]')[1] as Element)
     expect(callout(container)).not.toBeNull()
+  })
+
+  it('rises until its bottom clears the line the clearance gives for its span', () => {
+    const clearance = vi.fn(() => 30)
+    const { container } = renderCallout({ id: 0, clearance })
+    // The W1 anchor is at y 60; the pill (0×0 in jsdom) spans x 50–50 and must end above y 30.
+    expect(clearance).toHaveBeenLastCalledWith(50, 50)
+    expect(callout(container)).toHaveStyle({ top: '30px' })
+    expect(callout(container)).toHaveAttribute('data-ch-placement', 'top')
+  })
+
+  it('keeps its offset when the clearance is already met or not finite', () => {
+    const { container, unmount } = renderCallout({ id: 0, clearance: () => 55 })
+    expect(callout(container)).toHaveStyle({ top: '50px' })
+    unmount()
+    const none = renderCallout({ id: 0, clearance: () => Number.POSITIVE_INFINITY })
+    expect(callout(none.container)).toHaveStyle({ top: '50px' })
   })
 
   it('renders nothing for an unknown id', () => {

@@ -8,8 +8,10 @@ const steps: WaterfallStep[] = [
   { label: 'C', value: 5 },
 ]
 
-// Totals 100 → 80 → 70 → 75. Domain [70, 100] over 300px: 10px per unit.
-// 5 rows × 64px + 28px axis = 348px tall; each row band is 64px, bars are 18px at its bottom.
+// Totals 100 → 80 → 70 → 75. Domain [70, 100], padded below by 12% of its span to [66.4, 100] so
+// the start and end bars never vanish, over 300px. 5 rows × 64px + 28px axis = 348px tall; each
+// row band is 64px with its label at the top and an 18px bar 26px below it.
+const px = (v: number) => ((v - 66.4) * 300) / 33.6
 function renderWaterfall(props: Partial<WaterfallChartProps> = {}) {
   return render(
     <WaterfallChart
@@ -25,6 +27,7 @@ function renderWaterfall(props: Partial<WaterfallChartProps> = {}) {
 }
 
 const parts = (root: HTMLElement, selector: string) => [...root.querySelectorAll(selector)]
+const num = (el: Element | undefined, name: string) => Number(el?.getAttribute(name))
 const bars = (root: HTMLElement) => parts(root, '[data-ch-part="bar"]')
 const column = (root: HTMLElement, side: 'left' | 'right') =>
   parts(root, `[data-ch-part="row-labels"][data-ch-side="${side}"] [data-ch-part="row-label"]`)
@@ -38,16 +41,17 @@ describe('<WaterfallChart>', () => {
     expect(first).toHaveAttribute('width', '300')
     expect(first).toHaveAttribute('data-ch-tone', 'neutral')
     expect(first).toHaveAttribute('data-ch-fill', 'hatch')
-    expect(first).toHaveAttribute('y', '46')
+    expect(first).toHaveAttribute('y', '26')
     expect(first).toHaveAttribute('height', '18')
-    expect(a).toHaveAttribute('x', '100')
-    expect(a).toHaveAttribute('width', '200')
+    expect(num(a, 'x')).toBeCloseTo(px(80))
+    expect(num(a, 'width')).toBeCloseTo(px(100) - px(80))
     expect(a).toHaveAttribute('data-ch-tone', 'loss')
     expect(a).toHaveAttribute('data-ch-dir', 'left')
-    expect(c).toHaveAttribute('x', '0')
-    expect(c).toHaveAttribute('width', '50')
+    expect(num(c, 'x')).toBeCloseTo(px(70))
+    expect(num(c, 'width')).toBeCloseTo(px(75) - px(70))
     expect(c).toHaveAttribute('data-ch-tone', 'gain')
-    expect(last).toHaveAttribute('width', '50')
+    expect(last).toHaveAttribute('x', '0')
+    expect(num(last, 'width')).toBeCloseTo(px(75))
     expect(last).toHaveAttribute('data-ch-tone', 'accent')
     expect(last).toHaveAttribute('data-ch-fill', 'solid')
   })
@@ -85,11 +89,40 @@ describe('<WaterfallChart>', () => {
     const lines = parts(container, '[data-ch-part="connector"]')
     expect(lines).toHaveLength(4)
     expect(lines[0]).toHaveAttribute('x1', '300')
-    expect(lines[0]).toHaveAttribute('y1', '64')
-    expect(lines[0]).toHaveAttribute('y2', '110')
-    expect(lines[1]).toHaveAttribute('x1', '100')
-    expect(lines[3]).toHaveAttribute('x1', '50')
-    expect(lines[3]).toHaveAttribute('y2', '302')
+    // From the bottom of one bar (26 + 18) to the top of the next (64 + 26).
+    expect(lines[0]).toHaveAttribute('y1', '44')
+    expect(lines[0]).toHaveAttribute('y2', '90')
+    expect(num(lines[1], 'x1')).toBeCloseTo(px(80))
+    expect(num(lines[3], 'x1')).toBeCloseTo(px(75))
+    expect(lines[3]).toHaveAttribute('y2', '282')
+  })
+
+  it('keeps each bar under its own label, clear of the next row label', () => {
+    const { container } = renderWaterfall()
+    const labels = column(container, 'left')
+    bars(container).forEach((bar, i) => {
+      const top = num(bar, 'y')
+      expect(top).toBeGreaterThan(num(labels[i], 'y'))
+      const next = labels[i + 1]
+      if (next) expect(num(next, 'y') - (top + num(bar, 'height'))).toBeGreaterThanOrEqual(16)
+    })
+  })
+
+  it('keeps the end bar visible when it lands on the domain minimum', () => {
+    const { container } = renderWaterfall({
+      steps: [
+        { label: 'A', value: -20 },
+        { label: 'B', value: -10 },
+      ],
+      domain: [70, 100],
+      axis: 'ends',
+    })
+    const last = bars(container).at(-1)
+    expect(last).toHaveAttribute('x', '0')
+    expect(num(last, 'width')).toBeGreaterThan(20)
+    // The axis still labels the domain itself, not the padded scale.
+    const ticks = parts(container, '[data-ch-part="axis-label"]').map((t) => t.textContent)
+    expect(ticks).toEqual(['70', '100'])
   })
 
   it('skips a missing step without breaking the total', () => {

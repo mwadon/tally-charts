@@ -67,12 +67,15 @@ describe('<BridgeChart>', () => {
     expect(notes.every((t) => t.getAttribute('data-ch-tone') === 'loss')).toBe(true)
   })
 
-  it('joins the column totals with an area', () => {
+  it('joins the column totals with an area in the gaps between columns', () => {
     const { container } = renderBridge()
     const d = container.querySelector('[data-ch-part="area"]')?.getAttribute('d') ?? ''
-    expect(d.startsWith('M')).toBe(true)
-    // 5 points: 4 segments, then 2 back along the baseline.
-    expect(d.match(/L/g)).toHaveLength(6)
+    // One piece per gap between the 5 columns, none drawn under a column.
+    const pieces = d.split('Z').filter(Boolean)
+    expect(pieces).toHaveLength(4)
+    const firstBar = remaining(container)[0]
+    const firstX = Number(pieces[0]?.match(/^M([\d.]+)/)?.[1])
+    expect(firstX).toBeCloseTo(num(firstBar, 'x') + num(firstBar, 'width'))
   })
 
   it('leaves the area out on request', () => {
@@ -115,6 +118,29 @@ describe('<BridgeChart>', () => {
     expect(callout()).toHaveTextContent('$400kept')
     fireEvent.pointerEnter(parts(container, '[data-ch-part="bar-hit"]')[1] as Element)
     expect(callout()).toBeNull()
+  })
+
+  it('lifts the callout clear of the totals and notes of the columns it spans', () => {
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (
+      this: HTMLElement,
+    ) {
+      const pill = this.dataset.chPart === 'callout'
+      return { width: pill ? 300 : 0, height: pill ? 30 : 0 } as DOMRect
+    })
+    const { container } = renderBridge({
+      callout: [
+        { value: '$400', label: 'kept' },
+        { value: '12.3%', label: 'margin' },
+      ],
+    })
+    const pill = container.querySelector('[data-ch-part="callout"]') as HTMLElement
+    const bottom = Number.parseFloat(pill.style.top) + 30
+    // The 300px pill pinned over the last column also spans the "After callback" column.
+    const totals = parts(container, '[data-ch-part="column-total"]')
+    for (const total of totals.slice(-2)) {
+      // A 22px total reaches about 18px above its baseline.
+      expect(bottom).toBeLessThanOrEqual(num(total, 'y') - 18)
+    }
   })
 
   it('tones a gain cap and keeps the remaining bar at the lower total', () => {

@@ -86,6 +86,13 @@ const VALUE_GAP = 8
 const NOTE_GAP = 18
 /** Room above the cap for the total and note before a pinned callout, in px. */
 const CALLOUT_SPACE = 52
+/** How far a 22px column total reaches above its baseline, in px. */
+const TOTAL_ASCENT = 18
+/** Gap between a pinned callout and the labels below it, in px. */
+const CALLOUT_GAP = 8
+
+/** Baseline of a column's total: above the cap, and above its note when it has one. */
+const totalBaseline = (top: number, note: string) => top - (note ? NOTE_GAP + VALUE_GAP : VALUE_GAP)
 
 function ColumnTotals<S>({ rows, fmt }: { rows: readonly BridgeRow<S>[]; fmt: Formatter }) {
   const ctx = useChart('BridgeChart')
@@ -107,7 +114,7 @@ function ColumnTotals<S>({ rows, fmt }: { rows: readonly BridgeRow<S>[]; fmt: Fo
             <text
               data-ch-part="column-total"
               x={x}
-              y={top - (r.note ? NOTE_GAP + VALUE_GAP : VALUE_GAP)}
+              y={totalBaseline(top, r.note)}
               textAnchor="middle"
             >
               {fmt(r.total)}
@@ -131,12 +138,45 @@ function ColumnTotals<S>({ rows, fmt }: { rows: readonly BridgeRow<S>[]; fmt: Fo
   )
 }
 
-/** Pins the callout above the last column's cap and labels, not on the bar itself. */
-function LastCallout<S>({ row, segments }: { row: BridgeRow<S>; segments: TooltipSegment[] }) {
+/**
+ * Pins the callout above the last column's cap and labels, not on the bar itself, and lifts it
+ * clear of the labels of any neighbouring column it reaches over.
+ */
+function LastCallout<S>({
+  row,
+  rows,
+  segments,
+}: {
+  row: BridgeRow<S>
+  rows: readonly BridgeRow<S>[]
+  segments: TooltipSegment[]
+}) {
   const ctx = useChart('BridgeChart')
-  if (ctx.y.kind !== 'linear') return null
-  const cap = Math.abs(ctx.y.scale(row.base) - ctx.y.scale(row.top))
-  return <Callout id={row.rowId} segments={segments} offset={cap + CALLOUT_SPACE} />
+  if (ctx.x.kind !== 'band' || ctx.y.kind !== 'linear') return null
+  const band = ctx.x.scale
+  const linear = ctx.y.scale
+  const size = band.bandwidth()
+  const [r0, r1] = linear.range()
+  const clamp = (px: number) => Math.min(Math.max(r0, r1), Math.max(Math.min(r0, r1), px))
+  const cap = Math.abs(linear(row.base) - linear(row.top))
+  const clearance = (left: number, right: number) => {
+    let limit = Number.POSITIVE_INFINITY
+    for (const r of rows) {
+      const start = band(r.key)
+      if (start === undefined || start > right || start + size < left) continue
+      const labelTop = totalBaseline(clamp(linear(r.top)), r.note) - TOTAL_ASCENT
+      if (Number.isFinite(labelTop)) limit = Math.min(limit, labelTop - CALLOUT_GAP)
+    }
+    return limit
+  }
+  return (
+    <Callout
+      id={row.rowId}
+      segments={segments}
+      offset={cap + CALLOUT_SPACE}
+      clearance={clearance}
+    />
+  )
 }
 
 export function BridgeChart<S extends BridgeStep = BridgeStep>({
@@ -264,7 +304,7 @@ export function BridgeChart<S extends BridgeStep = BridgeStep>({
       dataTable={table}
     >
       {highlightLast && lastRow ? <ColumnHighlight at={lastRow.key} /> : null}
-      {area ? <Area<BridgeRow<S>> data={rows} x="key" y="total" /> : null}
+      {area ? <Area<BridgeRow<S>> data={rows} x="key" y="total" between /> : null}
       <Bars<BridgeRow<S>>
         data={rows}
         x="key"
@@ -293,7 +333,7 @@ export function BridgeChart<S extends BridgeStep = BridgeStep>({
         format={(key) => labelOf.get(String(key)) ?? ''}
         highlight={highlightLast ? lastRow?.key : undefined}
       />
-      {callout && lastRow ? <LastCallout row={lastRow} segments={callout} /> : null}
+      {callout && lastRow ? <LastCallout row={lastRow} rows={rows} segments={callout} /> : null}
       {tooltip ? <Tooltip /> : null}
       {children}
     </Chart>

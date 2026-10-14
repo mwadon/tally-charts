@@ -1,3 +1,4 @@
+import { ticks } from 'd3-array'
 import type { ScaleBand } from 'd3-scale'
 import type { LinearScale } from './linear'
 
@@ -68,8 +69,12 @@ export function linearTicks(
   scale: LinearScale,
   spec: TickSpec,
   format: (value: number) => string,
+  /** Value range to label, when it is narrower than the scale's domain. Default: the domain. */
+  extent?: readonly [number, number],
 ): Tick[] {
-  const values = spec === 'ends' ? scale.domain() : scale.ticks(typeof spec === 'number' ? spec : 5)
+  const [lo, hi] = extent ?? scale.domain()
+  const count = typeof spec === 'number' ? spec : 5
+  const values = spec === 'ends' ? [lo, hi] : extent ? ticks(lo, hi, count) : scale.ticks(count)
   return values.map((value) => ({
     value,
     position: scale(value),

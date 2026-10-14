@@ -34,6 +34,27 @@ describe('<Area>', () => {
     expect(path(container)).toHaveAttribute('d', 'M50,0L150,50L250,100L250,100L50,100Z')
   })
 
+  it('fills only the gaps between bands on request, so bars keep their own fill', () => {
+    const { container } = render(
+      <Chart<Row>
+        data={rows}
+        width={300}
+        height={100}
+        margin={{ top: 0, right: 0, bottom: 0, left: 0 }}
+        x={{ type: 'band', field: 'k', padding: 0.5 }}
+        y={{ field: 'v', domain: [0, 100] }}
+        animate={false}
+      >
+        <Area<Row> between />
+      </Chart>,
+    )
+    // Bands are 60px wide on a 120px step: a = 0–60, b = 120–180, c = 240–300.
+    expect(path(container)).toHaveAttribute(
+      'd',
+      'M60,0L120,50L120,100L60,100ZM180,50L240,100L240,100L180,100Z',
+    )
+  })
+
   it('paints a fading gradient in the tone', () => {
     const { container } = renderArea({ tone: 'loss', opacity: 0.3 })
     const fill = path(container)?.getAttribute('fill') ?? ''

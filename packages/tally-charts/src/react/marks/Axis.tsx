@@ -15,6 +15,11 @@ export interface AxisProps {
   offset?: number
   /** A tick value (e.g. a band) whose label is emphasized. */
   highlight?: string | number
+  /**
+   * Linear axes only: the value range to label when the scale runs past it, e.g. a waterfall
+   * that leaves room below its lowest total. Default: the scale's domain.
+   */
+  extent?: readonly [number, number]
 }
 
 const LABEL_HEIGHT = 14
@@ -62,6 +67,7 @@ export function Axis({
   thin = true,
   offset = 8,
   highlight,
+  extent,
 }: AxisProps) {
   const ctx = useChart('Axis')
   const horizontal = side === 'bottom' || side === 'top'
@@ -74,7 +80,7 @@ export function Axis({
       ? bandTicks(resolved.scale, spec, (v) => (custom ? custom(v) : v), {
           anchorEnds: horizontal,
         })
-      : linearTicks(resolved.scale, spec, (v) => (custom ? custom(v) : numeric(v)))
+      : linearTicks(resolved.scale, spec, (v) => (custom ? custom(v) : numeric(v)), extent)
   const ticks = thin ? thinTicks(raw, horizontal ? undefined : () => LABEL_HEIGHT) : raw
 
   return (

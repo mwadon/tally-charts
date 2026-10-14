@@ -39,6 +39,12 @@ describe('linearTicks', () => {
       [0, 60],
     )
   })
+
+  it('places ticks within an extent narrower than the scale domain', () => {
+    const scale = linearScale([-10, 60], [0, 700])
+    expect(linearTicks(scale, 'ends', String, [0, 60]).map((t) => t.position)).toEqual([100, 700])
+    expect(linearTicks(scale, 3, String, [0, 60]).map((t) => t.value)).toEqual([0, 20, 40, 60])
+  })
 })
 
 describe('thinTicks', () => {
