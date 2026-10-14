@@ -116,6 +116,16 @@ describe('<ComparisonBars>', () => {
     expect(onSelect).toHaveBeenCalledWith(2, expect.objectContaining({ id: 2 }))
   })
 
+  it('reports the user datum to onSelect and onActiveChange', () => {
+    const onSelect = vi.fn()
+    const onActiveChange = vi.fn()
+    const { container } = renderRows({ onSelect, onActiveChange })
+    fireEvent.click(parts(container, '[data-ch-part="bar-hit"]')[2] as Element)
+    expect(onSelect.mock.calls[0]?.[1].datum).toBe(lines[2])
+    fireEvent.keyDown(screen.getByRole('figure'), { key: 'ArrowDown' })
+    expect(onActiveChange.mock.calls[0]?.[1].datum).toBe(lines[0])
+  })
+
   it('shows the label but no values for a row with a missing actual', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     const { container } = renderRows({

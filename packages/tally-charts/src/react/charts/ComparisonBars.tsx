@@ -12,7 +12,7 @@ import { Bars } from '../marks/Bars'
 import { RowDividers, RowLabels } from '../marks/RowLabels'
 import { Tooltip } from '../overlays/Tooltip'
 import type { TooltipSegment } from '../types'
-import { type ChartPassThroughProps, headerOf, toNumber } from './shared'
+import { type ChartPassThroughProps, headerOf, toNumber, userCallbacks } from './shared'
 
 export type ComparisonStatus = 'over' | 'under' | 'on-plan' | 'unknown'
 
@@ -110,6 +110,8 @@ export function ComparisonBars<D>({
   margin,
   height,
   children,
+  onSelect,
+  onActiveChange,
   ...chart
 }: ComparisonBarsProps<D>) {
   const { create } = useFormat()
@@ -216,6 +218,7 @@ export function ComparisonBars<D>({
   return (
     <Chart<ComparisonRow<D>>
       {...chart}
+      {...userCallbacks(onSelect, onActiveChange)}
       data={rows}
       x={{ field: 'actual', domain: resolvedDomain }}
       y={{ type: 'band', field: 'key', padding: 0 }}
