@@ -87,7 +87,8 @@ function layoutBars(
   const thickness = Math.max(0, Math.min(requested, bandSize))
   const slack = bandSize - thickness
   const aligned = input.align === 'start' ? 0 : input.align === 'end' ? slack : slack / 2
-  const shift = aligned + (input.offset ?? 0)
+  const offset = input.offset !== undefined && Number.isFinite(input.offset) ? input.offset : 0
+  const shift = aligned + offset
   const bars: BarRect[] = []
   const valueField = input.valueField ?? (orientation === 'vertical' ? 'y' : 'x')
 

@@ -52,7 +52,7 @@ export interface RankedBarsProps<D> extends Omit<ChartPassThroughProps<D>, 'aspe
   track?: boolean
   /** Hidden data table for screen readers. Default true. */
   dataTable?: boolean
-  /** Default false: the values are already on screen. */
+  /** Full label and value on hover and focus, so cut labels stay readable. Default true. */
   tooltip?: boolean
 }
 
@@ -129,7 +129,7 @@ export function RankedBars<D>({
   metaWidth = 64,
   track = true,
   dataTable = true,
-  tooltip = false,
+  tooltip = true,
   margin,
   height,
   children,

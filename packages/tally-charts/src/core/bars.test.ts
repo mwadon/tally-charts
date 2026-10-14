@@ -207,6 +207,10 @@ describe('computeBars options', () => {
     expect(spans(two, { size: Number.NaN })[0]).toMatchObject({ x: 0, width: 100 })
   })
 
+  it('ignores a non-finite offset', () => {
+    expect(spans(two, { size: 20, offset: Number.NaN })[0]).toMatchObject({ x: 40, width: 20 })
+  })
+
   it('reports the whole band for hit areas', () => {
     expect(spans(two, { size: 20 })[1]?.band).toEqual({ start: 100, size: 100 })
   })

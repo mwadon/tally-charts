@@ -9,6 +9,9 @@ solid means actual, pink means loss, and targets are first-class.
 npm i tally-charts
 ```
 
+Like React, the package reads `process.env.NODE_ENV` to turn development warnings on, so it
+expects a bundler that defines it (Vite, webpack, Next.js, esbuild with `define` all do).
+
 ```tsx
 import 'tally-charts/theme.css'
 import { Axis, Bars, Chart, Target, Tooltip, ValueLabel } from 'tally-charts'

@@ -49,10 +49,17 @@ export function RangeMeter({
 }: RangeMeterProps) {
   const { create } = useFormat()
   const fmt = create(format)
+  const hasValue = Number.isFinite(value)
+  const hasReference = Number.isFinite(reference)
   const pv = toPercent(value, min, max)
   const pr = toPercent(reference, min, max)
   const lo = Math.min(pv, pr)
   const hi = Math.max(pv, pr)
+  const name = !hasValue
+    ? `${label}: No data`
+    : hasReference
+      ? `${label}: ${fmt(value)} against ${fmt(reference)}`
+      : `${label}: ${fmt(value)}`
   const style = {
     ...toneVar(tone),
     '--ch-range-ref-color': `var(--ch-${referenceTone})`,
@@ -62,25 +69,31 @@ export function RangeMeter({
       className={cx('ch-range', className)}
       data-ch-part="range-meter"
       role="img"
-      aria-label={`${label}: ${fmt(value)} against ${fmt(reference)}`}
+      aria-label={name}
       style={style}
     >
       <div className="ch-range-labels" aria-hidden="true">
-        <span className="ch-range-value-label ch-tone-text" style={at(pv)}>
-          {valueLabel ?? fmt(value)}
-        </span>
-        <span className="ch-range-ref-label" style={at(pr)}>
-          {referenceLabel ?? fmt(reference)}
-        </span>
+        {hasValue ? (
+          <span className="ch-range-value-label ch-tone-text" style={at(pv)}>
+            {valueLabel ?? fmt(value)}
+          </span>
+        ) : null}
+        {hasReference ? (
+          <span className="ch-range-ref-label" style={at(pr)}>
+            {referenceLabel ?? fmt(reference)}
+          </span>
+        ) : null}
       </div>
       <div className="ch-range-track" aria-hidden="true">
-        <span
-          className="ch-range-gap ch-fillable"
-          data-ch-fill="hatch"
-          style={{ left: `${lo}%`, width: `${hi - lo}%` }}
-        />
-        <span className="ch-range-dot" style={{ left: `${pv}%` }} />
-        <span className="ch-range-ring" style={{ left: `${pr}%` }} />
+        {hasValue && hasReference ? (
+          <span
+            className="ch-range-gap ch-fillable"
+            data-ch-fill="hatch"
+            style={{ left: `${lo}%`, width: `${hi - lo}%` }}
+          />
+        ) : null}
+        {hasValue ? <span className="ch-range-dot" style={{ left: `${pv}%` }} /> : null}
+        {hasReference ? <span className="ch-range-ring" style={{ left: `${pr}%` }} /> : null}
       </div>
       {showScale ? (
         <div className="ch-range-scale" aria-hidden="true">

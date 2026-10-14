@@ -4,12 +4,11 @@ declare const process: { env: { NODE_ENV?: string } }
 export type Warn = (key: string, message: string) => void
 
 /**
- * True outside production builds. A bundler that replaces `process.env.NODE_ENV` folds this to a
- * constant and drops every `if (DEV)` block together with its message strings. Without `process`
- * (plain browser ESM) it is false.
+ * True outside production builds. Reads `process.env.NODE_ENV` directly, as React does, so the
+ * app's bundler must define it: the bundler then folds this to a constant and drops every
+ * `if (DEV)` block together with its message strings in production.
  */
-export const DEV: boolean =
-  (typeof process !== 'undefined' ? process.env.NODE_ENV : 'production') !== 'production'
+export const DEV: boolean = process.env.NODE_ENV !== 'production'
 
 /** Alias of `DEV`, kept for the 0.1 public API. */
 export const isDev = DEV

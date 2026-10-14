@@ -2,8 +2,9 @@ import { defineConfig, devices } from '@playwright/test'
 
 export default defineConfig({
   testDir: './e2e',
-  // Baselines are per platform. Generate them with `pnpm test:e2e -- --update-snapshots`
-  // (darwin locally; linux via CI or the Playwright Docker image) and commit them.
+  // Baselines are per platform. Regenerate them with
+  // `pnpm --filter storybook-app exec playwright test --update-snapshots=all`
+  // (darwin locally; linux via the Playwright Docker route in ci.yml) and commit them.
   snapshotPathTemplate: '{testDir}/__screenshots__/{platform}/{arg}{ext}',
   // Locally, new stories get a baseline on first run; CI must fail on a missing one instead.
   updateSnapshots: process.env.CI ? 'none' : 'missing',

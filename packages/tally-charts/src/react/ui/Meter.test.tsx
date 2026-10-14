@@ -54,4 +54,11 @@ describe('<Meter>', () => {
     expect(meter).toHaveAttribute('aria-valuetext', 'No data')
     expect(container.querySelector('.ch-meter-fill')).toHaveStyle({ width: '0%' })
   })
+
+  it('clamps aria-valuenow to the range', () => {
+    const { rerender } = render(<Meter value={60} min={20} max={45} label="m" />)
+    expect(screen.getByRole('meter')).toHaveAttribute('aria-valuenow', '45')
+    rerender(<Meter value={5} min={20} max={45} label="m" />)
+    expect(screen.getByRole('meter')).toHaveAttribute('aria-valuenow', '20')
+  })
 })

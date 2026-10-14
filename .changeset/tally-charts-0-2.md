@@ -11,9 +11,10 @@ hovered bar); keyboard navigation no longer repeats items shared by layered mark
 fades toward the baseline for negative and horizontal bars; bars animate only along the value
 axis; `aspectRatio` charts no longer shift the page on load; band `ends` labels on a left or
 right `<Axis>` now sit level with their rows; development warnings are removed from production
-builds.
+builds and now also show in browser development builds. Like React, the package reads
+`process.env.NODE_ENV`, so the bundler must define it (Vite, webpack, Next.js and esbuild with
+`define` do).
 
-New: `--ch-radius` sets the default bar corner radius (now `3px`); `<Chart chartId>` for charts
-in several React roots; `<Bars>` gains `from`, `size`, `align`, `offset`, `track`,
-`interactive` and `ariaLabel`; `<ValueLabel data>`. `fadeMaskId` and `paintFor` take a bar
-direction instead of an axis.
+New: `--ch-radius` (previously a 4px token with no effect) now drives the default bar corner
+radius, default `3px`; `<Chart chartId>` for charts in several React roots; `<Bars>` gains
+`from`, `size`, `align`, `offset`, `track`, `interactive` and `ariaLabel`; `<ValueLabel data>`.

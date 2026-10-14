@@ -22,4 +22,13 @@ describe('<InlineBar>', () => {
     expect(fill).toHaveAttribute('data-ch-tone', 'loss')
     expect(container.querySelector('.ch-inline-bar-target')).toBeNull()
   })
+
+  it('draws no fill for a missing value and keeps a finite target tick', () => {
+    const { container } = render(
+      <InlineBar value={Number.NaN} max={40} target={30} label="Margin" />,
+    )
+    expect(screen.getByRole('img', { name: 'Margin: No data' })).toBeInTheDocument()
+    expect(container.querySelector('.ch-inline-bar-fill')).toBeNull()
+    expect(container.querySelector('.ch-inline-bar-target')).toHaveStyle({ left: '75%' })
+  })
 })

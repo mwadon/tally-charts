@@ -40,4 +40,26 @@ describe('<RangeMeter>', () => {
     rerender(<RangeMeter value={12.3} reference={36} max={40} label="m" showScale={false} />)
     expect(container.querySelector('.ch-range-scale')).toBeNull()
   })
+
+  it('draws no dot or gap for a missing value', () => {
+    const { container } = render(
+      <RangeMeter value={Number.NaN} reference={36} max={40} format="percent" label="Margin" />,
+    )
+    expect(screen.getByRole('img', { name: 'Margin: No data' })).toBeInTheDocument()
+    expect(container.querySelector('.ch-range-dot')).toBeNull()
+    expect(container.querySelector('.ch-range-gap')).toBeNull()
+    expect(container.querySelector('.ch-range-value-label')).toBeNull()
+    expect(container.querySelector('.ch-range-ring')).toHaveStyle({ left: '90%' })
+  })
+
+  it('draws no ring or gap for a missing reference', () => {
+    const { container } = render(
+      <RangeMeter value={10} reference={Number.NaN} max={40} format="percent" label="Margin" />,
+    )
+    expect(screen.getByRole('img', { name: 'Margin: 10.0%' })).toBeInTheDocument()
+    expect(container.querySelector('.ch-range-ring')).toBeNull()
+    expect(container.querySelector('.ch-range-gap')).toBeNull()
+    expect(container.querySelector('.ch-range-ref-label')).toBeNull()
+    expect(container.querySelector('.ch-range-dot')).toHaveStyle({ left: '25%' })
+  })
 })

@@ -36,4 +36,18 @@ describe('<DotCount>', () => {
     expect(dots(container)).toHaveLength(0)
     expect(container.querySelector('.ch-dot-count-label')).toHaveTextContent('0')
   })
+
+  it('formats the default label and the screen-reader count', () => {
+    const { container, rerender } = render(<DotCount count={1234} />)
+    expect(container.querySelector('.ch-dot-count-label')).toHaveTextContent('1,234')
+    rerender(<DotCount count={1234} label={null} />)
+    expect(container.querySelector('.ch-sr-only')).toHaveTextContent('1,234')
+  })
+
+  it('falls back to 15 dots per row for a non-finite perRow', () => {
+    const { container } = render(<DotCount count={4} perRow={Number.NaN} />)
+    expect(container.querySelector('.ch-dot-grid')).toHaveStyle({
+      gridTemplateColumns: 'repeat(15, 8px)',
+    })
+  })
 })

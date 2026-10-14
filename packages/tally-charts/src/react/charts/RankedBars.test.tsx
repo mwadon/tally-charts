@@ -148,6 +148,14 @@ describe('<RankedBars>', () => {
     expect(within(screen.getByRole('table')).getByText(name)).toBeInTheDocument()
   })
 
+  it('shows the full label of a cut row in a tooltip on hover', () => {
+    const name = 'A very long cause name that will not fit'
+    const { container } = renderRanked({ data: [{ name, amount: 5 }], labelWidth: 100 })
+    expect(names(container)[0]).toMatch(/…$/)
+    fireEvent.pointerEnter(parts(container, '[data-ch-part="bar-hit"]')[0] as Element)
+    expect(container.querySelector('[data-ch-part="tooltip"]')).toHaveTextContent(name)
+  })
+
   it('skips the bar but keeps the label for a missing value', () => {
     vi.spyOn(console, 'warn').mockImplementation(() => {})
     const { container } = renderRanked({ data: [...causes, { name: 'Unbilled', amount: null }] })

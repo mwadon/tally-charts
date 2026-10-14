@@ -62,7 +62,7 @@ export function Meter({
         aria-label={label}
         aria-valuemin={min}
         aria-valuemax={max}
-        aria-valuenow={finite ? value : min}
+        aria-valuenow={finite ? Math.min(max, Math.max(min, value)) : min}
         aria-valuetext={valueText}
       >
         <div

@@ -38,12 +38,15 @@ export function InlineBar({
 }: InlineBarProps) {
   const { create } = useFormat()
   const fmt = create(format)
+  const hasValue = Number.isFinite(value)
+  const hasTarget = target !== undefined && Number.isFinite(target)
   const p = toPercent(value, min, max)
-  const t = target === undefined ? undefined : toPercent(target, min, max)
-  const name =
-    target === undefined
-      ? `${label}: ${fmt(value)}`
-      : `${label}: ${fmt(value)}, target ${fmt(target)}`
+  const t = hasTarget ? toPercent(target, min, max) : undefined
+  const name = !hasValue
+    ? `${label}: No data`
+    : hasTarget
+      ? `${label}: ${fmt(value)}, target ${fmt(target)}`
+      : `${label}: ${fmt(value)}`
   return (
     <span
       className={cx('ch-inline-bar', className)}
@@ -52,12 +55,14 @@ export function InlineBar({
       aria-label={name}
       style={{ ...toneVar(tone), width }}
     >
-      <span
-        className="ch-inline-bar-fill ch-fillable"
-        data-ch-tone={tone}
-        data-ch-fill={fill}
-        style={{ width: `${p}%` }}
-      />
+      {hasValue ? (
+        <span
+          className="ch-inline-bar-fill ch-fillable"
+          data-ch-tone={tone}
+          data-ch-fill={fill}
+          style={{ width: `${p}%` }}
+        />
+      ) : null}
       {t !== undefined ? <span className="ch-inline-bar-target" style={{ left: `${t}%` }} /> : null}
     </span>
   )

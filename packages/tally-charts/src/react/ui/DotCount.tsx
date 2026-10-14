@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import type { Tone } from '../../core/types'
+import { useFormat } from '../ChartsProvider'
 import { cx, toneVar } from './util'
 
 export interface DotCountProps {
@@ -10,7 +11,7 @@ export interface DotCountProps {
   perRow?: number
   /** Default 'loss'. */
   tone?: Tone
-  /** Text after the dots. Default: the count. `null` hides it (the count stays readable). */
+  /** Text after the dots. Default: the formatted count. `null` hides it (the count stays readable). */
   label?: ReactNode | null
   className?: string
 }
@@ -24,14 +25,17 @@ export function DotCount({
   label,
   className,
 }: DotCountProps) {
+  const { create } = useFormat()
   const n = Number.isFinite(count) ? Math.max(0, Math.floor(count)) : 0
+  const text = create('number')(n)
+  const columns = Number.isFinite(perRow) ? Math.max(1, Math.floor(perRow)) : 15
   const drawn = Math.min(n, Math.max(0, Math.floor(max)))
   return (
     <span className={cx('ch-dot-count', className)} data-ch-part="dot-count" style={toneVar(tone)}>
       <span
         className="ch-dot-grid"
         aria-hidden="true"
-        style={{ gridTemplateColumns: `repeat(${Math.max(1, perRow)}, 8px)` }}
+        style={{ gridTemplateColumns: `repeat(${columns}, 8px)` }}
       >
         {Array.from({ length: drawn }, (_, i) => (
           // biome-ignore lint/suspicious/noArrayIndexKey: dots are identical and positional
@@ -39,9 +43,9 @@ export function DotCount({
         ))}
       </span>
       {label === null ? (
-        <span className="ch-sr-only">{n}</span>
+        <span className="ch-sr-only">{text}</span>
       ) : (
-        <span className="ch-dot-count-label">{label ?? n}</span>
+        <span className="ch-dot-count-label">{label ?? text}</span>
       )}
     </span>
   )
