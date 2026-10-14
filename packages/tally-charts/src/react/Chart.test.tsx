@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import type { Id } from '../core/types'
 import { Chart } from './Chart'
@@ -230,5 +230,29 @@ describe('<Chart>', () => {
     fireEvent.keyDown(figure, { key: 'ArrowRight' })
     fireEvent.keyDown(figure, { key: 'ArrowRight' })
     expect(onActiveChange.mock.calls.map((call) => call[0])).toEqual(['a', 'b'])
+  })
+
+  it('renders a hidden data table captioned with the title', () => {
+    render(
+      <Chart
+        data={weeks}
+        width={300}
+        title="Margin by week"
+        dataTable={{ columns: [{ header: 'Week', value: (d) => d.week }] }}
+      />,
+    )
+    const table = screen.getByRole('table', { name: 'Margin by week' })
+    expect(within(table).getAllByRole('row')).toHaveLength(3)
+  })
+
+  it('renders no data table for empty data', () => {
+    render(
+      <Chart<{ week: string }>
+        data={[]}
+        width={300}
+        dataTable={{ columns: [{ header: 'Week', value: (d) => d.week }] }}
+      />,
+    )
+    expect(screen.queryByRole('table')).toBeNull()
   })
 })

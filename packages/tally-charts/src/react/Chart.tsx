@@ -13,6 +13,7 @@ import { createWarner, type Warn } from '../core/warn'
 import { DEFAULT_HATCH, DEFAULT_RADIUS, readHatchGeometry, readRadius } from '../theme/patterns'
 import { useFormat } from './ChartsProvider'
 import { ChartContext, type ChartContextValue, type Margin } from './context'
+import { DataTable, type DataTableSpec } from './DataTable'
 import { navigate, useInteraction } from './interaction'
 import { PatternDefs } from './PatternDefs'
 import type { ChartPoint } from './types'
@@ -36,6 +37,8 @@ export interface ChartProps<D> {
   title?: string
   /** Accessible description, usually the takeaway sentence. */
   description?: string
+  /** Visually hidden table of the data for screen readers. High-level charts set it by default. */
+  dataTable?: DataTableSpec<D>
   activeId?: Id | null
   onActiveChange?: (id: Id | null, point: ChartPoint | null) => void
   onSelect?: (id: Id, point: ChartPoint) => void
@@ -69,6 +72,7 @@ export function Chart<D>({
   margin: marginProp,
   title,
   description,
+  dataTable,
   activeId,
   onActiveChange,
   onSelect,
@@ -221,6 +225,9 @@ export function Chart<D>({
           />
         </ChartContext.Provider>
       )}
+      {!isEmpty && dataTable ? (
+        <DataTable data={rows} columns={dataTable.columns} caption={dataTable.caption ?? title} />
+      ) : null}
       <div aria-live="polite" className="ch-sr-only">
         {announcement}
       </div>
