@@ -1,3 +1,5 @@
+import { toNumber } from './number'
+
 export type StepTone = 'gain' | 'loss' | 'neutral'
 
 export interface StepTotal {
@@ -17,12 +19,7 @@ export interface StepTotal {
 export function runningTotals(start: number, values: readonly unknown[]): StepTotal[] {
   let total = Number.isFinite(start) ? start : 0
   return values.map((raw, index) => {
-    const value =
-      typeof raw === 'number'
-        ? raw
-        : typeof raw === 'string' && raw.trim() !== ''
-          ? Number(raw)
-          : Number.NaN
+    const value = toNumber(raw)
     const valid = Number.isFinite(value)
     const before = total
     if (valid) total += value

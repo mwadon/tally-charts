@@ -1,3 +1,5 @@
+export { toNumber } from '../../core/number'
+
 import type { Id } from '../../core/types'
 import type { ChartProps } from '../Chart'
 import type { ChartPoint } from '../types'
@@ -23,11 +25,6 @@ export type ChartPassThroughProps<D> = Pick<
   | 'chartId'
   | 'children'
 >
-
-/** Numbers from data: null and undefined become NaN instead of 0. */
-export function toNumber(value: unknown): number {
-  return value === null || value === undefined ? Number.NaN : Number(value)
-}
 
 /** Data-table header: the field name for a string accessor, otherwise the fallback. */
 export function headerOf(accessor: unknown, fallback: string): string {

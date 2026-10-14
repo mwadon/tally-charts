@@ -1,6 +1,7 @@
 import { useId } from 'react'
 import { toFieldGetter } from '../../core/accessor'
 import { areaPath } from '../../core/area'
+import { toNumber } from '../../core/number'
 import type { Accessor, Tone } from '../../core/types'
 import { DEV } from '../../core/warn'
 import { useChart } from '../context'
@@ -22,14 +23,6 @@ export interface AreaProps<D> {
    */
   between?: boolean
 }
-
-// Only numbers and non-blank numeric strings count; null, booleans, '' and objects are missing.
-const toNumber = (raw: unknown) =>
-  typeof raw === 'number'
-    ? raw
-    : typeof raw === 'string' && raw.trim() !== ''
-      ? Number(raw)
-      : Number.NaN
 
 /** A soft gradient area through the band centres, e.g. joining the tops of bridge columns. */
 export function Area<D>({

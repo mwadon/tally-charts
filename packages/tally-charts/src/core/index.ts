@@ -22,6 +22,7 @@ export type {
 export { createFormatter, createFormatters, DEFAULT_CURRENCY, DEFAULT_LOCALE, fmt } from './format'
 export type { LinearScale } from './linear'
 export { linearScale, niceDomain } from './linear'
+export { toNumber } from './number'
 export type { Placement, PlacementInput } from './placement'
 export { placeTooltip } from './placement'
 export type { BandScaleSpec, LinearScaleSpec, ResolvedScale, ScaleSpec } from './scale'
