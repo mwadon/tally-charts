@@ -237,6 +237,11 @@
   stroke-width: 1;
 }
 
+[data-ch-part="row-highlight"] {
+  fill: var(--ch-tooltip-bg);
+  filter: drop-shadow(0 1px 3px rgb(0 0 0 / 0.08));
+}
+
 [data-ch-part="target"] {
   stroke: var(--ch-ink);
   stroke-width: 1;
