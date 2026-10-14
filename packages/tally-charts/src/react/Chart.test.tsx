@@ -197,4 +197,19 @@ describe('<Chart>', () => {
     expect(ctx?.activePoint).toBeNull()
     expect(container.querySelector('[aria-live]')?.textContent).toBe('')
   })
+
+  it('navigates past ids registered by two marks', () => {
+    const onActiveChange = vi.fn()
+    render(
+      <Chart width={300} onActiveChange={onActiveChange}>
+        <PointsProbe ids={['a', 'b']} />
+        <PointsProbe ids={['a', 'b']} />
+      </Chart>,
+    )
+    const figure = screen.getByRole('figure')
+    fireEvent.keyDown(figure, { key: 'ArrowRight' })
+    fireEvent.keyDown(figure, { key: 'ArrowRight' })
+    fireEvent.keyDown(figure, { key: 'ArrowRight' })
+    expect(onActiveChange.mock.calls.map((call) => call[0])).toEqual(['a', 'b'])
+  })
 })

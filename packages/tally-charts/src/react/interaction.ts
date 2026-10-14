@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useRef, useState } from 'react'
 import type { Id } from '../core/types'
-import type { ActiveSource, ChartPoint } from './types'
+import type { ActiveSource, ChartPoint, TooltipSegment } from './types'
 import { useIsoLayoutEffect } from './useIsoLayoutEffect'
 
 /** Next active id for a key press; `undefined` when the key isn't handled. */
@@ -29,6 +29,31 @@ export function navigate(
   }
 }
 
+/** The first point per id, in order. Marks layered over the same rows register the same ids. */
+export function uniquePoints(points: readonly ChartPoint[]): ChartPoint[] {
+  const seen = new Set<Id>()
+  const unique: ChartPoint[] = []
+  for (const point of points) {
+    if (seen.has(point.id)) continue
+    seen.add(point.id)
+    unique.push(point)
+  }
+  return unique
+}
+
+function sameSegments(a: readonly TooltipSegment[], b: readonly TooltipSegment[]): boolean {
+  if (a.length !== b.length) return false
+  return a.every((s, i) => {
+    const t = b[i]
+    return (
+      t !== undefined &&
+      Object.is(s.value, t.value) &&
+      Object.is(s.label, t.label) &&
+      s.tone === t.tone
+    )
+  })
+}
+
 export function samePoints(
   a: readonly ChartPoint[] | undefined,
   b: readonly ChartPoint[],
@@ -39,10 +64,12 @@ export function samePoints(
     return (
       q !== undefined &&
       p.id === q.id &&
+      p.index === q.index &&
       p.x === q.x &&
       p.y === q.y &&
       p.label === q.label &&
-      p.datum === q.datum
+      p.datum === q.datum &&
+      sameSegments(p.segments, q.segments)
     )
   })
 }
@@ -71,7 +98,7 @@ export function useInteraction({
   const [registry, setRegistry] = useState<Record<string, ChartPoint[]>>({})
   const controlled = controlledId !== undefined
   const activeId: Id | null = controlledId !== undefined ? controlledId : innerId
-  const points = useMemo(() => Object.values(registry).flat(), [registry])
+  const points = useMemo(() => uniquePoints(Object.values(registry).flat()), [registry])
   const activePoint = activeId === null ? null : (points.find((p) => p.id === activeId) ?? null)
 
   const latest = useRef({ activeId, points, onActiveChange, controlled })
@@ -83,7 +110,11 @@ export function useInteraction({
     const current = latest.current
     setSource(nextSource)
     if (id === current.activeId) return
-    if (!current.controlled) setInnerId(id)
+    if (!current.controlled) {
+      setInnerId(id)
+      // The ref otherwise updates after render; a second call in the same event must see this id.
+      latest.current = { ...current, activeId: id }
+    }
     current.onActiveChange?.(
       id,
       id === null ? null : (current.points.find((p) => p.id === id) ?? null),

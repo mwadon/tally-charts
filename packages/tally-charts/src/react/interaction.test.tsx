@@ -1,7 +1,7 @@
 import { act, renderHook } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import type { Id } from '../core/types'
-import { navigate, useInteraction } from './interaction'
+import { navigate, samePoints, uniquePoints, useInteraction } from './interaction'
 import type { ChartPoint } from './types'
 
 const pts = (ids: Id[]): ChartPoint[] =>
@@ -114,5 +114,53 @@ describe('useInteraction', () => {
     act(() => result.current.registerPoints('m', pts(['a', 'b'])))
     expect(result.current.activeId).toBe('c')
     expect(result.current.activePoint).toBeNull()
+  })
+})
+
+describe('uniquePoints', () => {
+  it('keeps the first point per id, in order', () => {
+    const points = [...pts(['a', 'b']), ...pts(['a', 'c'])]
+    expect(uniquePoints(points).map((p) => p.id)).toEqual(['a', 'b', 'c'])
+  })
+})
+
+describe('samePoints', () => {
+  it('treats points with changed tooltip segments as different', () => {
+    const a = pts(['a'])
+    const b = pts(['a']).map((p) => ({ ...p, segments: [{ value: 'new' }] }))
+    expect(samePoints(a, b)).toBe(false)
+    expect(
+      samePoints(
+        b,
+        pts(['a']).map((p) => ({ ...p, segments: [{ value: 'new' }] })),
+      ),
+    ).toBe(true)
+  })
+
+  it('treats points with a changed index as different', () => {
+    const a = pts(['a'])
+    expect(samePoints(a, [{ ...(a[0] as ChartPoint), index: 3 }])).toBe(false)
+  })
+})
+
+describe('useInteraction ordering', () => {
+  it('reports one change when the same id is set twice in one event', () => {
+    const onActiveChange = vi.fn()
+    const { result } = renderHook(() => useInteraction({ onActiveChange }))
+    act(() => result.current.registerPoints('m', pts(['a', 'b'])))
+    act(() => {
+      result.current.setActive('a', 'pointer')
+      result.current.setActive('a', 'pointer')
+    })
+    expect(onActiveChange).toHaveBeenCalledTimes(1)
+  })
+
+  it('de-duplicates points across marks', () => {
+    const { result } = renderHook(() => useInteraction({}))
+    act(() => {
+      result.current.registerPoints('m1', pts(['a', 'b']))
+      result.current.registerPoints('m2', pts(['a', 'b']))
+    })
+    expect(result.current.points.map((p) => p.id)).toEqual(['a', 'b'])
   })
 })
