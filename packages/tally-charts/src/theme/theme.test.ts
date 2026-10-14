@@ -31,6 +31,7 @@ describe('theme.css', () => {
     '--ch-dim-opacity:',
     '--ch-radius:',
     '--ch-font-numeric:',
+    '--ch-tone-text-mix:',
   ])('defines %s', (token) => {
     expect(css).toContain(token)
   })

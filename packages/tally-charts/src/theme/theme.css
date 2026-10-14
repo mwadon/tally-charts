@@ -69,6 +69,8 @@
   --ch-duration: 400ms;
   --ch-ease: cubic-bezier(0.2, 0, 0, 1);
   --ch-dim-opacity: 0.35;
+  /* Share of the tone in colored HTML text; the rest is --ch-ink, which keeps contrast ≥ 4.5:1. */
+  --ch-tone-text-mix: 55%;
 }
 
 /* ---------- Chart root ---------- */
@@ -342,6 +344,70 @@
     color-mix(in srgb, var(--ch-swatch-color) calc(var(--ch-hatch-tint) * 100%), transparent)
       var(--ch-hatch-width) calc(var(--ch-hatch-gap) * 1px)
   );
+}
+
+/* ---------- Small UI pieces ---------- */
+.ch-tone-text {
+  color: color-mix(in srgb, var(--ch-swatch-color) var(--ch-tone-text-mix), var(--ch-ink));
+}
+
+.ch-delta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--ch-tooltip-bg);
+  box-shadow: 0 0 0 1px var(--ch-grid);
+  color: var(--ch-ink);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.3;
+  white-space: nowrap;
+  font-variant-numeric: var(--ch-font-numeric);
+}
+
+.ch-delta-arrow {
+  font-size: 0.7em;
+}
+
+.ch-stat {
+  display: grid;
+  gap: 12px;
+  color: var(--ch-ink);
+  font-variant-numeric: var(--ch-font-numeric);
+}
+
+.ch-stat-label {
+  color: var(--ch-ink-muted);
+  font-size: 14px;
+}
+
+.ch-stat-value {
+  font-weight: 500;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+.ch-stat[data-ch-size="lg"] .ch-stat-value {
+  font-size: 72px;
+}
+
+.ch-stat[data-ch-size="md"] .ch-stat-value {
+  font-size: 40px;
+}
+
+.ch-stat[data-ch-size="sm"] .ch-stat-value {
+  font-size: 28px;
+}
+
+.ch-stat-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  color: var(--ch-ink-muted);
+  font-size: 15px;
 }
 
 /* ---------- Motion off ---------- */
