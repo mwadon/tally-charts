@@ -37,6 +37,12 @@ describe('public entry points', () => {
     'ColumnHighlight',
     'Area',
     'Callout',
+    'DotHistogram',
+    'StripPlot',
+    'WaffleColumns',
+    'Dots',
+    'NearestPointer',
+    'thresholds',
   ])('main exports %s', (name) => {
     expect(main).toHaveProperty(name)
   })

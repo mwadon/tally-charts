@@ -5,7 +5,10 @@ import { describe, expect, it } from 'vitest'
 import {
   DrillColumn,
   EstimateVsActual,
+  InstallsStrip,
+  JobsHistogram,
   LastTwelveWeeks,
+  LeakWaffle,
   ProfitBridge,
   SmallPieces,
   UnderTarget,
@@ -81,5 +84,24 @@ describe('server rendering', () => {
     expect(comparison.match(/data-ch-part="bar"/g)).toHaveLength(8)
     expect(renderToString(<DrillColumn />)).toContain('data-ch-part="row-highlight"')
     expect(renderToString(<SmallPieces />)).toContain('role="meter"')
+  })
+
+  it('renders the 0.4 dot charts without a DOM, deterministically', () => {
+    for (const Example of [JobsHistogram, InstallsStrip, LeakWaffle]) {
+      const html = renderToString(<Example />)
+      expect(html).toBe(renderToString(<Example />))
+      expect(html).not.toContain('NaN')
+      // Pinned callouts live in the overlay, which only exists after mount.
+      expect(html).not.toContain('data-ch-part="callout"')
+    }
+    expect(renderToString(<JobsHistogram />).match(/data-ch-part="dot"/g)).toHaveLength(10)
+    const strip = renderToString(<InstallsStrip />)
+    expect(strip.match(/data-ch-part="dot"/g)).toHaveLength(10)
+    expect(strip).toContain('6.1 h')
+    expect(strip).toContain('8.2 h')
+    const waffle = renderToString(<LeakWaffle />)
+    // 9800 → 5, 10200 → 5, 10100 → 5, 23400 → 12 dots at $2K each.
+    expect(waffle.match(/data-ch-part="dot"/g)).toHaveLength(27)
+    expect(waffle).toContain('September')
   })
 })

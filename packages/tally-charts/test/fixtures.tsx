@@ -6,15 +6,19 @@ import {
   ComparisonBars,
   Delta,
   DotCount,
+  DotHistogram,
   fmt,
   InlineBar,
   Meter,
   RangeMeter,
   RankedBars,
   Stat,
+  StripPlot,
   Target,
   Tooltip,
+  thresholds,
   ValueLabel,
+  WaffleColumns,
   WaterfallChart,
 } from '../src'
 
@@ -150,6 +154,79 @@ export function ProfitBridge() {
         { value: '12.3%', label: 'margin' },
         { value: '32%', label: 'of plan' },
       ]}
+    />
+  )
+}
+
+export const marginBands = thresholds(
+  [10, 25, 38],
+  ['loss', 'warn', 'accent-soft', 'gain'],
+  ['Critical', 'At risk', 'Below target', 'On target'],
+)
+
+export const jobs = [3.1, 8.8, 12.3, 14.0, 26.5, 31.2, 39.0, 41.5, 41.9, 47.2].map((margin, i) => ({
+  id: 5810 + i,
+  margin,
+}))
+
+export function JobsHistogram() {
+  return (
+    <DotHistogram
+      title="Jobs by margin"
+      data={jobs}
+      value="margin"
+      id="id"
+      label={(d) => `#${d.id}`}
+      format="percent"
+      toneBy={marginBands}
+      domain={[0, 60]}
+      target={{ value: 38, label: 'Target 38%' }}
+      calloutId={5812}
+    />
+  )
+}
+
+export const installs = [
+  { job: 'A', est: 6.0, act: 8.4 },
+  { job: 'B', est: 6.1, act: 7.9 },
+  { job: 'C', est: 5.8, act: 9.6 },
+  { job: 'D', est: 6.3, act: 8.2 },
+  { job: 'E', est: 6.1, act: 8.1 },
+]
+
+export function InstallsStrip() {
+  return (
+    <StripPlot
+      title="Dallas installs, hours per job"
+      data={installs}
+      label="job"
+      series={[
+        { id: 'est', label: 'Estimated', value: 'est', tone: 'accent-soft' },
+        { id: 'act', label: 'Actual', value: 'act', tone: 'loss' },
+      ]}
+      format="hours"
+      domain={[4, 12]}
+    />
+  )
+}
+
+export const leakWeeks = [
+  { week: 'Aug 3', leaked: 9800, month: 'August' },
+  { week: 'Aug 10', leaked: 10200, month: 'August' },
+  { week: 'Aug 31', leaked: 10100, month: 'September' },
+  { week: 'Sep 7', leaked: 23400, month: 'September' },
+]
+
+export function LeakWaffle() {
+  return (
+    <WaffleColumns
+      title="Profit leaked by week"
+      data={leakWeeks}
+      x="week"
+      y="leaked"
+      group="month"
+      unit={2000}
+      format="currency-compact"
     />
   )
 }

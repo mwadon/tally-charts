@@ -3,7 +3,7 @@
 Opinionated React charts for narrative business dashboards: hatched means plan or reference,
 solid means actual, pink means loss, and targets are first-class.
 
-> Status: 0.3. The API may change before 1.0.
+> Status: 0.4. The API may change before 1.0.
 
 ```bash
 npm i tally-charts
@@ -71,6 +71,13 @@ import { BarChart, ComparisonBars, RankedBars } from 'tally-charts'
   part as a hatched cap, a gradient joining the totals between the columns, and a highlighted
   last column. `callout` pins a pill above the last column, lifted clear of any column labels it
   reaches over. Column ids are `'start'` and `step.id ?? index`.
+- `DotHistogram`: one dot per item, binned on x and stacked; `toneBy` takes a `thresholds()`
+  result; `target` and a pinned `calloutId` (with a stem). Arrow keys walk bins (←/→) and
+  stacks (↑/↓). Dots shrink to a minimum size when crowded, then warn.
+- `StripPlot`: one row of dots per `series`, lifted where they'd overlap, with a dashed median
+  per row. ←/→ walk a row, ↑/↓ change rows. Point ids are `"<series id>:<row id>"`.
+- `WaffleColumns`: a column of dots per period (`unit` is the value of one dot), periods tinted
+  by `group`, the peak column solid with a pinned "Peak" pill. Hover and keys work per column.
 - `onSelect` and `onActiveChange` receive your original data object as `point.datum`.
 
 ## Small pieces
@@ -87,6 +94,21 @@ optional stem; `clearance` lifts it over labels it would cover). `Axis` takes an
 only part of a padded linear scale. Callouts live in the HTML overlay:
 they appear after mount and are hidden from screen readers, so put the same facts in the title,
 description or data.
+
+Thresholds drive tones and legend counts:
+
+```tsx
+const bands = thresholds([10, 25, 38], ['loss', 'warn', 'accent-soft', 'gain'],
+  ['Critical', 'At risk', 'Below target', 'On target'])
+
+<Legend shape="dot" items={bands.legend(jobs.map((j) => j.margin))} />
+<DotHistogram data={jobs} value="margin" toneBy={bands} format="percent" />
+```
+
+Building blocks added in 0.4: `Dots` (circles at given positions, with a ring on the active one)
+and `NearestPointer` (one layer that activates the point nearest the pointer, in 2-D or along x).
+Numbers in data follow one rule: numbers and numeric strings count, while blanks, booleans and
+other values are missing.
 
 ## Several React roots on one page
 

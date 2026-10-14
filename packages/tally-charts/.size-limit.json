@@ -54,6 +54,30 @@
     "gzip": true
   },
   {
+    "name": "DotHistogram",
+    "path": "dist/index.js",
+    "import": "{ DotHistogram }",
+    "ignore": ["react", "react-dom"],
+    "limit": "15 KB",
+    "gzip": true
+  },
+  {
+    "name": "StripPlot",
+    "path": "dist/index.js",
+    "import": "{ StripPlot }",
+    "ignore": ["react", "react-dom"],
+    "limit": "15 KB",
+    "gzip": true
+  },
+  {
+    "name": "WaffleColumns",
+    "path": "dist/index.js",
+    "import": "{ WaffleColumns }",
+    "ignore": ["react", "react-dom"],
+    "limit": "15 KB",
+    "gzip": true
+  },
+  {
     "name": "Small UI pieces",
     "path": "dist/index.js",
     "import": "{ Stat, Delta, Meter, RangeMeter, InlineBar, DotCount }",
