@@ -44,6 +44,9 @@ describe('theme.css', () => {
     expect(rule?.[0]).toContain('[data-ch-part="dot"]')
     expect(rule?.[0]).toContain('[data-ch-part="dot-ring"]')
     expect(rule?.[0]).toContain('[data-ch-part="median"]')
+    for (const part of ['line', 'line-dot', 'band', 'grid-line', 'region']) {
+      expect(rule?.[0]).toContain(`[data-ch-part="${part}"]`)
+    }
     expect(rule?.[1]).toContain('pointer-events: none')
   })
 
