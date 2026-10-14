@@ -73,4 +73,12 @@ describe('theme.css', () => {
     // A default base would stop a base set on an ancestor from reaching the levels.
     expect(css).not.toMatch(/--ch-seq-base:/)
   })
+
+  it('puts white text only on the darkest heatmap level', () => {
+    expect(css).toMatch(
+      /\.ch-heatmap-cell\[data-ch-level="5"\] \{[^}]*color: var\(--ch-seq-ink-strong\)/,
+    )
+    expect(css).toMatch(/\.ch-heatmap-cell \{[^}]*color: var\(--ch-ink\)/)
+    expect(css).toMatch(/@media \(prefers-reduced-motion: reduce\) \{[^}]*\.ch-heatmap \*/)
+  })
 })

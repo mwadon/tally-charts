@@ -735,6 +735,118 @@
   background: color-mix(in srgb, var(--ch-swatch-color) 45%, transparent);
 }
 
+/* ---------- Heatmap ---------- */
+.ch-heatmap {
+  display: grid;
+  gap: 20px;
+  color: var(--ch-ink);
+  font-variant-numeric: var(--ch-font-numeric);
+}
+
+.ch-heatmap-grid {
+  display: grid;
+  grid-template-columns: max-content repeat(var(--ch-heatmap-columns), minmax(0, 1fr));
+  gap: 10px 12px;
+}
+
+.ch-heatmap-grid[data-ch-totals="true"] {
+  grid-template-columns:
+    max-content repeat(var(--ch-heatmap-columns), minmax(0, 1fr))
+    max-content;
+}
+
+/* Rows are subgrids, so the ARIA row elements stay in the tree and every column lines up. */
+.ch-heatmap-row {
+  display: grid;
+  grid-column: 1 / -1;
+  grid-template-columns: subgrid;
+  align-items: center;
+}
+
+.ch-heatmap-header {
+  display: grid;
+  gap: 2px;
+  align-self: end;
+  color: var(--ch-ink-muted);
+  font-size: 13px;
+}
+
+.ch-heatmap-header-total {
+  color: var(--ch-ink);
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.ch-heatmap-total-header {
+  text-align: right;
+}
+
+.ch-heatmap-rowheader {
+  padding-right: 24px;
+  font-size: 15px;
+}
+
+.ch-heatmap-cell {
+  display: grid;
+  place-items: center;
+  height: var(--ch-heatmap-cell-height, 44px);
+  border-radius: 10px;
+  color: var(--ch-ink);
+  font-size: 15px;
+  font-weight: 500;
+  outline: none;
+  transition: box-shadow 150ms ease;
+}
+
+.ch-heatmap-cell[data-ch-level="0"] {
+  color: var(--ch-ink-muted);
+  box-shadow: inset 0 0 0 1px var(--ch-grid);
+}
+
+.ch-heatmap-cell[data-ch-level="1"] {
+  background: var(--ch-seq-1);
+}
+
+.ch-heatmap-cell[data-ch-level="2"] {
+  background: var(--ch-seq-2);
+}
+
+.ch-heatmap-cell[data-ch-level="3"] {
+  background: var(--ch-seq-3);
+}
+
+.ch-heatmap-cell[data-ch-level="4"] {
+  background: var(--ch-seq-4);
+}
+
+.ch-heatmap-cell[data-ch-level="5"] {
+  background: var(--ch-seq-5);
+  color: var(--ch-seq-ink-strong);
+}
+
+.ch-heatmap-cell[data-ch-active="true"] {
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.08),
+    0 6px 16px rgb(0 0 0 / 0.14);
+}
+
+.ch-heatmap-cell:focus-visible {
+  box-shadow:
+    0 0 0 2px var(--ch-surface),
+    0 0 0 4px var(--ch-accent);
+}
+
+.ch-heatmap-cell[data-ch-selectable="true"] {
+  cursor: pointer;
+}
+
+.ch-heatmap-total {
+  padding-left: 24px;
+  font-size: 15px;
+  font-weight: 500;
+  text-align: right;
+}
+
 /* ---------- Motion off ---------- */
 [data-ch-animate="false"] * {
   animation: none !important;
@@ -743,6 +855,7 @@
 
 @media (prefers-reduced-motion: reduce) {
   [data-ch-root] *,
+  .ch-heatmap *,
   .ch-tooltip {
     animation: none !important;
     transition: none !important;
