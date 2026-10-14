@@ -26,6 +26,10 @@ const STORIES = [
   'reference-dallas-installs--dark',
   'reference-profit-leaked--light',
   'reference-profit-leaked--dark',
+  'reference-margin-outlook--light',
+  'reference-margin-outlook--dark',
+  'reference-where-it-leaks--light',
+  'reference-where-it-leaks--dark',
 ]
 
 // Stories whose reference layout needs more room than the default 800px viewport.
@@ -37,6 +41,10 @@ const WIDE_STORIES: Record<string, { width: number; height: number }> = {
   'reference-jobs-by-margin--dark': { width: 1280, height: 600 },
   'reference-dallas-installs--light': { width: 1280, height: 600 },
   'reference-dallas-installs--dark': { width: 1280, height: 600 },
+  'reference-margin-outlook--light': { width: 1280, height: 640 },
+  'reference-margin-outlook--dark': { width: 1280, height: 640 },
+  'reference-where-it-leaks--light': { width: 1280, height: 600 },
+  'reference-where-it-leaks--dark': { width: 1280, height: 600 },
 }
 
 async function open(page: Page, id: string) {
@@ -177,4 +185,43 @@ test('the waffle pins its peak and hands over to the tooltip on hover', async ({
   await page.mouse.move(box.x + box.width / 2, box.y - 20)
   await expect(callout).toHaveCount(0)
   await expect(page.locator('[data-ch-part="tooltip"]')).toContainText('Aug 3')
+})
+
+test('the line chart snaps to the nearest month and lists every series', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 640 })
+  await open(page, 'reference-margin-outlook--light')
+  // Hollow dots belong to the forecast: Sep (the join) first, then Oct.
+  const box = await page
+    .locator('[data-ch-part="line-dot"][data-ch-hollow="true"]')
+    .nth(1)
+    .boundingBox()
+  if (!box) throw new Error('no dot')
+  await page.mouse.move(box.x + box.width / 2 + 6, box.y + 40)
+  const tooltip = page.locator('[data-ch-part="tooltip"]')
+  await expect(tooltip).toContainText('Oct')
+  await expect(tooltip).toContainText('35.2%')
+  await expect(tooltip).toContainText('on the current path')
+  await expect(tooltip).toContainText('36.7%')
+  await expect(page.locator('[data-ch-part="dot-ring"]')).toHaveCount(2)
+})
+
+test('the line chart announces every series at a month', async ({ page }) => {
+  await open(page, 'reference-margin-outlook--light')
+  const chart = page.getByRole('figure', { name: 'Margin outlook' })
+  await chart.focus()
+  await page.keyboard.press('End')
+  await expect(chart.locator('[aria-live]')).toHaveText(
+    'Dec, 36.0% on the current path, 37.6% with changes',
+  )
+})
+
+test('arrow keys move through the heatmap and Enter selects a cell', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 600 })
+  await open(page, 'reference-where-it-leaks--light')
+  await page.getByRole('gridcell', { name: '$14.8K' }).focus()
+  await page.keyboard.press('ArrowRight')
+  await page.keyboard.press('ArrowDown')
+  await expect(page.getByRole('gridcell', { name: '$5.1K' })).toBeFocused()
+  await page.keyboard.press('Enter')
+  await expect(page.getByTestId('heatmap-selected')).toHaveText('Selected: Austin · Materials')
 })
