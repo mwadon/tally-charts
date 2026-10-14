@@ -79,4 +79,16 @@ describe('createScale', () => {
     if (b.kind !== 'band') throw new Error('expected a band scale')
     expect(b.scale.domain()).toEqual(['10', 'NaN', '30'])
   })
+
+  it('leaves blank and boolean values out of an inferred domain', () => {
+    const rows = [{ v: '' }, { v: false }, { v: 5 }, { v: 10 }]
+    const scale = createScale<{ v: unknown }>(
+      { field: 'v', zero: false, nice: false },
+      rows,
+      'y',
+      100,
+      () => {},
+    )
+    expect(scale.kind === 'linear' && scale.scale.domain()).toEqual([5, 10])
+  })
 })

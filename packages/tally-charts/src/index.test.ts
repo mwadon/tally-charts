@@ -53,6 +53,7 @@ describe('public entry points', () => {
     'truncateLabel',
     'runningTotals',
     'areaPath',
+    'thresholds',
   ])('core exports %s', (name) => {
     expect(core).toHaveProperty(name)
   })

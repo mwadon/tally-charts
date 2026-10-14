@@ -1,6 +1,7 @@
 import type { ScaleBand } from 'd3-scale'
 import type { FieldGetter } from './accessor'
 import type { LinearScale } from './linear'
+import { toNumber } from './number'
 import type { ResolvedScale } from './scale'
 import type { Id } from './types'
 import { DEV, type Warn } from './warn'
@@ -61,10 +62,6 @@ export function computeBars(input: BarLayoutInput): BarLayout {
   }
   if (DEV) input.warn('bars-scales', 'Bars need one band scale and one linear scale on <Chart>.')
   return { orientation: 'vertical', bars: [] }
-}
-
-function toNumber(raw: unknown): number {
-  return raw === null || raw === undefined ? Number.NaN : Number(raw)
 }
 
 function layoutBars(

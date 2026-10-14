@@ -1,6 +1,7 @@
 import { type ScaleBand, scaleBand } from 'd3-scale'
 import { type FieldGetter, toFieldGetter } from './accessor'
 import { type LinearScale, linearScale, niceDomain } from './linear'
+import { toNumber } from './number'
 import type { Accessor } from './types'
 import { DEV, type Warn } from './warn'
 
@@ -48,10 +49,6 @@ export function inferLinearDomain(values: readonly number[], zero = true): [numb
     return [min - pad, max + pad]
   }
   return [min, max]
-}
-
-function toNumber(value: unknown): number {
-  return value === null || value === undefined ? Number.NaN : Number(value)
 }
 
 function uniqueStrings(data: readonly unknown[], field: FieldGetter): string[] {

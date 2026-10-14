@@ -221,4 +221,14 @@ describe('computeBars options', () => {
     expect(bar).toMatchObject({ x: 25, width: 25, y: 95, height: 10, dir: 'right' })
     expect(bar?.band).toEqual({ start: 0, size: 200 })
   })
+
+  it('skips blank and boolean values as missing', () => {
+    const rows = [
+      { k: 'a', v: '' as unknown as number },
+      { k: 'b', v: true as unknown as number },
+      { k: 'c', v: 5 },
+    ]
+    const { bars } = layout(rows, [0, 10])
+    expect(bars.map((b) => b.category)).toEqual(['c'])
+  })
 })
