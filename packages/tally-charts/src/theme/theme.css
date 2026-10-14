@@ -1,0 +1,307 @@
+/* tally-charts theme — import once: import 'tally-charts/theme.css' */
+
+/* ---------- Color tokens: light (default) ---------- */
+:root,
+[data-ch-theme="light"] {
+  --ch-accent: #2f6bf0;
+  --ch-accent-soft: #9dbcf6;
+  --ch-loss: #e5368d;
+  --ch-warn: #f1a23b;
+  --ch-gain: #23a866;
+  --ch-neutral: #a3a3ab;
+  --ch-ink: #111114;
+  --ch-ink-muted: #6b6b73;
+  --ch-grid: #e4e4e9;
+  --ch-surface: #fafafa;
+  --ch-tooltip-bg: #ffffff;
+  --ch-tooltip-ink: #111114;
+  --ch-tooltip-shadow: 0 1px 2px rgb(0 0 0 / 0.06), 0 6px 20px rgb(0 0 0 / 0.08);
+  --ch-hatch-tint: 0.14;
+}
+
+/* ---------- Color tokens: dark (system preference) ---------- */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-ch-theme="light"]) {
+    --ch-accent: #4d86ff;
+    --ch-accent-soft: #5a7cc4;
+    --ch-loss: #ff4fa0;
+    --ch-warn: #ffb24d;
+    --ch-gain: #3ccf86;
+    --ch-neutral: #7c7c86;
+    --ch-ink: #f4f4f6;
+    --ch-ink-muted: #a0a0aa;
+    --ch-grid: #2a2a31;
+    --ch-surface: #121215;
+    --ch-tooltip-bg: #1d1d22;
+    --ch-tooltip-ink: #f4f4f6;
+    --ch-tooltip-shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 6px 20px rgb(0 0 0 / 0.5);
+    --ch-hatch-tint: 0.2;
+  }
+}
+
+/* ---------- Color tokens: dark (forced on any ancestor) ---------- */
+[data-ch-theme="dark"] {
+  --ch-accent: #4d86ff;
+  --ch-accent-soft: #5a7cc4;
+  --ch-loss: #ff4fa0;
+  --ch-warn: #ffb24d;
+  --ch-gain: #3ccf86;
+  --ch-neutral: #7c7c86;
+  --ch-ink: #f4f4f6;
+  --ch-ink-muted: #a0a0aa;
+  --ch-grid: #2a2a31;
+  --ch-surface: #121215;
+  --ch-tooltip-bg: #1d1d22;
+  --ch-tooltip-ink: #f4f4f6;
+  --ch-tooltip-shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 6px 20px rgb(0 0 0 / 0.5);
+  --ch-hatch-tint: 0.2;
+}
+
+/* ---------- Theme-independent tokens ---------- */
+:root {
+  /* Stripe direction in degrees from horizontal (45 draws "////"). Unitless: read by JS too. */
+  --ch-hatch-angle: 45;
+  --ch-hatch-width: 1.5px;
+  /* Distance between stripes in px. Unitless: read by JS too. */
+  --ch-hatch-gap: 6;
+  --ch-font-numeric: tabular-nums;
+  --ch-radius: 4px;
+  --ch-duration: 400ms;
+  --ch-ease: cubic-bezier(0.2, 0, 0, 1);
+  --ch-dim-opacity: 0.35;
+}
+
+/* ---------- Chart root ---------- */
+[data-ch-root] {
+  /* Sequential bins resolve per chart so --ch-seq-base can be overridden locally. */
+  --ch-seq-base: var(--ch-loss);
+  --ch-seq-1: color-mix(in srgb, var(--ch-seq-base) 12%, var(--ch-surface));
+  --ch-seq-2: color-mix(in srgb, var(--ch-seq-base) 30%, var(--ch-surface));
+  --ch-seq-3: color-mix(in srgb, var(--ch-seq-base) 50%, var(--ch-surface));
+  --ch-seq-4: color-mix(in srgb, var(--ch-seq-base) 75%, var(--ch-surface));
+  --ch-seq-5: var(--ch-seq-base);
+  position: relative;
+  display: block;
+  margin: 0;
+  color: var(--ch-ink);
+  font-variant-numeric: var(--ch-font-numeric);
+  border-radius: 6px;
+  outline: none;
+}
+
+[data-ch-root]:focus-visible {
+  outline: 2px solid var(--ch-accent);
+  outline-offset: 4px;
+}
+
+.ch-svg {
+  display: block;
+  overflow: visible;
+}
+
+.ch-overlay {
+  position: absolute;
+  pointer-events: none;
+}
+
+.ch-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.ch-empty {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  color: var(--ch-ink-muted);
+  font-size: 13px;
+}
+
+/* ---------- Bars ---------- */
+[data-ch-part="bar"] {
+  transform-box: fill-box;
+  transition:
+    opacity 150ms ease,
+    x var(--ch-duration) var(--ch-ease),
+    y var(--ch-duration) var(--ch-ease),
+    width var(--ch-duration) var(--ch-ease),
+    height var(--ch-duration) var(--ch-ease);
+}
+
+[data-ch-part="bar"][data-ch-dir="up"] {
+  transform-origin: 50% 100%;
+}
+
+[data-ch-part="bar"][data-ch-dir="down"] {
+  transform-origin: 50% 0%;
+}
+
+[data-ch-part="bar"][data-ch-dir="right"] {
+  transform-origin: 0% 50%;
+}
+
+[data-ch-part="bar"][data-ch-dir="left"] {
+  transform-origin: 100% 50%;
+}
+
+[data-ch-animate="true"] [data-ch-part="bar"][data-ch-dir="up"],
+[data-ch-animate="true"] [data-ch-part="bar"][data-ch-dir="down"] {
+  animation: ch-grow-y var(--ch-duration) var(--ch-ease) both;
+}
+
+[data-ch-animate="true"] [data-ch-part="bar"][data-ch-dir="right"],
+[data-ch-animate="true"] [data-ch-part="bar"][data-ch-dir="left"] {
+  animation: ch-grow-x var(--ch-duration) var(--ch-ease) both;
+}
+
+@keyframes ch-grow-y {
+  from {
+    transform: scaleY(0);
+  }
+}
+
+@keyframes ch-grow-x {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+[data-ch-dimmed="true"] {
+  opacity: var(--ch-dim-opacity);
+}
+
+/* ---------- Labels and reference marks ---------- */
+[data-ch-part="axis-label"],
+[data-ch-part="target-label"] {
+  fill: var(--ch-ink-muted);
+  font-size: 12px;
+}
+
+[data-ch-part="value-label"] {
+  fill: var(--ch-ink);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+[data-ch-part="target"] {
+  stroke: var(--ch-ink);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+
+[data-ch-part="target"][data-ch-variant="tick"] {
+  stroke-width: 2;
+  stroke-dasharray: none;
+}
+
+/* ---------- Tooltip pill ---------- */
+.ch-tooltip {
+  position: absolute;
+  z-index: 1;
+}
+
+.ch-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--ch-tooltip-bg);
+  color: var(--ch-tooltip-ink);
+  box-shadow: var(--ch-tooltip-shadow);
+  font-size: 13px;
+  line-height: 1.4;
+  white-space: nowrap;
+  font-variant-numeric: var(--ch-font-numeric);
+}
+
+.ch-pill-seg {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.ch-pill-seg + .ch-pill-seg {
+  margin-left: 10px;
+  padding-left: 10px;
+  border-left: 1px solid var(--ch-grid);
+}
+
+.ch-pill-value {
+  font-weight: 600;
+}
+
+.ch-pill-seg[data-ch-tone] .ch-pill-value {
+  color: var(--ch-swatch-color);
+}
+
+.ch-pill-label {
+  color: var(--ch-ink-muted);
+}
+
+/* ---------- Legend ---------- */
+.ch-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--ch-ink);
+  font-size: 13px;
+}
+
+.ch-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ch-legend-count {
+  color: var(--ch-ink-muted);
+}
+
+.ch-swatch {
+  display: inline-block;
+  flex: none;
+  width: 20px;
+  height: 10px;
+  border-radius: 3px;
+  background: var(--ch-swatch-color);
+}
+
+.ch-swatch[data-ch-shape="dot"] {
+  width: 10px;
+  border-radius: 50%;
+}
+
+.ch-swatch[data-ch-fill="hatch"],
+.ch-swatch[data-ch-fill="hatch-fade"] {
+  /* Same stripe direction as the SVG patterns: gradient runs perpendicular to the stripes. */
+  background: repeating-linear-gradient(
+    calc((var(--ch-hatch-angle) + 90) * 1deg),
+    var(--ch-swatch-color) 0 var(--ch-hatch-width),
+    color-mix(in srgb, var(--ch-swatch-color) calc(var(--ch-hatch-tint) * 100%), transparent)
+      var(--ch-hatch-width) calc(var(--ch-hatch-gap) * 1px)
+  );
+}
+
+/* ---------- Motion off ---------- */
+[data-ch-animate="false"] * {
+  animation: none !important;
+  transition: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-ch-root] *,
+  .ch-tooltip {
+    animation: none !important;
+    transition: none !important;
+  }
+}
