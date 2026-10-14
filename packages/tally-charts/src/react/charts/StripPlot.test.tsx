@@ -126,6 +126,23 @@ describe('<StripPlot>', () => {
     expect(warn.mock.calls[0]?.[0]).toContain('duplicate id')
   })
 
+  it('keeps a crowded row inside its band and warns once', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const many = Array.from({ length: 15 }, (_, i) => ({ job: `J${i}`, est: 6, act: 8 }))
+    const { container } = renderStrip({ data: many })
+    // Plot space: the Estimated band starts at 0, Actual at 72; 18px stay free for the median.
+    const est = dots(container).filter((d) => d.getAttribute('data-ch-tone') === 'accent-soft')
+    const act = dots(container).filter((d) => d.getAttribute('data-ch-tone') === 'loss')
+    expect(est).toHaveLength(15)
+    for (const d of est) expect(Number(d.getAttribute('cy')) - 4).toBeGreaterThanOrEqual(18 - 1e-9)
+    for (const d of act) expect(Number(d.getAttribute('cy')) - 4).toBeGreaterThanOrEqual(90 - 1e-9)
+    const [estMedian, actMedian] = parts(container, '[data-ch-part="median"]')
+    expect(Number(estMedian?.getAttribute('y1'))).toBeGreaterThanOrEqual(0)
+    expect(Number(actMedian?.getAttribute('y1'))).toBeGreaterThanOrEqual(72)
+    expect(warn).toHaveBeenCalledTimes(1)
+    expect(warn.mock.calls[0]?.[0]).toContain('StripPlot has more dots than fit in a row')
+  })
+
   it('renders a hidden data table with one column per series', () => {
     renderStrip()
     const table = screen.getByRole('table', { name: 'Dallas installs' })

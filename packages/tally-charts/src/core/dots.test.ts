@@ -47,6 +47,23 @@ describe('binDots', () => {
     expect(layout.radius).toBe(2)
   })
 
+  it('compresses crowded stacks so every dot stays inside the plot', () => {
+    const layout = binDots({
+      values: Array.from({ length: 30 }, () => 0.5),
+      x,
+      binWidth: 1,
+      baseline: 100,
+      top: 0,
+    })
+    expect(layout.crowded).toBe(true)
+    for (const d of layout.dots) {
+      expect(d.cy - layout.radius).toBeGreaterThanOrEqual(0 - 1e-9)
+      expect(d.cy + layout.radius).toBeLessThanOrEqual(100 + 1e-9)
+    }
+    // The tallest stack reaches the top exactly.
+    expect(Math.min(...layout.dots.map((d) => d.cy)) - layout.radius).toBeCloseTo(0)
+  })
+
   it('falls back to a fortieth of the domain for a bad bin width', () => {
     const { dots } = binDots({ values: [0.3, 0.1], x, binWidth: 0, baseline: 100, top: 0 })
     // Width 0.25: 0.1 → bin 0, 0.3 → bin 1.
@@ -56,7 +73,14 @@ describe('binDots', () => {
 
 describe('stackStrip', () => {
   it('places dots at their value and lifts the ones that would overlap', () => {
-    const dots = stackStrip({ values: [1, 1.5, 3, 1.2, null], x, baseline: 50, radius: 4, gap: 1 })
+    const { dots, crowded } = stackStrip({
+      values: [1, 1.5, 3, 1.2, null],
+      x,
+      baseline: 50,
+      radius: 4,
+      gap: 1,
+    })
+    expect(crowded).toBe(false)
     // Step 9px: x = 10, 12, 15 collide; 30 has room on the bottom level.
     expect(dots.map((d) => [d.index, d.level, d.cx, d.cy])).toEqual([
       [0, 0, 10, 46],
@@ -64,6 +88,26 @@ describe('stackStrip', () => {
       [1, 2, 15, 28],
       [2, 0, 30, 46],
     ])
+  })
+
+  it('leaves the layout alone when the levels fit under top', () => {
+    const layout = stackStrip({ values: [1, 1.5, 3, 1.2], x, baseline: 50, top: 0, radius: 4 })
+    expect(layout.crowded).toBe(false)
+    expect(layout.dots.map((d) => d.cy)).toEqual([46, 37, 28, 46])
+  })
+
+  it('compresses the levels of a crowded row under top and flags it', () => {
+    const { dots, crowded } = stackStrip({
+      values: Array.from({ length: 15 }, () => 5),
+      x,
+      baseline: 50,
+      top: 20,
+      radius: 4,
+    })
+    expect(crowded).toBe(true)
+    expect(dots).toHaveLength(15)
+    for (const d of dots) expect(d.cy - 4).toBeGreaterThanOrEqual(20 - 1e-9)
+    expect(Math.max(...dots.map((d) => d.cy))).toBe(46)
   })
 })
 

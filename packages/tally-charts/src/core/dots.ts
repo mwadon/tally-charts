@@ -32,7 +32,10 @@ export interface BinnedDot {
 export interface DotBinLayout {
   dots: BinnedDot[]
   radius: number
-  /** True when the dots had to shrink to `minRadius`; the plot may overflow. */
+  /**
+   * True when the dots had to shrink to `minRadius`. The stacks are then compressed so they fit:
+   * dots overlap, and the plot never overflows.
+   */
   crowded: boolean
 }
 
@@ -76,6 +79,12 @@ export function binDots(input: DotBinInput): DotBinLayout {
   const crowded = !(ideal >= minRadius)
   const radius = crowded ? minRadius : ideal
   const clamp = clampTo(x)
+  const step = 2 * radius + gap
+  // Crowded stacks squeeze together (and overlap) so the tallest still ends at `top`.
+  const pitch =
+    crowded && tallest > 1
+      ? Math.max(0, Math.min(step, (Math.abs(baseline - top) - 2 * radius) / (tallest - 1)))
+      : step
   return {
     radius,
     crowded,
@@ -85,7 +94,7 @@ export function binDots(input: DotBinInput): DotBinLayout {
       bin: d.bin,
       stack: d.stack,
       cx: clamp(x(lo + (d.bin + 0.5) * width)),
-      cy: baseline - radius - d.stack * (2 * radius + gap),
+      cy: baseline - radius - d.stack * pitch,
     })),
   }
 }
@@ -95,6 +104,8 @@ export interface StripInput {
   x: LinearScale
   /** y of the row's bottom edge, in px. */
   baseline: number
+  /** Highest y the dots may reach, in px. Default: no limit. */
+  top?: number
   radius: number
   /** Space between dots in px. Default 1. */
   gap?: number
@@ -109,8 +120,17 @@ export interface StripDot {
   cy: number
 }
 
-/** One dot per value at its exact x, lifted to the lowest level where it doesn't overlap. */
-export function stackStrip({ values, x, baseline, radius, gap = 1 }: StripInput): StripDot[] {
+export interface StripLayout {
+  dots: StripDot[]
+  /** True when the levels had to squeeze under `top`; dots then overlap. */
+  crowded: boolean
+}
+
+/**
+ * One dot per value at its exact x, lifted to the lowest level where it doesn't overlap. When the
+ * levels would rise above `top`, they squeeze together so the highest ends at `top`.
+ */
+export function stackStrip({ values, x, baseline, top, radius, gap = 1 }: StripInput): StripLayout {
   const clamp = clampTo(x)
   const items = values.flatMap((raw, index) => {
     const value = toNumber(raw)
@@ -119,12 +139,20 @@ export function stackStrip({ values, x, baseline, radius, gap = 1 }: StripInput)
   items.sort((a, b) => a.cx - b.cx || a.index - b.index)
   const step = 2 * radius + gap
   const lastOnLevel: number[] = []
-  return items.map((item) => {
+  const leveled = items.map((item) => {
     let level = lastOnLevel.findIndex((cx) => item.cx - cx >= step)
     if (level === -1) level = lastOnLevel.length
     lastOnLevel[level] = item.cx
-    return { ...item, level, cy: baseline - radius - level * step }
+    return { ...item, level }
   })
+  const highest = lastOnLevel.length - 1
+  const room = top === undefined ? Number.POSITIVE_INFINITY : baseline - top - 2 * radius
+  const crowded = highest > 0 && highest * step > room
+  const pitch = crowded ? Math.max(0, room / highest) : step
+  return {
+    crowded,
+    dots: leveled.map((item) => ({ ...item, cy: baseline - radius - item.level * pitch })),
+  }
 }
 
 /** Median of the real values; NaN when there are none. */

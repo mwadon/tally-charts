@@ -6,7 +6,7 @@ import { niceDomain } from '../../core/linear'
 import { inferLinearDomain } from '../../core/scale'
 import type { TickSpec } from '../../core/ticks'
 import type { Accessor, Id, Tone } from '../../core/types'
-import { createWarner } from '../../core/warn'
+import { createWarner, DEV, type Warn } from '../../core/warn'
 import { Chart } from '../Chart'
 import { useFormat } from '../ChartsProvider'
 import { type Margin, useChart } from '../context'
@@ -70,6 +70,10 @@ interface StripRow<D> {
 const DEFAULT_TONES: readonly Tone[] = ['accent', 'loss', 'warn', 'gain', 'neutral', 'accent-soft']
 /** Space between the lowest dots and the row's bottom edge, in px. */
 const ROW_PAD = 6
+/** Space kept free above a row's dots for its median label, in px. */
+const MEDIAN_ROOM = 18
+/** Space between a row's highest dot and its median label, in px. */
+const MEDIAN_RISE = 8
 
 function StripRows<D>(props: {
   rows: readonly StripRow<D>[]
@@ -77,6 +81,7 @@ function StripRows<D>(props: {
   radius: number
   median: boolean
   fmt: Formatter
+  warn: Warn
 }) {
   const ctx = useChart('StripPlot')
   if (ctx.x.kind !== 'linear' || ctx.y.kind !== 'band') return null
@@ -98,9 +103,18 @@ function StripRows<D>(props: {
     const tone = s.tone ?? (DEFAULT_TONES[si % DEFAULT_TONES.length] as Tone)
     const baseline = start + size - ROW_PAD
     const values = props.rows.map((r) => r.values[si])
-    const placed = stackStrip({ values, x, baseline, radius: props.radius })
+    const placed = stackStrip({
+      values,
+      x,
+      baseline,
+      top: start + MEDIAN_ROOM,
+      radius: props.radius,
+    })
+    if (DEV && placed.crowded) {
+      props.warn('strip-crowded', 'StripPlot has more dots than fit in a row; they overlap.')
+    }
     let top = baseline
-    for (const d of placed) {
+    for (const d of placed.dots) {
       const row = props.rows[d.index]
       if (!row) continue
       const text = props.fmt(d.value)
@@ -123,7 +137,14 @@ function StripRows<D>(props: {
     if (props.median && Number.isFinite(m)) {
       const [r0, r1] = x.range()
       const mx = Math.min(Math.max(r0, r1), Math.max(Math.min(r0, r1), x(m)))
-      medians.push({ key: s.id, x: mx, top: top - 8, bottom: baseline, tone, text: props.fmt(m) })
+      medians.push({
+        key: s.id,
+        x: mx,
+        top: Math.max(start, top - MEDIAN_RISE),
+        bottom: baseline,
+        tone,
+        text: props.fmt(m),
+      })
     }
   })
   return (
@@ -243,7 +264,14 @@ export function StripPlot<D>({
       height={height ?? Math.max(1, series.length) * rowHeight + m.top + m.bottom}
       dataTable={table}
     >
-      <StripRows rows={rows} series={series} radius={radius} median={median} fmt={fmt} />
+      <StripRows
+        rows={rows}
+        series={series}
+        radius={radius}
+        median={median}
+        fmt={fmt}
+        warn={warn}
+      />
       <RowLabels data={seriesRows} y="key" text="label" maxWidth={labelWidth - 12} />
       {axis === 'none' ? null : <Axis side="bottom" ticks={axis} format={axisFmt} />}
       {tooltip ? <Tooltip /> : null}

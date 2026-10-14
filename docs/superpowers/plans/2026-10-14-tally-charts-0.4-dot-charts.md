@@ -523,7 +523,7 @@ export interface BinnedDot {
 export interface DotBinLayout {
   dots: BinnedDot[]
   radius: number
-  /** True when the dots had to shrink to `minRadius`; the plot may overflow. */
+  /** True when the dots had to shrink to `minRadius`; the stacks then compress so dots overlap and the plot never overflows. */
   crowded: boolean
 }
 

@@ -11,7 +11,14 @@ export type {
   BarRect,
 } from './bars'
 export { computeBars } from './bars'
-export type { BinnedDot, DotBinInput, DotBinLayout, StripDot, StripInput } from './dots'
+export type {
+  BinnedDot,
+  DotBinInput,
+  DotBinLayout,
+  StripDot,
+  StripInput,
+  StripLayout,
+} from './dots'
 export { binDots, medianOf, stackStrip } from './dots'
 export type {
   FormatOptions,
