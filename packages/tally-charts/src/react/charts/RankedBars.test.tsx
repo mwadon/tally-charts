@@ -105,13 +105,36 @@ describe('<RankedBars>', () => {
     expect(label).toHaveAttribute('y', '0')
     const bar = parts(container, '[data-ch-part="bar"]')[0]
     expect(bar).toHaveAttribute('height', '6')
-    // 52px row: text starts 8px below the row top, the bar ends 8px above the row bottom,
-    // so neither touches the next row or the edge of the selected-row highlight.
+    // 52px row: text starts 14px below the row top, the bar ends 10px above the row bottom,
+    // so each label sits with its own bar and far from the bar of the row above.
     expect(label?.closest('[data-ch-part="row-text"]')).toHaveAttribute(
       'transform',
-      'translate(0 8)',
+      'translate(0 14)',
     )
-    expect(bar).toHaveAttribute('y', '38')
+    expect(bar).toHaveAttribute('y', '36')
+  })
+
+  it('keeps each stacked label closer to its own bar than to the bar above', () => {
+    const { container } = renderRanked({ layout: 'stacked' })
+    const shift = Number(
+      container
+        .querySelector('[data-ch-part="row-text"]')
+        ?.getAttribute('transform')
+        ?.match(/translate\(0 ([\d.]+)\)/)?.[1],
+    )
+    const [, label] = parts(
+      container,
+      '[data-ch-part="row-labels"][data-ch-side="left"] [data-ch-part="row-label"]',
+    )
+    const [above, own] = parts(container, '[data-ch-part="bar"]')
+    const labelTop = Number(label?.getAttribute('y')) + shift
+    // 15px label text, hanging from its y.
+    const labelBottom = labelTop + 15
+    const aboveBottom = Number(above?.getAttribute('y')) + Number(above?.getAttribute('height'))
+    const ownTop = Number(own?.getAttribute('y'))
+    // At most half the gap to the bar above, so each row reads as one unit (was 15 vs 16 px).
+    expect(ownTop - labelBottom).toBeLessThan((labelTop - aboveBottom) / 2)
+    expect(ownTop - labelBottom).toBeGreaterThan(0)
   })
 
   it('cuts a stacked label so it never runs into the value', () => {

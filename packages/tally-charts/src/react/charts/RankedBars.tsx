@@ -73,8 +73,10 @@ interface RankedRow<D> {
 
 /** Horizontal padding inside each row, in px. */
 const PAD = 12
-/** Stacked layout: space between the row edges and the text above / the bar below, in px. */
-const STACK_PAD = 8
+/** Stacked layout: the row's text starts this far below the row top, in px. */
+const STACK_TEXT_PAD = 14
+/** Stacked layout: the bar ends this far above the row bottom, in px. */
+const STACK_BAR_PAD = 10
 /** Stacked layout: smallest gap between a label and the value or meta text, in px. */
 const TEXT_GAP = 8
 
@@ -189,8 +191,9 @@ export function RankedBars<D>({
     ? { top: 0, bottom: 0, left: PAD, right: PAD, ...margin }
     : { top: 0, bottom: 0, left: labelW, right: valueWidth + metaSpace, ...margin }
   const position = stacked ? 'above' : 'middle'
-  // Stacked: the label and value sit inside the row's top padding, the bar above its bottom one.
-  const textShift = stacked ? STACK_PAD : 0
+  // Stacked: the text is pushed well below the row top and the bar sits close under it, so each
+  // label is nearer its own bar than the bar of the row above.
+  const textShift = stacked ? STACK_TEXT_PAD : 0
   const labelReserve = 2 * PAD + (meta ? 2 * metaWidth : valueWidth) + TEXT_GAP
   const selectedKey = rows.find((r) => r.selected)?.key ?? null
   const valueTone = (r: RankedRow<D>): Tone | undefined =>
@@ -227,7 +230,7 @@ export function RankedBars<D>({
         fill={(r) => r.fill}
         size={size}
         align={stacked ? 'end' : 'center'}
-        offset={stacked ? -STACK_PAD : undefined}
+        offset={stacked ? -STACK_BAR_PAD : undefined}
         radius={size / 2}
         track={track}
         format={format}
