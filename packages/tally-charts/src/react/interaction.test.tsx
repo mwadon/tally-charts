@@ -164,3 +164,67 @@ describe('useInteraction ordering', () => {
     expect(result.current.points.map((p) => p.id)).toEqual(['a', 'b'])
   })
 })
+
+describe('navigate with groups', () => {
+  const at = (
+    id: string,
+    x: number,
+    y: number,
+    key: string,
+    axis: 'vertical' | 'horizontal',
+  ): ChartPoint => ({
+    id,
+    index: 0,
+    datum: null,
+    x,
+    y,
+    label: id,
+    segments: [],
+    group: { key, axis },
+  })
+  // Two stacks: A at x 0 (y 90, 80, 70), B at x 10 (y 90, 80).
+  const stacks = [
+    at('a0', 0, 90, 'A', 'vertical'),
+    at('a1', 0, 80, 'A', 'vertical'),
+    at('a2', 0, 70, 'A', 'vertical'),
+    at('b0', 10, 90, 'B', 'vertical'),
+    at('b1', 10, 80, 'B', 'vertical'),
+  ]
+  // Two rows: R at y 50 (x 0, 10, 20), S at y 100 (x 5, 18).
+  const rows = [
+    at('r0', 0, 50, 'R', 'horizontal'),
+    at('r1', 10, 50, 'R', 'horizontal'),
+    at('r2', 20, 50, 'R', 'horizontal'),
+    at('s0', 5, 100, 'S', 'horizontal'),
+    at('s1', 18, 100, 'S', 'horizontal'),
+  ]
+
+  it('moves within a vertical group and across to the nearest point', () => {
+    expect(navigate(stacks, 'a0', 'ArrowUp')).toBe('a1')
+    expect(navigate(stacks, 'a1', 'ArrowDown')).toBe('a0')
+    expect(navigate(stacks, 'a2', 'ArrowUp')).toBe('a2')
+    expect(navigate(stacks, 'a2', 'ArrowRight')).toBe('b1')
+    expect(navigate(stacks, 'b0', 'ArrowLeft')).toBe('a0')
+    expect(navigate(stacks, 'b1', 'ArrowRight')).toBe('b1')
+  })
+
+  it('moves along a horizontal group and between groups by x', () => {
+    expect(navigate(rows, 'r1', 'ArrowRight')).toBe('r2')
+    expect(navigate(rows, 'r0', 'ArrowLeft')).toBe('r0')
+    expect(navigate(rows, 'r2', 'ArrowDown')).toBe('s1')
+    expect(navigate(rows, 's0', 'ArrowUp')).toBe('r0')
+    expect(navigate(rows, 's0', 'ArrowDown')).toBe('s0')
+  })
+
+  it('keeps Home, End and the first step unchanged', () => {
+    expect(navigate(stacks, null, 'ArrowRight')).toBe('a0')
+    expect(navigate(stacks, 'a1', 'Home')).toBe('a0')
+    expect(navigate(stacks, 'a1', 'End')).toBe('b1')
+  })
+
+  it('treats a changed group as a different point', () => {
+    const a = stacks.slice(0, 1)
+    const moved = [{ ...(a[0] as ChartPoint), group: { key: 'B', axis: 'vertical' as const } }]
+    expect(samePoints(a, moved)).toBe(false)
+  })
+})

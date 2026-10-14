@@ -1,7 +1,57 @@
 import { useCallback, useMemo, useRef, useState } from 'react'
 import type { Id } from '../core/types'
-import type { ActiveSource, ChartPoint, TooltipSegment } from './types'
+import type { ActiveSource, ChartPoint, PointGroup, TooltipSegment } from './types'
 import { useIsoLayoutEffect } from './useIsoLayoutEffect'
+
+const ARROWS = new Set(['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'])
+
+/**
+ * Arrow keys for a point in a group. Vertical groups (stacks) move with ↑/↓ inside the stack
+ * and ←/→ to the neighbouring stack; horizontal groups (rows) the other way round. Moving
+ * across lands on the neighbour's point nearest along the group's own axis.
+ */
+function navigateGroup(
+  points: readonly ChartPoint[],
+  current: ChartPoint,
+  group: PointGroup,
+  key: string,
+): Id {
+  const vertical = group.axis === 'vertical'
+  const along = vertical
+    ? key === 'ArrowUp' || key === 'ArrowDown'
+    : key === 'ArrowLeft' || key === 'ArrowRight'
+  const forward = vertical
+    ? along
+      ? key === 'ArrowUp'
+      : key === 'ArrowRight'
+    : along
+      ? key === 'ArrowRight'
+      : key === 'ArrowDown'
+  if (along) {
+    const members = points.filter((p) => p.group?.key === group.key)
+    const i = members.findIndex((p) => p.id === current.id)
+    const next = members[forward ? Math.min(i + 1, members.length - 1) : Math.max(i - 1, 0)]
+    return (next ?? current).id
+  }
+  const keys: (string | number)[] = []
+  for (const p of points) {
+    const k = p.group?.key
+    if (k !== undefined && !keys.includes(k)) keys.push(k)
+  }
+  const target = keys[keys.indexOf(group.key) + (forward ? 1 : -1)]
+  if (target === undefined) return current.id
+  let best: ChartPoint | undefined
+  let bestDistance = Number.POSITIVE_INFINITY
+  for (const p of points) {
+    if (p.group?.key !== target) continue
+    const distance = vertical ? Math.abs(p.y - current.y) : Math.abs(p.x - current.x)
+    if (distance < bestDistance) {
+      best = p
+      bestDistance = distance
+    }
+  }
+  return (best ?? current).id
+}
 
 /** Next active id for a key press; `undefined` when the key isn't handled. */
 export function navigate(
@@ -13,6 +63,8 @@ export function navigate(
   if (points.length === 0) return undefined
   const last = points.length - 1
   const index = currentId === null ? -1 : points.findIndex((p) => p.id === currentId)
+  const current = index >= 0 ? points[index] : undefined
+  if (current?.group && ARROWS.has(key)) return navigateGroup(points, current, current.group, key)
   switch (key) {
     case 'ArrowRight':
     case 'ArrowDown':
@@ -69,6 +121,8 @@ export function samePoints(
       p.y === q.y &&
       p.label === q.label &&
       p.datum === q.datum &&
+      p.group?.key === q.group?.key &&
+      p.group?.axis === q.group?.axis &&
       sameSegments(p.segments, q.segments)
     )
   })

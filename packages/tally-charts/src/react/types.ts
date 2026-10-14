@@ -7,6 +7,12 @@ export interface TooltipSegment {
   tone?: Tone
 }
 
+/** Where a point sits in a stack (vertical) or a row (horizontal), for 2-D arrow keys. */
+export interface PointGroup {
+  key: string | number
+  axis: 'vertical' | 'horizontal'
+}
+
 /** A focusable data point registered by a mark. Coordinates are in plot space. */
 export interface ChartPoint {
   id: Id
@@ -17,6 +23,8 @@ export interface ChartPoint {
   /** Screen-reader text, e.g. "Sep 21, 34.0%". */
   label: string
   segments: TooltipSegment[]
+  /** Stack or row membership; arrow keys move within and across groups when set. */
+  group?: PointGroup
 }
 
 export type ActiveSource = 'pointer' | 'keyboard'
