@@ -144,3 +144,29 @@ body {
   font-size: 15px;
   font-variant-numeric: tabular-nums;
 }
+
+.insight {
+  margin-top: 24px;
+  padding: 18px 22px;
+  border-radius: 16px;
+  background: var(--ch-tooltip-bg);
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.insight p {
+  margin: 0;
+}
+
+.insight .muted {
+  color: var(--ch-ink-muted);
+  font-size: 14px;
+}
+
+.card-header-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 24px;
+}

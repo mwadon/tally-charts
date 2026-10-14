@@ -16,11 +16,17 @@ const STORIES = [
   'reference-gross-margin--light',
   'reference-gross-margin--dark',
   'primitives-small-pieces--default',
+  'reference-why-it-is-under-target--light',
+  'reference-why-it-is-under-target--dark',
+  'reference-profit-bridge--light',
+  'reference-profit-bridge--dark',
 ]
 
 // Stories whose reference layout needs more room than the default 800px viewport.
 const WIDE_STORIES: Record<string, { width: number; height: number }> = {
   'reference-drill-columns--light': { width: 1280, height: 600 },
+  'reference-profit-bridge--light': { width: 1280, height: 720 },
+  'reference-profit-bridge--dark': { width: 1280, height: 720 },
 }
 
 async function open(page: Page, id: string) {
@@ -109,4 +115,25 @@ test('comparison rows announce plan, actual and difference', async ({ page }) =>
   await chart.focus()
   await page.keyboard.press('ArrowDown')
   await expect(chart.locator('[aria-live]')).toHaveText('Labor, plan $640, actual $1,060, +$420')
+})
+
+test('the waterfall announces running totals', async ({ page }) => {
+  await open(page, 'reference-why-it-is-under-target--light')
+  const chart = page.getByRole('figure', { name: 'Why margin is under target' })
+  await chart.focus()
+  await page.keyboard.press('ArrowDown')
+  await page.keyboard.press('ArrowDown')
+  await expect(chart.locator('[aria-live]')).toHaveText(
+    'Labor overruns, −1.6 pts · $7.7K, running total 36.4%',
+  )
+})
+
+test('the bridge pins its callout and hands over to the tooltip on hover', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 720 })
+  await open(page, 'reference-profit-bridge--light')
+  const callout = page.locator('[data-ch-part="callout"]')
+  await expect(callout).toContainText('$400')
+  await page.locator('[data-ch-part="bar-hit"]').nth(1).hover()
+  await expect(callout).toHaveCount(0)
+  await expect(page.locator('[data-ch-part="tooltip"]')).toContainText('After discount')
 })
