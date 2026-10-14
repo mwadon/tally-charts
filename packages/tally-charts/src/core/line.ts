@@ -1,4 +1,4 @@
-import { round2 } from './path'
+import { round2, through } from './path'
 
 export interface LinePoint {
   x: number
@@ -26,9 +26,6 @@ function runs<P>(points: readonly P[], complete: (p: P) => boolean): P[][] {
   if (run.length > 0) out.push(run)
   return out
 }
-
-const through = (points: readonly { x: number; y: number }[]) =>
-  points.map((p, i) => `${i === 0 ? 'M' : 'L'}${round2(p.x)},${round2(p.y)}`).join('')
 
 /**
  * Straight segments through the points (px). A point with a non-finite coordinate breaks the

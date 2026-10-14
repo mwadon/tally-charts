@@ -71,4 +71,16 @@ describe('bandPath', () => {
   it('draws nothing without two complete points', () => {
     expect(bandPath([{ x: 0, low: 30, high: 10 }])).toBe('')
   })
+
+  it('treats an infinite x or high value as a gap', () => {
+    const d = bandPath([
+      { x: 0, low: 30, high: 10 },
+      { x: 50, low: 35, high: 15 },
+      { x: Number.POSITIVE_INFINITY, low: 30, high: 10 },
+      { x: 150, low: 30, high: Number.POSITIVE_INFINITY },
+      { x: 200, low: 32, high: 12 },
+    ])
+    expect(d).toBe('M0,10L50,15L50,35L0,30Z')
+    expect(d).not.toContain('Infinity')
+  })
 })
