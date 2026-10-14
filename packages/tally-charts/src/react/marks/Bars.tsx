@@ -111,6 +111,7 @@ export function Bars<D>(props: BarsProps<D>) {
               rx={Math.max(0, Math.min(radius, bar.width / 2, bar.height / 2))}
               style={style}
             />
+            {/* biome-ignore lint/a11y/noStaticElementInteractions: pointer-only hit area; keyboard selection lives on the focusable figure */}
             <rect
               data-ch-part="bar-hit"
               data-ch-selectable={ctx.selectable ? 'true' : undefined}
