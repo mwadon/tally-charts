@@ -1,0 +1,71 @@
+import { toFieldGetter } from '../../core/accessor'
+import { computeBars } from '../../core/bars'
+import type { FormatSpec } from '../../core/format'
+import type { Accessor } from '../../core/types'
+import { useChart } from '../context'
+
+export interface ValueLabelProps<D> {
+  at?: 'first' | 'last' | 'all' | number
+  x?: Accessor<D, string | number>
+  y?: Accessor<D, string | number>
+  format?: FormatSpec
+  /** Gap between the bar end and the label in px. Default 6. */
+  offset?: number
+}
+
+/** Value text at the outer end of bars, computed from the same geometry as <Bars>. */
+export function ValueLabel<D>({ at = 'all', x, y, format, offset = 6 }: ValueLabelProps<D>) {
+  const ctx = useChart('ValueLabel')
+  const getX = toFieldGetter(x) ?? ctx.x.field
+  const getY = toFieldGetter(y) ?? ctx.y.field
+  if (!getX || !getY) return null
+  const { orientation, bars } = computeBars({
+    data: ctx.data,
+    ids: [],
+    x: ctx.x,
+    y: ctx.y,
+    getX,
+    getY,
+    warn: ctx.warn,
+  })
+  const selected =
+    at === 'all'
+      ? bars
+      : at === 'first'
+        ? bars.slice(0, 1)
+        : at === 'last'
+          ? bars.slice(-1)
+          : bars.filter((bar) => bar.index === at)
+  const fmt = ctx.format(format)
+
+  return (
+    <g data-ch-part="value-labels">
+      {selected.map((bar) => {
+        const negative = bar.value < 0
+        return orientation === 'vertical' ? (
+          <text
+            key={bar.index}
+            data-ch-part="value-label"
+            x={bar.anchor.x}
+            y={negative ? bar.anchor.y + offset : bar.anchor.y - offset}
+            textAnchor="middle"
+            dominantBaseline={negative ? 'hanging' : 'auto'}
+          >
+            {fmt(bar.value)}
+          </text>
+        ) : (
+          <text
+            key={bar.index}
+            data-ch-part="value-label"
+            x={negative ? bar.anchor.x - offset : bar.anchor.x + offset}
+            y={bar.anchor.y}
+            textAnchor={negative ? 'end' : 'start'}
+            dominantBaseline="middle"
+          >
+            {fmt(bar.value)}
+          </text>
+        )
+      })}
+    </g>
+  )
+}
