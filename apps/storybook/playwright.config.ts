@@ -12,7 +12,13 @@ export default defineConfig({
   projects: [
     {
       name: 'chromium',
-      use: { ...devices['Desktop Chrome'], viewport: { width: 800, height: 600 } },
+      use: {
+        ...devices['Desktop Chrome'],
+        viewport: { width: 800, height: 600 },
+        // The theme turns all motion off under reduced motion, so screenshots never catch a bar
+        // mid-way through its entrance animation (the slower linux container did).
+        reducedMotion: 'reduce',
+      },
     },
   ],
   webServer: {

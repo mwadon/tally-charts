@@ -18,6 +18,11 @@ const STORIES = [
   'primitives-small-pieces--default',
 ]
 
+// Stories whose reference layout needs more room than the default 800px viewport.
+const WIDE_STORIES: Record<string, { width: number; height: number }> = {
+  'reference-drill-columns--light': { width: 1280, height: 600 },
+}
+
 async function open(page: Page, id: string) {
   await page.goto(`/iframe.html?id=${id}&viewMode=story`)
   await page
@@ -28,6 +33,8 @@ async function open(page: Page, id: string) {
 
 for (const id of STORIES) {
   test(`${id} matches its screenshot`, async ({ page }) => {
+    const viewport = WIDE_STORIES[id]
+    if (viewport) await page.setViewportSize(viewport)
     await open(page, id)
     await expect(page).toHaveScreenshot(`${id}.png`, { fullPage: true })
   })
