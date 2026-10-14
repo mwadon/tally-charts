@@ -15,9 +15,29 @@ export function bandTicks(
   scale: ScaleBand<string>,
   spec: TickSpec,
   format: (value: string) => string,
+  /**
+   * `anchorEnds` (default true) pins the 'ends' labels to the outer band edges, which suits an
+   * axis below or above the plot. A side axis passes false so each label stays level with its row.
+   */
+  { anchorEnds = true }: { anchorEnds?: boolean } = {},
 ): Tick[] {
   const domain = scale.domain()
   const bandwidth = scale.bandwidth()
+  if (spec === 'ends' && !anchorEnds) {
+    const ends = domain.length > 1 ? [domain[0], domain[domain.length - 1]] : domain.slice(0, 1)
+    return ends.flatMap((value) =>
+      value === undefined
+        ? []
+        : [
+            {
+              value,
+              position: (scale(value) ?? 0) + bandwidth / 2,
+              label: format(value),
+              anchor: 'middle' as const,
+            },
+          ],
+    )
+  }
   if (spec === 'ends') {
     const first = domain[0]
     const last = domain[domain.length - 1]

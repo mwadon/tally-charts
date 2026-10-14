@@ -62,7 +62,9 @@ export function Axis({ side, ticks: spec = 'all', format, thin = true, offset = 
 
   const raw =
     resolved.kind === 'band'
-      ? bandTicks(resolved.scale, spec, (v) => (custom ? custom(v) : v))
+      ? bandTicks(resolved.scale, spec, (v) => (custom ? custom(v) : v), {
+          anchorEnds: horizontal,
+        })
       : linearTicks(resolved.scale, spec, (v) => (custom ? custom(v) : numeric(v)))
   const ticks = thin ? thinTicks(raw, horizontal ? undefined : () => LABEL_HEIGHT) : raw
 

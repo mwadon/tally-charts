@@ -8,7 +8,7 @@ import { useFormat } from '../ChartsProvider'
 import { type Margin, useChart } from '../context'
 import type { DataTableColumn, DataTableSpec } from '../DataTable'
 import { Bars } from '../marks/Bars'
-import { RowLabels } from '../marks/RowLabels'
+import { RowLabels, type RowLabelsProps } from '../marks/RowLabels'
 import { Tooltip } from '../overlays/Tooltip'
 import { type ChartPassThroughProps, headerOf, toNumber, userCallbacks } from './shared'
 
@@ -73,6 +73,22 @@ interface RankedRow<D> {
 
 /** Horizontal padding inside each row, in px. */
 const PAD = 12
+/** Stacked layout: space between the row edges and the text above / the bar below, in px. */
+const STACK_PAD = 8
+/** Stacked layout: smallest gap between a label and the value or meta text, in px. */
+const TEXT_GAP = 8
+
+/**
+ * Stacked rows have no label column, so the label is cut to the width the chart has left
+ * beside the value (and meta) text. The width is only known inside <Chart>.
+ */
+function FittedLabels<D>({ reserve, maxWidth, ...props }: RowLabelsProps<D> & { reserve: number }) {
+  const ctx = useChart('RankedBars')
+  const fit = Math.max(0, ctx.width - reserve)
+  return (
+    <RowLabels<D> {...props} maxWidth={maxWidth === undefined ? fit : Math.min(maxWidth, fit)} />
+  )
+}
 
 function SelectedRow({ rowKey }: { rowKey: string | null }) {
   const ctx = useChart('RankedBars')
@@ -173,6 +189,9 @@ export function RankedBars<D>({
     ? { top: 0, bottom: 0, left: PAD, right: PAD, ...margin }
     : { top: 0, bottom: 0, left: labelW, right: valueWidth + metaSpace, ...margin }
   const position = stacked ? 'above' : 'middle'
+  // Stacked: the label and value sit inside the row's top padding, the bar above its bottom one.
+  const textShift = stacked ? STACK_PAD : 0
+  const labelReserve = 2 * PAD + (meta ? 2 * metaWidth : valueWidth) + TEXT_GAP
   const selectedKey = rows.find((r) => r.selected)?.key ?? null
   const valueTone = (r: RankedRow<D>): Tone | undefined =>
     r.selected ? selectedTone : r.tone === 'neutral' ? undefined : r.tone
@@ -208,34 +227,47 @@ export function RankedBars<D>({
         fill={(r) => r.fill}
         size={size}
         align={stacked ? 'end' : 'center'}
+        offset={stacked ? -STACK_PAD : undefined}
         radius={size / 2}
         track={track}
         format={format}
         ariaLabel={(r) => (r.meta ? `${r.label}, ${r.text}, ${r.meta}` : `${r.label}, ${r.text}`)}
         tooltip={(r) => [{ value: r.label }, { value: r.text, tone: valueTone(r) }]}
       />
-      <RowLabels<RankedRow<D>>
-        text="label"
-        position={position}
-        inset={PAD}
-        maxWidth={labelW > 0 ? labelW - PAD : undefined}
-      />
-      {meta ? (
+      <g data-ch-part="row-text" transform={textShift ? `translate(0 ${textShift})` : undefined}>
+        {stacked ? (
+          <FittedLabels<RankedRow<D>>
+            text="label"
+            position={position}
+            inset={PAD}
+            reserve={labelReserve}
+            maxWidth={labelW > 0 ? labelW - PAD : undefined}
+          />
+        ) : (
+          <RowLabels<RankedRow<D>>
+            text="label"
+            position={position}
+            inset={PAD}
+            maxWidth={labelW > 0 ? labelW - PAD : undefined}
+          />
+        )}
+        {meta ? (
+          <RowLabels<RankedRow<D>>
+            side="right"
+            text="meta"
+            muted
+            position={position}
+            inset={stacked ? PAD + metaWidth : PAD + valueWidth}
+          />
+        ) : null}
         <RowLabels<RankedRow<D>>
           side="right"
-          text="meta"
-          muted
+          text="text"
           position={position}
-          inset={stacked ? PAD + metaWidth : PAD + valueWidth}
+          inset={PAD}
+          tone={valueTone}
         />
-      ) : null}
-      <RowLabels<RankedRow<D>>
-        side="right"
-        text="text"
-        position={position}
-        inset={PAD}
-        tone={valueTone}
-      />
+      </g>
       {tooltip ? <Tooltip /> : null}
       {children}
     </Chart>

@@ -20,7 +20,11 @@ describe('<DataTable>', () => {
       />,
     )
     const table = screen.getByRole('table', { name: 'Margin by week' })
-    expect(table).toHaveClass('ch-sr-only')
+    // A table ignores the 1px box of .ch-sr-only and keeps its full height, which stretched the
+    // page below the chart. A block wrapper does the hiding instead.
+    expect(table).not.toHaveClass('ch-sr-only')
+    expect(table.parentElement?.tagName).toBe('DIV')
+    expect(table.parentElement).toHaveClass('ch-sr-only')
     expect(
       within(table)
         .getAllByRole('columnheader')

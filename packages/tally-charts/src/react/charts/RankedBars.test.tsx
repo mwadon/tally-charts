@@ -105,7 +105,29 @@ describe('<RankedBars>', () => {
     expect(label).toHaveAttribute('y', '0')
     const bar = parts(container, '[data-ch-part="bar"]')[0]
     expect(bar).toHaveAttribute('height', '6')
-    expect(bar).toHaveAttribute('y', '46')
+    // 52px row: text starts 8px below the row top, the bar ends 8px above the row bottom,
+    // so neither touches the next row or the edge of the selected-row highlight.
+    expect(label?.closest('[data-ch-part="row-text"]')).toHaveAttribute(
+      'transform',
+      'translate(0 8)',
+    )
+    expect(bar).toHaveAttribute('y', '38')
+  })
+
+  it('cuts a stacked label so it never runs into the value', () => {
+    const name = 'Material variance and more'
+    const narrow = renderRanked({ layout: 'stacked', width: 160, data: [{ name, amount: 5 }] })
+    expect(names(narrow.container)[0]).toMatch(/…$/)
+    narrow.unmount()
+    const wide = renderRanked({ layout: 'stacked', width: 400, data: [{ name, amount: 5 }] })
+    expect(names(wide.container)[0]).toBe(name)
+  })
+
+  it('leaves room for the meta column when cutting a stacked label', () => {
+    const name = 'Ryan Mitchell Jr'
+    const data = [{ name, amount: 5, jobs: '6 jobs' }]
+    const { container } = renderRanked({ layout: 'stacked', width: 240, meta: 'jobs', data })
+    expect(names(container)[0]).toMatch(/…$/)
   })
 
   it('shows muted meta text before the value', () => {

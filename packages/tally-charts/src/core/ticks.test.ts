@@ -16,6 +16,12 @@ describe('bandTicks', () => {
     expect(last).toMatchObject({ value: 'd', position: 400, anchor: 'end' })
   })
 
+  it('centres end ticks on their bands when edge anchoring is off', () => {
+    const [first, last] = bandTicks(band, 'ends', String, { anchorEnds: false })
+    expect(first).toMatchObject({ value: 'a', position: 50, anchor: 'middle' })
+    expect(last).toMatchObject({ value: 'd', position: 350, anchor: 'middle' })
+  })
+
   it('thins to a target count for a numeric spec', () => {
     expect(bandTicks(band, 2, String).map((t) => t.value)).toEqual(['a', 'c'])
   })

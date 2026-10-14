@@ -28,6 +28,23 @@ describe('<Axis>', () => {
     expect(last).toHaveAttribute('x', '300')
   })
 
+  it('puts band end labels on a side axis level with their rows', () => {
+    const { container } = render(
+      <Chart
+        {...frame}
+        width={300}
+        x={{ domain: [0, 1] }}
+        y={{ type: 'band', domain: ['W1', 'W2', 'W3', 'W4'], padding: 0 }}
+      >
+        <Axis side="left" ticks="ends" />
+      </Chart>,
+    )
+    expect(labels(container)).toEqual(['W1', 'W4'])
+    const [first, last] = container.querySelectorAll('[data-ch-part="axis-label"]')
+    expect(first).toHaveAttribute('y', '12.5')
+    expect(last).toHaveAttribute('y', '87.5')
+  })
+
   it('formats linear ticks on the left with a preset', () => {
     const { container } = render(
       <Chart {...frame} width={300} x={{ domain: [0, 1] }} y={{ domain: [30, 40] }}>
