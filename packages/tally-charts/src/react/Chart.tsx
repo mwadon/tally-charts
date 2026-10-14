@@ -124,6 +124,11 @@ export function Chart<D>({
     }
   }
 
+  const onClick = () => {
+    const point = interaction.activePoint
+    if (onSelect && point) onSelect(point.id, point)
+  }
+
   const ctx: ChartContextValue = {
     chartId,
     width: w,
@@ -164,18 +169,19 @@ export function Chart<D>({
       aria-describedby={description ? descId : undefined}
       tabIndex={isEmpty ? undefined : 0}
       onKeyDown={isEmpty ? undefined : onKeyDown}
+      onClick={isEmpty ? undefined : onClick}
       onPointerLeave={() => interaction.setActive(null, 'pointer')}
       onBlur={() => {
         if (interaction.source === 'keyboard') interaction.setActive(null, 'keyboard')
       }}
     >
       {title ? (
-        <span id={titleId} className="ch-sr-only">
+        <span hidden id={titleId} className="ch-sr-only">
           {title}
         </span>
       ) : null}
       {description ? (
-        <span id={descId} className="ch-sr-only">
+        <span hidden id={descId} className="ch-sr-only">
           {description}
         </span>
       ) : null}
@@ -192,6 +198,7 @@ export function Chart<D>({
           <div
             ref={setOverlay}
             data-ch-part="overlay"
+            aria-hidden="true"
             className="ch-overlay"
             style={{ left: margin.left, top: margin.top, width: innerWidth, height: innerHeight }}
           />

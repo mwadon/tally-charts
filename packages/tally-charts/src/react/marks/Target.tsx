@@ -33,6 +33,15 @@ export function Target({
     return null
   }
 
+  const [d0, d1] = resolved.scale.domain()
+  if (!Number.isFinite(value) || value < Math.min(d0, d1) || value > Math.max(d0, d1)) {
+    ctx.warn(
+      'target-domain',
+      `Target value ${value} is outside the chart domain and was not drawn.`,
+    )
+    return null
+  }
+
   const pos = resolved.scale(value)
   const half = tickLength / 2
   const atEnd = labelPosition === 'end'

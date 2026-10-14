@@ -62,4 +62,17 @@ describe('<Target>', () => {
     expect(container.querySelector('[data-ch-part="target"]')).toBeNull()
     expect(String(warn.mock.calls[0]?.[0])).toContain('linear scale')
   })
+
+  it('draws nothing for a value outside the domain or non-finite', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const { container } = render(
+      <Chart {...frame} x={{ domain: [0, 1] }} y={{ domain: [26, 40] }}>
+        <Target y={50} />
+        <Target y={Number.NaN} />
+      </Chart>,
+    )
+    expect(container.querySelector('[data-ch-part="target"]')).toBeNull()
+    expect(warn).toHaveBeenCalled()
+    warn.mockRestore()
+  })
 })

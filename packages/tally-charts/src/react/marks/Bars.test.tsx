@@ -160,6 +160,19 @@ describe('<Bars>', () => {
     expect(String(warn.mock.calls[0]?.[0])).toContain('for field "x"')
   })
 
+  it('selects the hovered bar on click and ignores clicks with nothing active', () => {
+    const onSelect = vi.fn()
+    const { container } = renderBars({}, { onSelect })
+    const figure = container.querySelector('figure') as Element
+    fireEvent.click(figure)
+    expect(onSelect).not.toHaveBeenCalled()
+    fireEvent.pointerEnter(hits(container)[1] as Element)
+    fireEvent.click(figure)
+    expect(onSelect).toHaveBeenCalledTimes(1)
+    expect(onSelect.mock.calls[0]?.[0]).toBe(1)
+    expect(onSelect.mock.calls[0]?.[1]).toMatchObject({ id: 1 })
+  })
+
   it('makes the hit area span the full band height', () => {
     const { container } = renderBars()
     const [hit] = hits(container)

@@ -58,6 +58,38 @@ describe('computeBars', () => {
     expect(bars[0]).toMatchObject({ y: 50, height: 50 })
   })
 
+  it('clamps values outside an explicit domain into the plot', () => {
+    const { bars } = layout(
+      [
+        { k: 'a', v: 24 },
+        { k: 'b', v: 42 },
+        { k: 'c', v: 30 },
+      ],
+      [26, 40],
+    )
+    for (const bar of bars) {
+      expect(Number.isFinite(bar.y + bar.height)).toBe(true)
+      expect(bar.y).toBeGreaterThanOrEqual(0)
+      expect(bar.y + bar.height).toBeLessThanOrEqual(100)
+      expect(bar.anchor.y).toBeGreaterThanOrEqual(0)
+      expect(bar.anchor.y).toBeLessThanOrEqual(100)
+    }
+    // 24 clamps onto the baseline (26): zero-length, not drawn through the axis.
+    expect(bars[0]).toMatchObject({ y: 100, height: 0, dir: 'up' })
+    // 42 clamps to the top of the plot.
+    expect(bars[1]).toMatchObject({ y: 0, height: 100, dir: 'up' })
+  })
+
+  it('clamps horizontal bars outside the domain', () => {
+    const { bars } = layout([{ k: 'a', v: 42 }], [26, 40], true)
+    expect(bars[0]).toMatchObject({ x: 0, width: 100, dir: 'right' })
+  })
+
+  it('draws a value below a mid-domain baseline on the downward side', () => {
+    const { bars } = layout([{ k: 'a', v: -20 }], [-10, 10])
+    expect(bars[0]).toMatchObject({ y: 50, height: 50, dir: 'down' })
+  })
+
   it('lays out horizontal bars when y is the band scale', () => {
     const { orientation, bars } = layout(
       [

@@ -62,6 +62,9 @@ function layoutBars(
 ): BarLayout {
   const [d0, d1] = linear.domain()
   const base = linear(Math.min(Math.max(0, Math.min(d0, d1)), Math.max(d0, d1)))
+  const [r0, r1] = linear.range()
+  const lo = Math.min(r0, r1)
+  const hi = Math.max(r0, r1)
   const thickness = band.bandwidth()
   const bars: BarRect[] = []
   const valueField = input.valueField ?? (orientation === 'vertical' ? 'y' : 'x')
@@ -79,11 +82,15 @@ function layoutBars(
       )
       continue
     }
-    const end = linear(value)
+    // Keep geometry inside the plot when a value falls outside an explicit domain.
+    const end = Math.min(hi, Math.max(lo, linear(value)))
     const from = Math.min(base, end)
     const length = Math.abs(end - base)
     const id = input.ids[index] ?? index
-    const negative = value < 0
+    // Direction follows the drawn geometry; a zero-length bar falls back to the value's sign.
+    const towardStart = orientation === 'vertical' ? end < base : end > base
+    const towardEnd = orientation === 'vertical' ? end > base : end < base
+    const negative = towardEnd || (!towardStart && value < 0)
     if (orientation === 'vertical') {
       bars.push({
         id,
