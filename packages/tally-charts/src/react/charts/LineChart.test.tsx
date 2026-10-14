@@ -223,5 +223,48 @@ describe('<LineChart>', () => {
   it('keeps geometry finite at zero width', () => {
     const { container } = renderLines({ width: 0, forecastFrom: 'Aug' })
     expect(container.innerHTML).not.toContain('NaN')
+    expect(screen.getByRole('figure', { name: 'Margin outlook' })).toBeInTheDocument()
+    expect(parts(container, 'line-group')).toHaveLength(3)
+    for (const el of container.querySelectorAll('svg *')) {
+      for (const name of ['cx', 'cy', 'r', 'x', 'y', 'x1', 'x2', 'y1', 'y2', 'width', 'height']) {
+        const value = el.getAttribute(name)
+        if (value !== null && /^-?[\d.]+(e-?\d+)?$/.test(value.trim())) {
+          expect(Number.isFinite(Number(value))).toBe(true)
+        }
+      }
+    }
+  })
+
+  it('renders empty data without NaN or lines', () => {
+    const { container } = renderLines({ data: [], domain: undefined })
+    expect(container.innerHTML).not.toContain('NaN')
+    expect(container.querySelectorAll('[data-ch-part="line"]')).toHaveLength(0)
+  })
+
+  it('centres a single x', () => {
+    const { container } = renderLines({ data: [months[0] as Month], domain: undefined })
+    expect(container.innerHTML).not.toContain('NaN')
+    const dots = parts(container, 'line-dot')
+    expect(dots).toHaveLength(1)
+    expect(dots[0]).toHaveAttribute('cx', '200')
+    fireEvent.keyDown(screen.getByRole('figure', { name: 'Margin outlook' }), { key: 'Home' })
+    expect(live(container)).toBe('Jun, 34.0% Actual')
+  })
+
+  it('draws nothing for an all-missing series and leaves it out of the tooltip', () => {
+    const { container } = renderLines({
+      activeId: 'Aug',
+      data: months.map((m) => ({ ...m, path: null })),
+    })
+    const [path] = groups(container)
+    expect(pathOf(path)).toBeNull()
+    expect(path.querySelectorAll('[data-ch-part="line-dot"]')).toHaveLength(0)
+    expect(container.innerHTML).not.toContain('NaN')
+    expect(tooltip(container)).toHaveTextContent(/^Aug36\.0%with changes$/)
+  })
+
+  it('omits the hidden table with dataTable={false}', () => {
+    renderLines({ dataTable: false })
+    expect(screen.queryByRole('table')).toBeNull()
   })
 })

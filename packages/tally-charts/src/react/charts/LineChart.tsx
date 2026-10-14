@@ -192,7 +192,12 @@ export function LineChart<D>({
       const key = raw === null || raw === undefined ? '' : String(raw)
       if (key === '' || seen.has(key)) {
         if (DEV) {
-          warn('line-x', `LineChart skipped a missing or repeated x value "${key}" at index ${i}.`)
+          warn(
+            'line-x',
+            key === ''
+              ? `LineChart skipped a missing x value at index ${i}.`
+              : `LineChart skipped a repeated x value "${key}" at index ${i}.`,
+          )
         }
         return []
       }
