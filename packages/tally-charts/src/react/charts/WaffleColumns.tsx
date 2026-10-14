@@ -4,7 +4,7 @@ import { resolveAccessor, resolveIds } from '../../core/accessor'
 import type { FormatSpec, Formatter } from '../../core/format'
 import type { Accessor, Id, Tone } from '../../core/types'
 import { packWaffle } from '../../core/waffle'
-import { createWarner, DEV } from '../../core/warn'
+import { createWarner, DEV, type Warn } from '../../core/warn'
 import { Chart } from '../Chart'
 import { useFormat } from '../ChartsProvider'
 import { type Margin, useChart } from '../context'
@@ -62,22 +62,31 @@ interface WaffleRow<D> {
 const MARGIN: Margin = { top: 8, right: 0, bottom: 28, left: 0 }
 /** Space between dots, in px. */
 const GAP = 3
+/** Smallest dot radius, in px; columns are capped at the dots that fit at this size. */
+const MIN_RADIUS = 1.5
 
 function WaffleBody<D>(props: {
   rows: readonly WaffleRow<D>[]
   unit: number
   wide: number
   fmt: Formatter
+  warn: Warn
 }) {
   const ctx = useChart('WaffleColumns')
   const band = ctx.x.kind === 'band' ? ctx.x.scale : undefined
-  const { cells, maxRows } = packWaffle(
-    props.rows.map((r) => r.value / props.unit),
-    props.wide,
-  )
+  const counts = props.rows.map((r) => r.value / props.unit)
+  const rowsFit = Math.floor(Math.max(0, ctx.innerHeight) / (2 * MIN_RADIUS + GAP))
+  const cap = Math.max(props.wide, rowsFit * props.wide)
+  if (DEV && counts.some((n) => Math.round(n) > cap)) {
+    props.warn(
+      'waffle-capped',
+      `WaffleColumns has more dots than fit; columns are capped at ${cap} dots. Raise \`unit\`.`,
+    )
+  }
+  const { cells, maxRows } = packWaffle(counts, props.wide, cap)
   const size = band ? band.bandwidth() : 0
   const cell = Math.max(0, Math.min(size / props.wide, ctx.innerHeight / Math.max(1, maxRows)))
-  const radius = Math.max(0, cell / 2 - GAP / 2)
+  const radius = cells.length > 0 ? Math.max(MIN_RADIUS, cell / 2 - GAP / 2) : 0
   const columnRows = new Map<number, number>()
   const dots = band
     ? cells.flatMap((c): DotItem[] => {
@@ -248,6 +257,7 @@ export function WaffleColumns<D>({
         ? callout(peakRow.datum)
         : [{ value: 'Peak' }, { value: peakRow.label }, { value: fmt(peakRow.value) }]
       : undefined
+  const across = Number.isFinite(wide) && wide >= 1 ? Math.floor(wide) : 2
   const m: Margin = { ...MARGIN, ...margin }
 
   let table: DataTableSpec<WaffleRow<D>> | undefined
@@ -271,7 +281,7 @@ export function WaffleColumns<D>({
       height={height ?? 200}
       dataTable={table}
     >
-      <WaffleBody rows={rows} unit={dotValue} wide={wide} fmt={fmt} />
+      <WaffleBody rows={rows} unit={dotValue} wide={across} fmt={fmt} warn={warn} />
       {group ? <GroupLabels rows={rows} /> : null}
       {peakRow && calloutSegments ? (
         <Callout id={peakRow.rowId} segments={calloutSegments} placement="top" />

@@ -122,6 +122,33 @@ describe('<WaffleColumns>', () => {
     expect(warn.mock.calls[0]?.[0]).toContain('duplicate id')
   })
 
+  it('caps an outlier column at the dots that fit and warns once', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const { container } = renderWaffle({
+      data: weeks.map((w) => (w.week === 'Sep 7' ? { ...w, leaked: 1000 } : w)),
+    })
+    // 164px of plot height fits floor(164 / (2 × 1.5 + 3)) = 27 rows: 54 dots two across.
+    expect(dots(container)).toHaveLength(4 + 6 + 54 + 5)
+    expect(warn).toHaveBeenCalledTimes(1)
+    expect(warn.mock.calls[0]?.[0]).toContain('columns are capped at 54 dots')
+    for (const el of dots(container)) {
+      for (const name of ['cx', 'cy', 'r']) {
+        expect(Number.isFinite(Number(el.getAttribute(name)))).toBe(true)
+      }
+      expect(Number(el.getAttribute('r'))).toBeGreaterThanOrEqual(1.5)
+      expect(Number(el.getAttribute('cy'))).toBeGreaterThanOrEqual(0)
+    }
+  })
+
+  it('rounds a fractional width down', () => {
+    const geometry = (root: HTMLElement) =>
+      dots(root).map((d) => ['cx', 'cy', 'r'].map((name) => d.getAttribute(name)))
+    const two = renderWaffle({ wide: 2 })
+    const expected = geometry(two.container)
+    two.unmount()
+    expect(geometry(renderWaffle({ wide: 2.5 }).container)).toEqual(expected)
+  })
+
   it('renders a hidden data table', () => {
     renderWaffle()
     const table = screen.getByRole('table', { name: 'Profit leaked' })

@@ -17,14 +17,25 @@ export interface WaffleLayout {
   maxRows: number
 }
 
-/** Dot cells per column, filled bottom-up `wide` across. Counts are rounded; bad counts draw nothing. */
-export function packWaffle(counts: readonly unknown[], wide = 2): WaffleLayout {
+/**
+ * Dot cells per column, filled bottom-up `wide` across. Counts are rounded; bad counts draw
+ * nothing. `maxPerColumn` caps each column's dots; a bad or omitted cap means no cap.
+ */
+export function packWaffle(
+  counts: readonly unknown[],
+  wide = 2,
+  maxPerColumn?: number,
+): WaffleLayout {
   const across = Number.isFinite(wide) && wide >= 1 ? Math.floor(wide) : 2
+  const cap =
+    maxPerColumn !== undefined && Number.isFinite(maxPerColumn) && maxPerColumn >= 1
+      ? Math.floor(maxPerColumn)
+      : Number.POSITIVE_INFINITY
   const cells: WaffleCell[] = []
   let maxRows = 0
   counts.forEach((raw, column) => {
     const n = toNumber(raw)
-    const count = Number.isFinite(n) && n > 0 ? Math.round(n) : 0
+    const count = Number.isFinite(n) && n > 0 ? Math.min(cap, Math.round(n)) : 0
     for (let dot = 0; dot < count; dot++) {
       cells.push({ column, dot, col: dot % across, row: Math.floor(dot / across) })
     }

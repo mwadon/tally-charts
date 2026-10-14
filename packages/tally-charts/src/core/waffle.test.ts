@@ -19,4 +19,17 @@ describe('packWaffle', () => {
     expect(packWaffle([6], 3).maxRows).toBe(2)
     expect(packWaffle([6], Number.NaN).maxRows).toBe(3)
   })
+
+  it('caps the dots per column', () => {
+    const { cells, maxRows } = packWaffle([5, 10], 2, 6)
+    expect(cells.filter((c) => c.column === 0)).toHaveLength(5)
+    expect(cells.filter((c) => c.column === 1)).toHaveLength(6)
+    expect(maxRows).toBe(3)
+  })
+
+  it('ignores a bad or missing cap', () => {
+    for (const cap of [undefined, Number.NaN, 0, -3, Number.POSITIVE_INFINITY]) {
+      expect(packWaffle([10], 2, cap).cells).toHaveLength(10)
+    }
+  })
 })
