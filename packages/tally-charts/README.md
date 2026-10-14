@@ -81,12 +81,20 @@ import { BarChart, ComparisonBars, RankedBars } from 'tally-charts'
 - `LineChart`: `series` with `style` `'actual'` (solid), `'forecast'` (dashed, hollow dots) or
   `'scenario'` (dashed, green); `band` for a likely range, `forecastFrom` shades the forecast,
   `target`. Hover snaps to the nearest x and one tooltip lists every series there; ←/→ walk the
-  x values. Point ids are the x values. A forecast that continues the actuals repeats the last
-  actual value, so the lines join; the tooltip lists that value once.
+  x values. Point ids are the x values as strings, so `activeId` takes `'2025'`, not `2025`;
+  for the same reason `1` and `'1'` are the same x, and a repeat is skipped with a warning. Give
+  each series its own `id`. `grid` follows the `axis` ticks, or `'all'` with `axis="none"`. A
+  forecast that continues the actuals repeats the last actual value, so the lines join; the
+  tooltip lists that value once. Without `domain`, the inferred domain covers every series, the
+  band and the target.
 - `Heatmap`: an HTML CSS grid (`role="grid"`) of long-format data (`row`, `column`, `value`) with
   column totals under the headers, a row total column, and `breaks` binned onto `--ch-seq-1…5`
   with a legend. One tab stop: arrow keys, Home/End and Enter move and select. `tone` changes
-  the base color. Cell ids are `"<row>:<column>"`; missing values show a dash.
+  the base color of the cells and the legend; every tone keeps cell text at 4.5:1 or more in
+  both themes. Without `tone`, the levels use a `--ch-seq-base` set on an ancestor, else
+  `--ch-loss`; only loss and accent bases are tuned for contrast that way. Cell ids are
+  `"<row>:<column>"`, so names containing `:` can collide (`a:b` + `c` and `a` + `b:c`), and
+  each row and column name must be unique. Missing values show a dash.
 - `onSelect` and `onActiveChange` receive your original data object as `point.datum`.
 
 ## Small pieces
