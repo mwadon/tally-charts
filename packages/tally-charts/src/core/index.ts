@@ -1,5 +1,7 @@
 export type { FieldGetter } from './accessor'
 export { resolveAccessor, resolveIds, resolvePerItem, toFieldGetter } from './accessor'
+export type { BarDirection, BarLayout, BarLayoutInput, BarOrientation, BarRect } from './bars'
+export { computeBars } from './bars'
 export type {
   FormatOptions,
   FormatPreset,
