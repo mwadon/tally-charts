@@ -290,6 +290,13 @@
   z-index: 1;
 }
 
+.ch-callout-stem {
+  position: absolute;
+  width: 1px;
+  margin-left: -0.5px;
+  background: var(--ch-ink-muted);
+}
+
 .ch-pill {
   display: inline-flex;
   align-items: center;
