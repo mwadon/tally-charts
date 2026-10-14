@@ -32,4 +32,43 @@ describe('<Legend>', () => {
       'dot',
     )
   })
+
+  it('draws line swatches, dashed for forecasts', () => {
+    render(
+      <Legend
+        shape="line"
+        items={[
+          { label: 'Actual', tone: 'accent' },
+          { label: 'Current path', tone: 'accent', dashed: true },
+        ]}
+      />,
+    )
+    const swatches = screen.getAllByRole('listitem').map((li) => li.querySelector('.ch-swatch'))
+    expect(swatches[0]).toHaveAttribute('data-ch-shape', 'line')
+    expect(swatches[0]).not.toHaveAttribute('data-ch-dashed')
+    expect(swatches[1]).toHaveAttribute('data-ch-dashed', 'true')
+  })
+
+  it('paints sequential levels instead of tones', () => {
+    render(
+      <Legend
+        items={[
+          { label: 'Under $4K', level: 1 },
+          { label: '$13K and up', level: 5 },
+        ]}
+      />,
+    )
+    const swatch = screen.getAllByRole('listitem')[1]?.querySelector('.ch-swatch') as HTMLElement
+    expect(swatch).toHaveAttribute('data-ch-level', '5')
+    expect(swatch).not.toHaveAttribute('data-ch-tone')
+    expect(swatch.style.getPropertyValue('--ch-swatch-color')).toBe('var(--ch-seq-5)')
+  })
+
+  it('falls back to the neutral tone', () => {
+    render(<Legend items={[{ label: 'Other' }]} />)
+    expect(screen.getByRole('listitem').querySelector('.ch-swatch')).toHaveAttribute(
+      'data-ch-tone',
+      'neutral',
+    )
+  })
 })

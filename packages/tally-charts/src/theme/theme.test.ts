@@ -62,4 +62,15 @@ describe('theme.css', () => {
     expect(css).toMatch(/\[data-ch-part="median-label"\] \{[^}]*fill: color-mix/)
     expect(css).toContain(mix)
   })
+
+  it('builds the sequential levels from an inherited base on charts, legends and heatmaps', () => {
+    const rule = css.match(/\[data-ch-root\],\s*\.ch-legend,\s*\.ch-heatmap \{([^}]*)\}/)
+    const base = 'var(--ch-seq-base, var(--ch-loss))'
+    expect(rule?.[1]).toContain(`--ch-seq-1: color-mix(in srgb, ${base} 12%, var(--ch-surface))`)
+    expect(rule?.[1]).toContain(`--ch-seq-4: color-mix(in srgb, ${base} 65%, var(--ch-surface))`)
+    expect(rule?.[1]).toContain(`--ch-seq-5: color-mix(in srgb, ${base} 75%, #000)`)
+    expect(rule?.[1]).toContain('--ch-seq-ink-strong: #fff')
+    // A default base would stop a base set on an ancestor from reaching the levels.
+    expect(css).not.toMatch(/--ch-seq-base:/)
+  })
 })

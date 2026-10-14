@@ -74,15 +74,23 @@
   --ch-tone-text-mix: 55%;
 }
 
+/* ---------- Sequential levels ---------- */
+/* Resolved on each element from an inherited --ch-seq-base (default: loss), so a base set on
+   any ancestor, or Heatmap's `tone`, recolors charts, heatmaps and legends alike. Levels 1–4
+   keep --ch-ink text at 4.5:1 or more in both themes; level 5 is darkened for white text. */
+[data-ch-root],
+.ch-legend,
+.ch-heatmap {
+  --ch-seq-1: color-mix(in srgb, var(--ch-seq-base, var(--ch-loss)) 12%, var(--ch-surface));
+  --ch-seq-2: color-mix(in srgb, var(--ch-seq-base, var(--ch-loss)) 30%, var(--ch-surface));
+  --ch-seq-3: color-mix(in srgb, var(--ch-seq-base, var(--ch-loss)) 50%, var(--ch-surface));
+  --ch-seq-4: color-mix(in srgb, var(--ch-seq-base, var(--ch-loss)) 65%, var(--ch-surface));
+  --ch-seq-5: color-mix(in srgb, var(--ch-seq-base, var(--ch-loss)) 75%, #000);
+  --ch-seq-ink-strong: #fff;
+}
+
 /* ---------- Chart root ---------- */
 [data-ch-root] {
-  /* Sequential bins resolve per chart so --ch-seq-base can be overridden locally. */
-  --ch-seq-base: var(--ch-loss);
-  --ch-seq-1: color-mix(in srgb, var(--ch-seq-base) 12%, var(--ch-surface));
-  --ch-seq-2: color-mix(in srgb, var(--ch-seq-base) 30%, var(--ch-surface));
-  --ch-seq-3: color-mix(in srgb, var(--ch-seq-base) 50%, var(--ch-surface));
-  --ch-seq-4: color-mix(in srgb, var(--ch-seq-base) 75%, var(--ch-surface));
-  --ch-seq-5: var(--ch-seq-base);
   position: relative;
   display: block;
   margin: 0;
@@ -476,6 +484,16 @@
 .ch-swatch[data-ch-shape="dot"] {
   width: 10px;
   border-radius: 50%;
+}
+
+.ch-swatch[data-ch-shape="line"] {
+  width: 16px;
+  height: 2px;
+  border-radius: 1px;
+}
+
+.ch-swatch[data-ch-shape="line"][data-ch-dashed="true"] {
+  background: repeating-linear-gradient(90deg, var(--ch-swatch-color) 0 4px, transparent 4px 6px);
 }
 
 /* Every HTML fill (legend swatches, meters, inline bars) paints --ch-swatch-color this way. */
