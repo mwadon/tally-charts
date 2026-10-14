@@ -8,7 +8,9 @@ import {
   InstallsStrip,
   JobsHistogram,
   LastTwelveWeeks,
+  LeakHeatmap,
   LeakWaffle,
+  MarginOutlook,
   ProfitBridge,
   SmallPieces,
   UnderTarget,
@@ -103,5 +105,25 @@ describe('server rendering', () => {
     // 9800 → 5, 10200 → 5, 10100 → 5, 23400 → 12 dots at $2K each.
     expect(waffle.match(/data-ch-part="dot"/g)).toHaveLength(27)
     expect(waffle).toContain('September')
+  })
+
+  it('renders the 0.5 charts without a DOM, deterministically', () => {
+    for (const Example of [MarginOutlook, LeakHeatmap]) {
+      const html = renderToString(<Example />)
+      expect(html).toBe(renderToString(<Example />))
+      expect(html).not.toContain('NaN')
+    }
+    const lines = renderToString(<MarginOutlook />)
+    expect(lines.match(/data-ch-part="line-group"/g)).toHaveLength(3)
+    expect(lines).toContain('data-ch-part="band"')
+    expect(lines).toContain('data-ch-part="region"')
+    expect(lines).toContain('Target 38%')
+    // The tooltip lives in the overlay, which only exists after mount.
+    expect(lines).not.toContain('data-ch-part="tooltip"')
+    const heatmap = renderToString(<LeakHeatmap />)
+    expect(heatmap).toContain('role="grid"')
+    expect(heatmap.match(/data-ch-part="heatmap-cell"/g)).toHaveLength(6)
+    expect(heatmap).toContain('$14.8K')
+    expect(heatmap).toContain('$13K and up')
   })
 })

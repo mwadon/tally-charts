@@ -8,7 +8,9 @@ import {
   DotCount,
   DotHistogram,
   fmt,
+  Heatmap,
   InlineBar,
+  LineChart,
   Meter,
   RangeMeter,
   RankedBars,
@@ -226,6 +228,77 @@ export function LeakWaffle() {
       y="leaked"
       group="month"
       unit={2000}
+      format="currency-compact"
+    />
+  )
+}
+
+type OutlookMonth = {
+  month: string
+  actual: number | null
+  path: number | null
+  changes: number | null
+  low: number | null
+  high: number | null
+}
+
+export const outlook: OutlookMonth[] = [
+  { month: 'Jul', actual: 34.5, path: null, changes: null, low: null, high: null },
+  { month: 'Aug', actual: 34.1, path: null, changes: null, low: null, high: null },
+  { month: 'Sep', actual: 33.6, path: 33.6, changes: 33.6, low: 33.6, high: 33.6 },
+  { month: 'Oct', actual: null, path: 35.2, changes: 36.7, low: 34.1, high: 36.3 },
+]
+
+export function MarginOutlook() {
+  return (
+    <LineChart
+      title="Margin outlook"
+      data={outlook}
+      x="month"
+      series={[
+        { id: 'actual', label: 'Actual', value: 'actual' },
+        {
+          id: 'path',
+          label: 'Current path',
+          value: 'path',
+          style: 'forecast',
+          tooltipLabel: 'on the current path',
+        },
+        {
+          id: 'changes',
+          label: 'With your changes',
+          value: 'changes',
+          style: 'scenario',
+          tooltipLabel: 'with changes',
+        },
+      ]}
+      band={{ low: 'low', high: 'high', label: 'Likely range' }}
+      forecastFrom="Oct"
+      target={{ value: 38, label: 'Target 38%' }}
+      domain={[30, 40]}
+      format="percent"
+    />
+  )
+}
+
+export const leakCells = [
+  { branch: 'Dallas', cause: 'Labor', amount: 14800 },
+  { branch: 'Dallas', cause: 'Materials', amount: 7900 },
+  { branch: 'Dallas', cause: 'Callbacks', amount: 6800 },
+  { branch: 'Austin', cause: 'Labor', amount: 9200 },
+  { branch: 'Austin', cause: 'Materials', amount: 5100 },
+  { branch: 'Austin', cause: 'Callbacks', amount: 3900 },
+]
+
+export function LeakHeatmap() {
+  return (
+    <Heatmap
+      title="Where it leaks"
+      data={leakCells}
+      row="branch"
+      column="cause"
+      value="amount"
+      breaks={[4000, 7000, 13000]}
       format="currency-compact"
     />
   )

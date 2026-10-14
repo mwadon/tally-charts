@@ -43,6 +43,12 @@ describe('public entry points', () => {
     'Dots',
     'NearestPointer',
     'thresholds',
+    'LineChart',
+    'Heatmap',
+    'Line',
+    'Band',
+    'Grid',
+    'Region',
   ])('main exports %s', (name) => {
     expect(main).toHaveProperty(name)
   })
@@ -64,6 +70,12 @@ describe('public entry points', () => {
     'stackStrip',
     'medianOf',
     'packWaffle',
+    'linePath',
+    'bandPath',
+    'pointTicks',
+    'categoryCenter',
+    'categoryStep',
+    'clampToRange',
   ])('core exports %s', (name) => {
     expect(core).toHaveProperty(name)
   })

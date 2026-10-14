@@ -3,7 +3,7 @@
 Opinionated React charts for narrative business dashboards: hatched means plan or reference,
 solid means actual, pink means loss, and targets are first-class.
 
-> Status: 0.4. The API may change before 1.0.
+> Status: 0.5. The API may change before 1.0.
 
 ```bash
 npm i tally-charts
@@ -78,6 +78,15 @@ import { BarChart, ComparisonBars, RankedBars } from 'tally-charts'
   per row. ←/→ walk a row, ↑/↓ change rows. Point ids are `"<series id>:<row id>"`.
 - `WaffleColumns`: a column of dots per period (`unit` is the value of one dot), periods tinted
   by `group`, the peak column solid with a pinned "Peak" pill. Hover and keys work per column.
+- `LineChart`: `series` with `style` `'actual'` (solid), `'forecast'` (dashed, hollow dots) or
+  `'scenario'` (dashed, green); `band` for a likely range, `forecastFrom` shades the forecast,
+  `target`. Hover snaps to the nearest x and one tooltip lists every series there; ←/→ walk the
+  x values. Point ids are the x values. A forecast that continues the actuals repeats the last
+  actual value, so the lines join; the tooltip lists that value once.
+- `Heatmap`: an HTML CSS grid (`role="grid"`) of long-format data (`row`, `column`, `value`) with
+  column totals under the headers, a row total column, and `breaks` binned onto `--ch-seq-1…5`
+  with a legend. One tab stop: arrow keys, Home/End and Enter move and select. `tone` changes
+  the base color. Cell ids are `"<row>:<column>"`; missing values show a dash.
 - `onSelect` and `onActiveChange` receive your original data object as `point.datum`.
 
 ## Small pieces
@@ -109,6 +118,11 @@ Building blocks added in 0.4: `Dots` (circles at given positions, with a ring on
 and `NearestPointer` (one layer that activates the point nearest the pointer, in 2-D or along x).
 Numbers in data follow one rule: numbers and numeric strings count, while blanks, booleans and
 other values are missing.
+
+Building blocks added in 0.5: `Line`, `Band` (area between two values), `Grid` (horizontal
+lines at the y ticks) and `Region` (shaded run of categories), plus `type: 'point'` scales for
+`<Chart x>`. Time scales aren't in yet: put dates on a point scale with formatted labels.
+`Legend` draws `shape="line"` swatches (`dashed` for forecasts) and sequential `level` swatches.
 
 ## Several React roots on one page
 

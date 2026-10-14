@@ -78,6 +78,22 @@
     "gzip": true
   },
   {
+    "name": "LineChart",
+    "path": "dist/index.js",
+    "import": "{ LineChart }",
+    "ignore": ["react", "react-dom"],
+    "limit": "15 KB",
+    "gzip": true
+  },
+  {
+    "name": "Heatmap",
+    "path": "dist/index.js",
+    "import": "{ Heatmap }",
+    "ignore": ["react", "react-dom"],
+    "limit": "15 KB",
+    "gzip": true
+  },
+  {
     "name": "Small UI pieces",
     "path": "dist/index.js",
     "import": "{ Stat, Delta, Meter, RangeMeter, InlineBar, DotCount }",
