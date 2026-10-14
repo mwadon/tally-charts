@@ -26,6 +26,12 @@ export interface CalloutProps {
    * A non-finite result sets no limit.
    */
   clearance?: (left: number, right: number) => number
+  /**
+   * `'auto'` flips the pill below its point when there is no room above, like the tooltip.
+   * `'top'` never flips: the pill stays above its point, clamped inside the chart's top edge.
+   * Default 'auto'.
+   */
+  placement?: 'auto' | 'top'
 }
 
 /**
@@ -40,6 +46,7 @@ export function Callout({
   offset = 10,
   hideWhileActive = true,
   clearance,
+  placement = 'auto',
 }: CalloutProps) {
   const ctx = useChart('Callout')
   const ref = useRef<HTMLDivElement>(null)
@@ -68,18 +75,17 @@ export function Callout({
       offset: gap,
     })
   let position = place(offset)
-  if (clearance) {
-    // The horizontal position does not depend on the offset, so the span is known up front.
-    const limit = clearance(position.left, position.left + size.width)
-    if (Number.isFinite(limit) && point.y - offset > limit) {
-      // Rise to clear the limit, but never flip below the point: when there is not enough room,
-      // stay inside the top edge even if the pill still overlaps what it should clear.
-      const top = Math.max(
-        -ctx.margin.top,
-        Math.min(limit - size.height, point.y - offset - size.height),
-      )
-      position = { left: position.left, top, placement: 'top' }
-    }
+  // The horizontal position does not depend on the offset, so the span is known up front.
+  const raw = clearance ? clearance(position.left, position.left + size.width) : Number.NaN
+  const limit = Number.isFinite(raw) ? raw : Number.POSITIVE_INFINITY
+  if (placement === 'top' || point.y - offset > limit) {
+    // Rise to clear the limit, but never flip below the point: when there is not enough room,
+    // stay inside the top edge even if the pill still overlaps what it should clear.
+    const top = Math.max(
+      -ctx.margin.top,
+      Math.min(limit - size.height, point.y - offset - size.height),
+    )
+    position = { left: position.left, top, placement: 'top' }
   }
   const above = position.placement === 'top'
   const stemTop = above ? position.top + size.height : point.y

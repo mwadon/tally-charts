@@ -93,6 +93,30 @@ describe('<Callout>', () => {
     expect(callout(none.container)).toHaveStyle({ top: '50px' })
   })
 
+  it('never flips below its point with placement top, staying inside the top edge', () => {
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (
+      this: HTMLElement,
+    ) {
+      const pill = this.dataset.chPart === 'callout'
+      return { width: pill ? 40 : 0, height: pill ? 30 : 0 } as DOMRect
+    })
+    // W2 sits at the very top (y 0) of a chart with no top margin: 'auto' flips below it.
+    const auto = renderCallout({ id: 1 })
+    expect(callout(auto.container)).toHaveAttribute('data-ch-placement', 'bottom')
+    auto.unmount()
+    const { container } = renderCallout({ id: 1, placement: 'top' })
+    const pill = callout(container) as HTMLElement
+    expect(pill).toHaveAttribute('data-ch-placement', 'top')
+    expect(Number.parseFloat(pill.style.top)).toBeGreaterThanOrEqual(0)
+    expect(pill).toHaveStyle({ top: '0px' })
+  })
+
+  it('rises to its clearance with placement top', () => {
+    const { container } = renderCallout({ id: 0, placement: 'top', clearance: () => 30 })
+    expect(callout(container)).toHaveStyle({ top: '30px' })
+    expect(callout(container)).toHaveAttribute('data-ch-placement', 'top')
+  })
+
   it('renders nothing for an unknown id', () => {
     const { container } = renderCallout({ id: 99 })
     expect(callout(container)).toBeNull()

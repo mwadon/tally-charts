@@ -143,6 +143,61 @@ describe('<BridgeChart>', () => {
     }
   })
 
+  describe('callout headroom', () => {
+    const pinned = [
+      { value: '$400', label: 'kept' },
+      { value: '12.3%', label: 'margin' },
+    ]
+    const stubPill = () =>
+      vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (
+        this: HTMLElement,
+      ) {
+        const pill = this.dataset.chPart === 'callout'
+        return { width: pill ? 300 : 0, height: pill ? 30 : 0 } as DOMRect
+      })
+    const overlayTop = (root: HTMLElement) =>
+      Number.parseFloat((root.querySelector('[data-ch-part="overlay"]') as HTMLElement).style.top)
+    const expectAboveLastColumn = (root: HTMLElement) => {
+      const pill = root.querySelector('[data-ch-part="callout"]') as HTMLElement
+      expect(pill).toHaveAttribute('data-ch-placement', 'top')
+      const top = Number.parseFloat(pill.style.top)
+      expect(top).toBeGreaterThanOrEqual(-overlayTop(root))
+      const lastTotal = parts(root, '[data-ch-part="column-total"]').at(-1)
+      expect(top + 30).toBeLessThanOrEqual(num(lastTotal, 'y'))
+    }
+
+    it('keeps the callout above a loss-ending last column that reaches the top', () => {
+      stubPill()
+      const { container } = renderBridge({
+        start: { label: 'Plan', value: 1200 },
+        steps: [{ label: 'Actual', value: -800, note: 'leak' }],
+        callout: pinned,
+      })
+      expectAboveLastColumn(container)
+    })
+
+    it('keeps the callout above a gain-ending last column', () => {
+      stubPill()
+      const { container } = renderBridge({
+        start: { label: 'Plan', value: 400 },
+        steps: [{ label: 'Actual', value: 800, note: 'bonus' }],
+        callout: pinned,
+      })
+      expectAboveLastColumn(container)
+    })
+
+    it('grows the default top margin only when a callout is set', () => {
+      const plain = renderBridge()
+      expect(overlayTop(plain.container)).toBe(64)
+      plain.unmount()
+      const withCallout = renderBridge({ callout: pinned })
+      expect(overlayTop(withCallout.container)).toBe(104)
+      withCallout.unmount()
+      const custom = renderBridge({ callout: pinned, margin: { top: 20 } })
+      expect(overlayTop(custom.container)).toBe(20)
+    })
+  })
+
   it('tones a gain cap and keeps the remaining bar at the lower total', () => {
     const { container } = renderBridge({ steps: [{ label: 'Bonus', value: 100, note: 'bonus' }] })
     expect(caps(container, 'gain')).toHaveLength(1)

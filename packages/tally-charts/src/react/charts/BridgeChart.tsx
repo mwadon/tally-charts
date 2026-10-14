@@ -90,6 +90,11 @@ const CALLOUT_SPACE = 52
 const TOTAL_ASCENT = 18
 /** Gap between a pinned callout and the labels below it, in px. */
 const CALLOUT_GAP = 8
+/**
+ * Extra default top margin when a callout is set, so the pill fits above a last column that
+ * reaches the top of the scale, in px.
+ */
+const CALLOUT_ROOM = 40
 
 /** Baseline of a column's total: above the cap, and above its note when it has one. */
 const totalBaseline = (top: number, note: string) => top - (note ? NOTE_GAP + VALUE_GAP : VALUE_GAP)
@@ -175,6 +180,7 @@ function LastCallout<S>({
       segments={segments}
       offset={cap + CALLOUT_SPACE}
       clearance={clearance}
+      placement="top"
     />
   )
 }
@@ -272,7 +278,11 @@ export function BridgeChart<S extends BridgeStep = BridgeStep>({
   const labelOf = new Map(rows.map((r) => [r.key, r.label]))
   const resolvedDomain =
     domain ?? niceDomain(inferLinearDomain(rows.flatMap((r) => [r.base, r.top])))
-  const m: Margin = { ...MARGIN, ...margin }
+  const m: Margin = {
+    ...MARGIN,
+    ...(callout ? { top: MARGIN.top + CALLOUT_ROOM } : null),
+    ...margin,
+  }
   const solidLast = (r: BridgeRow<S>) => r.last && highlightLast
   const ariaOf = (r: BridgeRow<S>) =>
     r.note ? `${r.label}, ${fmt(r.total)}, ${r.note}` : `${r.label}, ${fmt(r.total)}`
