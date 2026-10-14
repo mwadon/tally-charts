@@ -76,6 +76,15 @@ describe('<Callout>', () => {
     expect(callout(container)).toHaveAttribute('data-ch-placement', 'top')
   })
 
+  it('stays above its point inside the top edge when the clearance asks for more room', () => {
+    // The chart has no top margin, so the pill may rise to y 0 but not to the asked-for −50.
+    const { container } = renderCallout({ id: 0, clearance: () => -50 })
+    const pill = callout(container) as HTMLElement
+    expect(pill).toHaveAttribute('data-ch-placement', 'top')
+    expect(Number.parseFloat(pill.style.top)).toBeGreaterThanOrEqual(0)
+    expect(pill).toHaveStyle({ top: '0px' })
+  })
+
   it('keeps its offset when the clearance is already met or not finite', () => {
     const { container, unmount } = renderCallout({ id: 0, clearance: () => 55 })
     expect(callout(container)).toHaveStyle({ top: '50px' })

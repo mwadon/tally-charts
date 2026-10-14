@@ -71,7 +71,15 @@ export function Callout({
   if (clearance) {
     // The horizontal position does not depend on the offset, so the span is known up front.
     const limit = clearance(position.left, position.left + size.width)
-    if (Number.isFinite(limit) && point.y - offset > limit) position = place(point.y - limit)
+    if (Number.isFinite(limit) && point.y - offset > limit) {
+      // Rise to clear the limit, but never flip below the point: when there is not enough room,
+      // stay inside the top edge even if the pill still overlaps what it should clear.
+      const top = Math.max(
+        -ctx.margin.top,
+        Math.min(limit - size.height, point.y - offset - size.height),
+      )
+      position = { left: position.left, top, placement: 'top' }
+    }
   }
   const above = position.placement === 'top'
   const stemTop = above ? position.top + size.height : point.y
