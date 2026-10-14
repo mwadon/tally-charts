@@ -1,0 +1,241 @@
+import { tickStep } from 'd3-array'
+import { useMemo } from 'react'
+import { resolveAccessor } from '../../core/accessor'
+import { binDots } from '../../core/dots'
+import type { FormatSpec, Formatter } from '../../core/format'
+import { niceDomain } from '../../core/linear'
+import { inferLinearDomain } from '../../core/scale'
+import type { Thresholds } from '../../core/thresholds'
+import type { TickSpec } from '../../core/ticks'
+import type { Accessor, Id, Tone } from '../../core/types'
+import { createWarner, DEV, type Warn } from '../../core/warn'
+import { Chart } from '../Chart'
+import { useFormat } from '../ChartsProvider'
+import { type Margin, useChart } from '../context'
+import type { DataTableColumn, DataTableSpec } from '../DataTable'
+import { Axis } from '../marks/Axis'
+import { type DotItem, Dots } from '../marks/Dots'
+import { NearestPointer } from '../marks/NearestPointer'
+import { Target } from '../marks/Target'
+import { Callout } from '../overlays/Callout'
+import { Tooltip } from '../overlays/Tooltip'
+import type { TooltipSegment } from '../types'
+import { type ChartPassThroughProps, headerOf, toNumber, userCallbacks } from './shared'
+
+export interface DotHistogramProps<D> extends Omit<ChartPassThroughProps<unknown>, 'aspectRatio'> {
+  data: readonly D[]
+  /** The binned value, e.g. margin. */
+  value: Accessor<D, number>
+  /** Passed to onSelect, onActiveChange and `calloutId`. Default: the data index. */
+  id?: Accessor<D, Id>
+  /** Item name for announcements and the default tooltip, e.g. "#5819". */
+  label?: Accessor<D, string>
+  /** Custom tooltip segments per item. */
+  segments?: (d: D, i: number) => TooltipSegment[]
+  /** Tone per item: a `thresholds()` result or a function. Default 'accent'. */
+  toneBy?: Thresholds | ((d: D, i: number) => Tone)
+  /** Bin width in value units. Default: a nice step that gives about 50 bins. */
+  binWidth?: number
+  /** Value domain. Default: the data range including zero, rounded to nice ticks. */
+  domain?: readonly [number, number]
+  target?: number | { value: number; label?: string }
+  /** Pin a callout with a stem to this item id. */
+  calloutId?: Id
+  /** Default 'number'. */
+  format?: FormatSpec
+  /** Value axis ticks, or 'none'. Default 6. */
+  axis?: TickSpec | 'none'
+  /** Default 6. */
+  maxRadius?: number
+  /** Default 2. */
+  minRadius?: number
+  /** Hidden data table for screen readers. Default true. */
+  dataTable?: boolean
+  /** Default true. */
+  tooltip?: boolean
+}
+
+interface HistogramRow<D> {
+  key: string
+  rowId: Id
+  datum: D
+  index: number
+  value: number
+  tone: Tone
+  name: string
+  aria: string
+  segments: TooltipSegment[]
+}
+
+const MARGIN: Margin = { top: 28, right: 8, bottom: 28, left: 8 }
+
+function HistogramDots<D>(props: {
+  rows: readonly HistogramRow<D>[]
+  binWidth: number
+  maxRadius: number
+  minRadius: number
+  warn: Warn
+}) {
+  const ctx = useChart('DotHistogram')
+  if (ctx.x.kind !== 'linear') return null
+  const layout = binDots({
+    values: props.rows.map((r) => r.value),
+    x: ctx.x.scale,
+    binWidth: props.binWidth,
+    baseline: ctx.innerHeight,
+    top: 0,
+    maxRadius: props.maxRadius,
+    minRadius: props.minRadius,
+  })
+  if (DEV && layout.crowded) {
+    props.warn(
+      'dot-histogram-crowded',
+      'DotHistogram has more dots than fit; drawing them at the minimum size.',
+    )
+  }
+  const items = layout.dots.flatMap((d): DotItem[] => {
+    const row = props.rows[d.index]
+    if (!row) return []
+    return [
+      {
+        key: row.key,
+        id: row.rowId,
+        datum: row,
+        cx: d.cx,
+        cy: d.cy,
+        tone: row.tone,
+        label: row.aria,
+        segments: row.segments,
+        group: { key: d.bin, axis: 'vertical' },
+      },
+    ]
+  })
+  return (
+    <>
+      <Dots dots={items} radius={layout.radius} />
+      <NearestPointer radius={Math.max(12, layout.radius * 2 + 4)} />
+    </>
+  )
+}
+
+export function DotHistogram<D>({
+  data,
+  value,
+  id,
+  label,
+  segments,
+  toneBy,
+  binWidth,
+  domain,
+  target,
+  calloutId,
+  format,
+  axis = 6,
+  maxRadius = 6,
+  minRadius = 2,
+  dataTable = true,
+  tooltip = true,
+  margin,
+  height,
+  children,
+  onSelect,
+  onActiveChange,
+  ...chart
+}: DotHistogramProps<D>) {
+  const { create } = useFormat()
+  const warn = useMemo(() => createWarner(), [])
+  const fmt: Formatter = useMemo(() => create(format), [create, format])
+
+  const rows = useMemo(() => {
+    const getValue = resolveAccessor(value)
+    const getId = id ? resolveAccessor(id) : undefined
+    const getLabel = label ? resolveAccessor(label) : undefined
+    return data.map((d, i): HistogramRow<D> => {
+      const v = toNumber(getValue(d, i))
+      const name = getLabel ? String(getLabel(d, i) ?? '') : ''
+      const tone: Tone =
+        typeof toneBy === 'function'
+          ? toneBy(d, i)
+          : toneBy
+            ? (toneBy.toneOf(v) ?? 'neutral')
+            : 'accent'
+      const text = fmt(v)
+      return {
+        key: String(i),
+        rowId: getId ? getId(d, i) : i,
+        datum: d,
+        index: i,
+        value: v,
+        tone,
+        name,
+        aria: name ? `${name}, ${text}` : text,
+        segments: segments
+          ? segments(d, i)
+          : name
+            ? [{ value: name }, { value: text }]
+            : [{ value: text }],
+      }
+    })
+  }, [data, value, id, label, segments, toneBy, fmt])
+
+  const missing = rows.find((r) => !Number.isFinite(r.value))
+  if (DEV && missing) {
+    warn(
+      'dot-histogram-value',
+      `DotHistogram skipped a missing or non-numeric value at index ${missing.index}.`,
+    )
+  }
+
+  const resolvedDomain = domain ?? niceDomain(inferLinearDomain(rows.map((r) => r.value)))
+  const [d0, d1] = resolvedDomain
+  const width = binWidth ?? tickStep(Math.min(d0, d1), Math.max(d0, d1), 50)
+  const targetSpec = typeof target === 'number' ? { value: target } : target
+  const m: Margin = { ...MARGIN, ...margin }
+
+  let table: DataTableSpec<HistogramRow<D>> | undefined
+  if (dataTable) {
+    const columns: DataTableColumn<HistogramRow<D>>[] = [
+      { header: headerOf(label, 'Item'), value: (r) => r.name },
+      { header: headerOf(value, 'Value'), value: (r) => fmt(r.value) },
+    ]
+    if (toneBy && typeof toneBy !== 'function') {
+      columns.push({
+        header: 'Group',
+        value: (r) => toneBy.bins[toneBy.indexOf(r.value)]?.label ?? '',
+      })
+    }
+    table = { columns }
+  }
+
+  return (
+    <Chart<HistogramRow<D>>
+      {...chart}
+      {...userCallbacks(onSelect, onActiveChange)}
+      data={rows}
+      x={{ field: 'value', domain: resolvedDomain }}
+      y={{ domain: [0, 1] }}
+      margin={m}
+      height={height ?? 220}
+      dataTable={table}
+    >
+      {targetSpec ? <Target x={targetSpec.value} label={targetSpec.label} /> : null}
+      <HistogramDots
+        rows={rows}
+        binWidth={width}
+        maxRadius={maxRadius}
+        minRadius={minRadius}
+        warn={warn}
+      />
+      {axis === 'none' ? null : (
+        <Axis
+          side="bottom"
+          ticks={axis}
+          format={typeof format === 'function' ? (v) => format(Number(v)) : format}
+        />
+      )}
+      {calloutId !== undefined ? <Callout id={calloutId} stem /> : null}
+      {tooltip ? <Tooltip /> : null}
+      {children}
+    </Chart>
+  )
+}
