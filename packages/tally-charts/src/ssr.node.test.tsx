@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { renderToString } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
-import { LastTwelveWeeks } from '../test/fixtures'
+import { DrillColumn, EstimateVsActual, LastTwelveWeeks, SmallPieces } from '../test/fixtures'
 import { Chart } from './react/Chart'
 
 describe('server rendering', () => {
@@ -35,5 +35,19 @@ describe('server rendering', () => {
       </Chart>,
     )
     expect(html.match(/<figure[^>]*>/)?.[0]).toContain('height:200px')
+  })
+
+  it('renders the 0.2 charts and pieces without a DOM, deterministically', () => {
+    for (const Example of [EstimateVsActual, DrillColumn, SmallPieces]) {
+      const html = renderToString(<Example />)
+      expect(html).toBe(renderToString(<Example />))
+      expect(html).not.toContain('NaN')
+    }
+    const comparison = renderToString(<EstimateVsActual />)
+    expect(comparison).toContain('$640 → $1,060')
+    expect(comparison).toContain('+$420')
+    expect(comparison.match(/data-ch-part="bar"/g)).toHaveLength(8)
+    expect(renderToString(<DrillColumn />)).toContain('data-ch-part="row-highlight"')
+    expect(renderToString(<SmallPieces />)).toContain('role="meter"')
   })
 })

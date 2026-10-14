@@ -12,5 +12,37 @@
     "ignore": ["react", "react-dom"],
     "limit": "15 KB",
     "gzip": true
+  },
+  {
+    "name": "BarChart",
+    "path": "dist/index.js",
+    "import": "{ BarChart }",
+    "ignore": ["react", "react-dom"],
+    "limit": "15 KB",
+    "gzip": true
+  },
+  {
+    "name": "ComparisonBars",
+    "path": "dist/index.js",
+    "import": "{ ComparisonBars }",
+    "ignore": ["react", "react-dom"],
+    "limit": "15 KB",
+    "gzip": true
+  },
+  {
+    "name": "RankedBars",
+    "path": "dist/index.js",
+    "import": "{ RankedBars }",
+    "ignore": ["react", "react-dom"],
+    "limit": "15 KB",
+    "gzip": true
+  },
+  {
+    "name": "Small UI pieces",
+    "path": "dist/index.js",
+    "import": "{ Stat, Delta, Meter, RangeMeter, InlineBar, DotCount }",
+    "ignore": ["react", "react-dom"],
+    "limit": "4 KB",
+    "gzip": true
   }
 ]

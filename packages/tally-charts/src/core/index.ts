@@ -1,6 +1,13 @@
 export type { FieldGetter } from './accessor'
 export { resolveAccessor, resolveIds, resolvePerItem, toFieldGetter } from './accessor'
-export type { BarDirection, BarLayout, BarLayoutInput, BarOrientation, BarRect } from './bars'
+export type {
+  BarAlign,
+  BarDirection,
+  BarLayout,
+  BarLayoutInput,
+  BarOrientation,
+  BarRect,
+} from './bars'
 export { computeBars } from './bars'
 export type {
   FormatOptions,
@@ -17,6 +24,7 @@ export type { Placement, PlacementInput } from './placement'
 export { placeTooltip } from './placement'
 export type { BandScaleSpec, LinearScaleSpec, ResolvedScale, ScaleSpec } from './scale'
 export { createScale, inferLinearDomain } from './scale'
+export { CHAR_WIDTH, truncateLabel } from './text'
 export type { MeasureTick, Tick, TickAnchor, TickSpec } from './ticks'
 export { bandTicks, estimateWidth, linearTicks, thinTicks } from './ticks'
 export type { Accessor, Fill, Id, PerItem, Tone } from './types'

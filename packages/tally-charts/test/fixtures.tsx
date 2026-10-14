@@ -1,4 +1,19 @@
-import { Axis, Bars, Chart, Target, Tooltip, ValueLabel } from '../src'
+import {
+  Axis,
+  Bars,
+  Chart,
+  ComparisonBars,
+  Delta,
+  DotCount,
+  InlineBar,
+  Meter,
+  RangeMeter,
+  RankedBars,
+  Stat,
+  Target,
+  Tooltip,
+  ValueLabel,
+} from '../src'
 
 export const weeks = [
   { week: 'Jul 6', margin: 37.5 },
@@ -36,5 +51,57 @@ export function LastTwelveWeeks() {
       <Axis side="bottom" ticks="ends" />
       <Tooltip />
     </Chart>
+  )
+}
+
+export const costLines = [
+  { name: 'Labor', note: '7.5 h planned, 12.5 h worked', estimate: 640, actual: 1060 },
+  { name: 'Materials', note: 'Line set, refrigerant, pad', estimate: 720, actual: 900 },
+  { name: 'Subcontract', note: 'Crane and electrician', estimate: 400, actual: 400 },
+]
+
+export function EstimateVsActual() {
+  return (
+    <ComparisonBars
+      data={costLines}
+      label="name"
+      sublabel="note"
+      plan="estimate"
+      actual="actual"
+      format="currency"
+      title="Estimate vs actual"
+    />
+  )
+}
+
+export const causes = [
+  { name: 'Labor overruns', amount: 31200 },
+  { name: 'Material variance', amount: 18700 },
+  { name: 'Callbacks', amount: 14400 },
+]
+
+export function DrillColumn() {
+  return (
+    <RankedBars
+      data={causes}
+      label="name"
+      value="amount"
+      format="currency-compact"
+      layout="stacked"
+      selectedId={0}
+      title="Leakage by cause"
+    />
+  )
+}
+
+export function SmallPieces() {
+  return (
+    <div>
+      <Stat value={34} format="percent" delta={<Delta value={-1.2} format="pts" />} />
+      <Meter value={34} min={20} max={45} target={38} format="percent" label="Gross margin" />
+      <RangeMeter value={12.3} reference={36} max={40} format="percent" label="Margin" />
+      <InlineBar value={12.3} max={40} target={38} label="Margin" />
+      <DotCount count={29} label="29 jobs" />
+    </div>
   )
 }

@@ -19,6 +19,18 @@ describe('public entry points', () => {
     'fmt',
     'createFormatter',
     'TONES',
+    'BarChart',
+    'ComparisonBars',
+    'RankedBars',
+    'RowLabels',
+    'RowDividers',
+    'DataTable',
+    'Stat',
+    'Delta',
+    'Meter',
+    'RangeMeter',
+    'InlineBar',
+    'DotCount',
   ])('main exports %s', (name) => {
     expect(main).toHaveProperty(name)
   })
@@ -32,6 +44,7 @@ describe('public entry points', () => {
     'placeTooltip',
     'createFormatters',
     'createWarner',
+    'truncateLabel',
   ])('core exports %s', (name) => {
     expect(core).toHaveProperty(name)
   })
