@@ -45,6 +45,8 @@ describe('public entry points', () => {
     'createFormatters',
     'createWarner',
     'truncateLabel',
+    'runningTotals',
+    'areaPath',
   ])('core exports %s', (name) => {
     expect(core).toHaveProperty(name)
   })
