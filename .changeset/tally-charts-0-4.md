@@ -9,6 +9,10 @@ period, group tints, peak callout). New building blocks `Dots` and `NearestPoint
 `medianOf`, `packWaffle` and `thresholds`. Arrow keys move within and across stacks and rows
 (`ChartPoint.group`).
 
-Changes: bars and scales now use the strict number rule, so blank strings and booleans in data
-are missing instead of 0 or 1. Stacked `RankedBars` rows give each label more room from the
-bar above.
+**Breaking:** bars and scales now use the strict number rule: only numbers and non-blank numeric
+strings count. These are now missing instead of being coerced: blank strings, booleans, `Date`
+objects, `BigInt`, and objects whose `valueOf()` returns a number (e.g. Decimal.js or Big.js
+values). Convert them to numbers first.
+
+Changes: stacked `RankedBars` rows give each label more room from the bar above. Points may set
+`hitX`/`hitY` for `NearestPointer`.

@@ -7,7 +7,11 @@ export interface TooltipSegment {
   tone?: Tone
 }
 
-/** Where a point sits in a stack (vertical) or a row (horizontal), for 2-D arrow keys. */
+/**
+ * Where a point sits in a stack (vertical) or a row (horizontal), for 2-D arrow keys. Marks must
+ * register grouped points in order: stacks left to right, dots bottom to top; rows top to bottom,
+ * dots left to right.
+ */
 export interface PointGroup {
   key: string | number
   axis: 'vertical' | 'horizontal'
