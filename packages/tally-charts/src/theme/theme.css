@@ -284,6 +284,16 @@
   fill: color-mix(in srgb, var(--ch-accent) 7%, transparent);
 }
 
+[data-ch-part="column-total"] {
+  fill: var(--ch-ink);
+  font-size: 22px;
+  font-weight: 500;
+}
+
+[data-ch-part="column-note"] {
+  font-size: 13px;
+}
+
 /* ---------- Tooltip pill ---------- */
 .ch-tooltip {
   position: absolute;
