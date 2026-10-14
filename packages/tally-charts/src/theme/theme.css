@@ -125,14 +125,26 @@
 }
 
 /* ---------- Bars ---------- */
+/* Bars animate only along the value axis. Band-axis changes (container resize,
+   first measure after the SSR width) snap, so bars never slide sideways. */
 [data-ch-part="bar"] {
   transform-box: fill-box;
+}
+
+[data-ch-part="bar"][data-ch-dir="up"],
+[data-ch-part="bar"][data-ch-dir="down"] {
+  transition:
+    opacity 150ms ease,
+    y var(--ch-duration) var(--ch-ease),
+    height var(--ch-duration) var(--ch-ease);
+}
+
+[data-ch-part="bar"][data-ch-dir="right"],
+[data-ch-part="bar"][data-ch-dir="left"] {
   transition:
     opacity 150ms ease,
     x var(--ch-duration) var(--ch-ease),
-    y var(--ch-duration) var(--ch-ease),
-    width var(--ch-duration) var(--ch-ease),
-    height var(--ch-duration) var(--ch-ease);
+    width var(--ch-duration) var(--ch-ease);
 }
 
 [data-ch-part="bar"][data-ch-dir="up"] {
