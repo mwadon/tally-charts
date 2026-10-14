@@ -21,15 +21,25 @@ jobs:
       - run: pnpm test
       - run: pnpm build
       - run: pnpm size
+      - run: pnpm --filter tally-charts check:dev-strip
 
-  # NOTE: the first run on linux is expected to FAIL until linux baselines
-  # (apps/storybook/e2e/__screenshots__/linux/*.png) are committed; the committed
-  # darwin baselines are not used on linux. To generate them, either:
-  #   - temporarily run `pnpm test:e2e -- --update-snapshots` in this job, download the
-  #     `e2e-screenshots` artifact and commit its `__screenshots__/linux` folder, or
-  #   - run locally in the official image:
-  #     docker run --rm -v "$PWD":/w -w /w mcr.microsoft.com/playwright:v1.64.0-noble \
-  #       sh -c "corepack enable && pnpm install --frozen-lockfile && pnpm test:e2e -- --update-snapshots"
+  # Unit tests on the oldest supported React major. Types stay on 19.
+  react18:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter tally-charts add -D react@18.3.1 react-dom@18.3.1
+      - run: pnpm test
+
+  # Baselines live in apps/storybook/e2e/__screenshots__/{darwin,linux}. CI never writes them
+  # (updateSnapshots is 'none' on CI). To refresh linux baselines, run the docker command in
+  # docs/superpowers/plans/2026-10-14-tally-charts-0.2-bar-charts.md (Task 15, Step 7).
   e2e:
     runs-on: ubuntu-latest
     container: mcr.microsoft.com/playwright:v1.64.0-noble

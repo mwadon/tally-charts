@@ -5,12 +5,23 @@ const STORIES = [
   'reference-last-12-weeks--light',
   'reference-last-12-weeks--dark',
   'primitives-legend--default',
+  'charts-barchart--light',
+  'charts-barchart--dark',
+  'charts-barchart--horizontal',
+  'reference-estimate-vs-actual--light',
+  'reference-estimate-vs-actual--dark',
+  'reference-result--light',
+  'reference-result--dark',
+  'reference-drill-columns--light',
+  'reference-gross-margin--light',
+  'reference-gross-margin--dark',
+  'primitives-small-pieces--default',
 ]
 
 async function open(page: Page, id: string) {
   await page.goto(`/iframe.html?id=${id}&viewMode=story`)
   await page
-    .locator('#storybook-root [data-ch-root], #storybook-root [data-ch-part="legend"]')
+    .locator('#storybook-root [data-ch-root], #storybook-root [data-ch-part]')
     .first()
     .waitFor()
 }
@@ -65,4 +76,30 @@ test.describe('touch', () => {
     await page.locator('[data-ch-part="bar-hit"]').nth(4).tap()
     await expect(page.getByTestId('selected')).toHaveText('Selected: Aug 3')
   })
+})
+
+test('clicking a drill row moves the selection', async ({ page }) => {
+  await open(page, 'reference-drill-columns--light')
+  const causes = page.getByRole('figure', { name: 'Leakage by cause' })
+  await causes.locator('[data-ch-part="bar-hit"]').nth(2).click()
+  await expect(page.getByTestId('drill-selected')).toHaveText('Selected cause: Callbacks')
+  await expect(causes.locator('[data-ch-part="row-highlight"]')).toHaveCount(1)
+})
+
+test('arrow keys and Enter select a drill row', async ({ page }) => {
+  await open(page, 'reference-drill-columns--light')
+  const causes = page.getByRole('figure', { name: 'Leakage by cause' })
+  await causes.focus()
+  await page.keyboard.press('ArrowDown')
+  await page.keyboard.press('ArrowDown')
+  await page.keyboard.press('Enter')
+  await expect(page.getByTestId('drill-selected')).toHaveText('Selected cause: Material variance')
+})
+
+test('comparison rows announce plan, actual and difference', async ({ page }) => {
+  await open(page, 'reference-estimate-vs-actual--light')
+  const chart = page.getByRole('figure', { name: 'Estimate vs actual by cost line' })
+  await chart.focus()
+  await page.keyboard.press('ArrowDown')
+  await expect(chart.locator('[aria-live]')).toHaveText('Labor, plan $640, actual $1,060, +$420')
 })

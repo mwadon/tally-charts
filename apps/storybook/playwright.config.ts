@@ -5,7 +5,8 @@ export default defineConfig({
   // Baselines are per platform. Generate them with `pnpm test:e2e -- --update-snapshots`
   // (darwin locally; linux via CI or the Playwright Docker image) and commit them.
   snapshotPathTemplate: '{testDir}/__screenshots__/{platform}/{arg}{ext}',
-  updateSnapshots: 'missing',
+  // Locally, new stories get a baseline on first run; CI must fail on a missing one instead.
+  updateSnapshots: process.env.CI ? 'none' : 'missing',
   expect: { toHaveScreenshot: { maxDiffPixelRatio: 0.002, animations: 'disabled' } },
   use: { baseURL: 'http://127.0.0.1:6007' },
   projects: [

@@ -1,4 +1,5 @@
 // @vitest-environment node
+import { version } from 'react'
 import { renderToString } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import { DrillColumn, EstimateVsActual, LastTwelveWeeks, SmallPieces } from '../test/fixtures'
@@ -13,8 +14,12 @@ describe('server rendering', () => {
     expect(html).toContain('<pattern')
     expect(html).toContain('Target 38%')
     expect(html).toContain('width="640"')
-    // The hydration test hydrates this exact node-rendered markup.
-    await expect(html).toMatchFileSnapshot('./__snapshots__/last-twelve-weeks.ssr.html')
+    // The hydration test hydrates this exact node-rendered markup. The file is React 19 output:
+    // React 18 formats useId values differently (`R0` instead of `_R_0_`), and nothing else, so
+    // the CI React 18 leg skips only this comparison.
+    if (version.startsWith('19')) {
+      await expect(html).toMatchFileSnapshot('./__snapshots__/last-twelve-weeks.ssr.html')
+    }
   })
 
   it('is deterministic', () => {
