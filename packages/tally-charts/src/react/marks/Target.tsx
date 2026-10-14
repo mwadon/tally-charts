@@ -1,3 +1,4 @@
+import { DEV } from '../../core/warn'
 import { useChart } from '../context'
 
 export interface TargetProps {
@@ -25,20 +26,22 @@ export function Target({
   const value = horizontal ? y : x
   const resolved = horizontal ? ctx.y : ctx.x
   if (value === undefined) {
-    ctx.warn('target-value', 'Target needs an `x` or `y` value.')
+    if (DEV) ctx.warn('target-value', 'Target needs an `x` or `y` value.')
     return null
   }
   if (resolved.kind !== 'linear') {
-    ctx.warn('target-scale', 'Target needs a linear scale on the axis it marks.')
+    if (DEV) ctx.warn('target-scale', 'Target needs a linear scale on the axis it marks.')
     return null
   }
 
   const [d0, d1] = resolved.scale.domain()
   if (!Number.isFinite(value) || value < Math.min(d0, d1) || value > Math.max(d0, d1)) {
-    ctx.warn(
-      'target-domain',
-      `Target value ${value} is outside the chart domain and was not drawn.`,
-    )
+    if (DEV) {
+      ctx.warn(
+        'target-domain',
+        `Target value ${value} is outside the chart domain and was not drawn.`,
+      )
+    }
     return null
   }
 

@@ -2,7 +2,7 @@ import { type ScaleBand, scaleBand } from 'd3-scale'
 import { type FieldGetter, toFieldGetter } from './accessor'
 import { type LinearScale, linearScale, niceDomain } from './linear'
 import type { Accessor } from './types'
-import type { Warn } from './warn'
+import { DEV, type Warn } from './warn'
 
 export interface LinearScaleSpec<D> {
   type?: 'linear'
@@ -74,7 +74,7 @@ export function createScale<D>(
 
   if (spec?.type === 'band') {
     const domain = spec.domain ? spec.domain.map(String) : field ? uniqueStrings(data, field) : []
-    if (domain.length === 0) {
+    if (DEV && domain.length === 0) {
       warn(
         `${axis}-band-domain`,
         `The ${axis} band scale has no domain. Set \`field\` or \`domain\` on <Chart ${axis}>.`,
@@ -99,10 +99,12 @@ export function createScale<D>(
     )
     if (linear?.nice ?? true) domain = niceDomain(domain)
   } else {
-    warn(
-      `${axis}-linear-domain`,
-      `The ${axis} scale has no domain. Set \`field\` or \`domain\` on <Chart ${axis}>.`,
-    )
+    if (DEV) {
+      warn(
+        `${axis}-linear-domain`,
+        `The ${axis} scale has no domain. Set \`field\` or \`domain\` on <Chart ${axis}>.`,
+      )
+    }
     domain = [0, 1]
   }
   const range: [number, number] = axis === 'y' ? [length, 0] : [0, length]

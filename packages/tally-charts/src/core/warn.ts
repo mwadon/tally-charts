@@ -1,23 +1,23 @@
-// Module-scoped so it never conflicts with @types/node; bundlers replace the expression.
+// Module-scoped so it never conflicts with @types/node; bundlers replace `process.env.NODE_ENV`.
 declare const process: { env: { NODE_ENV?: string } }
 
 export type Warn = (key: string, message: string) => void
 
-function detectDev(): boolean {
-  try {
-    return process.env.NODE_ENV !== 'production'
-  } catch {
-    // No bundler and no `process` (plain browser ESM): stay quiet.
-    return false
-  }
-}
+/**
+ * True outside production builds. A bundler that replaces `process.env.NODE_ENV` folds this to a
+ * constant and drops every `if (DEV)` block together with its message strings. Without `process`
+ * (plain browser ESM) it is false.
+ */
+export const DEV: boolean =
+  (typeof process !== 'undefined' ? process.env.NODE_ENV : 'production') !== 'production'
 
-export const isDev = detectDev()
+/** Alias of `DEV`, kept for the 0.1 public API. */
+export const isDev = DEV
 
 export function createWarner(): Warn {
   const seen = new Set<string>()
   return (key, message) => {
-    if (!isDev || seen.has(key)) return
+    if (!DEV || seen.has(key)) return
     seen.add(key)
     console.warn(`[tally-charts] ${message}`)
   }

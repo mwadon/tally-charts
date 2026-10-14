@@ -1,9 +1,14 @@
 import { describe, expect, it, vi } from 'vitest'
-import { createWarner, isDev } from './warn'
+import { createWarner, DEV, isDev } from './warn'
 
 describe('createWarner', () => {
   it('is in development mode under vitest', () => {
     expect(isDev).toBe(true)
+  })
+
+  it('exposes DEV as a plain boolean that matches isDev', () => {
+    expect(DEV).toBe(true)
+    expect(isDev).toBe(DEV)
   })
 
   it('warns once per key with the library prefix', () => {

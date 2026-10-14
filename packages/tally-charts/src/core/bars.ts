@@ -3,7 +3,7 @@ import type { FieldGetter } from './accessor'
 import type { LinearScale } from './linear'
 import type { ResolvedScale } from './scale'
 import type { Id } from './types'
-import type { Warn } from './warn'
+import { DEV, type Warn } from './warn'
 
 export type BarOrientation = 'vertical' | 'horizontal'
 export type BarDirection = 'up' | 'down' | 'right' | 'left'
@@ -48,7 +48,7 @@ export function computeBars(input: BarLayoutInput): BarLayout {
   if (y.kind === 'band' && x.kind === 'linear') {
     return layoutBars(input, y.scale, x.scale, input.getY, input.getX, 'horizontal')
   }
-  input.warn('bars-scales', 'Bars need one band scale and one linear scale on <Chart>.')
+  if (DEV) input.warn('bars-scales', 'Bars need one band scale and one linear scale on <Chart>.')
   return { orientation: 'vertical', bars: [] }
 }
 
@@ -76,10 +76,12 @@ function layoutBars(
     const raw = getValue(datum, index)
     const value = raw === null || raw === undefined ? Number.NaN : Number(raw)
     if (!Number.isFinite(value)) {
-      input.warn(
-        'bars-value',
-        `Bars skipped a missing or non-numeric value for field "${valueField}" at index ${index}.`,
-      )
+      if (DEV) {
+        input.warn(
+          'bars-value',
+          `Bars skipped a missing or non-numeric value for field "${valueField}" at index ${index}.`,
+        )
+      }
       continue
     }
     // Keep geometry inside the plot when a value falls outside an explicit domain.

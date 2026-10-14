@@ -1,5 +1,5 @@
 import type { Accessor, Id, PerItem } from './types'
-import type { Warn } from './warn'
+import { DEV, type Warn } from './warn'
 
 export type FieldGetter = (d: unknown, i: number) => unknown
 
@@ -39,10 +39,12 @@ export function resolveIds<D>(
   for (let i = 0; i < data.length; i++) {
     const id = get(data[i] as D, i)
     if (id === null || id === undefined || seen.has(id)) {
-      warn(
-        'duplicate-id',
-        `Missing or duplicate id "${String(id)}" at index ${i}; using the index for all rows instead.`,
-      )
+      if (DEV) {
+        warn(
+          'duplicate-id',
+          `Missing or duplicate id "${String(id)}" at index ${i}; using the index for all rows instead.`,
+        )
+      }
       return byIndex()
     }
     seen.add(id)

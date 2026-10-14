@@ -3,6 +3,7 @@ import { resolveAccessor, resolveIds, resolvePerItem, toFieldGetter } from '../.
 import { computeBars } from '../../core/bars'
 import type { FormatSpec } from '../../core/format'
 import type { Accessor, Fill, Id, PerItem, Tone } from '../../core/types'
+import { DEV } from '../../core/warn'
 import { paintFor } from '../../theme/patterns'
 import { useChart } from '../context'
 import type { ChartPoint, TooltipSegment } from '../types'
@@ -32,7 +33,7 @@ export function Bars<D>(props: BarsProps<D>) {
   const data = (props.data ?? ctx.data) as readonly D[]
   const getX = useMemo(() => toFieldGetter(props.x) ?? ctx.x.field, [props.x, ctx.x.field])
   const getY = useMemo(() => toFieldGetter(props.y) ?? ctx.y.field, [props.y, ctx.y.field])
-  if (!getX || !getY) {
+  if (DEV && (!getX || !getY)) {
     ctx.warn(
       'bars-fields',
       'Bars need x and y fields: pass them to <Bars> or set `field` on <Chart x/y>.',
