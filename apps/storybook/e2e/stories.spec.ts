@@ -20,6 +20,12 @@ const STORIES = [
   'reference-why-it-is-under-target--dark',
   'reference-profit-bridge--light',
   'reference-profit-bridge--dark',
+  'reference-jobs-by-margin--light',
+  'reference-jobs-by-margin--dark',
+  'reference-dallas-installs--light',
+  'reference-dallas-installs--dark',
+  'reference-profit-leaked--light',
+  'reference-profit-leaked--dark',
 ]
 
 // Stories whose reference layout needs more room than the default 800px viewport.
@@ -27,6 +33,10 @@ const WIDE_STORIES: Record<string, { width: number; height: number }> = {
   'reference-drill-columns--light': { width: 1280, height: 600 },
   'reference-profit-bridge--light': { width: 1280, height: 720 },
   'reference-profit-bridge--dark': { width: 1280, height: 720 },
+  'reference-jobs-by-margin--light': { width: 1280, height: 600 },
+  'reference-jobs-by-margin--dark': { width: 1280, height: 600 },
+  'reference-dallas-installs--light': { width: 1280, height: 600 },
+  'reference-dallas-installs--dark': { width: 1280, height: 600 },
 }
 
 async function open(page: Page, id: string) {
@@ -136,4 +146,35 @@ test('the bridge pins its callout and hands over to the tooltip on hover', async
   await page.locator('[data-ch-part="bar-hit"]').nth(1).hover()
   await expect(callout).toHaveCount(0)
   await expect(page.locator('[data-ch-part="tooltip"]')).toContainText('After discount')
+})
+
+test('the dot histogram walks bins with the arrow keys', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 600 })
+  await open(page, 'reference-jobs-by-margin--light')
+  const chart = page.getByRole('figure', { name: 'Jobs by margin this week' })
+  await chart.focus()
+  await page.keyboard.press('ArrowRight')
+  await expect(chart.locator('[aria-live]')).toHaveText('#5700, 3.1%')
+  await page.keyboard.press('ArrowRight')
+  await expect(chart.locator('[aria-live]')).toHaveText('#5701, 4.2%')
+})
+
+test('hovering near a strip dot shows its tooltip', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 600 })
+  await open(page, 'reference-dallas-installs--light')
+  const box = await page.locator('[data-ch-part="dot"]').first().boundingBox()
+  if (!box) throw new Error('no dot')
+  await page.mouse.move(box.x + box.width / 2 + 2, box.y + box.height / 2)
+  await expect(page.locator('[data-ch-part="tooltip"]')).toContainText('Estimated')
+})
+
+test('the waffle pins its peak and hands over to the tooltip on hover', async ({ page }) => {
+  await open(page, 'reference-profit-leaked--light')
+  const callout = page.locator('[data-ch-part="callout"]')
+  await expect(callout).toContainText('Sep 7')
+  const box = await page.locator('[data-ch-part="dot"]').first().boundingBox()
+  if (!box) throw new Error('no dot')
+  await page.mouse.move(box.x + box.width / 2, box.y - 20)
+  await expect(callout).toHaveCount(0)
+  await expect(page.locator('[data-ch-part="tooltip"]')).toContainText('Aug 3')
 })
