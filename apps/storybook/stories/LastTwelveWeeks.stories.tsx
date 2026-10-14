@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
-import { Axis, Bars, Chart, Target, Tooltip, ValueLabel } from 'tally-charts'
+import { useState } from 'react'
+import { Axis, Bars, Chart, type ChartProps, Target, Tooltip, ValueLabel } from 'tally-charts'
 
 // Mirrors docs/reference/01-gross-margin-waterfall.png, card "Last 12 weeks".
 const weeks = [
@@ -17,7 +18,9 @@ const weeks = [
   { week: 'Sep 21', margin: 34.0 },
 ]
 
-function LastTwelveWeeks() {
+type Week = (typeof weeks)[number]
+
+function LastTwelveWeeks({ onSelect }: { onSelect?: ChartProps<Week>['onSelect'] }) {
   return (
     <article className="card">
       <header className="card-header">
@@ -32,6 +35,7 @@ function LastTwelveWeeks() {
         margin={{ top: 24, bottom: 28 }}
         x={{ type: 'band', field: 'week', padding: 0.35 }}
         y={{ field: 'margin', domain: [26, 40] }}
+        onSelect={onSelect}
       >
         <Target y={38} label="Target 38%" />
         <Bars
@@ -46,6 +50,16 @@ function LastTwelveWeeks() {
   )
 }
 
+function SelectableWeeks() {
+  const [selected, setSelected] = useState('none')
+  return (
+    <div style={{ display: 'grid', gap: 16 }}>
+      <LastTwelveWeeks onSelect={(_, point) => setSelected((point.datum as Week).week)} />
+      <output data-testid="selected">Selected: {selected}</output>
+    </div>
+  )
+}
+
 const meta = {
   title: 'Reference/Last 12 weeks',
   component: LastTwelveWeeks,
@@ -56,3 +70,4 @@ type Story = StoryObj<typeof meta>
 
 export const Light: Story = { parameters: { theme: 'light' } }
 export const Dark: Story = { parameters: { theme: 'dark' } }
+export const Selectable: Story = { render: () => <SelectableWeeks /> }

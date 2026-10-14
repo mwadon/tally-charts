@@ -31,6 +31,10 @@ export interface ChartContextValue {
   setActive: (id: Id | null, source: ActiveSource) => void
   registerPoints: (key: string, points: ChartPoint[]) => void
   unregisterPoints: (key: string) => void
+  /** Calls the chart's `onSelect` with this point; does nothing without `onSelect`. */
+  select: (point: ChartPoint) => void
+  /** True when the chart has an `onSelect` handler. */
+  selectable: boolean
   /** HTML layer positioned at the plot origin; null until mounted. */
   overlay: HTMLDivElement | null
 }

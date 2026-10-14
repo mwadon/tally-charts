@@ -124,9 +124,8 @@ export function Chart<D>({
     }
   }
 
-  const onClick = () => {
-    const point = interaction.activePoint
-    if (onSelect && point) onSelect(point.id, point)
+  const select = (point: ChartPoint) => {
+    if (onSelect) onSelect(point.id, point)
   }
 
   const ctx: ChartContextValue = {
@@ -148,6 +147,8 @@ export function Chart<D>({
     setActive: interaction.setActive,
     registerPoints: interaction.registerPoints,
     unregisterPoints: interaction.unregisterPoints,
+    select,
+    selectable: onSelect !== undefined,
     overlay,
   }
 
@@ -169,7 +170,6 @@ export function Chart<D>({
       aria-describedby={description ? descId : undefined}
       tabIndex={isEmpty ? undefined : 0}
       onKeyDown={isEmpty ? undefined : onKeyDown}
-      onClick={isEmpty ? undefined : onClick}
       onPointerLeave={() => interaction.setActive(null, 'pointer')}
       onBlur={() => {
         if (interaction.source === 'keyboard') interaction.setActive(null, 'keyboard')

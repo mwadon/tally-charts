@@ -160,17 +160,37 @@ describe('<Bars>', () => {
     expect(String(warn.mock.calls[0]?.[0])).toContain('for field "x"')
   })
 
-  it('selects the hovered bar on click and ignores clicks with nothing active', () => {
+  it('selects the clicked bar even when another bar was active', () => {
     const onSelect = vi.fn()
     const { container } = renderBars({}, { onSelect })
-    const figure = container.querySelector('figure') as Element
-    fireEvent.click(figure)
-    expect(onSelect).not.toHaveBeenCalled()
-    fireEvent.pointerEnter(hits(container)[1] as Element)
-    fireEvent.click(figure)
+    fireEvent.pointerEnter(hits(container)[0] as Element)
+    fireEvent.click(hits(container)[1] as Element)
     expect(onSelect).toHaveBeenCalledTimes(1)
     expect(onSelect.mock.calls[0]?.[0]).toBe(1)
-    expect(onSelect.mock.calls[0]?.[1]).toMatchObject({ id: 1 })
+    expect(onSelect.mock.calls[0]?.[1]).toMatchObject({ id: 1, index: 1 })
+  })
+
+  it('selects on a click with nothing active, as a touch tap does', () => {
+    const onSelect = vi.fn()
+    const { container } = renderBars({}, { onSelect })
+    fireEvent.click(hits(container)[0] as Element)
+    expect(onSelect).toHaveBeenCalledWith(0, expect.objectContaining({ id: 0 }))
+  })
+
+  it('ignores clicks on the figure outside the bars', () => {
+    const onSelect = vi.fn()
+    const { container } = renderBars({}, { onSelect })
+    fireEvent.pointerEnter(hits(container)[1] as Element)
+    fireEvent.click(container.querySelector('figure') as Element)
+    expect(onSelect).not.toHaveBeenCalled()
+  })
+
+  it('marks hit areas as selectable only when the chart has onSelect', () => {
+    const { container, unmount } = renderBars()
+    expect(hits(container)[0]).not.toHaveAttribute('data-ch-selectable')
+    unmount()
+    const selectable = renderBars({}, { onSelect: () => {} })
+    expect(hits(selectable.container)[0]).toHaveAttribute('data-ch-selectable', 'true')
   })
 
   it('makes the hit area span the full band height', () => {

@@ -79,7 +79,8 @@ export function Bars<D>(props: BarsProps<D>) {
 
   return (
     <g data-ch-part="bars">
-      {layout.bars.map((bar) => {
+      {layout.bars.map((bar, i) => {
+        const point = points[i]
         const datum = bar.datum as D
         const tone = toneOf(datum, bar.index, data)
         const fill = fillOf(datum, bar.index, data)
@@ -112,12 +113,14 @@ export function Bars<D>(props: BarsProps<D>) {
             />
             <rect
               data-ch-part="bar-hit"
+              data-ch-selectable={ctx.selectable ? 'true' : undefined}
               fill="transparent"
               x={vertical ? bar.x : 0}
               y={vertical ? 0 : bar.y}
               width={vertical ? bar.width : ctx.innerWidth}
               height={vertical ? ctx.innerHeight : bar.height}
               onPointerEnter={() => ctx.setActive(bar.id, 'pointer')}
+              onClick={point ? () => ctx.select(point) : undefined}
             />
           </g>
         )

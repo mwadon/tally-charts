@@ -99,6 +99,15 @@
   overflow: visible;
 }
 
+/* Text never takes pointer events, so labels don't block the hit areas under them. */
+.ch-svg text {
+  pointer-events: none;
+}
+
+[data-ch-part="bar-hit"][data-ch-selectable="true"] {
+  cursor: pointer;
+}
+
 .ch-overlay {
   position: absolute;
   pointer-events: none;
