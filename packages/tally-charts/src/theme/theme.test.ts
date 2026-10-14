@@ -43,6 +43,7 @@ describe('theme.css', () => {
     expect(rule?.[0]).toContain('[data-ch-part="area"]')
     expect(rule?.[0]).toContain('[data-ch-part="dot"]')
     expect(rule?.[0]).toContain('[data-ch-part="dot-ring"]')
+    expect(rule?.[0]).toContain('[data-ch-part="median"]')
     expect(rule?.[1]).toContain('pointer-events: none')
   })
 

@@ -118,7 +118,8 @@
 [data-ch-part="connector"],
 [data-ch-part="area"],
 [data-ch-part="dot"],
-[data-ch-part="dot-ring"] {
+[data-ch-part="dot-ring"],
+[data-ch-part="median"] {
   pointer-events: none;
 }
 
@@ -229,6 +230,16 @@
 [data-ch-part="dot-ring"] {
   fill: none;
   stroke-width: 2;
+}
+
+[data-ch-part="median"] {
+  stroke-width: 1.5;
+  stroke-dasharray: 3 3;
+}
+
+[data-ch-part="median-label"] {
+  font-size: 13px;
+  font-weight: 500;
 }
 
 [data-ch-part="pointer-layer"][data-ch-selectable="true"] {
