@@ -267,4 +267,44 @@ describe('<LineChart>', () => {
     renderLines({ dataTable: false })
     expect(screen.queryByRole('table')).toBeNull()
   })
+
+  it('widens the inferred domain to a target outside the data', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const flat = [31, 32, 33, 34].map((actual, i) => ({ ...months[0], month: `M${i}`, actual }))
+    const { container } = renderLines({
+      data: flat as Month[],
+      series: [series[0] as LineSeries<Month>],
+      band: undefined,
+      domain: undefined,
+      target: { value: 40, label: 'Target 40%' },
+    })
+    expect(parts(container, 'target')).toHaveLength(1)
+    expect(parts(container, 'target-label')[0]).toHaveTextContent('Target 40%')
+    expect(warn).not.toHaveBeenCalled()
+    warn.mockRestore()
+  })
+
+  it('warns once about a missing x and once about a repeated x', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    renderLines({
+      data: [...months, { ...months[1] } as Month, { ...months[0], month: '' } as Month],
+    })
+    expect(warn).toHaveBeenCalledTimes(2)
+    expect(warn.mock.calls[0]?.[0]).toContain('repeated x value "Jul" at index 4')
+    expect(warn.mock.calls[1]?.[0]).toContain('missing x value at index 5')
+    warn.mockRestore()
+  })
+
+  it('warns once about repeated series ids and still draws every series', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const same = series.map((s) => ({ ...s, id: 'same' }))
+    const { container } = renderLines({ series: same })
+    expect(groups(container)).toHaveLength(3)
+    expect(warn).toHaveBeenCalledTimes(1)
+    expect(warn.mock.calls[0]?.[0]).toMatch(/^\[tally-charts\] .*series id "same"/)
+    expect(error).not.toHaveBeenCalled()
+    warn.mockRestore()
+    error.mockRestore()
+  })
 })

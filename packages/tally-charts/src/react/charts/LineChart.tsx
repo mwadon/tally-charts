@@ -25,7 +25,7 @@ import { type ChartPassThroughProps, headerOf, toNumber, userCallbacks } from '.
 export type LineSeriesStyle = 'actual' | 'forecast' | 'scenario'
 
 export interface LineSeries<D> {
-  /** Stable key of the series. */
+  /** Stable key of the series; unique within the chart. */
   id: string
   /** Legend and data-table name, e.g. "Current path". */
   label: string
@@ -53,7 +53,10 @@ export interface LineRange<D> {
 
 export interface LineChartProps<D> extends Omit<ChartPassThroughProps<unknown>, 'aspectRatio'> {
   data: readonly D[]
-  /** Category per row, e.g. the month. Each value appears once; repeats are skipped. */
+  /**
+   * Category per row, e.g. the month. Each value appears once; repeats are skipped. Point ids are
+   * these values as strings, so `1` and `'1'` are the same x.
+   */
   x: Accessor<D, string | number>
   series: readonly LineSeries<D>[]
   /** A soft band between two values, e.g. the likely range of a forecast. */
@@ -61,7 +64,10 @@ export interface LineChartProps<D> extends Omit<ChartPassThroughProps<unknown>, 
   /** Shade from this category to the end, e.g. the first forecast month. */
   forecastFrom?: string | number
   target?: number | { value: number; label?: string }
-  /** Value domain. Default: every series and the band, rounded to nice ticks; zero isn't forced. */
+  /**
+   * Value domain. Default: every series, the band and the target, rounded to nice ticks; zero
+   * isn't forced.
+   */
   domain?: readonly [number, number]
   /** Default 'number'. */
   format?: FormatSpec
@@ -71,7 +77,7 @@ export interface LineChartProps<D> extends Omit<ChartPassThroughProps<unknown>, 
   axisFormat?: AxisFormat
   /** Category axis ticks, or 'none'. Default 'all'. */
   xAxis?: TickSpec | 'none'
-  /** Horizontal grid lines at the value ticks. Default true. */
+  /** Horizontal grid lines at the value ticks ('all' when `axis` is 'none'). Default true. */
   grid?: boolean
   /** Dot radius in px. Default 4. */
   radius?: number
@@ -190,14 +196,13 @@ export function LineChart<D>({
     return data.flatMap((d, i): LineRow<D>[] => {
       const raw = getX(d, i)
       const key = raw === null || raw === undefined ? '' : String(raw)
-      if (key === '' || seen.has(key)) {
+      if (key === '') {
+        if (DEV) warn('line-x-missing', `LineChart skipped a missing x value at index ${i}.`)
+        return []
+      }
+      if (seen.has(key)) {
         if (DEV) {
-          warn(
-            'line-x',
-            key === ''
-              ? `LineChart skipped a missing x value at index ${i}.`
-              : `LineChart skipped a repeated x value "${key}" at index ${i}.`,
-          )
+          warn('line-x-repeated', `LineChart skipped a repeated x value "${key}" at index ${i}.`)
         }
         return []
       }
@@ -215,19 +220,32 @@ export function LineChart<D>({
     })
   }, [data, x, series, band, warn])
 
+  const targetSpec = typeof target === 'number' ? { value: target } : target
+  // The target counts toward the inferred domain, so a goal above or below the data is drawn.
   const resolvedDomain =
     domain ??
     niceDomain(
       inferLinearDomain(
-        rows.flatMap((r) => [...r.values, r.low, r.high]),
+        [...rows.flatMap((r) => [...r.values, r.low, r.high]), targetSpec?.value ?? Number.NaN],
         false,
       ),
     )
+  if (DEV) {
+    const ids = new Set<string>()
+    for (const s of series) {
+      if (ids.has(s.id)) {
+        warn(
+          'line-series-id',
+          `LineChart has a repeated series id "${s.id}"; give each series its own id.`,
+        )
+      }
+      ids.add(s.id)
+    }
+  }
   // Actual lines last, so their filled dots sit on top where the forecasts join them.
   const ordered = series
     .map((s, i) => ({ s, i }))
     .sort((a, b) => Number(styleOf(a.s) === 'actual') - Number(styleOf(b.s) === 'actual'))
-  const targetSpec = typeof target === 'number' ? { value: target } : target
   const valueFormat =
     axisFormat ??
     (typeof format === 'function' ? (v: string | number) => format(Number(v)) : format)
@@ -273,7 +291,8 @@ export function LineChart<D>({
       {band ? <Band<LineRow<D>> x="key" low="low" high="high" tone={band.tone} /> : null}
       {ordered.map(({ s, i }) => (
         <Line<LineRow<D>>
-          key={s.id}
+          // Index first: repeated series ids still get distinct keys.
+          key={`${i}:${s.id}`}
           x="key"
           y={(r) => r.values[i] ?? Number.NaN}
           tone={toneOf(s)}
