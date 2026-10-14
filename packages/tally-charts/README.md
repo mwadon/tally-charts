@@ -65,7 +65,8 @@ import { BarChart, ComparisonBars, RankedBars } from 'tally-charts'
   connectors. Start is hatched neutral, steps are `loss`/`gain`, the end is solid accent. The
   domain leaves out zero by default, like a 34%–38% gap chart; the scale then runs a little past
   the domain so the start and end bars stay visible, while the axis labels the domain itself.
-  Row ids are `'start'`, `step.id ?? index`, `'end'`.
+  Row ids are `'start'`, `step.id ?? index`, `'end'`. The end row's `point.datum` is a
+  synthetic `{ label, value }` created on every render: compare by `id === 'end'`, not identity.
 - `BridgeChart`: vertical columns of what remains after each step, with the leaked (or gained)
   part as a hatched cap, a gradient joining the totals between the columns, and a highlighted
   last column. `callout` pins a pill above the last column, lifted clear of any column labels it

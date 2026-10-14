@@ -60,7 +60,7 @@ This is plan 3 of 6. `main` is at `9777e33` with 0.1 and 0.2 merged. **Execute o
 ## Design decisions this plan makes
 
 1. **No `d3-shape`.** The bridge's area is a straight-line polygon from the core `areaPath`. The spec allows `d3-shape` from 0.3 but doesn't require it. It arrives with curved lines in 0.5.
-2. **Waterfall domains leave out zero by default.** The reference axis runs 34%–38%. The start and end bars therefore begin at the domain minimum, which `<Bars>` already does by clamping its zero baseline into the domain. An explicit `domain` overrides this.
+2. **Waterfall domains leave out zero by default.** The reference axis runs 34%–38%. The start and end bars therefore begin at the domain minimum, which `<Bars>` already does by clamping its zero baseline into the domain. An explicit `domain` overrides this. Task 8 added scale padding beyond the baseline end so the end bar stays visible; an explicit `domain` sets the axis labels (`Axis extent`), and is padded too.
 3. **`Connector` is declarative.** A link names a value on the linear axis and two bands (`{ at, from, to }`). Optional px insets let it meet bars that are thinner than their band.
 4. **`Callout` lives in the HTML overlay**, like `Tooltip`. It appears after mount, so it's absent from server output, and the overlay is `aria-hidden`. Its information must also live in the data table and announcements. By default it hides while any point is active, so it never fights the tooltip.
 5. **Ids:**

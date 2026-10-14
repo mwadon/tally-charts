@@ -86,7 +86,10 @@ const VALUE_GAP = 8
 const NOTE_GAP = 18
 /** Room above the cap for the total and note before a pinned callout, in px. */
 const CALLOUT_SPACE = 52
-/** How far a 22px column total reaches above its baseline, in px. */
+/**
+ * How far a 22px column total reaches above its baseline, in px. It matches the 22px
+ * `[data-ch-part="column-total"]` font size in theme.css and must change with it.
+ */
 const TOTAL_ASCENT = 18
 /** Gap between a pinned callout and the labels below it, in px. */
 const CALLOUT_GAP = 8

@@ -43,7 +43,11 @@ export interface WaterfallChartProps<S extends WaterfallStep = WaterfallStep>
   extends Omit<ChartPassThroughProps<unknown>, 'aspectRatio'> {
   start: WaterfallStart
   steps: readonly S[]
-  /** The calculated end row. Default label "Total". */
+  /**
+   * The calculated end row. Default label "Total". In `onSelect` and `onActiveChange` its
+   * `point.datum` is a synthetic `{ label, value }` created on every render, so recognise it by
+   * `id === 'end'`, not by object identity.
+   */
   end?: WaterfallEnd
   /** Format of the start, end, totals and axis. Default 'number'. */
   format?: FormatSpec
