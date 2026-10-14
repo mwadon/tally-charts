@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "types": ["node"],
+    "paths": {
+      "tally-charts": ["../../packages/tally-charts/src/index.ts"],
+      "tally-charts/core": ["../../packages/tally-charts/src/core/index.ts"]
+    }
+  },
+  "include": [".storybook", "stories", "e2e", "playwright.config.ts"]
+}

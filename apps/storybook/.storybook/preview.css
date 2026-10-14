@@ -1,0 +1,39 @@
+body {
+  margin: 0;
+}
+
+.sb-canvas {
+  min-height: 100vh;
+  box-sizing: border-box;
+  padding: 32px;
+  background: color-mix(in srgb, var(--ch-surface) 94%, var(--ch-ink));
+  color: var(--ch-ink);
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+}
+
+.card {
+  box-sizing: border-box;
+  max-width: 520px;
+  padding: 28px;
+  border-radius: 28px;
+  background: var(--ch-surface);
+  box-shadow: 0 0 0 1px var(--ch-grid);
+}
+
+.card-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 40px;
+}
+
+.card-title {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 500;
+}
+
+.card-meta {
+  color: var(--ch-ink-muted);
+  font-size: 15px;
+}
