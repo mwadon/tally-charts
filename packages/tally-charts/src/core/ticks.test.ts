@@ -1,7 +1,7 @@
-import { scaleBand } from 'd3-scale'
+import { scaleBand, scalePoint } from 'd3-scale'
 import { describe, expect, it } from 'vitest'
 import { linearScale } from './linear'
-import { bandTicks, linearTicks, type Tick, thinTicks } from './ticks'
+import { bandTicks, linearTicks, pointTicks, type Tick, thinTicks } from './ticks'
 
 const band = scaleBand<string>().domain(['a', 'b', 'c', 'd']).range([0, 400]).paddingInner(0)
 
@@ -70,5 +70,32 @@ describe('thinTicks', () => {
       [0, 'start'],
       [4, 'end'],
     ])
+  })
+})
+
+describe('pointTicks', () => {
+  // 400px, padding 0.5: a 100px step, points at 50, 150, 250 and 350.
+  const s = scalePoint<string>().domain(['Apr', 'May', 'Jun', 'Jul']).range([0, 400]).padding(0.5)
+
+  it('labels every point, centred', () => {
+    expect(pointTicks(s, 'all', String).map((t) => [t.label, t.position, t.anchor])).toEqual([
+      ['Apr', 50, 'middle'],
+      ['May', 150, 'middle'],
+      ['Jun', 250, 'middle'],
+      ['Jul', 350, 'middle'],
+    ])
+  })
+
+  it('labels the ends or every nth point', () => {
+    expect(pointTicks(s, 'ends', String).map((t) => t.label)).toEqual(['Apr', 'Jul'])
+    expect(pointTicks(s, 2, String).map((t) => t.label)).toEqual(['Apr', 'Jun'])
+  })
+
+  it('formats labels and tolerates an empty domain', () => {
+    expect(pointTicks(s, 'ends', (v) => v.toUpperCase()).map((t) => t.label)).toEqual([
+      'APR',
+      'JUL',
+    ])
+    expect(pointTicks(scalePoint<string>(), 'all', String)).toEqual([])
   })
 })

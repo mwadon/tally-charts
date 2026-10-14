@@ -112,4 +112,23 @@ describe('<Axis>', () => {
     expect(labels(container)).toEqual(['34', '64'])
     expect(container.querySelector('[data-ch-part="axis-label"]')).toHaveAttribute('x', '40')
   })
+
+  it('labels point scales at their positions', () => {
+    const { container } = render(
+      <Chart
+        {...frame}
+        width={400}
+        x={{ type: 'point', domain: ['Apr', 'May', 'Jun', 'Jul'] }}
+        y={{ type: 'point', domain: ['a', 'b'] }}
+      >
+        <Axis side="bottom" />
+        <Axis side="left" />
+      </Chart>,
+    )
+    const all = [...container.querySelectorAll('[data-ch-part="axis-label"]')]
+    expect(all.map((el) => el.textContent)).toEqual(['Apr', 'May', 'Jun', 'Jul', 'a', 'b'])
+    expect(all.slice(0, 4).map((el) => el.getAttribute('x'))).toEqual(['50', '150', '250', '350'])
+    expect(all[0]).toHaveAttribute('text-anchor', 'middle')
+    expect(all.slice(4).map((el) => el.getAttribute('y'))).toEqual(['25', '75'])
+  })
 })

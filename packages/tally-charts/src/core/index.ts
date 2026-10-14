@@ -34,7 +34,13 @@ export { linearScale, niceDomain } from './linear'
 export { toNumber } from './number'
 export type { Placement, PlacementInput } from './placement'
 export { placeTooltip } from './placement'
-export type { BandScaleSpec, LinearScaleSpec, ResolvedScale, ScaleSpec } from './scale'
+export type {
+  BandScaleSpec,
+  LinearScaleSpec,
+  PointScaleSpec,
+  ResolvedScale,
+  ScaleSpec,
+} from './scale'
 export { createScale, inferLinearDomain } from './scale'
 export type { StepTone, StepTotal } from './steps'
 export { runningTotals } from './steps'

@@ -1,7 +1,7 @@
 export type { BarAlign } from './core/bars'
 export type { FormatPreset, FormatSpec, Formatter, Formatters } from './core/format'
 export { createFormatter, fmt } from './core/format'
-export type { BandScaleSpec, LinearScaleSpec, ScaleSpec } from './core/scale'
+export type { BandScaleSpec, LinearScaleSpec, PointScaleSpec, ScaleSpec } from './core/scale'
 export type { ThresholdBin, ThresholdLegendItem, Thresholds } from './core/thresholds'
 export { thresholds } from './core/thresholds'
 export type { TickSpec } from './core/ticks'

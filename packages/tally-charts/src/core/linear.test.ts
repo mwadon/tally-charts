@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { linearScale, niceDomain } from './linear'
+import { clampToRange, linearScale, niceDomain } from './linear'
 
 describe('linearScale', () => {
   it('maps the domain onto the range', () => {
@@ -23,5 +23,14 @@ describe('linearScale', () => {
 describe('niceDomain', () => {
   it('extends to round numbers', () => {
     expect(niceDomain([3.2, 37.9])).toEqual([0, 40])
+  })
+})
+
+describe('clampToRange', () => {
+  it('keeps pixel positions inside an inverted range', () => {
+    const s = linearScale([0, 10], [100, 0])
+    expect(clampToRange(s, s(15))).toBe(0)
+    expect(clampToRange(s, s(-5))).toBe(100)
+    expect(clampToRange(s, s(5))).toBe(50)
   })
 })

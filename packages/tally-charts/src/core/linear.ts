@@ -26,3 +26,9 @@ export function niceDomain(domain: readonly [number, number], count = 5): [numbe
   const [start, stop] = nice(domain[0], domain[1], count)
   return [start, stop]
 }
+
+/** Clamps a pixel position into the scale's range, so out-of-domain values stay in the plot. */
+export function clampToRange(scale: LinearScale, px: number): number {
+  const [r0, r1] = scale.range()
+  return Math.min(Math.max(r0, r1), Math.max(Math.min(r0, r1), px))
+}

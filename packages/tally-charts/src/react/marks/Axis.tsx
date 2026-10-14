@@ -1,5 +1,12 @@
 import type { FormatPreset } from '../../core/format'
-import { bandTicks, linearTicks, type Tick, type TickSpec, thinTicks } from '../../core/ticks'
+import {
+  bandTicks,
+  linearTicks,
+  pointTicks,
+  type Tick,
+  type TickSpec,
+  thinTicks,
+} from '../../core/ticks'
 import { useChart } from '../context'
 
 export type AxisSide = 'bottom' | 'top' | 'left' | 'right'
@@ -75,12 +82,13 @@ export function Axis({
   const custom = typeof format === 'function' ? format : undefined
   const numeric = ctx.format(typeof format === 'string' ? format : 'number')
 
+  const label = (v: string) => (custom ? custom(v) : v)
   const raw =
     resolved.kind === 'band'
-      ? bandTicks(resolved.scale, spec, (v) => (custom ? custom(v) : v), {
-          anchorEnds: horizontal,
-        })
-      : linearTicks(resolved.scale, spec, (v) => (custom ? custom(v) : numeric(v)), extent)
+      ? bandTicks(resolved.scale, spec, label, { anchorEnds: horizontal })
+      : resolved.kind === 'point'
+        ? pointTicks(resolved.scale, spec, label)
+        : linearTicks(resolved.scale, spec, (v) => (custom ? custom(v) : numeric(v)), extent)
   const ticks = thin ? thinTicks(raw, horizontal ? undefined : () => LABEL_HEIGHT) : raw
 
   return (

@@ -1,4 +1,4 @@
-import { type ScaleBand, scaleBand } from 'd3-scale'
+import { type ScaleBand, type ScalePoint, scaleBand, scalePoint } from 'd3-scale'
 import { type FieldGetter, toFieldGetter } from './accessor'
 import { type LinearScale, linearScale, niceDomain } from './linear'
 import { toNumber } from './number'
@@ -24,10 +24,19 @@ export interface BandScaleSpec<D> {
   paddingOuter?: number
 }
 
-export type ScaleSpec<D> = LinearScaleSpec<D> | BandScaleSpec<D>
+export interface PointScaleSpec<D> {
+  type: 'point'
+  field?: Accessor<D, string | number>
+  domain?: readonly (string | number)[]
+  /** Space before the first and after the last point, as a share of one step, 0–1. Default 0.5. */
+  padding?: number
+}
+
+export type ScaleSpec<D> = LinearScaleSpec<D> | BandScaleSpec<D> | PointScaleSpec<D>
 
 export type ResolvedScale =
   | { kind: 'band'; scale: ScaleBand<string>; field?: FieldGetter }
+  | { kind: 'point'; scale: ScalePoint<string>; field?: FieldGetter }
   | { kind: 'linear'; scale: LinearScale; field?: FieldGetter }
 
 export function inferLinearDomain(values: readonly number[], zero = true): [number, number] {
@@ -69,13 +78,20 @@ export function createScale<D>(
 ): ResolvedScale {
   const field = toFieldGetter<D>(spec?.field)
 
-  if (spec?.type === 'band') {
+  if (spec?.type === 'band' || spec?.type === 'point') {
     const domain = spec.domain ? spec.domain.map(String) : field ? uniqueStrings(data, field) : []
     if (DEV && domain.length === 0) {
       warn(
-        `${axis}-band-domain`,
-        `The ${axis} band scale has no domain. Set \`field\` or \`domain\` on <Chart ${axis}>.`,
+        `${axis}-${spec.type}-domain`,
+        `The ${axis} ${spec.type} scale has no domain. Set \`field\` or \`domain\` on <Chart ${axis}>.`,
       )
+    }
+    if (spec.type === 'point') {
+      const scale = scalePoint<string>()
+        .domain(domain)
+        .range([0, length])
+        .padding(spec.padding ?? 0.5)
+      return { kind: 'point', scale, field }
     }
     const scale = scaleBand<string>()
       .domain(domain)
@@ -106,4 +122,19 @@ export function createScale<D>(
   }
   const range: [number, number] = axis === 'y' ? [length, 0] : [0, length]
   return { kind: 'linear', scale: linearScale(domain, range), field }
+}
+
+/**
+ * Centre of a category in px: the middle of a band, or the position of a point. Undefined on a
+ * linear scale and for a category the scale doesn't know.
+ */
+export function categoryCenter(resolved: ResolvedScale, value: unknown): number | undefined {
+  if (resolved.kind === 'linear' || value === null || value === undefined) return undefined
+  const start = resolved.scale(String(value))
+  return start === undefined ? undefined : start + resolved.scale.bandwidth() / 2
+}
+
+/** Distance between neighbouring categories in px; 0 on a linear scale. */
+export function categoryStep(resolved: ResolvedScale): number {
+  return resolved.kind === 'linear' ? 0 : resolved.scale.step()
 }
