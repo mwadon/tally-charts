@@ -13,6 +13,8 @@ export interface AxisProps {
   thin?: boolean
   /** Distance between the plot edge and the labels in px. Default 8. */
   offset?: number
+  /** A tick value (e.g. a band) whose label is emphasized. */
+  highlight?: string | number
 }
 
 const LABEL_HEIGHT = 14
@@ -53,7 +55,14 @@ function place(
   }
 }
 
-export function Axis({ side, ticks: spec = 'all', format, thin = true, offset = 8 }: AxisProps) {
+export function Axis({
+  side,
+  ticks: spec = 'all',
+  format,
+  thin = true,
+  offset = 8,
+  highlight,
+}: AxisProps) {
   const ctx = useChart('Axis')
   const horizontal = side === 'bottom' || side === 'top'
   const resolved = horizontal ? ctx.x : ctx.y
@@ -75,6 +84,9 @@ export function Axis({ side, ticks: spec = 'all', format, thin = true, offset = 
           key={`${tick.value}`}
           data-ch-part="axis-label"
           {...place(side, tick, ctx.innerWidth, ctx.innerHeight, offset)}
+          data-ch-active={
+            highlight !== undefined && String(tick.value) === String(highlight) ? 'true' : undefined
+          }
         >
           {tick.label}
         </text>

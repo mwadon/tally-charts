@@ -85,4 +85,21 @@ describe('<Axis>', () => {
     )
     expect(labels(container)).toHaveLength(12)
   })
+
+  it('marks the highlighted label', () => {
+    const { container } = render(
+      <Chart
+        {...frame}
+        width={300}
+        x={{ type: 'band', domain: ['W1', 'W2', 'W3'], padding: 0 }}
+        y={{ domain: [0, 1] }}
+      >
+        <Axis side="bottom" highlight="W2" />
+      </Chart>,
+    )
+    const marked = [...container.querySelectorAll('[data-ch-part="axis-label"]')].map((el) =>
+      el.getAttribute('data-ch-active'),
+    )
+    expect(marked).toEqual([null, 'true', null])
+  })
 })

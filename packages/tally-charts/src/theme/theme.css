@@ -256,6 +256,21 @@
   stroke-dasharray: none;
 }
 
+[data-ch-part="axis-label"][data-ch-active="true"] {
+  fill: var(--ch-ink);
+  font-weight: 500;
+}
+
+[data-ch-part="connector"] {
+  stroke: var(--ch-ink-muted);
+  stroke-width: 1;
+  stroke-dasharray: 2 3;
+}
+
+[data-ch-part="column-highlight"] {
+  fill: color-mix(in srgb, var(--ch-accent) 7%, transparent);
+}
+
 /* ---------- Tooltip pill ---------- */
 .ch-tooltip {
   position: absolute;
