@@ -138,7 +138,8 @@ Thin compositions of the building blocks (about 80–150 lines each), source lin
 | 0.3 | `WaterfallChart`, `BridgeChart` |
 | 0.4 | `DotHistogram`, `StripPlot`, `WaffleColumns` |
 | 0.5 | `LineChart`, `Heatmap` |
-| 1.0 | API freeze, docs site, accessibility audit |
+| 0.6 | Time scale, API freeze, accessibility audit fixes — see `2026-10-14-tally-charts-0.6-design.md` |
+| 1.0 | Docs site, npm publish, public repo (no breaking changes) |
 
 ## 5. Interaction, motion, accessibility
 
