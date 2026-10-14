@@ -26,6 +26,36 @@ describe('runningTotals', () => {
     expect(Number.isNaN(totals[1]?.value)).toBe(true)
   })
 
+  it('treats blank, boolean, object and symbol values as missing without throwing', () => {
+    const values: unknown[] = [
+      '',
+      '  ',
+      true,
+      false,
+      [],
+      [5],
+      Symbol('x'),
+      Object.create(null),
+      '7',
+    ]
+    let totals: ReturnType<typeof runningTotals> = []
+    expect(() => {
+      totals = runningTotals(0, values)
+    }).not.toThrow()
+    expect(totals.map((t) => t.valid)).toEqual([
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+    ])
+    expect(totals[totals.length - 1]?.after).toBe(7)
+  })
+
   it('counts a non-finite start as zero and handles no steps', () => {
     expect(runningTotals(Number.NaN, [4])[0]).toMatchObject({ before: 0, after: 4 })
     expect(runningTotals(10, [])).toEqual([])

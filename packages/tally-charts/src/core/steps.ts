@@ -17,7 +17,12 @@ export interface StepTotal {
 export function runningTotals(start: number, values: readonly unknown[]): StepTotal[] {
   let total = Number.isFinite(start) ? start : 0
   return values.map((raw, index) => {
-    const value = raw === null || raw === undefined ? Number.NaN : Number(raw)
+    const value =
+      typeof raw === 'number'
+        ? raw
+        : typeof raw === 'string' && raw.trim() !== ''
+          ? Number(raw)
+          : Number.NaN
     const valid = Number.isFinite(value)
     const before = total
     if (valid) total += value
