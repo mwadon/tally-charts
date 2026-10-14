@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm lint
+      - run: pnpm test
+      - run: pnpm build
+      - run: pnpm size
+
+  # NOTE: the first run on linux is expected to FAIL until linux baselines
+  # (apps/storybook/e2e/__screenshots__/linux/*.png) are committed; the committed
+  # darwin baselines are not used on linux. To generate them, either:
+  #   - temporarily run `pnpm test:e2e -- --update-snapshots` in this job, download the
+  #     `e2e-screenshots` artifact and commit its `__screenshots__/linux` folder, or
+  #   - run locally in the official image:
+  #     docker run --rm -v "$PWD":/w -w /w mcr.microsoft.com/playwright:v1.64.0-noble \
+  #       sh -c "corepack enable && pnpm install --frozen-lockfile && pnpm test:e2e -- --update-snapshots"
+  e2e:
+    runs-on: ubuntu-latest
+    container: mcr.microsoft.com/playwright:v1.64.0-noble
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm test:e2e
+        env:
+          CI: 'true'
+      - name: Upload screenshots (commit new linux baselines from here)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-screenshots
+          path: |
+            apps/storybook/e2e/__screenshots__
+            apps/storybook/test-results
