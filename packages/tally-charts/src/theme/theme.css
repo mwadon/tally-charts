@@ -116,7 +116,9 @@
 [data-ch-part="bar-track"],
 [data-ch-part="column-highlight"],
 [data-ch-part="connector"],
-[data-ch-part="area"] {
+[data-ch-part="area"],
+[data-ch-part="dot"],
+[data-ch-part="dot-ring"] {
   pointer-events: none;
 }
 
@@ -221,6 +223,28 @@
 @keyframes ch-fade {
   from {
     opacity: 0;
+  }
+}
+
+[data-ch-part="dot-ring"] {
+  fill: none;
+  stroke-width: 2;
+}
+
+[data-ch-part="pointer-layer"][data-ch-selectable="true"] {
+  cursor: pointer;
+}
+
+[data-ch-animate="true"] [data-ch-part="dot"] {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: ch-rise var(--ch-duration) var(--ch-ease) both;
+}
+
+@keyframes ch-rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
   }
 }
 
