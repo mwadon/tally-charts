@@ -1,5 +1,7 @@
-import { type TimeInput, toTime } from './time'
-import { createWarner, DEV } from './warn'
+import { levelFor } from './thresholds'
+import { DAY, type TimeInput, toTime } from './time'
+import type { SeqLevel } from './types'
+import { createWarner, DEV, type Warn } from './warn'
 
 /** A projected share of the allowance at a moment. */
 export interface RunwayPoint {
@@ -102,4 +104,137 @@ export function runwayForecast(input: RunwayForecastInput): RunwayForecast {
     usedAtReset,
     lockedMs: 0,
   }
+}
+
+// --- Internal: the cell model RunwayChart draws. Not exported from any index. ---
+
+const MINUTE = 6e4
+const UNIT: Record<string, number> = { m: MINUTE, h: 60 * MINUTE, d: DAY }
+
+export const DEFAULT_CELL = 6 * 60 * MINUTE
+export const MAX_CELLS = 200
+export const DEFAULT_BREAKS: readonly number[] = [0.25, 0.5, 0.75]
+
+/** Cell length in ms from `'30m'`, `'6h'`, `'1d'` or ms; undefined when it is not one. */
+export function parseCell(cell: string | number | undefined): number | undefined {
+  if (cell === undefined) return DEFAULT_CELL
+  if (typeof cell === 'number') return Number.isFinite(cell) && cell > 0 ? cell : undefined
+  const m = /^(\d+(?:\.\d+)?)([mhd])$/.exec(cell)
+  const ms = m ? Number(m[1]) * (UNIT[m[2] as string] as number) : Number.NaN
+  return ms > 0 ? ms : undefined
+}
+
+/** Consecutive cells from the domain start; the last is cut at the end; at most MAX_CELLS. */
+export function cellBounds(
+  domain: readonly [number, number],
+  cellMs: number,
+): { bounds: [number, number][]; cut: boolean } {
+  const [d0, d1] = domain
+  const bounds: [number, number][] = []
+  for (let t = d0; t < d1 && bounds.length < MAX_CELLS; t += cellMs) {
+    bounds.push([t, Math.min(t + cellMs, d1)])
+  }
+  const last = bounds[bounds.length - 1]
+  return { bounds, cut: last !== undefined && last[1] < d1 }
+}
+
+export interface RunwayRowInput {
+  id: string
+  projection?: readonly { at: TimeInput; used: number }[]
+  runsOutAt?: TimeInput
+  resetAt?: TimeInput
+  disconnected?: boolean
+}
+
+export interface RunwayTimes {
+  points: { at: number; used: number }[]
+  runsOutAt?: number
+  resetAt?: number
+  forecast: boolean
+}
+
+/** A row's dates as epoch ms, its projection cleaned and sorted, with warnings for what was fixed. */
+export function normalizeRow(row: RunwayRowInput, warn: Warn): RunwayTimes {
+  const points: { at: number; used: number }[] = []
+  for (const p of row.projection ?? []) {
+    const at = toTime(p.at)
+    if (at === undefined || !(Number.isFinite(p.used) && p.used >= 0)) {
+      if (DEV) {
+        warn(
+          'runway-projection',
+          `RunwayChart dropped a projection point without a valid date or a used share of 0 or more in row "${row.id}".`,
+        )
+      }
+      continue
+    }
+    points.push({ at, used: p.used })
+  }
+  if (points.some((p, i) => i > 0 && (points[i - 1] as { at: number }).at > p.at)) {
+    if (DEV) {
+      warn(
+        'runway-projection-order',
+        `RunwayChart sorted the projection of row "${row.id}" by date.`,
+      )
+    }
+    points.sort((a, b) => a.at - b.at)
+  }
+  const date = (value: TimeInput | undefined, name: string) => {
+    if (value === undefined) return undefined
+    const t = toTime(value)
+    if (t === undefined && DEV) {
+      warn('runway-dates', `RunwayChart ignored an invalid ${name} in row "${row.id}".`)
+    }
+    return t
+  }
+  let runsOutAt = date(row.runsOutAt, 'runsOutAt')
+  const resetAt = date(row.resetAt, 'resetAt')
+  if (runsOutAt !== undefined && resetAt !== undefined && runsOutAt > resetAt) {
+    if (DEV) {
+      warn('runway-runs-out', `RunwayChart ignored a runsOutAt after resetAt in row "${row.id}".`)
+    }
+    runsOutAt = undefined
+  }
+  return { points, runsOutAt, resetAt, forecast: !row.disconnected && points.length > 0 }
+}
+
+/** The projection at `t`: linear between points, the end values outside them; NaN without points. */
+export function projectionAt(points: readonly { at: number; used: number }[], t: number): number {
+  const first = points[0]
+  const last = points[points.length - 1]
+  if (!first || !last) return Number.NaN
+  if (t <= first.at) return first.used
+  if (t >= last.at) return last.used
+  const i = points.findIndex((p) => p.at >= t)
+  const b = points[i] as { at: number; used: number }
+  const a = points[i - 1] as { at: number; used: number }
+  return b.at === a.at ? b.used : a.used + ((b.used - a.used) * (t - a.at)) / (b.at - a.at)
+}
+
+export type RunwayCellState = 'level' | 'runs-out' | 'locked' | 'empty'
+
+export interface RunwayCell {
+  start: number
+  end: number
+  state: RunwayCellState
+  /** Sequential level for 'level' cells, else 0. */
+  level: SeqLevel | 0
+}
+
+/** Each cell's state, decided at its midpoint (spec §3.1). */
+export function runwayCells(
+  times: RunwayTimes,
+  bounds: readonly [number, number][],
+  edges: readonly number[],
+  levels: readonly SeqLevel[],
+): RunwayCell[] {
+  const { points, runsOutAt, resetAt, forecast } = times
+  return bounds.map(([start, end]) => {
+    const mid = (start + end) / 2
+    const cell = (state: RunwayCellState, level: SeqLevel | 0 = 0) => ({ start, end, state, level })
+    if (!forecast) return cell('empty')
+    if (resetAt !== undefined && mid >= resetAt) return cell('empty')
+    if (runsOutAt !== undefined && start <= runsOutAt && runsOutAt < end) return cell('runs-out')
+    if (runsOutAt !== undefined && mid > runsOutAt) return cell('locked')
+    return cell('level', levelFor(projectionAt(points, mid), edges, levels))
+  })
 }

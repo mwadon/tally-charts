@@ -1,5 +1,13 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { runwayForecast } from './runway'
+import {
+  cellBounds,
+  normalizeRow,
+  parseCell,
+  projectionAt,
+  runwayCells,
+  runwayForecast,
+} from './runway'
+import { binLevels } from './thresholds'
 
 const H = 36e5
 const D = 24 * H
@@ -93,5 +101,149 @@ describe('runwayForecast', () => {
     expect(
       warn.mock.calls.filter(([m]) => String(m).includes('runwayForecast needs')),
     ).toHaveLength(1)
+  })
+})
+
+describe('parseCell', () => {
+  it('reads minutes, hours, days and milliseconds, defaulting to 6 h', () => {
+    expect(parseCell(undefined)).toBe(6 * H)
+    expect(parseCell('30m')).toBe(30 * 6e4)
+    expect(parseCell('6h')).toBe(6 * H)
+    expect(parseCell('1.5d')).toBe(1.5 * D)
+    expect(parseCell(42)).toBe(42)
+  })
+  it('rejects anything else', () => {
+    for (const bad of ['6', 'h', '0h', '-1d', '6 h', 0, -5, Number.NaN, Number.POSITIVE_INFINITY]) {
+      expect(parseCell(bad as string | number)).toBeUndefined()
+    }
+  })
+})
+
+describe('cellBounds', () => {
+  it('cuts the last cell at the domain end', () => {
+    expect(cellBounds([0, 10], 4)).toEqual({
+      bounds: [
+        [0, 4],
+        [4, 8],
+        [8, 10],
+      ],
+      cut: false,
+    })
+  })
+  it('keeps at most 200 cells', () => {
+    const { bounds, cut } = cellBounds([0, 1000], 1)
+    expect(bounds).toHaveLength(200)
+    expect(cut).toBe(true)
+  })
+})
+
+describe('projectionAt', () => {
+  const pts = [
+    { at: 10, used: 0.2 },
+    { at: 20, used: 0.6 },
+  ]
+  it('interpolates and holds the ends', () => {
+    expect(projectionAt(pts, 15)).toBeCloseTo(0.4, 9)
+    expect(projectionAt(pts, 0)).toBe(0.2)
+    expect(projectionAt(pts, 99)).toBe(0.6)
+    expect(projectionAt([], 5)).toBeNaN()
+  })
+})
+
+describe('normalizeRow', () => {
+  it('parses dates, sorts points and warns', () => {
+    const warn = vi.fn()
+    const t = normalizeRow(
+      {
+        id: 'a',
+        projection: [
+          { at: 20, used: 0.5 },
+          { at: '1970-01-01T00:00:00.010Z', used: 0.1 },
+          { at: 'bad', used: 0.3 },
+          { at: 30, used: -1 },
+        ],
+        runsOutAt: 'nope',
+        resetAt: 40,
+      },
+      warn,
+    )
+    expect(t.points).toEqual([
+      { at: 10, used: 0.1 },
+      { at: 20, used: 0.5 },
+    ])
+    expect(t.runsOutAt).toBeUndefined()
+    expect(t.resetAt).toBe(40)
+    expect(t.forecast).toBe(true)
+    expect([...new Set(warn.mock.calls.map(([key]) => key))].sort()).toEqual([
+      'runway-dates',
+      'runway-projection',
+      'runway-projection-order',
+    ])
+  })
+  it('drops a runsOutAt after resetAt', () => {
+    const warn = vi.fn()
+    const t = normalizeRow(
+      { id: 'a', projection: [{ at: 0, used: 0 }], runsOutAt: 50, resetAt: 40 },
+      warn,
+    )
+    expect(t.runsOutAt).toBeUndefined()
+    expect(warn).toHaveBeenCalledWith('runway-runs-out', expect.stringContaining('"a"'))
+  })
+  it('has no forecast when disconnected or without points', () => {
+    expect(
+      normalizeRow({ id: 'a', projection: [{ at: 0, used: 0 }], disconnected: true }, vi.fn())
+        .forecast,
+    ).toBe(false)
+    expect(normalizeRow({ id: 'a' }, vi.fn()).forecast).toBe(false)
+  })
+})
+
+describe('runwayCells', () => {
+  const edges = [0.25, 0.5, 0.75]
+  const levels = binLevels(4) // [1, 2, 4, 5]
+  const bounds = cellBounds([0, 100], 10).bounds
+  const states = (cells: { state: string; level: number }[]) =>
+    cells.map((c) => (c.state === 'level' ? `L${c.level}` : c.state))
+
+  it('levels, runs out, locks until reset, then empties', () => {
+    const times = {
+      points: [
+        { at: 0, used: 0 },
+        { at: 40, used: 1 },
+      ],
+      runsOutAt: 40,
+      resetAt: 70,
+      forecast: true,
+    }
+    expect(states(runwayCells(times, bounds, edges, levels))).toEqual([
+      'L1',
+      'L2',
+      'L4',
+      'L5',
+      'runs-out',
+      'locked',
+      'locked',
+      'empty',
+      'empty',
+      'empty',
+    ])
+  })
+
+  it('puts a runsOutAt on a cell start into that cell', () => {
+    const times = { points: [{ at: 0, used: 0.9 }], runsOutAt: 30, resetAt: 100, forecast: true }
+    expect(runwayCells(times, bounds, edges, levels)[3]?.state).toBe('runs-out')
+    expect(runwayCells(times, bounds, edges, levels)[2]?.state).toBe('level')
+  })
+
+  it('is all empty without a forecast', () => {
+    const times = { points: [], forecast: false }
+    expect(new Set(states(runwayCells(times, bounds, edges, levels)))).toEqual(new Set(['empty']))
+  })
+
+  it('row entirely outside the domain: reset before it empties all, a later forecast holds its first value', () => {
+    const before = { points: [{ at: -50, used: 0.3 }], resetAt: -10, forecast: true }
+    expect(new Set(states(runwayCells(before, bounds, edges, levels)))).toEqual(new Set(['empty']))
+    const after = { points: [{ at: 500, used: 0.6 }], forecast: true }
+    expect(new Set(states(runwayCells(after, bounds, edges, levels)))).toEqual(new Set(['L4']))
   })
 })
