@@ -9,7 +9,7 @@ import {
 } from 'react'
 import { createScale, type ScaleSpec } from '../core/scale'
 import type { Id } from '../core/types'
-import { createWarner, type Warn } from '../core/warn'
+import { createWarner, DEV, type Warn } from '../core/warn'
 import { DEFAULT_HATCH, DEFAULT_RADIUS, readHatchGeometry, readRadius } from '../theme/patterns'
 import { useFormat } from './ChartsProvider'
 import { ChartContext, type InternalChartContext, type Margin } from './context'
@@ -100,6 +100,9 @@ export function Chart<D>({
 
   const warn = useMemo(() => createWarner(), [])
   const scaleWarn = isEmpty ? silent : warn
+  if (DEV && !title) {
+    warn('chart-title', 'Chart has no `title`, so screen readers announce an unnamed figure.')
+  }
   const xScale = useMemo(
     () => createScale(x, rows, 'x', innerWidth, scaleWarn),
     [x, rows, innerWidth, scaleWarn],

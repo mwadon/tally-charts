@@ -38,6 +38,7 @@ const phrases = [
   'Target value',
   'skipped an x value that is not a date',
   'has no valid dates',
+  'has no `title`',
 ]
 const leaks = phrases.filter((phrase) => code.includes(phrase))
 if (leaks.length > 0) {

@@ -14,6 +14,7 @@ const rows: Row[] = [
 function renderBand(chart: Partial<ChartProps<Row>> = {}) {
   return render(
     <Chart<Row>
+      title="Band"
       width={300}
       height={100}
       margin={{ top: 0, right: 0, bottom: 0, left: 0 }}

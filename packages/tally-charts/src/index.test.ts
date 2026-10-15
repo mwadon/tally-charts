@@ -43,6 +43,7 @@ describe('public entry points', () => {
     'Dots',
     'NearestPointer',
     'thresholds',
+    'heatmapLevel',
     'LineChart',
     'Heatmap',
     'Line',

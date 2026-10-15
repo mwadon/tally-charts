@@ -12,6 +12,7 @@ import {
 import { resolveAccessor } from '../../core/accessor'
 import type { FormatSpec, Formatter } from '../../core/format'
 import { toNumber } from '../../core/number'
+import { binLevels, MAX_BREAKS, sequentialBreaks } from '../../core/thresholds'
 import type { Accessor, SeqLevel, Tone } from '../../core/types'
 import { createWarner, DEV, type Warn } from '../../core/warn'
 import { useFormat } from '../ChartsProvider'
@@ -71,6 +72,11 @@ export interface HeatmapProps<D> {
   empty?: ReactNode
   className?: string
   style?: CSSProperties
+  /**
+   * Prefix for the title and description ids. React's `useId` is only unique within one root, so
+   * set this when heatmaps render in several React roots on one page.
+   */
+  chartId?: string
 }
 
 interface HeatmapModel<D> {
@@ -81,30 +87,24 @@ interface HeatmapModel<D> {
   columnTotals: number[]
 }
 
-const MAX_BREAKS = 4
 const MOVES = new Set(['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Home', 'End'])
 
-/** Bins spread over the five levels with the ends pinned: four bins use levels 1, 2, 4 and 5. */
-function binLevels(bins: number): SeqLevel[] {
-  if (bins <= 1) return [3]
-  return Array.from({ length: bins }, (_, i) => Math.round(1 + (i * 4) / (bins - 1)) as SeqLevel)
-}
-
+/** The breaks Heatmap bins by (see `heatmapLevel`), warning about what it had to clean up. */
 function cleanBreaks(breaks: readonly number[], warn: Warn): number[] {
-  const sorted = [...new Set(breaks.filter(Number.isFinite))].sort((a, b) => a - b)
-  if (DEV && (sorted.length !== breaks.length || sorted.some((b, i) => b !== breaks[i]))) {
-    warn(
-      'heatmap-breaks',
-      'Heatmap `breaks` must be finite and ascending; they were sorted and deduplicated.',
-    )
-  }
-  if (sorted.length > MAX_BREAKS) {
-    if (DEV) {
+  const edges = sequentialBreaks(breaks)
+  if (DEV) {
+    const sorted = [...new Set(breaks.filter(Number.isFinite))].sort((a, b) => a - b)
+    if (sorted.length !== breaks.length || sorted.some((b, i) => b !== breaks[i])) {
+      warn(
+        'heatmap-breaks',
+        'Heatmap `breaks` must be finite and ascending; they were sorted and deduplicated.',
+      )
+    }
+    if (sorted.length > MAX_BREAKS) {
       warn('heatmap-bins', 'Heatmap shows at most 5 bins; breaks after the fourth were dropped.')
     }
-    return sorted.slice(0, MAX_BREAKS)
   }
-  return sorted
+  return edges
 }
 
 function defaultLabels(breaks: readonly number[], fmt: Formatter): string[] {
@@ -154,13 +154,18 @@ export function Heatmap<D>({
   empty,
   className,
   style,
+  chartId,
 }: HeatmapProps<D>) {
   const { create } = useFormat()
   const warn = useMemo(() => createWarner(), [])
   const fmt = useMemo(() => create(format), [create, format])
-  const baseId = useId()
+  const reactId = useId()
+  const baseId = `ch-${(chartId ?? reactId).replace(/[^a-zA-Z0-9_-]/g, '')}`
   const titleId = `${baseId}-title`
   const descId = `${baseId}-desc`
+  if (DEV && !title) {
+    warn('heatmap-title', 'Heatmap has no `title`, so screen readers announce an unnamed grid.')
+  }
 
   const edges = useMemo(() => cleanBreaks(breaks, warn), [breaks, warn])
   const levels = useMemo(() => binLevels(edges.length + 1), [edges])

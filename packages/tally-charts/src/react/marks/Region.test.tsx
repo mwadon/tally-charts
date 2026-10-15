@@ -10,6 +10,7 @@ const POINTS: ScaleSpec<unknown> = { type: 'point', domain: ['Apr', 'May', 'Jun'
 function renderRegion(props: RegionProps, x: ScaleSpec<unknown> = POINTS) {
   return render(
     <Chart
+      title="Region"
       width={300}
       height={100}
       margin={{ top: 0, right: 0, bottom: 0, left: 0 }}

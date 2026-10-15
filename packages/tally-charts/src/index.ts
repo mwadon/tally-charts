@@ -21,7 +21,7 @@ export type {
   TimeScaleSpec,
 } from './core/scale'
 export type { ThresholdBin, ThresholdLegendItem, Thresholds } from './core/thresholds'
-export { thresholds } from './core/thresholds'
+export { heatmapLevel, thresholds } from './core/thresholds'
 export type { TickSpec } from './core/ticks'
 export type { TimeInput, TimeScale, TimeZone } from './core/time'
 export type { Accessor, Fill, Id, PerItem, SeqLevel, Tone } from './core/types'

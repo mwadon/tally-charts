@@ -1,5 +1,6 @@
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
+import { heatmapLevel } from '../../core/thresholds'
 import { Heatmap, type HeatmapProps } from './Heatmap'
 
 type Leak = { branch: string; cause: string; amount: number | string | boolean | null }
@@ -364,5 +365,30 @@ describe('<Heatmap>', () => {
     // ...and moving to the id the parent already holds is not a change.
     fireEvent.pointerEnter(cells(container)[0] as HTMLElement)
     expect(onActiveChange).toHaveBeenCalledTimes(2)
+  })
+
+  it('paints the levels heatmapLevel reports, for a standalone legend', () => {
+    const { container } = renderHeatmap({ breaks: [7000, 4000, 13000, 4000] })
+    expect(levels(cells(container))).toEqual(
+      leaks.map((l) => String(heatmapLevel(l.amount, [7000, 4000, 13000, 4000]))),
+    )
+  })
+
+  it('prefixes its aria ids with chartId', () => {
+    renderHeatmap({ chartId: 'left map', description: 'Dallas leaks most.' })
+    const grid = screen.getByRole('grid', { name: 'Where it leaks' })
+    expect(grid).toHaveAttribute('aria-labelledby', 'ch-leftmap-title')
+    expect(grid).toHaveAttribute('aria-describedby', 'ch-leftmap-desc')
+    expect(grid).toHaveAccessibleDescription('Dallas leaks most.')
+  })
+
+  it('warns once without a title', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const { rerender } = renderHeatmap({ title: undefined })
+    rerender(<Heatmap<Leak> data={leaks} row="branch" column="cause" value="amount" breaks={[1]} />)
+    expect(warn).toHaveBeenCalledTimes(1)
+    expect(warn.mock.calls[0]?.[0]).toBe(
+      '[tally-charts] Heatmap has no `title`, so screen readers announce an unnamed grid.',
+    )
   })
 })

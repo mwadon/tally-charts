@@ -1,5 +1,5 @@
 import { toNumber } from './number'
-import type { Tone } from './types'
+import type { SeqLevel, Tone } from './types'
 
 export interface ThresholdBin {
   label: string
@@ -68,4 +68,31 @@ export function thresholds(
       return bins.map((bin, i) => ({ label: bin.label, tone: bin.tone, count: counts[i] ?? 0 }))
     },
   }
+}
+
+/** The most bin edges a heatmap uses: five bins, one per sequential level. */
+export const MAX_BREAKS = 4
+
+/** Internal: finite, ascending, unique edges, at most `MAX_BREAKS`, as Heatmap uses them. */
+export function sequentialBreaks(breaks: readonly number[]): number[] {
+  return [...new Set(breaks.filter(Number.isFinite))].sort((a, b) => a - b).slice(0, MAX_BREAKS)
+}
+
+/** Internal: bins spread over the five levels with the ends pinned; four bins use 1, 2, 4 and 5. */
+export function binLevels(bins: number): SeqLevel[] {
+  if (bins <= 1) return [3]
+  return Array.from({ length: bins }, (_, i) => Math.round(1 + (i * 4) / (bins - 1)) as SeqLevel)
+}
+
+/**
+ * The sequential level (1–5) a `Heatmap` with these `breaks` paints `value` with, or 0 for a
+ * missing or non-numeric value. Use it to keep a standalone `Legend` in step with custom breaks.
+ * Breaks are cleaned the way Heatmap cleans them: sorted, deduplicated, at most four.
+ */
+export function heatmapLevel(value: unknown, breaks: readonly number[]): SeqLevel | 0 {
+  const v = toNumber(value)
+  if (!Number.isFinite(v)) return 0
+  const edges = sequentialBreaks(breaks)
+  const bin = edges.findIndex((b) => v < b)
+  return binLevels(edges.length + 1)[bin === -1 ? edges.length : bin] ?? 0
 }

@@ -6,6 +6,7 @@ import { Grid, type GridProps } from './Grid'
 function renderGrid(props: GridProps = {}, y: { domain: [number, number] } = { domain: [30, 40] }) {
   return render(
     <Chart
+      title="Grid"
       width={300}
       height={100}
       margin={{ top: 0, right: 0, bottom: 0, left: 0 }}
@@ -52,7 +53,13 @@ describe('<Grid>', () => {
   it('warns without a linear y scale', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     const { container } = render(
-      <Chart width={300} height={100} x={{ domain: [0, 1] }} y={{ type: 'band', domain: ['a'] }}>
+      <Chart
+        title="Grid"
+        width={300}
+        height={100}
+        x={{ domain: [0, 1] }}
+        y={{ type: 'band', domain: ['a'] }}
+      >
         <Grid />
       </Chart>,
     )

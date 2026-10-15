@@ -2,6 +2,7 @@ import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { describe, expect, expectTypeOf, it, vi } from 'vitest'
 import type { Id } from '../core/types'
 import { Chart } from './Chart'
+import { BarChart } from './charts/BarChart'
 import {
   type ChartContextValue,
   type InternalChartContext,
@@ -109,7 +110,7 @@ describe('<Chart>', () => {
   it('renders the empty slot instead of the plot for empty data', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     const { container } = render(
-      <Chart data={[]} width={300} empty="Nothing yet" x={{ type: 'band' }} />,
+      <Chart data={[]} width={300} title="Empty" empty="Nothing yet" x={{ type: 'band' }} />,
     )
     expect(screen.getByText('Nothing yet')).toBeInTheDocument()
     expect(container.querySelector('svg')).toBeNull()
@@ -168,6 +169,23 @@ describe('<Chart>', () => {
       'b',
       expect.objectContaining({ label: 'Week b' }),
     )
+  })
+
+  it('warns once when the figure has no title, for <Chart> and every high-level chart', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const axes = { x: { domain: [0, 1] }, y: { domain: [0, 1] } } as const
+    const { rerender } = render(<Chart width={100} {...axes} />)
+    rerender(<Chart width={200} {...axes} />)
+    expect(warn).toHaveBeenCalledTimes(1)
+    expect(warn.mock.calls[0]?.[0]).toBe(
+      '[tally-charts] Chart has no `title`, so screen readers announce an unnamed figure.',
+    )
+    warn.mockClear()
+    render(<BarChart data={weeks} x="week" y="margin" width={300} />)
+    expect(warn).toHaveBeenCalledTimes(1)
+    warn.mockClear()
+    render(<Chart width={100} title="Named" {...axes} />)
+    expect(warn).not.toHaveBeenCalled()
   })
 
   it('throws when a building block is rendered outside <Chart>', () => {

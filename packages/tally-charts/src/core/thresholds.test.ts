@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { thresholds } from './thresholds'
+import { heatmapLevel, thresholds } from './thresholds'
 
 const margin = () =>
   thresholds(
@@ -42,5 +42,29 @@ describe('thresholds', () => {
       /ascending/,
     )
     expect(() => thresholds([Number.NaN], ['loss', 'gain'], ['A', 'B'])).toThrow(/ascending/)
+  })
+})
+
+describe('heatmapLevel', () => {
+  it('maps values onto the levels Heatmap paints', () => {
+    // Three breaks: four bins on levels 1, 2, 4 and 5.
+    const breaks = [4000, 7000, 13000]
+    expect([1900, 4000, 7900, 12999, 13000, 14800].map((v) => heatmapLevel(v, breaks))).toEqual([
+      1, 2, 4, 4, 5, 5,
+    ])
+  })
+
+  it('cleans breaks the way Heatmap does', () => {
+    expect(heatmapLevel(5, [10, 1, 10])).toBe(heatmapLevel(5, [1, 10]))
+    // Only the first four breaks count: 60 is in the last of five bins.
+    expect(heatmapLevel(60, [10, 20, 30, 40, 50])).toBe(5)
+    expect(heatmapLevel(45, [10, 20, 30, 40, 50])).toBe(5)
+  })
+
+  it('uses level 3 without breaks and 0 for a missing value', () => {
+    expect(heatmapLevel(12, [])).toBe(3)
+    expect(heatmapLevel(Number.NaN, [10])).toBe(0)
+    expect(heatmapLevel(null, [10])).toBe(0)
+    expect(heatmapLevel('7', [5])).toBe(5)
   })
 })

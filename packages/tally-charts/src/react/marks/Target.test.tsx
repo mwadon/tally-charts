@@ -4,6 +4,7 @@ import { Chart } from '../Chart'
 import { Target } from './Target'
 
 const frame = {
+  title: 'Target',
   width: 200,
   height: 100,
   margin: { top: 0, right: 0, bottom: 0, left: 0 },

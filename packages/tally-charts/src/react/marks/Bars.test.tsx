@@ -13,6 +13,7 @@ const weeks: Week[] = [
 function renderBars(props: BarsProps<Week> = {}, chart: Partial<ChartProps<Week>> = {}) {
   return render(
     <Chart<Week>
+      title="Bars"
       data={weeks}
       width={200}
       height={120}
