@@ -84,15 +84,23 @@ export function binLevels(bins: number): SeqLevel[] {
   return Array.from({ length: bins }, (_, i) => Math.round(1 + (i * 4) / (bins - 1)) as SeqLevel)
 }
 
+/** Internal: the level of a number among cleaned `edges` and their `levels`; 0 if not finite. */
+export function levelFor(
+  v: number,
+  edges: readonly number[],
+  levels: readonly SeqLevel[],
+): SeqLevel | 0 {
+  if (!Number.isFinite(v)) return 0
+  const bin = edges.findIndex((b) => v < b)
+  return levels[bin === -1 ? edges.length : bin] ?? 0
+}
+
 /**
  * The sequential level (1–5) a `Heatmap` with these `breaks` paints `value` with, or 0 for a
  * missing or non-numeric value. Use it to keep a standalone `Legend` in step with custom breaks.
  * Breaks are cleaned the way Heatmap cleans them: sorted, deduplicated, at most four.
  */
 export function heatmapLevel(value: unknown, breaks: readonly number[]): SeqLevel | 0 {
-  const v = toNumber(value)
-  if (!Number.isFinite(v)) return 0
   const edges = sequentialBreaks(breaks)
-  const bin = edges.findIndex((b) => v < b)
-  return binLevels(edges.length + 1)[bin === -1 ? edges.length : bin] ?? 0
+  return levelFor(toNumber(value), edges, binLevels(edges.length + 1))
 }

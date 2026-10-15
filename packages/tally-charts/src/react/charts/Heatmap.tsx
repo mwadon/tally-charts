@@ -12,7 +12,7 @@ import {
 import { resolveAccessor } from '../../core/accessor'
 import type { FormatSpec, Formatter } from '../../core/format'
 import { toNumber } from '../../core/number'
-import { binLevels, MAX_BREAKS, sequentialBreaks } from '../../core/thresholds'
+import { binLevels, levelFor, MAX_BREAKS, sequentialBreaks } from '../../core/thresholds'
 import type { Accessor, SeqLevel, Tone } from '../../core/types'
 import { createWarner, DEV, type Warn } from '../../core/warn'
 import { useFormat } from '../ChartsProvider'
@@ -210,17 +210,19 @@ export function Heatmap<D>({
     })
     const rows = rowOrder ? rowOrder.map(String) : [...seenRows]
     const columns = columnOrder ? columnOrder.map(String) : [...seenColumns]
-    const levelOf = (v: number): SeqLevel | 0 => {
-      if (!Number.isFinite(v)) return 0
-      const bin = edges.findIndex((b) => v < b)
-      return levels[bin === -1 ? edges.length : bin] ?? 0
-    }
     const cells = rows.map((r) =>
       columns.map((c): HeatmapCell<D> => {
         const id = `${r}:${c}`
         const hit = found.get(id)
         const v = hit?.value ?? Number.NaN
-        return { id, row: r, column: c, value: v, datum: hit?.datum, level: levelOf(v) }
+        return {
+          id,
+          row: r,
+          column: c,
+          value: v,
+          datum: hit?.datum,
+          level: levelFor(v, edges, levels),
+        }
       }),
     )
     return {

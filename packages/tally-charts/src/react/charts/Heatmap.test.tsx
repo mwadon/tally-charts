@@ -382,6 +382,12 @@ describe('<Heatmap>', () => {
     expect(grid).toHaveAccessibleDescription('Dallas leaks most.')
   })
 
+  it('does not warn about the title when one is set', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    renderHeatmap()
+    expect(warn).not.toHaveBeenCalled()
+  })
+
   it('warns once without a title', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     const { rerender } = renderHeatmap({ title: undefined })
