@@ -219,6 +219,7 @@ Grid lines, tracks, hatch gaps, fade ends, dimmed inactive marks and bands carry
 - **RowLabels** (Waterfall, Ranked, Bridge): left and right labels get a `maxWidth` from the margin columns and truncate with an ellipsis via `core/text`. The full text goes in `<title>` and in the data table.
 - **Callout:** the pill is clamped to the chart width and may wrap to two lines. It never widens the page.
 - The `last-12-weeks--selectable` story uses a responsive width.
+- The "Margin outlook" reference story (`07-forecast.png`) moves to a real time x axis (`x={{ type: 'time', field }}`) with the week dates read from the reference, keeping its look. It is the realistic test of the 0.6a time scale; its baselines are regenerated with the rest.
 
 ### Tests and CI gates
 
