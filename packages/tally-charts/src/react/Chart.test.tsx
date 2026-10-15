@@ -314,6 +314,23 @@ describe('<Chart>', () => {
     expect(onActiveChange).toHaveBeenLastCalledWith(1, expect.objectContaining({ id: 1 }))
   })
 
+  it('activates the first point on keyboard focus after a press that moved no focus', () => {
+    const onActiveChange = vi.fn()
+    const { container } = render(
+      <Chart width={300} onActiveChange={onActiveChange}>
+        <PointsProbe ids={[1, 2]} />
+      </Chart>,
+    )
+    const chart = screen.getByRole('application')
+    fireEvent.pointerDown(chart)
+    fireEvent.focus(chart)
+    fireEvent.pointerDown(chart)
+    fireEvent.blur(chart)
+    fireEvent.focus(chart)
+    expect(onActiveChange).toHaveBeenLastCalledWith(1, expect.objectContaining({ id: 1 }))
+    expect(container.querySelector('[aria-live]')?.textContent).toBe('1 of 2, Week 1')
+  })
+
   it('calls onSelect with the active point on Enter', () => {
     const onSelect = vi.fn()
     render(

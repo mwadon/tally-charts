@@ -81,7 +81,6 @@ export function navigate(
   }
 }
 
-/** The first point per id, in order. Marks layered over the same rows register the same ids. */
 /**
  * What the live region says for a point: "{series}, {n} of {total}, {label}". The position counts
  * within the point's series, and the series is left out when every point shares it.
@@ -89,15 +88,17 @@ export function navigate(
 export function announcement(points: readonly ChartPoint[], point: ChartPoint): string {
   const peers = points.filter((p) => p.series === point.series)
   const several = points.some((p) => p.series !== point.series)
+  const at = peers.indexOf(point)
   return [
     several ? point.series : undefined,
-    `${peers.indexOf(point) + 1} of ${peers.length}`,
+    at < 0 ? undefined : `${at + 1} of ${peers.length}`,
     point.label,
   ]
     .filter(Boolean)
     .join(', ')
 }
 
+/** The first point per id, in order. Marks layered over the same rows register the same ids. */
 export function uniquePoints(points: readonly ChartPoint[]): ChartPoint[] {
   const seen = new Set<Id>()
   const unique: ChartPoint[] = []

@@ -260,6 +260,14 @@ export function Chart<D>({
                   onPointerDown: () => {
                     pressed.current = true
                   },
+                  // A press that moved no focus (already focused, or preventDefault) must not
+                  // leave the flag set for the next keyboard focus.
+                  onPointerUp: () => {
+                    pressed.current = false
+                  },
+                  onPointerCancel: () => {
+                    pressed.current = false
+                  },
                   // Keyboard focus alone shows the first point, its tooltip and announcement.
                   onFocus: () => {
                     const byPointer = pressed.current
@@ -270,6 +278,7 @@ export function Chart<D>({
                     }
                   },
                   onBlur: () => {
+                    pressed.current = false
                     if (interaction.source === 'keyboard') interaction.setActive(null, 'keyboard')
                   },
                 }

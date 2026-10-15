@@ -72,6 +72,14 @@ describe('announcement', () => {
   })
 })
 
+describe('announcement for a missing point', () => {
+  it('omits the position instead of saying "0 of N"', () => {
+    const points = pts(['a', 'b'])
+    const stray = { ...(pts(['z'])[0] as ChartPoint) }
+    expect(announcement(points, stray)).toBe('Pz')
+  })
+})
+
 describe('useInteraction', () => {
   it('tracks the active point when uncontrolled', () => {
     const onActiveChange = vi.fn()
