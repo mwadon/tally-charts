@@ -33,6 +33,27 @@ function collect(): TextRun[] {
     if (box.width < 1 || box.height < 1) continue
     const style = getComputedStyle(el)
     if (style.visibility === 'hidden') continue
+    // Fill-less SVG text (fill: none) paints nothing, so there is no colour to measure.
+    if (el instanceof SVGElement && style.fill === 'none') continue
+    // Text scrolled out of its clipping ancestor (the heatmap scroller) has no pixels to measure.
+    // (Inlined: page.evaluate serialises only this function, so no module-level helpers.)
+    let clip: DOMRect | null = null
+    for (let e = el.parentElement; e && e !== document.body; e = e.parentElement) {
+      const s = getComputedStyle(e)
+      if ([s.overflow, s.overflowX, s.overflowY].some((v) => v !== 'visible')) {
+        clip = e.getBoundingClientRect()
+        break
+      }
+    }
+    if (
+      clip &&
+      (box.right <= clip.left ||
+        box.left >= clip.right ||
+        box.bottom <= clip.top ||
+        box.top >= clip.bottom)
+    ) {
+      continue
+    }
     let opacity = 1
     for (let e: Element | null = el; e && e !== document.body; e = e.parentElement) {
       opacity *= Number(getComputedStyle(e).opacity)
@@ -53,11 +74,18 @@ function collect(): TextRun[] {
   return runs
 }
 
-const HIDE = `#storybook-root * { color: transparent !important; text-shadow: none !important; }
+const HIDE = `#storybook-root * { color: transparent !important; text-shadow: none !important; -webkit-text-fill-color: transparent !important; }
 #storybook-root svg text, #storybook-root svg tspan { fill: transparent !important; stroke: none !important; }`
 
+interface Result {
+  text: string
+  /** The median ratio, or null when no pixel under the box could be sampled. */
+  ratio: number | null
+  need: number
+}
+
 /** The median contrast of each run against the pixels under it, in a text-free screenshot. */
-async function measure(page: Page): Promise<{ text: string; ratio: number; need: number }[]> {
+async function measure(page: Page): Promise<Result[]> {
   const runs = await page.evaluate(collect)
   const style = await page.addStyleTag({ content: HIDE })
   const shot = (await page.screenshot({ fullPage: true, animations: 'disabled' })).toString(
@@ -81,14 +109,20 @@ async function measure(page: Page): Promise<{ text: string; ratio: number; need:
       }
       const lum = ([r = 0, g = 0, b = 0]: number[]) =>
         0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b)
+      // Only sRGB forms are understood: rgb()/rgba() (0–255) and color(srgb …) (0–1).
       const parse = (color: string) => {
-        const v = color.match(/[\d.]+/g)?.map(Number) ?? [0, 0, 0, 1]
-        return color.startsWith('color(')
-          ? { rgb: v.slice(0, 3).map((c) => c * 255), alpha: v[3] ?? 1 }
-          : { rgb: v.slice(0, 3), alpha: v[3] ?? 1 }
+        const m = /^(rgba?|color)\((.*)\)$/.exec(color)
+        if (!m || (m[1] === 'color' && !/^srgb\s/.test(m[2] ?? ''))) return null
+        const body = (m[2] ?? '').replace(/^srgb\s/, '')
+        const v = body.match(/-?(?:\d+\.?\d*|\.\d+)(?:e[+-]?\d+)?/gi)?.map(Number) ?? []
+        if (v.length < 3 || v.some((c) => Number.isNaN(c))) return null
+        const scale = m[1] === 'color' ? 255 : 1
+        return { rgb: v.slice(0, 3).map((c) => c * scale), alpha: v[3] ?? 1 }
       }
       return runs.map((run) => {
-        const { rgb, alpha } = parse(run.color)
+        const parsed = parse(run.color)
+        if (!parsed) throw new Error(`unparseable colour "${run.color}" on "${run.text}"`)
+        const { rgb, alpha } = parsed
         const a = alpha * run.opacity
         const ratios: number[] = []
         for (let y = Math.floor(run.y); y < Math.ceil(run.y + run.height); y++) {
@@ -104,7 +138,8 @@ async function measure(page: Page): Promise<{ text: string; ratio: number; need:
         ratios.sort((p, q) => p - q)
         return {
           text: run.text,
-          ratio: ratios[Math.floor(ratios.length / 2)] ?? 21,
+          // No sampled pixel is a failure, reported by name in failing(): never a pass.
+          ratio: ratios.length > 0 ? (ratios[Math.floor(ratios.length / 2)] ?? null) : null,
           need: run.large ? 3 : 4.5,
         }
       })
@@ -113,20 +148,30 @@ async function measure(page: Page): Promise<{ text: string; ratio: number; need:
   )
 }
 
-const failing = (results: { text: string; ratio: number; need: number }[]) =>
-  results.filter((r) => r.ratio < r.need).map((r) => `${r.text} ${r.ratio.toFixed(2)}`)
+const failing = (results: Result[]) =>
+  results
+    .filter((r) => r.ratio === null || r.ratio < r.need)
+    .map((r) =>
+      r.ratio === null ? `${r.text} no pixels sampled` : `${r.text} ${r.ratio.toFixed(2)}`,
+    )
 
 for (const id of [...STORIES, 'reference-last-12-weeks--selectable']) {
   for (const theme of THEMELESS.has(id) ? (['light', 'dark'] as const) : [undefined]) {
     test(`${id}${theme ? ` (${theme})` : ''} text keeps its contrast`, async ({ page }) => {
       await page.setViewportSize({ width: 1280, height: 800 })
       await open(page, id, theme)
-      expect(failing(await measure(page))).toEqual([])
+      const rest = await measure(page)
+      // Non-vacuity: a story that renders no measurable text would otherwise pass.
+      expect(rest.length, 'no rendered text found').toBeGreaterThan(0)
+      expect(failing(rest)).toEqual([])
       // With a point active: the tooltip pill, highlighted labels and dimmed marks.
       const widget = page.getByRole('application').first()
       if ((await widget.count()) > 0) {
         await widget.focus()
-        expect(failing(await measure(page))).toEqual([])
+        await expect(page.locator('[data-ch-part="tooltip"]').first()).toBeVisible()
+        const active = await measure(page)
+        expect(active.length, 'no rendered text found').toBeGreaterThan(0)
+        expect(failing(active)).toEqual([])
       }
     })
   }
