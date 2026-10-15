@@ -1312,6 +1312,14 @@
   fill: var(--ch-ink);
 }
 
+/* A surface halo keeps the dashed empty-cell outlines out of the glyphs. */
+[data-ch-part="runway-reset-label"] {
+  paint-order: stroke;
+  stroke: var(--ch-surface);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+}
+
 [data-ch-part="legend-swatch"][data-ch-shape="tick"] {
   width: 2px;
   background: var(--ch-ink);
@@ -1494,6 +1502,10 @@
 
   [data-ch-part="runway-reset"] {
     fill: CanvasText;
+  }
+
+  [data-ch-part="runway-reset-label"] {
+    stroke: Canvas;
   }
 
   [data-ch-part="runway-now"] {

@@ -198,6 +198,14 @@ describe('theme.css', () => {
     }
   })
 
+  it('gives the runway reset label a surface halo, Canvas in forced colors', () => {
+    const runway = css.slice(css.indexOf('/* ---------- Runway ---------- */'), FORCED_AT)
+    expect(runway).toMatch(
+      /\[data-ch-part="runway-reset-label"\] \{\s*paint-order: stroke;\s*stroke: var\(--ch-surface\);\s*stroke-width: 3px;\s*stroke-linejoin: round;/,
+    )
+    expect(forced).toMatch(/\[data-ch-part="runway-reset-label"\] \{\s*stroke: Canvas;/)
+  })
+
   it('keeps HTML marks visible and levels distinct in forced-colors mode', () => {
     for (const part of [
       'legend-swatch',
