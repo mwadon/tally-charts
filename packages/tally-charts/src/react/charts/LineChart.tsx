@@ -56,7 +56,7 @@ export interface LineSeries<D> {
   tooltipLabel?: string
 }
 
-export interface LineRange<D> {
+export interface LineBand<D> {
   low: Accessor<D, number>
   high: Accessor<D, number>
   /** Data-table header. Default "Range". */
@@ -76,7 +76,7 @@ export interface LineChartProps<D> extends Omit<ChartPassThroughProps<D>, 'aspec
   x: Accessor<D, string | number> | (TimeScaleSpec<D> & { field: Accessor<D, TimeInput> })
   series: readonly LineSeries<D>[]
   /** A soft band between two values, e.g. the likely range of a forecast. */
-  band?: LineRange<D>
+  band?: LineBand<D>
   /**
    * Shade from here to the end, e.g. the first forecast month: a category, or a date on a time
    * axis. The shading starts halfway between it and the x before it.

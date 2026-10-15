@@ -3,7 +3,8 @@ import type { Tone } from '../../core/types'
 import { useFormat } from '../ChartsProvider'
 import { cx, toneVar } from './util'
 
-export type DeltaDirection = 'up' | 'down' | 'flat'
+/** Also the values of `data-ch-direction`. */
+type DeltaDirection = 'up' | 'down' | 'flat'
 
 export interface DeltaProps {
   /** The change, e.g. -1.2 for "▼ 1.2 pts". */

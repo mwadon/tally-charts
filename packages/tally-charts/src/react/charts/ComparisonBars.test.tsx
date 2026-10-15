@@ -84,8 +84,13 @@ describe('<ComparisonBars>', () => {
     expect(rightColumns(container)[1]?.[2]).toEqual({ text: 'On plan', tone: 'neutral' })
   })
 
+  it('names the on-plan text with onPlanLabel', () => {
+    const { container } = renderRows({ tolerance: 60, onPlanLabel: 'As planned' })
+    expect(rightColumns(container)[1]?.[2]).toEqual({ text: 'As planned', tone: 'neutral' })
+  })
+
   it('flips tones when going over is good', () => {
-    const { container } = renderRows({ overIsBad: false })
+    const { container } = renderRows({ good: 'up' })
     expect(overBars(container, 'gain')).toHaveLength(1)
     expect(rightColumns(container)[1]?.[0]).toEqual({ text: '+$420', tone: 'gain' })
     expect(rightColumns(container)[1]?.[2]).toEqual({ text: '−$50', tone: 'loss' })

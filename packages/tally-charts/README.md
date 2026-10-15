@@ -59,7 +59,7 @@ import { BarChart, ComparisonBars, RankedBars } from 'tally-charts'
 ```
 
 - `BarChart`: history `hatch-fade`, last bar `solid`, optional target and value label; `orientation="horizontal"` puts categories on the left.
-- `ComparisonBars`: hatched plan bar over a solid actual bar, the overrun as a separate pink segment, and a `$640 → $1,060  +$420` / "On plan" column. `overIsBad={false}` for revenue-like rows.
+- `ComparisonBars`: hatched plan bar over a solid actual bar, the overrun as a separate pink segment, and a `$640 → $1,060  +$420` / "On plan" column. `good="up"` for revenue-like rows, where going over plan is good news.
 - `RankedBars`: label, bar on a faint track, value; sorted by size; `layout="stacked"` for drill columns. Bars show magnitudes, so negative "lost" amounts extend right and keep their sign in the text. Selection uses `selectedId` + `onSelect`; ids are the original data index unless you pass `id`.
 - `WaterfallChart`: horizontal steps from a start value to a calculated end, with dotted
   connectors. Start is hatched neutral, steps are `loss`/`gain`, the end is solid accent. The

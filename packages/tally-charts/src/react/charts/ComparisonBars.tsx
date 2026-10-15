@@ -21,7 +21,7 @@ import {
   userCallbacks,
 } from './shared'
 
-export type ComparisonStatus = 'over' | 'under' | 'on-plan' | 'unknown'
+type ComparisonStatus = 'over' | 'under' | 'on-plan' | 'unknown'
 
 export interface ComparisonBarsProps<D> extends Omit<ChartPassThroughProps<D>, 'aspectRatio'> {
   data: readonly D[]
@@ -42,9 +42,12 @@ export interface ComparisonBarsProps<D> extends Omit<ChartPassThroughProps<D>, '
   /** A difference at or below this counts as on plan. Default 0. */
   tolerance?: number
   /** Text for rows on plan. Default "On plan". */
-  onPlanText?: string
-  /** Going over plan is bad news (costs, hours). Default true; set false for revenue-like rows. */
-  overIsBad?: boolean
+  onPlanLabel?: string
+  /**
+   * Which direction of actual against plan is good news: 'down' (under plan, for costs and
+   * hours) or 'up' (over plan, for revenue-like rows). Default 'down'.
+   */
+  good?: 'up' | 'down'
   /** Default 56. */
   rowHeight?: number
   /** Thickness of each of the two bars in px. Default 8. */
@@ -106,8 +109,8 @@ export function ComparisonBars<D>({
   format,
   domain,
   tolerance = 0,
-  onPlanText = 'On plan',
-  overIsBad = true,
+  onPlanLabel = 'On plan',
+  good = 'down',
   rowHeight = 56,
   barSize = 8,
   labelWidth = 240,
@@ -128,8 +131,8 @@ export function ComparisonBars<D>({
   const warn = useMemo(() => createWarner(), [])
   const fmt = useMemo(() => create(format), [create, format])
   const signed = useMemo(() => create(format, { signed: true }), [create, format])
-  const overTone: Tone = overIsBad ? 'loss' : 'gain'
-  const underTone: Tone = overIsBad ? 'gain' : 'loss'
+  const overTone: Tone = good === 'up' ? 'gain' : 'loss'
+  const underTone: Tone = good === 'up' ? 'loss' : 'gain'
 
   const rows = useMemo(() => {
     const getLabel = resolveAccessor(label)
@@ -154,7 +157,7 @@ export function ComparisonBars<D>({
         kept: status === 'over' ? p : a,
         status,
         change: known ? `${fmt(p)} → ${fmt(a)}` : '',
-        delta: !known ? '' : status === 'on-plan' ? onPlanText : signed(a - p),
+        delta: !known ? '' : status === 'on-plan' ? onPlanLabel : signed(a - p),
         deltaTone:
           status === 'on-plan'
             ? 'neutral'
@@ -175,7 +178,7 @@ export function ComparisonBars<D>({
     tolerance,
     fmt,
     signed,
-    onPlanText,
+    onPlanLabel,
     overTone,
     underTone,
   ])

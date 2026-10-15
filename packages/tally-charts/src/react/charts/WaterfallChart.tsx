@@ -48,7 +48,7 @@ export interface WaterfallTotal {
   value: number
 }
 
-export type WaterfallKind = 'start' | 'step' | 'end'
+type WaterfallKind = 'start' | 'step' | 'end'
 
 /** In `onSelect` and `onActiveChange`, `point.datum` is the start, one of your steps, or the total. */
 export interface WaterfallChartProps<S extends WaterfallStep = WaterfallStep>

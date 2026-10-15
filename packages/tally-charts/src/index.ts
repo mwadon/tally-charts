@@ -34,15 +34,15 @@ export type { BarChartProps } from './react/charts/BarChart'
 export { BarChart } from './react/charts/BarChart'
 export type { BridgeChartProps, BridgeStart, BridgeStep } from './react/charts/BridgeChart'
 export { BridgeChart } from './react/charts/BridgeChart'
-export type { ComparisonBarsProps, ComparisonStatus } from './react/charts/ComparisonBars'
+export type { ComparisonBarsProps } from './react/charts/ComparisonBars'
 export { ComparisonBars } from './react/charts/ComparisonBars'
 export type { DotHistogramProps } from './react/charts/DotHistogram'
 export { DotHistogram } from './react/charts/DotHistogram'
 export type { HeatmapCell, HeatmapProps } from './react/charts/Heatmap'
 export { Heatmap } from './react/charts/Heatmap'
 export type {
+  LineBand,
   LineChartProps,
-  LineRange,
   LineSeries,
   LineSeriesStyle,
 } from './react/charts/LineChart'
@@ -57,7 +57,6 @@ export { WaffleColumns } from './react/charts/WaffleColumns'
 export type {
   WaterfallChartProps,
   WaterfallEnd,
-  WaterfallKind,
   WaterfallStart,
   WaterfallStep,
   WaterfallTotal,
@@ -106,7 +105,7 @@ export { Callout } from './react/overlays/Callout'
 export type { TooltipProps } from './react/overlays/Tooltip'
 export { Tooltip } from './react/overlays/Tooltip'
 export type { ActiveSource, ChartPoint, PointGroup, TooltipSegment } from './react/types'
-export type { DeltaDirection, DeltaProps } from './react/ui/Delta'
+export type { DeltaProps } from './react/ui/Delta'
 export { Delta } from './react/ui/Delta'
 export type { DotCountProps } from './react/ui/DotCount'
 export { DotCount } from './react/ui/DotCount'
