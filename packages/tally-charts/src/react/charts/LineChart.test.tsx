@@ -210,7 +210,7 @@ describe('<LineChart>', () => {
   it('turns off the grid, the axes and the tooltip', () => {
     const { container } = renderLines({
       grid: false,
-      axis: 'none',
+      yAxis: 'none',
       xAxis: 'none',
       tooltip: false,
       activeId: 'Aug',
@@ -306,5 +306,148 @@ describe('<LineChart>', () => {
     expect(error).not.toHaveBeenCalled()
     warn.mockRestore()
     error.mockRestore()
+  })
+})
+
+describe('<LineChart> axis props', () => {
+  it('formats the value axis with yAxisFormat and the x axis and headers with xAxisFormat', () => {
+    const { container } = renderLines({
+      yAxis: 2,
+      yAxisFormat: (v) => `${v} pct`,
+      xAxisFormat: (v) => String(v).toUpperCase(),
+      activeId: 'Aug',
+    })
+    const labels = parts(container, 'axis-label').map((el) => el.textContent)
+    expect(labels).toEqual(['30 pct', '35 pct', '40 pct', 'JUN', 'JUL', 'AUG', 'SEP'])
+    expect(tooltip(container)).toHaveTextContent(/^AUG35\.0%on the current path/)
+  })
+})
+
+type Reading = { at: string | Date | null; actual: number | null; plan: number | null }
+const readings: Reading[] = [
+  { at: '2026-01-01', actual: 34, plan: null },
+  { at: '2026-01-02', actual: 32, plan: 32 },
+  { at: '2026-01-04', actual: null, plan: 35 },
+]
+const readingSeries: LineSeries<Reading>[] = [
+  { id: 'actual', label: 'Actual', value: 'actual' },
+  { id: 'plan', label: 'Plan', value: 'plan', style: 'forecast' },
+]
+const JAN_4 = '2026-01-04T00:00:00.000Z'
+
+// 400 × 100 with no margin over Jan 1 – Jan 5: 100px per day; y = 100 − 10 × (v − 30).
+function renderTimeLines(props: Partial<LineChartProps<Reading>> = {}) {
+  return render(
+    <LineChart<Reading>
+      data={readings}
+      x={{ type: 'time', field: 'at', domain: ['2026-01-01', '2026-01-05'] }}
+      series={readingSeries}
+      domain={[30, 40]}
+      format="percent"
+      width={400}
+      height={100}
+      margin={{ top: 0, right: 0, bottom: 0, left: 0 }}
+      title="Readings"
+      animate={false}
+      {...props}
+    />,
+  )
+}
+
+describe('<LineChart> on a time axis', () => {
+  it('draws the series at their dates and labels the axis with dates', () => {
+    const { container } = renderTimeLines()
+    const [plan, actual] = groups(container)
+    expect(pathOf(actual)).toHaveAttribute('d', 'M0,60L100,80')
+    expect(pathOf(plan)).toHaveAttribute('d', 'M100,80L300,50')
+    const labels = parts(container, 'axis-label').map((el) => el.textContent)
+    expect(labels.slice(-5)).toEqual(['Jan 1, 2026', 'Jan 2', 'Jan 3', 'Jan 4', 'Jan 5'])
+  })
+
+  it('uses ISO ids and writes dates in the tooltip, the announcements and the table', () => {
+    const { container, unmount } = renderTimeLines({ activeId: JAN_4 })
+    expect(tooltip(container)).toHaveTextContent(/^Jan 4, 202635\.0%Plan$/)
+    expect(parts(container, 'dot-ring').map((r) => r.getAttribute('cx'))).toEqual(['300'])
+    unmount()
+    const again = renderTimeLines()
+    fireEvent.keyDown(screen.getByRole('figure', { name: 'Readings' }), { key: 'End' })
+    expect(live(again.container)).toBe('Jan 4, 2026, 35.0% Plan')
+    const table = screen.getByRole('table', { name: 'Readings' })
+    expect(
+      within(table)
+        .getAllByRole('row')
+        .map((row) => row.firstElementChild?.textContent),
+    ).toEqual(['at', 'Jan 1, 2026', 'Jan 2, 2026', 'Jan 4, 2026'])
+  })
+
+  it('formats dates with xAxisFormat everywhere', () => {
+    const { container } = renderTimeLines({ xAxisFormat: 'month', activeId: JAN_4, xAxis: 2 })
+    expect(tooltip(container)).toHaveTextContent(/^Jan 202635\.0%Plan$/)
+    const labels = parts(container, 'axis-label').map((el) => el.textContent)
+    expect(labels.slice(-3)).toEqual(['Jan 2026', 'Jan 2026', 'Jan 2026'])
+  })
+
+  it('sorts rows by date, skips invalid dates and repeats with one warning each', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const { container } = renderTimeLines({
+      data: [
+        readings[2] as Reading,
+        { at: 'someday', actual: 39, plan: null },
+        readings[0] as Reading,
+        { at: null, actual: 39, plan: null },
+        readings[1] as Reading,
+        { at: new Date(Date.UTC(2026, 0, 2)), actual: 39, plan: null },
+      ],
+    })
+    const [plan, actual] = groups(container)
+    expect(pathOf(actual)).toHaveAttribute('d', 'M0,60L100,80')
+    expect(pathOf(plan)).toHaveAttribute('d', 'M100,80L300,50')
+    expect(warn).toHaveBeenCalledTimes(2)
+    expect(warn.mock.calls[0]?.[0]).toContain('not a date at index 1')
+    expect(warn.mock.calls[1]?.[0]).toContain('repeated x value "2026-01-02T00:00:00.000Z"')
+  })
+
+  it('shades the forecast from halfway after the last date before it', () => {
+    const { container } = renderTimeLines({ forecastFrom: '2026-01-04' })
+    // Halfway between Jan 2 and Jan 4 is Jan 3, at 200px.
+    expect(parts(container, 'region')[0]).toHaveAttribute('x', '200')
+    expect(parts(container, 'region')[0]).toHaveAttribute('width', '200')
+  })
+
+  it('snaps the pointer to the nearest date', () => {
+    const onActiveChange = vi.fn()
+    const { container } = renderTimeLines({ onActiveChange })
+    const layer = container.querySelector('[data-ch-part="pointer-layer"]') as Element
+    fireEvent.pointerMove(layer, { clientX: 260, clientY: 50 })
+    expect(onActiveChange).toHaveBeenLastCalledWith(
+      JAN_4,
+      expect.objectContaining({ datum: readings[2] }),
+    )
+  })
+
+  it('centres a single date without NaN and still snaps the pointer to it', () => {
+    const onActiveChange = vi.fn()
+    const { container } = renderTimeLines({
+      data: [readings[0] as Reading],
+      x: { type: 'time', field: 'at' },
+      onActiveChange,
+    })
+    // One date is padded by a day on each side: Dec 31 – Jan 2, with Jan 1 in the middle.
+    expect(parts(container, 'line-dot').map((d) => d.getAttribute('cx'))).toEqual(['200'])
+    expect(container.innerHTML).not.toContain('NaN')
+    const layer = container.querySelector('[data-ch-part="pointer-layer"]') as Element
+    fireEvent.pointerMove(layer, { clientX: 205, clientY: 50 })
+    expect(onActiveChange).toHaveBeenLastCalledWith('2026-01-01T00:00:00.000Z', expect.anything())
+  })
+
+  it('writes dates in the local zone when asked', () => {
+    // 22:30 UTC on Mar 29 is already Mar 30 in Europe/Warsaw (vitest.config.ts).
+    const { container } = renderTimeLines({
+      data: [{ at: '2026-03-29T22:30:00Z', actual: 33, plan: null }],
+      x: { type: 'time', field: 'at', zone: 'local' },
+      xAxisFormat: 'day',
+      activeId: '2026-03-29T22:30:00.000Z',
+    })
+    expect(tooltip(container)).toHaveTextContent(/^Mar 30, 202633\.0%Actual$/)
   })
 })

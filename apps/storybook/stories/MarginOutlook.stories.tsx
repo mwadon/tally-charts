@@ -69,7 +69,7 @@ function MarginOutlook() {
         target={{ value: 38, label: 'Target 38%' }}
         domain={[30, 40]}
         format="percent"
-        axisFormat={(v) => `${v}%`}
+        yAxisFormat={(v) => `${v}%`}
         height={360}
       />
     </article>
