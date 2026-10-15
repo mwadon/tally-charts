@@ -2,10 +2,10 @@ import { useId } from 'react'
 import { toFieldGetter } from '../../core/accessor'
 import { areaPath } from '../../core/area'
 import { toNumber } from '../../core/number'
-import { toTime } from '../../core/time'
 import type { Accessor, Tone } from '../../core/types'
 import { DEV } from '../../core/warn'
 import { useChartContext } from '../context'
+import { timeX } from './series'
 
 export interface AreaProps<D> {
   /** Defaults to <Chart data>. */
@@ -65,17 +65,8 @@ export function Area<D>({
   const baseline = clamp(linear(Math.min(Math.max(0, Math.min(d0, d1)), Math.max(d0, d1))))
   // A date is a band of width 0 at its position.
   const size = xScale.kind === 'band' ? xScale.scale.bandwidth() : 0
-  const startOf = (value: unknown): number | undefined => {
-    if (xScale.kind === 'band') return xScale.scale(String(value))
-    const t = toTime(value)
-    if (t === undefined) {
-      if (DEV) {
-        ctx.warn('x-time-value', `Area skipped an x value that is not a date: ${String(value)}.`)
-      }
-      return undefined
-    }
-    return xScale.scale(t)
-  }
+  const startOf = (value: unknown): number | undefined =>
+    xScale.kind === 'band' ? xScale.scale(String(value)) : timeX(ctx, xScale.scale, value, 'Area')
   const rows = (data ?? ctx.data) as readonly D[]
   const columns = rows.flatMap((d, i) => {
     const start = startOf(getX(d, i))

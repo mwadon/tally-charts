@@ -23,6 +23,7 @@ import { Grid } from '../marks/Grid'
 import { Line } from '../marks/Line'
 import { NearestPointer } from '../marks/NearestPointer'
 import { Region } from '../marks/Region'
+import { timeX } from '../marks/series'
 import { Target } from '../marks/Target'
 import { Tooltip } from '../overlays/Tooltip'
 import type { ChartPoint, TooltipSegment } from '../types'
@@ -139,6 +140,14 @@ function toneOf<D>(s: LineSeries<D>): Tone {
   return s.tone ?? (styleOf(s) === 'scenario' ? 'gain' : 'accent')
 }
 
+/** The smallest distance between neighbouring sorted values; Infinity for fewer than two. */
+function minGap(values: readonly number[]): number {
+  return values.reduce(
+    (gap, v, i) => (i ? Math.min(gap, v - (values[i - 1] as number)) : gap),
+    Number.POSITIVE_INFINITY,
+  )
+}
+
 /** One point per x, carrying every series with a value there; snaps the pointer along x. */
 function LinePoints<D>(props: {
   rows: readonly LineRow<D>[]
@@ -149,11 +158,13 @@ function LinePoints<D>(props: {
   const ctx = useChartContext('LineChart')
   const linear = ctx.y.kind === 'linear' ? ctx.y.scale : undefined
   const xScale = ctx.x
-  const xOf = (row: LineRow<D>) =>
-    xScale.kind === 'time' ? xScale.scale(row.time) : categoryCenter(xScale, row.key)
   const points: ChartPoint[] = linear
     ? props.rows.flatMap((row, index): ChartPoint[] => {
-        const x = xOf(row)
+        // Off-domain dates are neither drawn nor registered, so pointer and keys can't reach them.
+        const x =
+          xScale.kind === 'time'
+            ? timeX(ctx, xScale.scale, row.time, 'LineChart')
+            : categoryCenter(xScale, row.key)
         if (x === undefined) return []
         // Forecasts repeat the last actual at the join; there the actual is listed once.
         const actualHere = props.series.some(
@@ -194,13 +205,7 @@ function LinePoints<D>(props: {
   useRegisterPoints(points)
   // Half the smallest gap between neighbouring x values: categories are a step apart, dates
   // can be anything.
-  let gap = categoryStep(xScale)
-  if (xScale.kind === 'time') {
-    gap = Number.POSITIVE_INFINITY
-    for (let i = 1; i < points.length; i++) {
-      gap = Math.min(gap, (points[i]?.x ?? 0) - (points[i - 1]?.x ?? 0))
-    }
-  }
+  const gap = xScale.kind === 'time' ? minGap(points.map((p) => p.x)) : categoryStep(xScale)
   return <NearestPointer axis="x" radius={Math.max(12, Number.isFinite(gap) ? gap / 2 : 0)} />
 }
 
@@ -293,10 +298,7 @@ export function LineChart<D>({
       return (row) => xAxisFormat(timeX ? new Date(row.time) : row.key)
     }
     if (!timeX) return (row) => row.key
-    let step = Number.POSITIVE_INFINITY
-    for (let i = 1; i < rows.length; i++) {
-      step = Math.min(step, (rows[i]?.time ?? 0) - (rows[i - 1]?.time ?? 0))
-    }
+    const step = minGap(rows.map((r) => r.time))
     const spec = isDateFormat(xAxisFormat) ? xAxisFormat : 'auto'
     const date = createDateFormatter(spec, {
       locale,

@@ -37,6 +37,7 @@ const phrases = [
   'Target needs a linear or time scale',
   'Target value',
   'skipped an x value that is not a date',
+  'skipped a date outside the x domain',
   'has no valid dates',
   'has no `title`',
 ]

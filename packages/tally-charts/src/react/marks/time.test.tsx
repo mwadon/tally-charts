@@ -153,6 +153,37 @@ describe('marks on a time x scale', () => {
     expect(warn.mock.calls[0]?.[0]).toContain('Area skipped an x value that is not a date')
   })
 
+  it('skips dates outside an explicit domain in lines, bands and areas, with one warning', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    // Jan 2 – Jan 4: 200px per day, so Jan 1 would sit at −200px.
+    const narrow: TimeScaleSpec<Day> = { ...X, domain: ['2026-01-02', '2026-01-04'] }
+    const { container } = renderTime(
+      <>
+        <Band<Day> low="lo" high="hi" />
+        <Area<Day> />
+        <Line<Day> />
+      </>,
+      narrow,
+      [...days, { date: '2026-01-09', v: 1, lo: 0, hi: 2 }],
+    )
+    expect(parts(container, 'line')[0]).toHaveAttribute('d', 'M0,50L400,20')
+    expect(attrs(parts(container, 'line-dot'), 'cx')).toEqual(['0', '400'])
+    expect(parts(container, 'band')[0]).toHaveAttribute('d', 'M0,40L400,10L400,30L0,60Z')
+    expect(parts(container, 'area')[0]?.getAttribute('d')).toMatch(/^M0,50L400,20/)
+    for (const el of [
+      ...parts(container, 'line'),
+      ...parts(container, 'band'),
+      ...parts(container, 'area'),
+    ]) {
+      const xs = [...(el.getAttribute('d') ?? '').matchAll(/[ML]([-\d.]+),/g)].map((m) =>
+        Number(m[1]),
+      )
+      expect(xs.every((x) => x >= 0 && x <= 400)).toBe(true)
+    }
+    expect(warn).toHaveBeenCalledTimes(1)
+    expect(warn.mock.calls[0]?.[0]).toContain('skipped a date outside the x domain')
+  })
+
   it('shades a region between dates, or from a date to the end', () => {
     const { container } = renderTime(
       <>

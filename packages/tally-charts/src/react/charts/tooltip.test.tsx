@@ -1,7 +1,8 @@
 import { render } from '@testing-library/react'
-import type { ReactElement } from 'react'
+import { type ReactElement, useMemo } from 'react'
 import { describe, expect, it } from 'vitest'
 import type { ChartPoint } from '../types'
+import { useRegisterPoints } from '../useRegisterPoints'
 import { BarChart } from './BarChart'
 import { BridgeChart } from './BridgeChart'
 import { ComparisonBars } from './ComparisonBars'
@@ -119,5 +120,43 @@ describe('a tooltip function on a high-level chart', () => {
       getByTestId('custom'),
     )
     expect(container.querySelector('[data-ch-part="tooltip-pill"]')).toBeNull()
+  })
+})
+
+/** A custom child mark that registers one point whose datum is not a chart row. */
+function Custom({ datum }: { datum: unknown }) {
+  const points = useMemo(
+    (): ChartPoint[] => [
+      { id: 'custom', index: 0, datum, x: 10, y: 10, label: 'Custom', segments: [] },
+    ],
+    [datum],
+  )
+  useRegisterPoints(points)
+  return null
+}
+
+describe('a tooltip function on a point from a custom child mark', () => {
+  it.each([
+    ['null', null, null],
+    ['plain object', { note: 'mine' }, { note: 'mine' }],
+  ])('does not throw for a %s datum, and passes the datum on', (_, datum, expected) => {
+    const seen: unknown[] = []
+    const { getByTestId } = render(
+      <LineChart
+        {...common}
+        tooltip={(point) => {
+          seen.push(point.datum)
+          return <span data-testid="custom">custom</span>
+        }}
+        data={[row]}
+        x="name"
+        series={[{ id: 'v', label: 'Value', value: 'v' }]}
+        activeId="custom"
+      >
+        <Custom datum={datum} />
+      </LineChart>,
+    )
+    expect(getByTestId('custom')).toBeInTheDocument()
+    expect(seen.at(-1)).toEqual(expected)
   })
 })

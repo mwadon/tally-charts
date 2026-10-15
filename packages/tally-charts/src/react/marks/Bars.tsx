@@ -25,6 +25,7 @@ export interface BarsProps<D> {
   format?: FormatSpec
   /** Category label for tooltips and announcements. Defaults to the category value. */
   label?: Accessor<D, string>
+  /** Tooltip pill segments per bar. Default: the label and the formatted value. */
   segments?: (d: D, i: number) => readonly TooltipSegment[]
   /** Screen-reader text per bar. Default "<label>, <formatted value>". */
   ariaLabel?: (d: D, i: number) => string

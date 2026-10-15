@@ -36,7 +36,8 @@ export interface TimeScale {
   range(): [number, number]
   /** Tick values in epoch ms, about `count` of them (default 5), on calendar boundaries. */
   ticks(count?: number): number[]
-  zone: TimeZone
+  /** The zone the ticks and labels follow. */
+  readonly zone: TimeZone
 }
 
 export const DAY = 864e5
@@ -161,6 +162,7 @@ export function timeScale(
     // d1 + 1: the last boundary counts when it equals the domain's end.
     return interval ? interval.range(new Date(d0), new Date(d1 + 1)).map(Number) : []
   }
-  scale.zone = zone
+  // Set once here; readonly for everyone else.
+  ;(scale as { zone: TimeZone }).zone = zone
   return scale
 }

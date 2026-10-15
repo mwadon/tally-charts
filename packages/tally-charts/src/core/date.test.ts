@@ -99,6 +99,19 @@ describe("autoTickLabels ('auto' on an axis)", () => {
     expect(autoTickLabels([1e16, 1e16 + DAY])).toEqual(['', ''])
   })
 
+  it('writes a tick in full when its field cannot show what changed since the tick before', () => {
+    // Quarterly ticks thinned to every other one: the "2026" tick is gone, so Apr 2026 says so.
+    const kept = ['2025-04-01', '2025-10-01', '2026-04-01', '2026-10-01'].map(at)
+    expect(autoTickLabels(kept, { step: 92 * DAY })).toEqual(['Apr 2025', 'Oct', 'Apr 2026', 'Oct'])
+    // Hourly ticks thinned past midnight carry the new day.
+    const hours = ['2026-03-02T15:00Z', '2026-03-02T21:00Z', '2026-03-03T03:00Z'].map(at)
+    expect(autoTickLabels(hours, { step: 3 * 36e5 })).toEqual([
+      'Mar 2, 3:00 PM',
+      '9:00 PM',
+      'Mar 3, 3:00 AM',
+    ])
+  })
+
   it('returns nothing for no ticks', () => {
     expect(autoTickLabels([])).toEqual([])
   })

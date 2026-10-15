@@ -111,45 +111,60 @@ function valueFormatter(
   return ctx.format(whole ? { ...spec, digits: 0 } : spec)
 }
 
+/** Labels for a run of time tick values, in epoch ms. */
+type TimeLabels = (values: readonly number[]) => string[]
+
 /**
- * Ticks for a time scale. 'auto' (the default) writes multi-scale labels; another date spec
+ * Labels for time tick values. 'auto' (the default) writes multi-scale labels; another date spec
  * formats every tick alike; a function gets each tick as a Date. 'ends' labels the domain ends
- * in full. With `anchorEnds` (axes above or below the plot), a label on a plot edge is anchored
- * inward, as on a point scale with padding 0, so it doesn't run past the plot.
+ * in full.
  */
-function timeTicks(
+function timeLabels(
   scale: TimeScale,
   spec: TickSpec,
   format: AxisFormat | undefined,
   locale: string,
-  anchorEnds: boolean,
-): Tick[] {
-  const zone = scale.zone
-  const ends = spec === 'ends'
-  const values = ends ? scale.domain() : scale.ticks(typeof spec === 'number' ? spec : undefined)
-  let labels: string[]
-  if (typeof format === 'function') {
-    labels = values.map((v) => format(new Date(v)))
-  } else if (isDateFormat(format) && format !== 'auto') {
-    labels = values.map(createDateFormatter(format, { locale, zone }))
-  } else if (ends) {
-    const [a, b] = scale.ticks()
-    const step = a !== undefined && b !== undefined ? b - a : undefined
-    labels = values.map(createDateFormatter('auto', { locale, zone, step }))
-  } else {
-    labels = autoTickLabels(values, { locale, zone })
+): TimeLabels {
+  if (typeof format === 'function') return (values) => values.map((v) => format(new Date(v)))
+  // The distance between the ticks, also when thinning keeps only some of them.
+  const [a, b] = scale.ticks(typeof spec === 'number' ? spec : undefined)
+  const options = {
+    locale,
+    zone: scale.zone,
+    step: a !== undefined && b !== undefined ? b - a : undefined,
   }
+  if (spec === 'ends' || (isDateFormat(format) && format !== 'auto')) {
+    const date = createDateFormatter(isDateFormat(format) ? format : 'auto', options)
+    return (values) => values.map(date)
+  }
+  return (values) => autoTickLabels(values, options)
+}
+
+/**
+ * Unlabelled ticks for a time scale. With `anchorEnds` (axes above or below the plot),
+ * a label on a plot edge is anchored inward, as on a point scale with padding 0, so it doesn't
+ * run past the plot.
+ */
+function timeTicks(scale: TimeScale, spec: TickSpec, anchorEnds: boolean): Tick[] {
+  const values =
+    spec === 'ends' ? scale.domain() : scale.ticks(typeof spec === 'number' ? spec : undefined)
   const [r0, r1] = scale.range()
   const atEdge = (px: number, edge: number) => anchorEnds && Math.abs(px - edge) < 0.5
-  return values.map((value, i) => {
+  return values.map((value) => {
     const position = scale(value)
     const anchor: TickAnchor = atEdge(position, Math.min(r0, r1))
       ? 'start'
       : atEdge(position, Math.max(r0, r1))
         ? 'end'
         : 'middle'
-    return { value, position, label: labels[i] ?? '', anchor }
+    return { value, position, label: '', anchor }
   })
+}
+
+/** The ticks with labels for their (epoch ms) values. */
+function withLabels(ticks: readonly Tick[], label: TimeLabels): Tick[] {
+  const labels = label(ticks.map((tick) => tick.value as number))
+  return ticks.map((tick, i) => ({ ...tick, label: labels[i] ?? '' }))
 }
 
 export function Axis({
@@ -168,8 +183,10 @@ export function Axis({
   const { locale } = useLocale()
 
   let raw: Tick[]
+  let timeLabel: TimeLabels | undefined
   if (resolved.kind === 'time') {
-    raw = timeTicks(resolved.scale, spec, format, locale, horizontal)
+    timeLabel = timeLabels(resolved.scale, spec, format, locale)
+    raw = withLabels(timeTicks(resolved.scale, spec, horizontal), timeLabel)
   } else if (resolved.kind === 'linear') {
     const values = linearTicks(resolved.scale, spec, String, extent)
     const label = custom ?? valueFormatter(ctx, format, values)
@@ -177,7 +194,10 @@ export function Axis({
   } else {
     raw = categoryTicks(resolved.scale, spec, custom ?? String, { anchorEnds: horizontal })
   }
-  const ticks = thin ? thinTicks(raw, horizontal ? undefined : () => LABEL_HEIGHT) : raw
+  let ticks = thin ? thinTicks(raw, horizontal ? undefined : () => LABEL_HEIGHT) : raw
+  // Thinning can drop the tick that carried a change ("2026"), so time labels are written again
+  // for the ticks kept.
+  if (timeLabel) ticks = withLabels(ticks, timeLabel)
 
   return (
     <g data-ch-part="axis" data-ch-side={side}>

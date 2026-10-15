@@ -43,7 +43,8 @@ follows `prefers-color-scheme` unless an ancestor sets `data-ch-theme="light"` o
 
 ## Styling
 
-The public CSS surface is the `--ch-*` tokens below, `data-ch-part` on every element, and the
+The public CSS surface is the `--ch-*` tokens below, `data-ch-part` on every part you might
+style, and the
 `data-ch-*` state and variant attributes (`data-ch-tone`, `data-ch-fill`, `data-ch-active`,
 `data-ch-dimmed`, `data-ch-direction`, …). Class names (`ch-*`) and `--_ch-*` variables are
 private and can change in any release: select `[data-ch-part="…"]` instead.
@@ -163,11 +164,16 @@ midnight). Anything else, including an epoch outside the JS Date range (±8.64e1
 with one warning per chart (`Line`, `Band` and `Area` alike), and such a date formats as an empty
 string. The domain is inferred and rounded out to tick boundaries, a single date is padded by a
 day on each side, and an explicit `domain` is kept as given unless you also set `nice: true`.
+Dates outside an explicit domain are skipped, like invalid ones: not drawn, not reachable by
+pointer or keyboard, with one warning per chart.
 Ticks snap to calendar units from seconds to decades and are labelled multi-scale ("Jan 2026",
 "Feb", …, "2027"), or with a date format: `'day'`, `'month'`, `'quarter'`, `'year'` or any
 `Intl.DateTimeFormatOptions`, in the `ChartsProvider` locale.
 `zone` is `'utc'` by default, which renders the same on the server and the client; `'local'`
 uses the viewer's zone and can differ between them, so prefer `'utc'` for server rendering.
+`'utc'` is only stable if the dates are: a date-time string without a zone
+(`'2026-01-01T10:00'`) parses as the runtime's local time (ECMAScript `Date.parse`), so pass
+date-only strings (`'2026-01-01'`), strings ending in `Z` or an offset, `Date`s or epoch ms.
 `Line`, `Band`, `Area`, `Region`, `Target` (`x` as a date), `Grid`, `Axis` and `NearestPointer`
 work on time scales; `Bars` and `ColumnHighlight` need a band scale and warn instead.
 

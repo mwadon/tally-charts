@@ -149,7 +149,6 @@ export interface BarsProps<D> {
     label?: Accessor<D, string>;
     offset?: number;
     radius?: number;
-    // (undocumented)
     segments?: (d: D, i: number) => readonly TooltipSegment[];
     size?: number;
     // (undocumented)
@@ -1061,8 +1060,7 @@ export interface TimeScale {
     // (undocumented)
     range(): [number, number];
     ticks(count?: number): number[];
-    // (undocumented)
-    zone: TimeZone;
+    readonly zone: TimeZone;
 }
 
 // @public (undocumented)

@@ -424,6 +424,53 @@ describe('<LineChart> on a time axis', () => {
     expect(live(container)).toBe('Jan 1, 2026, 34.0% Actual')
   })
 
+  it('skips dates outside an explicit domain: not drawn, not reachable, one warning', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    // Jan 2 – Jan 4: 200px per day; Jan 1 would sit at −200px and Jan 9 at 1400px.
+    const { container } = renderTimeLines({
+      data: [...readings, { at: '2026-01-09', actual: 39, plan: null }],
+      x: { type: 'time', field: 'at', domain: ['2026-01-02', '2026-01-04'] },
+    })
+    const cxs = parts(container, 'line-dot').map((d) => Number(d.getAttribute('cx')))
+    expect(cxs.length).toBeGreaterThan(0)
+    expect(cxs.every((cx) => cx >= 0 && cx <= 400)).toBe(true)
+    for (const path of parts(container, 'line')) {
+      const xs = [...(path.getAttribute('d') ?? '').matchAll(/[ML]([-\d.]+),/g)].map((m) =>
+        Number(m[1]),
+      )
+      expect(xs.every((x) => x >= 0 && x <= 400)).toBe(true)
+    }
+    const figure = screen.getByRole('figure', { name: 'Readings' })
+    fireEvent.keyDown(figure, { key: 'Home' })
+    expect(live(container)).toBe('Jan 2, 2026, 32.0% Actual')
+    fireEvent.keyDown(figure, { key: 'End' })
+    expect(live(container)).toBe('Jan 4, 2026, 35.0% Plan')
+    expect(warn).toHaveBeenCalledTimes(1)
+    expect(warn.mock.calls[0]?.[0]).toContain('skipped a date outside the x domain')
+  })
+
+  it('keeps the year on a thinned time axis when the dropped ticks carried it', () => {
+    // 22 months at 320px: quarterly ticks are thinned to every other one, which drops "2026".
+    const data = Array.from({ length: 22 }, (_, i) => ({ at: Date.UTC(2025, 3 + i, 1), v: i }))
+    const { container } = render(
+      <LineChart
+        data={data}
+        x={{ type: 'time', field: 'at' }}
+        series={[{ id: 'v', label: 'V', value: 'v' }]}
+        width={320}
+        title="Months"
+        animate={false}
+      />,
+    )
+    const bottom = container.querySelector('[data-ch-part="axis"][data-ch-side="bottom"]')
+    expect([...(bottom?.children ?? [])].map((el) => el.textContent)).toEqual([
+      'Apr 2025',
+      'Oct',
+      'Apr 2026',
+      'Oct',
+    ])
+  })
+
   it('skips a number outside the Date range with the missing-date warning', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     const { container } = renderTimeLines({

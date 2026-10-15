@@ -1,5 +1,5 @@
-import type { CSSProperties } from 'react'
 import type { TooltipSegment } from '../types'
+import { cx, toneVar } from './util'
 
 export interface TooltipPillProps {
   segments: readonly TooltipSegment[]
@@ -9,7 +9,7 @@ export interface TooltipPillProps {
 /** The segmented pill: `#5819 | 12.3% | ABC Property Group`. */
 export function TooltipPill({ segments, className }: TooltipPillProps) {
   return (
-    <div className={className ? `ch-pill ${className}` : 'ch-pill'} data-ch-part="tooltip-pill">
+    <div className={cx('ch-pill', className)} data-ch-part="tooltip-pill">
       {segments.map((segment, i) => (
         <span
           // biome-ignore lint/suspicious/noArrayIndexKey: segments are positional and never reorder
@@ -17,16 +17,12 @@ export function TooltipPill({ segments, className }: TooltipPillProps) {
           className="ch-pill-seg"
           data-ch-part="pill-segment"
           data-ch-tone={segment.tone}
-          style={
-            segment.tone
-              ? ({ '--_ch-swatch-color': `var(--ch-${segment.tone})` } as CSSProperties)
-              : undefined
-          }
+          style={segment.tone ? toneVar(segment.tone) : undefined}
         >
           <span className="ch-pill-value" data-ch-part="pill-value">
             {segment.value}
           </span>
-          {segment.label !== undefined && segment.label !== null ? (
+          {segment.label != null ? (
             <span className="ch-pill-label" data-ch-part="pill-label">
               {segment.label}
             </span>

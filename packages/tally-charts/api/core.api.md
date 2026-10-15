@@ -218,8 +218,7 @@ export interface TimeScale {
     // (undocumented)
     range(): [number, number];
     ticks(count?: number): number[];
-    // (undocumented)
-    zone: TimeZone;
+    readonly zone: TimeZone;
 }
 
 // @public (undocumented)

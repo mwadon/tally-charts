@@ -44,8 +44,12 @@ export interface WrappedRow<D> {
   datum: D
 }
 
+/**
+ * The point with the user's datum. A point from a custom child mark isn't a wrapped row, so its
+ * own datum (even null) is passed on as it is.
+ */
 function unwrapPoint<D>(point: ChartPoint): ChartPoint<D> {
-  return { ...point, datum: (point.datum as WrappedRow<D>).datum }
+  return { ...point, datum: (point.datum as WrappedRow<D> | null)?.datum ?? (point.datum as D) }
 }
 
 /**

@@ -1,7 +1,7 @@
 import { clampToRange } from '../../core/linear'
 import { toNumber } from '../../core/number'
 import { categoryCenter } from '../../core/scale'
-import { toTime } from '../../core/time'
+import { type TimeScale, toTime } from '../../core/time'
 import { DEV } from '../../core/warn'
 import type { InternalChartContext } from '../context'
 
@@ -43,19 +43,8 @@ export function seriesScales(
     return Number.isFinite(v) ? clampToRange(linear, linear(v)) : Number.NaN
   }
   if (x.kind === 'time') {
-    const time = x.scale
-    const ms = (value: unknown) => {
-      const t = toTime(value)
-      if (DEV && t === undefined) {
-        ctx.warn('x-time-value', `${mark} skipped an x value that is not a date: ${String(value)}.`)
-      }
-      return t
-    }
     return {
-      x: (value) => {
-        const t = ms(value)
-        return t === undefined ? Number.NaN : time(t)
-      },
+      x: (value) => timeX(ctx, x.scale, value, mark) ?? Number.NaN,
       y: yOf,
       key: (value) => {
         const t = toTime(value)
@@ -68,4 +57,31 @@ export function seriesScales(
     y: yOf,
     key: String,
   }
+}
+
+/**
+ * Plot x of a date on a time scale. Undefined, with one warning per chart, for a value that is
+ * not a date or a date outside the scale's domain, so marks treat it as missing and never draw
+ * outside the plot.
+ */
+export function timeX(
+  ctx: InternalChartContext,
+  scale: TimeScale,
+  value: unknown,
+  mark: string,
+): number | undefined {
+  const t = toTime(value)
+  const [d0, d1] = scale.domain()
+  if (t !== undefined && t >= d0 && t <= d1) return scale(t)
+  if (DEV) {
+    if (t === undefined) {
+      ctx.warn('x-time-value', `${mark} skipped an x value that is not a date: ${String(value)}.`)
+    } else {
+      ctx.warn(
+        'x-time-outside',
+        `${mark} skipped a date outside the x domain: ${new Date(t).toISOString()}.`,
+      )
+    }
+  }
+  return undefined
 }
