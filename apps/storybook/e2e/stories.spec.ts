@@ -13,6 +13,7 @@ const STORIES = [
   'reference-result--light',
   'reference-result--dark',
   'reference-drill-columns--light',
+  'reference-drill-columns--dark',
   'reference-gross-margin--light',
   'reference-gross-margin--dark',
   'primitives-small-pieces--default',
@@ -43,6 +44,7 @@ const STORIES = [
 // Stories whose reference layout needs more room than the default 800px viewport.
 const WIDE_STORIES: Record<string, { width: number; height: number }> = {
   'reference-drill-columns--light': { width: 1280, height: 600 },
+  'reference-drill-columns--dark': { width: 1280, height: 600 },
   'reference-profit-bridge--light': { width: 1280, height: 720 },
   'reference-profit-bridge--dark': { width: 1280, height: 720 },
   'reference-jobs-by-margin--light': { width: 1280, height: 600 },
@@ -55,8 +57,17 @@ const WIDE_STORIES: Record<string, { width: number; height: number }> = {
   'reference-where-it-leaks--dark': { width: 1280, height: 600 },
 }
 
-async function open(page: Page, id: string) {
-  await page.goto(`/iframe.html?id=${id}&viewMode=story`)
+// Stories without a theme of their own follow the toolbar global: axe checks them in both themes.
+const THEMELESS = new Set([
+  'primitives-legend--default',
+  'charts-barchart--horizontal',
+  'primitives-small-pieces--default',
+  'reference-last-12-weeks--selectable',
+])
+
+async function open(page: Page, id: string, theme?: 'light' | 'dark') {
+  const globals = theme ? `&globals=theme:${theme}` : ''
+  await page.goto(`/iframe.html?id=${id}&viewMode=story${globals}`)
   await page
     .locator('#storybook-root [data-ch-root], #storybook-root [data-ch-part]')
     .first()
@@ -70,15 +81,19 @@ for (const id of STORIES) {
     await open(page, id)
     await expect(page).toHaveScreenshot(`${id}.png`, { fullPage: true })
   })
+}
 
-  test(`${id} has no axe violations`, async ({ page }) => {
-    await open(page, id)
-    const results = await new AxeBuilder({ page })
-      .include('#storybook-root')
-      .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
-      .analyze()
-    expect(results.violations).toEqual([])
-  })
+for (const id of [...STORIES, 'reference-last-12-weeks--selectable']) {
+  for (const theme of THEMELESS.has(id) ? (['light', 'dark'] as const) : [undefined]) {
+    test(`${id}${theme ? ` (${theme})` : ''} has no axe violations`, async ({ page }) => {
+      await open(page, id, theme)
+      const results = await new AxeBuilder({ page })
+        .include('#storybook-root')
+        .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa', 'best-practice'])
+        .analyze()
+      expect(results.violations).toEqual([])
+    })
+  }
 }
 
 test('keyboard focus shows the first point, and the keys move and announce it', async ({

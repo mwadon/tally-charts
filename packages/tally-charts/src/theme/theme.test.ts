@@ -239,6 +239,15 @@ describe('theme.css', () => {
     )
   })
 
+  it('lets the top heatmap cell glow in the base color, except under reduced transparency', () => {
+    expect(css).toMatch(
+      /\[data-ch-part="heatmap-cell"\]\[data-ch-peak="true"\] \{\s*box-shadow: [^;]*color-mix\(in srgb, var\(--ch-seq-base, var\(--ch-loss\)\)/,
+    )
+    expect(css).toMatch(
+      /@media \(prefers-reduced-transparency: reduce\) \{\s*\[data-ch-part="heatmap-cell"\]\[data-ch-peak="true"\] \{\s*box-shadow: none;/,
+    )
+  })
+
   it('paints toned text through one shared rule that mixes the tone with ink', () => {
     const inkMix =
       'color-mix(in srgb, var(--_ch-swatch-color) var(--ch-tone-text-mix), var(--ch-ink))'

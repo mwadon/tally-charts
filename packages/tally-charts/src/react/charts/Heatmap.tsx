@@ -18,6 +18,7 @@ import { createWarner, DEV, type Warn } from '../../core/warn'
 import { useFormat } from '../ChartsProvider'
 import { Legend } from '../ui/Legend'
 import { cx } from '../ui/util'
+import { headerOf } from './shared'
 
 export interface HeatmapCell<D> {
   /** `"<row>:<column>"`. */
@@ -52,8 +53,13 @@ export interface HeatmapProps<D> {
   format?: FormatSpec
   /** Column totals under the headers and a row total column. Default true. */
   totals?: boolean
-  /** Header of the row total column. Default "Total". */
+  /** Header of the row total column and of the column totals row. Default "Total". */
   totalLabel?: string
+  /**
+   * Accessible name of the row header column (the empty corner above it). Default: the `row`
+   * field name in sentence case ("branch" reads "Branch"), or "Row" for a function.
+   */
+  rowLabel?: string
   /** Legend of the bins under the grid. Default true. */
   legend?: boolean
   /**
@@ -87,7 +93,20 @@ interface HeatmapModel<D> {
   columnTotals: number[]
 }
 
-const MOVES = new Set(['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Home', 'End'])
+const MOVES = new Set([
+  'ArrowUp',
+  'ArrowDown',
+  'ArrowLeft',
+  'ArrowRight',
+  'Home',
+  'End',
+  'PageUp',
+  'PageDown',
+])
+/** Rows PageUp and PageDown move. */
+const PAGE = 5
+/** Keys of the total cells; the NUL character can't collide with a row or column name. */
+const TOTAL = '\u0000total'
 
 /** The breaks Heatmap bins by (see `heatmapLevel`), warning about what it had to clean up. */
 function cleanBreaks(breaks: readonly number[], warn: Warn): number[] {
@@ -144,6 +163,7 @@ export function Heatmap<D>({
   format,
   totals = true,
   totalLabel = 'Total',
+  rowLabel,
   legend = true,
   tone,
   title,
@@ -245,9 +265,21 @@ export function Heatmap<D>({
   activeRef.current = active
   const activeProp = useRef(activeId)
   activeProp.current = activeId
-  const [focusId, setFocusId] = useState<string | null>(null)
+  const [focusKey, setFocusKey] = useState<string | null>(null)
   const refs = useRef(new Map<string, HTMLElement>())
-  const tabId = focusId !== null && byId.has(focusId) ? focusId : (model.cells[0]?.[0]?.id ?? null)
+
+  // Keyboard positions: the column totals row first (when shown), then the data rows; the data
+  // columns, then the row total column. Data cells are keyed by id, totals by TOTAL keys.
+  const top = totals ? 1 : 0
+  const lastRow = model.rows.length - 1 + top
+  const lastColumn = model.columns.length - 1 + (totals ? 1 : 0)
+  const keyAt = (g: number, c: number): string => {
+    if (g < top) return `${TOTAL}\u0000${model.columns[c] ?? ''}`
+    return model.cells[g - top]?.[c]?.id ?? `${model.rows[g - top]}${TOTAL}`
+  }
+  const keys = new Set<string>()
+  for (let g = 0; g <= lastRow; g++) for (let c = 0; c <= lastColumn; c++) keys.add(keyAt(g, c))
+  const tabKey = focusKey !== null && keys.has(focusKey) ? focusKey : keyAt(top, 0)
 
   const setActive = (next: string | null) => {
     if (next === activeRef.current) return
@@ -264,10 +296,9 @@ export function Heatmap<D>({
     onActiveChange?.(next, next === null ? null : (byId.get(next) ?? null))
   }
 
-  const onKeyDown = (event: KeyboardEvent<HTMLElement>, r: number, c: number) => {
-    const cell = model.cells[r]?.[c]
-    if (!cell) return
-    if (event.key === 'Enter' || event.key === ' ') {
+  const onKeyDown = (event: KeyboardEvent<HTMLElement>, g: number, c: number) => {
+    const cell = g < top ? undefined : model.cells[g - top]?.[c]
+    if ((event.key === 'Enter' || event.key === ' ') && cell) {
       event.preventDefault()
       onSelect?.(cell.id, cell)
       return
@@ -282,23 +313,61 @@ export function Heatmap<D>({
     }
     if (!MOVES.has(event.key)) return
     event.preventDefault()
-    const lastRow = model.rows.length - 1
-    const lastColumn = model.columns.length - 1
-    let [nr, nc] = [r, c]
-    if (event.key === 'ArrowUp') nr = Math.max(0, r - 1)
-    else if (event.key === 'ArrowDown') nr = Math.min(lastRow, r + 1)
+    // Ctrl+Home and Ctrl+End (Cmd on a Mac keyboard) go to the first and last cell of the grid.
+    const corner = event.ctrlKey || event.metaKey
+    let [ng, nc] = [g, c]
+    if (event.key === 'ArrowUp') ng = Math.max(0, g - 1)
+    else if (event.key === 'ArrowDown') ng = Math.min(lastRow, g + 1)
     else if (event.key === 'ArrowLeft') nc = Math.max(0, c - 1)
     else if (event.key === 'ArrowRight') nc = Math.min(lastColumn, c + 1)
-    else if (event.key === 'Home') nc = 0
-    else nc = lastColumn
-    const next = model.cells[nr]?.[nc]
-    if (!next) return
-    setFocusId(next.id)
-    refs.current.get(next.id)?.focus()
+    else if (event.key === 'PageUp') ng = Math.max(0, g - PAGE)
+    else if (event.key === 'PageDown') ng = Math.min(lastRow, g + PAGE)
+    else if (event.key === 'Home') [ng, nc] = corner ? [0, 0] : [g, 0]
+    else [ng, nc] = corner ? [lastRow, lastColumn] : [g, lastColumn]
+    const key = keyAt(ng, nc)
+    setFocusKey(key)
+    refs.current.get(key)?.focus()
   }
 
   const valueText = (v: number | undefined): ReactNode =>
     v !== undefined && Number.isFinite(v) ? fmt(v) : <NoData />
+  /** Roving focus for the cell at a keyboard position: its ref and whether it is the tab stop. */
+  const navigable = (g: number, c: number) => {
+    const key = keyAt(g, c)
+    return {
+      ref: (el: HTMLElement | null) => {
+        if (el) refs.current.set(key, el)
+        else refs.current.delete(key)
+      },
+      tabIndex: key === tabKey ? 0 : -1,
+    }
+  }
+  /** A total cell takes focus but has nothing to activate or select. */
+  const total = (g: number, c: number, value: number | undefined, key: string) => (
+    <div
+      key={key}
+      {...navigable(g, c)}
+      role="gridcell"
+      className="ch-heatmap-total"
+      data-ch-part="heatmap-total"
+      onKeyDown={(event) => onKeyDown(event, g, c)}
+      onFocus={() => {
+        setFocusKey(keyAt(g, c))
+        setActive(null)
+      }}
+    >
+      {valueText(value)}
+    </div>
+  )
+  // The top-value cell glows (theme.css); the first one wins a tie.
+  let peakId: string | null = null
+  let peak = Number.NEGATIVE_INFINITY
+  for (const cell of model.cells.flat()) {
+    if (cell.value > peak) {
+      peak = cell.value
+      peakId = cell.id
+    }
+  }
   // Only an explicit tone overrides a --ch-seq-base set on an ancestor: data-ch-seq-tone picks
   // that tone's base and level shares in theme.css, and the legend inside inherits them.
   const rootProps = {
@@ -341,27 +410,24 @@ export function Heatmap<D>({
         onPointerLeave={(event) => {
           // Keyboard focus keeps its cell active; the pointer only clears what it activated.
           const focused = event.currentTarget.contains(document.activeElement)
-          setActive(focused && focusId !== null && byId.has(focusId) ? focusId : null)
+          setActive(focused && focusKey !== null && byId.has(focusKey) ? focusKey : null)
         }}
         onBlur={(event) => {
           if (!event.currentTarget.contains(event.relatedTarget)) setActive(null)
         }}
       >
         <div role="row" className="ch-heatmap-row" data-ch-part="heatmap-row">
-          <div role="columnheader" className="ch-heatmap-corner" data-ch-part="heatmap-corner" />
-          {model.columns.map((name, j) => (
+          <div role="columnheader" className="ch-heatmap-corner" data-ch-part="heatmap-corner">
+            <span className="ch-sr-only">{rowLabel ?? headerOf(row, 'Row')}</span>
+          </div>
+          {model.columns.map((name) => (
             <div
               key={name}
               role="columnheader"
               className="ch-heatmap-header"
               data-ch-part="heatmap-header"
             >
-              <span>{name}</span>
-              {totals ? (
-                <span className="ch-heatmap-header-total" data-ch-part="heatmap-header-total">
-                  {valueText(model.columnTotals[j])}
-                </span>
-              ) : null}
+              {name}
             </div>
           ))}
           {totals ? (
@@ -374,6 +440,17 @@ export function Heatmap<D>({
             </div>
           ) : null}
         </div>
+        {totals ? (
+          // Column totals: their own row, named by its row header, so no column header carries a
+          // number. It stays on top, under the column names.
+          <div role="row" className="ch-heatmap-row" data-ch-part="heatmap-total-row">
+            <div role="rowheader" className="ch-heatmap-rowheader" data-ch-part="heatmap-rowheader">
+              <span className="ch-sr-only">{totalLabel}</span>
+            </div>
+            {model.columns.map((name, j) => total(0, j, model.columnTotals[j], name))}
+            {total(0, model.columns.length, sum(model.rowTotals), TOTAL)}
+          </div>
+        ) : null}
         {model.cells.map((rowCells, r) => (
           <div key={model.rows[r]} role="row" className="ch-heatmap-row" data-ch-part="heatmap-row">
             <div role="rowheader" className="ch-heatmap-rowheader" data-ch-part="heatmap-rowheader">
@@ -382,33 +459,26 @@ export function Heatmap<D>({
             {rowCells.map((cell, c) => (
               <div
                 key={cell.id}
-                ref={(el) => {
-                  if (el) refs.current.set(cell.id, el)
-                  else refs.current.delete(cell.id)
-                }}
+                {...navigable(r + top, c)}
                 role="gridcell"
-                tabIndex={cell.id === tabId ? 0 : -1}
                 className="ch-heatmap-cell"
                 data-ch-part="heatmap-cell"
                 data-ch-level={cell.level}
                 data-ch-active={cell.id === active ? 'true' : undefined}
+                data-ch-peak={cell.id === peakId ? 'true' : undefined}
                 data-ch-selectable={onSelect ? 'true' : undefined}
                 onFocus={() => {
-                  setFocusId(cell.id)
+                  setFocusKey(cell.id)
                   setActive(cell.id)
                 }}
                 onPointerEnter={() => setActive(cell.id)}
                 onClick={() => onSelect?.(cell.id, cell)}
-                onKeyDown={(event) => onKeyDown(event, r, c)}
+                onKeyDown={(event) => onKeyDown(event, r + top, c)}
               >
                 {valueText(cell.value)}
               </div>
             ))}
-            {totals ? (
-              <div role="gridcell" className="ch-heatmap-total" data-ch-part="heatmap-total">
-                {valueText(model.rowTotals[r])}
-              </div>
-            ) : null}
+            {totals ? total(r + top, rowCells.length, model.rowTotals[r], TOTAL) : null}
           </div>
         ))}
       </div>

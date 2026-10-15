@@ -35,19 +35,27 @@ const texts = (els: Element[]) => els.map((el) => el.textContent)
 const levels = (els: Element[]) => els.map((el) => el.getAttribute('data-ch-level'))
 
 describe('<Heatmap>', () => {
-  it('lays out a grid with headers, totals and one tab stop', () => {
+  it('lays out a grid with headers, a totals row, totals and one tab stop', () => {
     const { container } = renderHeatmap()
     const grid = screen.getByRole('grid', { name: 'Where it leaks' })
+    // Column headers hold only the names; the corner names the row header column.
     expect(texts(within(grid).getAllByRole('columnheader'))).toEqual([
-      '',
-      'Labor$24K',
-      'Materials$13K',
-      'Callbacks$5K',
+      'Branch',
+      'Labor',
+      'Materials',
+      'Callbacks',
       'Total',
     ])
-    expect(texts(within(grid).getAllByRole('rowheader'))).toEqual(['Dallas', 'Austin'])
-    const dallas = within(grid).getAllByRole('row')[1] as HTMLElement
-    expect(texts(within(dallas).getAllByRole('gridcell'))).toEqual([
+    expect(texts(within(grid).getAllByRole('rowheader'))).toEqual(['Total', 'Dallas', 'Austin'])
+    const [, totalsRow, dallas] = within(grid).getAllByRole('row') as HTMLElement[]
+    expect(totalsRow).toHaveAttribute('data-ch-part', 'heatmap-total-row')
+    expect(texts(within(totalsRow as HTMLElement).getAllByRole('gridcell'))).toEqual([
+      '$24K',
+      '$13K',
+      '$5K',
+      '$42K',
+    ])
+    expect(texts(within(dallas as HTMLElement).getAllByRole('gridcell'))).toEqual([
       '$14.8K',
       '$7.9K',
       '$3.1K',
@@ -56,6 +64,102 @@ describe('<Heatmap>', () => {
     const stops = container.querySelectorAll('[tabindex="0"]')
     expect(stops).toHaveLength(1)
     expect(stops[0]).toHaveTextContent('$14.8K')
+  })
+
+  it('names the row header column with rowLabel, the row field, or "Row"', () => {
+    const { rerender } = renderHeatmap()
+    const corner = () => screen.getAllByRole('columnheader')[0]
+    expect(corner()).toHaveTextContent('Branch')
+    expect(within(corner() as HTMLElement).getByText('Branch')).toHaveClass('ch-sr-only')
+    rerender(
+      <Heatmap<Leak>
+        data={leaks}
+        row={(d) => d.branch}
+        column="cause"
+        value="amount"
+        breaks={[4000]}
+        title="Where it leaks"
+      />,
+    )
+    expect(corner()).toHaveTextContent('Row')
+    rerender(
+      <Heatmap<Leak>
+        data={leaks}
+        row="branch"
+        column="cause"
+        value="amount"
+        breaks={[4000]}
+        rowLabel="Branch office"
+        title="Where it leaks"
+      />,
+    )
+    expect(corner()).toHaveTextContent('Branch office')
+  })
+
+  it('reaches the totals with the arrow keys and the grid corners with Ctrl+Home and Ctrl+End', () => {
+    const onActiveChange = vi.fn()
+    const onSelect = vi.fn()
+    const { container } = renderHeatmap({ onActiveChange, onSelect })
+    const first = cells(container)[0] as HTMLElement
+    act(() => first.focus())
+    expect(onActiveChange).toHaveBeenLastCalledWith('Dallas:Labor', expect.anything())
+    // Up from the first cell is the Labor column total; focusing a total clears the active cell.
+    fireEvent.keyDown(first, { key: 'ArrowUp' })
+    expect(document.activeElement).toHaveTextContent('$24K')
+    expect(document.activeElement).toHaveAttribute('data-ch-part', 'heatmap-total')
+    expect(onActiveChange).toHaveBeenLastCalledWith(null, null)
+    expect(fireEvent.keyDown(document.activeElement as HTMLElement, { key: 'Enter' })).toBe(true)
+    expect(onSelect).not.toHaveBeenCalled()
+    // The last cell of the grid is the last row's total; the first is the first column total.
+    fireEvent.keyDown(document.activeElement as HTMLElement, { key: 'End', ctrlKey: true })
+    expect(document.activeElement).toHaveTextContent('$16.2K')
+    fireEvent.keyDown(document.activeElement as HTMLElement, { key: 'Home', metaKey: true })
+    expect(document.activeElement).toHaveTextContent('$24K')
+    // The grand total sits under the "Total" header.
+    fireEvent.keyDown(document.activeElement as HTMLElement, { key: 'End' })
+    expect(document.activeElement).toHaveTextContent('$42K')
+    expect(container.querySelectorAll('[tabindex="0"]')).toHaveLength(1)
+  })
+
+  it('keeps the keys inside the data cells when totals are off', () => {
+    const { container } = renderHeatmap({ totals: false })
+    const all = cells(container)
+    act(() => all[0]?.focus())
+    expect(fireEvent.keyDown(all[0] as HTMLElement, { key: 'ArrowUp' })).toBe(false)
+    expect(document.activeElement).toBe(all[0])
+    fireEvent.keyDown(all[0] as HTMLElement, { key: 'End', ctrlKey: true })
+    expect(document.activeElement).toBe(all[5])
+    fireEvent.keyDown(all[5] as HTMLElement, { key: 'ArrowRight' })
+    expect(document.activeElement).toBe(all[5])
+    fireEvent.keyDown(all[5] as HTMLElement, { key: 'PageUp' })
+    expect(document.activeElement).toBe(all[2])
+  })
+
+  it('moves five rows with PageUp and PageDown, clamped to the grid', () => {
+    const many = Array.from({ length: 8 }, (_, r) => ({
+      branch: `B${r}`,
+      cause: 'Labor',
+      amount: 1000 * (r + 1),
+    }))
+    const { container } = renderHeatmap({ data: many })
+    const all = cells(container)
+    act(() => all[0]?.focus())
+    fireEvent.keyDown(all[0] as HTMLElement, { key: 'PageDown' })
+    expect(document.activeElement).toBe(all[5])
+    expect(fireEvent.keyDown(all[5] as HTMLElement, { key: 'PageDown' })).toBe(false)
+    expect(document.activeElement).toBe(all[7])
+    fireEvent.keyDown(all[7] as HTMLElement, { key: 'PageUp' })
+    expect(document.activeElement).toBe(all[2])
+    // Past the first data row is the totals row.
+    fireEvent.keyDown(all[2] as HTMLElement, { key: 'PageUp' })
+    expect(document.activeElement).toHaveAttribute('data-ch-part', 'heatmap-total')
+  })
+
+  it('marks the top-value cell for its glow', () => {
+    const { container } = renderHeatmap()
+    const peaks = container.querySelectorAll('[data-ch-peak="true"]')
+    expect(peaks).toHaveLength(1)
+    expect(peaks[0]).toHaveTextContent('$14.8K')
   })
 
   it('bins values onto the sequential levels', () => {
@@ -92,9 +196,13 @@ describe('<Heatmap>', () => {
     expect(missing).toHaveTextContent('–No data')
     expect(within(missing).getByText('No data')).toHaveClass('ch-sr-only')
     // The totals leave it out.
-    const austin = screen.getAllByRole('row')[2] as HTMLElement
-    expect(within(austin).getAllByRole('gridcell').at(-1)).toHaveTextContent('$14.3K')
-    expect(screen.getAllByRole('columnheader')[3]).toHaveTextContent('Callbacks$3.1K')
+    const [, totalsRow, , austin] = screen.getAllByRole('row') as HTMLElement[]
+    expect(
+      within(austin as HTMLElement)
+        .getAllByRole('gridcell')
+        .at(-1),
+    ).toHaveTextContent('$14.3K')
+    expect(within(totalsRow as HTMLElement).getAllByRole('gridcell')[2]).toHaveTextContent('$3.1K')
   })
 
   it('skips non-numeric values without throwing', () => {
@@ -136,7 +244,12 @@ describe('<Heatmap>', () => {
     expect(document.activeElement).toBe(all[4])
     fireEvent.keyDown(all[4] as HTMLElement, { key: 'Home' })
     expect(document.activeElement).toBe(all[3])
+    // End reaches the row total; it takes focus but selects nothing.
     fireEvent.keyDown(all[3] as HTMLElement, { key: 'End' })
+    expect(document.activeElement).toHaveTextContent('$16.2K')
+    fireEvent.keyDown(document.activeElement as HTMLElement, { key: 'Enter' })
+    expect(onSelect).not.toHaveBeenCalled()
+    fireEvent.keyDown(document.activeElement as HTMLElement, { key: 'ArrowLeft' })
     expect(document.activeElement).toBe(all[5])
     fireEvent.keyDown(all[5] as HTMLElement, { key: 'Enter' })
     expect(onSelect).toHaveBeenCalledWith(
@@ -181,14 +294,19 @@ describe('<Heatmap>', () => {
       rows: ['Austin', 'Dallas', 'Houston'],
       columns: ['Callbacks', 'Labor'],
     })
-    expect(texts(screen.getAllByRole('rowheader'))).toEqual(['Austin', 'Dallas', 'Houston'])
+    expect(texts(screen.getAllByRole('rowheader'))).toEqual([
+      'Total',
+      'Austin',
+      'Dallas',
+      'Houston',
+    ])
     expect(texts(screen.getAllByRole('columnheader'))).toEqual([
-      '',
-      'Callbacks$5K',
-      'Labor$24K',
+      'Branch',
+      'Callbacks',
+      'Labor',
       'Total',
     ])
-    const houston = screen.getAllByRole('row')[3] as HTMLElement
+    const houston = screen.getAllByRole('row')[4] as HTMLElement
     expect(texts(within(houston).getAllByRole('gridcell'))).toEqual([
       '–No data',
       '–No data',
@@ -200,11 +318,13 @@ describe('<Heatmap>', () => {
   it('turns the totals and the legend off', () => {
     const { container } = renderHeatmap({ totals: false, legend: false })
     expect(texts(screen.getAllByRole('columnheader'))).toEqual([
-      '',
+      'Branch',
       'Labor',
       'Materials',
       'Callbacks',
     ])
+    expect(container.querySelector('[data-ch-part="heatmap-total-row"]')).toBeNull()
+    expect(container.querySelector('[data-ch-part="heatmap-total"]')).toBeNull()
     expect(container.querySelector('[data-ch-part="legend"]')).toBeNull()
   })
 

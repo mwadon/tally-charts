@@ -109,3 +109,4 @@ export default meta
 type Story = StoryObj<typeof meta>
 
 export const Light: Story = { parameters: { theme: 'light' } }
+export const Dark: Story = { parameters: { theme: 'dark' } }

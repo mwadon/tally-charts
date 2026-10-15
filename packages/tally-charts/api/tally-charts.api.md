@@ -604,6 +604,7 @@ export interface HeatmapProps<D> {
     // (undocumented)
     onSelect?: (id: string, cell: HeatmapCell<D>) => void;
     row: Accessor<D, string>;
+    rowLabel?: string;
     rows?: readonly string[];
     // (undocumented)
     style?: CSSProperties;

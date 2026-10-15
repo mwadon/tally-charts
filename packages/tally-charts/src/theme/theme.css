@@ -950,7 +950,8 @@
 }
 
 /* Rows are subgrids, so the ARIA row elements stay in the tree and every column lines up. */
-[data-ch-part="heatmap-row"] {
+[data-ch-part="heatmap-row"],
+[data-ch-part="heatmap-total-row"] {
   display: grid;
   grid-column: 1 / -1;
   grid-template-columns: subgrid;
@@ -964,12 +965,6 @@
   align-self: end;
   color: var(--ch-ink-muted);
   font-size: 13px;
-}
-
-[data-ch-part="heatmap-header-total"] {
-  color: var(--ch-ink);
-  font-size: 15px;
-  font-weight: 500;
 }
 
 [data-ch-part="heatmap-total-header"] {
@@ -1027,6 +1022,18 @@
     color-mix(in srgb, var(--ch-seq-base, var(--ch-loss)) 45%, var(--ch-surface));
 }
 
+/* The top-value cell glows in the base color, unless the user asks for less transparency. */
+[data-ch-part="heatmap-cell"][data-ch-peak="true"] {
+  box-shadow: 0 6px 18px -6px
+    color-mix(in srgb, var(--ch-seq-base, var(--ch-loss)) 70%, transparent);
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  [data-ch-part="heatmap-cell"][data-ch-peak="true"] {
+    box-shadow: none;
+  }
+}
+
 [data-ch-part="heatmap-cell"][data-ch-active="true"] {
   box-shadow:
     0 1px 2px rgb(0 0 0 / 0.08),
@@ -1045,9 +1052,23 @@
 
 [data-ch-part="heatmap-total"] {
   padding-left: 24px;
+  border-radius: 6px;
   font-size: 15px;
   font-weight: 500;
   text-align: right;
+  outline: none;
+}
+
+/* Column totals sit under the column names, aligned with them; the grand total stays in the
+   total column. */
+[data-ch-part="heatmap-total-row"] [data-ch-part="heatmap-total"]:not(:last-child) {
+  padding-left: 0;
+  text-align: left;
+}
+
+[data-ch-part="heatmap-total"]:focus-visible {
+  outline: 2px solid var(--ch-accent);
+  outline-offset: 2px;
 }
 
 /* ---------- Motion off ---------- */
