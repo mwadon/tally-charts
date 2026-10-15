@@ -1,29 +1,36 @@
 import { describe, expect, it } from 'vitest'
 import { bandScale, pointScale } from './band'
 import { linearScale } from './linear'
-import { bandTicks, linearTicks, pointTicks, type Tick, thinTicks } from './ticks'
+import { categoryTicks, linearTicks, type Tick, thinTicks } from './ticks'
 
 const band = bandScale(['a', 'b', 'c', 'd'], [0, 400], 0, 0)
 
-describe('bandTicks', () => {
+describe('categoryTicks on a band scale', () => {
   it('places ticks at band centres', () => {
-    expect(bandTicks(band, 'all', String).map((t) => t.position)).toEqual([50, 150, 250, 350])
+    expect(categoryTicks(band, 'all', String).map((t) => t.position)).toEqual([50, 150, 250, 350])
   })
 
   it('anchors end ticks to the outer band edges', () => {
-    const [first, last] = bandTicks(band, 'ends', String)
+    const [first, last] = categoryTicks(band, 'ends', String)
     expect(first).toMatchObject({ value: 'a', position: 0, anchor: 'start' })
     expect(last).toMatchObject({ value: 'd', position: 400, anchor: 'end' })
   })
 
   it('centres end ticks on their bands when edge anchoring is off', () => {
-    const [first, last] = bandTicks(band, 'ends', String, { anchorEnds: false })
+    const [first, last] = categoryTicks(band, 'ends', String, { anchorEnds: false })
     expect(first).toMatchObject({ value: 'a', position: 50, anchor: 'middle' })
     expect(last).toMatchObject({ value: 'd', position: 350, anchor: 'middle' })
   })
 
   it('thins to a target count for a numeric spec', () => {
-    expect(bandTicks(band, 2, String).map((t) => t.value)).toEqual(['a', 'c'])
+    expect(categoryTicks(band, 2, String).map((t) => t.value)).toEqual(['a', 'c'])
+  })
+
+  it('centres the only band of a one-band scale', () => {
+    const one = bandScale(['a'], [0, 100], 0, 0)
+    expect(categoryTicks(one, 'ends', String)).toEqual([
+      { value: 'a', position: 50, label: 'a', anchor: 'middle' },
+    ])
   })
 })
 
@@ -73,12 +80,14 @@ describe('thinTicks', () => {
   })
 })
 
-describe('pointTicks', () => {
+describe('categoryTicks on a point scale', () => {
   // 400px, padding 0.5: a 100px step, points at 50, 150, 250 and 350.
   const s = pointScale(['Apr', 'May', 'Jun', 'Jul'], [0, 400], 0.5)
+  // Padding 0: the first and last points sit on the plot edges, at 0 and 300.
+  const edge = pointScale(['Apr', 'May', 'Jun', 'Jul'], [0, 300], 0)
 
   it('labels every point, centred', () => {
-    expect(pointTicks(s, 'all', String).map((t) => [t.label, t.position, t.anchor])).toEqual([
+    expect(categoryTicks(s, 'all', String).map((t) => [t.label, t.position, t.anchor])).toEqual([
       ['Apr', 50, 'middle'],
       ['May', 150, 'middle'],
       ['Jun', 250, 'middle'],
@@ -87,15 +96,36 @@ describe('pointTicks', () => {
   })
 
   it('labels the ends or every nth point', () => {
-    expect(pointTicks(s, 'ends', String).map((t) => t.label)).toEqual(['Apr', 'Jul'])
-    expect(pointTicks(s, 2, String).map((t) => t.label)).toEqual(['Apr', 'Jun'])
+    expect(categoryTicks(s, 'ends', String).map((t) => t.label)).toEqual(['Apr', 'Jul'])
+    expect(categoryTicks(s, 2, String).map((t) => t.label)).toEqual(['Apr', 'Jun'])
+  })
+
+  it('anchors the labels of points on the plot edges inward at padding 0', () => {
+    expect(categoryTicks(edge, 'all', String).map((t) => [t.position, t.anchor])).toEqual([
+      [0, 'start'],
+      [100, 'middle'],
+      [200, 'middle'],
+      [300, 'end'],
+    ])
+    expect(categoryTicks(edge, 'ends', String).map((t) => t.anchor)).toEqual(['start', 'end'])
+    // Every second point: Apr and Jun. Jun isn't on the edge, so it stays centred.
+    expect(categoryTicks(edge, 2, String).map((t) => t.anchor)).toEqual(['start', 'middle'])
+  })
+
+  it('keeps edge labels centred on a side axis', () => {
+    expect(categoryTicks(edge, 'all', String, { anchorEnds: false }).map((t) => t.anchor)).toEqual([
+      'middle',
+      'middle',
+      'middle',
+      'middle',
+    ])
   })
 
   it('formats labels and tolerates an empty domain', () => {
-    expect(pointTicks(s, 'ends', (v) => v.toUpperCase()).map((t) => t.label)).toEqual([
+    expect(categoryTicks(s, 'ends', (v) => v.toUpperCase()).map((t) => t.label)).toEqual([
       'APR',
       'JUL',
     ])
-    expect(pointTicks(pointScale([], [0, 1], 0), 'all', String)).toEqual([])
+    expect(categoryTicks(pointScale([], [0, 1], 0), 'all', String)).toEqual([])
   })
 })

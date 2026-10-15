@@ -35,8 +35,18 @@ describe('<Grid>', () => {
   })
 
   it('follows a tick count and an extent like the axis does', () => {
-    expect(lines(renderGrid({ ticks: 2 }).container)).toHaveLength(3)
-    expect(lines(renderGrid({ extent: [32, 38] }).container)).toHaveLength(7)
+    const y1 = (root: HTMLElement) => lines(root).map((l) => l.getAttribute('y1'))
+    // y = 100 − 10 × (v − 30): 30, 35, 40 and then 32 … 38.
+    expect(y1(renderGrid({ ticks: 2 }).container)).toEqual(['100', '50', '0'])
+    expect(y1(renderGrid({ extent: [32, 38] }).container)).toEqual([
+      '80',
+      '70',
+      '60',
+      '50',
+      '40',
+      '30',
+      '20',
+    ])
   })
 
   it('warns without a linear y scale', () => {

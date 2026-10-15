@@ -28,6 +28,27 @@ describe('<Axis>', () => {
     expect(last).toHaveAttribute('x', '300')
   })
 
+  it('anchors point labels on the plot edges inward at padding 0', () => {
+    const { container } = render(
+      <Chart
+        {...frame}
+        width={300}
+        x={{ type: 'point', domain: ['Apr', 'May', 'Jun', 'Jul'], padding: 0 }}
+        y={{ domain: [0, 1] }}
+      >
+        <Axis side="bottom" />
+      </Chart>,
+    )
+    const all = [...container.querySelectorAll('[data-ch-part="axis-label"]')]
+    expect(all.map((el) => el.getAttribute('x'))).toEqual(['0', '100', '200', '300'])
+    expect(all.map((el) => el.getAttribute('text-anchor'))).toEqual([
+      'start',
+      'middle',
+      'middle',
+      'end',
+    ])
+  })
+
   it('puts band end labels on a side axis level with their rows', () => {
     const { container } = render(
       <Chart

@@ -12,77 +12,52 @@ export interface Tick {
   anchor: TickAnchor
 }
 
-export function bandTicks(
-  scale: BandScale,
+/**
+ * Labels for a band or point scale: every category ('all'), the first and last ('ends'), or
+ * every nth. Labels sit at the band centres or on the points.
+ *
+ * `anchorEnds` (default true) suits an axis below or above the plot: band 'ends' labels pin to
+ * the outer band edges, and points that sit on the plot edge (padding 0) anchor their labels
+ * inward, so neither runs past the plot. A side axis passes false so every label stays level
+ * with its row.
+ */
+export function categoryTicks(
+  scale: BandScale | PointScale,
   spec: TickSpec,
   format: (value: string) => string,
-  /**
-   * `anchorEnds` (default true) pins the 'ends' labels to the outer band edges, which suits an
-   * axis below or above the plot. A side axis passes false so each label stays level with its row.
-   */
   { anchorEnds = true }: { anchorEnds?: boolean } = {},
 ): Tick[] {
   const domain = scale.domain()
   const bandwidth = scale.bandwidth()
-  if (spec === 'ends' && !anchorEnds) {
-    const ends = domain.length > 1 ? [domain[0], domain[domain.length - 1]] : domain.slice(0, 1)
-    return ends.flatMap((value) =>
-      value === undefined
-        ? []
-        : [
-            {
-              value,
-              position: (scale(value) ?? 0) + bandwidth / 2,
-              label: format(value),
-              anchor: 'middle' as const,
-            },
-          ],
-    )
-  }
-  if (spec === 'ends') {
-    const first = domain[0]
-    const last = domain[domain.length - 1]
-    if (first === undefined || last === undefined) return []
-    const start = scale(first) ?? 0
-    if (domain.length === 1) {
-      return [
-        { value: first, position: start + bandwidth / 2, label: format(first), anchor: 'middle' },
-      ]
-    }
-    return [
-      { value: first, position: start, label: format(first), anchor: 'start' },
-      { value: last, position: (scale(last) ?? 0) + bandwidth, label: format(last), anchor: 'end' },
-    ]
-  }
-  const step = typeof spec === 'number' ? Math.max(1, Math.ceil(domain.length / spec)) : 1
-  return domain
-    .filter((_, i) => i % step === 0)
-    .map((value) => ({
-      value,
-      position: (scale(value) ?? 0) + bandwidth / 2,
-      label: format(value),
-      anchor: 'middle',
-    }))
-}
-
-/** Labels for a point scale: every point ('all'), the first and last ('ends'), or every nth. */
-export function pointTicks(
-  scale: PointScale,
-  spec: TickSpec,
-  format: (value: string) => string,
-): Tick[] {
-  const domain = scale.domain()
+  const first = domain[0]
+  const last = domain[domain.length - 1]
   const step = typeof spec === 'number' ? Math.max(1, Math.ceil(domain.length / spec)) : 1
   const picked =
     spec === 'ends'
       ? domain.filter((_, i) => i === 0 || i === domain.length - 1)
       : domain.filter((_, i) => i % step === 0)
-  return picked.map((value) => ({
-    value,
-    position: scale(value) ?? 0,
-    label: format(value),
-    anchor: 'middle',
-  }))
+  const [r0, r1] = scale.range()
+  const lo = Math.min(r0, r1)
+  const hi = Math.max(r0, r1)
+  return picked.map((value): Tick => {
+    const start = scale(value) ?? 0
+    const tick: Tick = {
+      value,
+      position: start + bandwidth / 2,
+      label: format(value),
+      anchor: 'middle',
+    }
+    if (!anchorEnds || domain.length < 2) return tick
+    if (bandwidth > 0) {
+      if (spec !== 'ends') return tick
+      return value === first
+        ? { ...tick, position: start, anchor: 'start' }
+        : { ...tick, position: start + bandwidth, anchor: 'end' }
+    }
+    if (value === first && Math.abs(start - lo) < 0.5) return { ...tick, anchor: 'start' }
+    if (value === last && Math.abs(start - hi) < 0.5) return { ...tick, anchor: 'end' }
+    return tick
+  })
 }
 
 export function linearTicks(

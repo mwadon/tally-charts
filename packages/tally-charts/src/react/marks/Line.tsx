@@ -1,12 +1,10 @@
 import { toFieldGetter } from '../../core/accessor'
 import { linePath } from '../../core/line'
-import { clampToRange } from '../../core/linear'
-import { toNumber } from '../../core/number'
 import { round2 } from '../../core/path'
-import { categoryCenter } from '../../core/scale'
 import type { Accessor, Tone } from '../../core/types'
 import { DEV } from '../../core/warn'
 import { useChart } from '../context'
+import { seriesScales } from './series'
 
 export type LineDots = 'filled' | 'hollow' | 'none'
 
@@ -42,15 +40,8 @@ export function Line<D>({
   radius = 4,
 }: LineProps<D>) {
   const ctx = useChart('Line')
-  if (ctx.x.kind === 'linear' || ctx.y.kind !== 'linear') {
-    if (DEV) {
-      ctx.warn(
-        'line-scales',
-        'Line needs a point or band scale on <Chart x> and a linear scale on <Chart y>.',
-      )
-    }
-    return null
-  }
+  const scales = seriesScales(ctx, 'Line')
+  if (!scales) return null
   const getX = toFieldGetter(x) ?? ctx.x.field
   const getY = toFieldGetter(y) ?? ctx.y.field
   if (!getX || !getY) {
@@ -62,17 +53,14 @@ export function Line<D>({
     }
     return null
   }
-  const xScale = ctx.x
-  const linear = ctx.y.scale
   const rows = (data ?? ctx.data) as readonly D[]
   const points = rows.map((d, index) => {
     const category = getX(d, index)
-    const value = toNumber(getY(d, index))
     return {
       index,
-      key: String(category),
-      x: categoryCenter(xScale, category) ?? Number.NaN,
-      y: Number.isFinite(value) ? clampToRange(linear, linear(value)) : Number.NaN,
+      key: scales.key(category),
+      x: scales.x(category),
+      y: scales.y(getY(d, index)),
     }
   })
   const path = linePath(points)

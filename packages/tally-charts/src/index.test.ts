@@ -56,7 +56,7 @@ describe('public entry points', () => {
   it.each([
     'createScale',
     'linearScale',
-    'bandTicks',
+    'categoryTicks',
     'thinTicks',
     'computeBars',
     'placeTooltip',
@@ -72,7 +72,6 @@ describe('public entry points', () => {
     'packWaffle',
     'linePath',
     'bandPath',
-    'pointTicks',
     'categoryCenter',
     'categoryStep',
     'clampToRange',

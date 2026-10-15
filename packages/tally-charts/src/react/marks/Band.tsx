@@ -1,12 +1,10 @@
 import { resolveAccessor, toFieldGetter } from '../../core/accessor'
 import { bandPath } from '../../core/line'
-import { clampToRange } from '../../core/linear'
-import { toNumber } from '../../core/number'
-import { categoryCenter } from '../../core/scale'
 import type { Accessor, Tone } from '../../core/types'
 import { DEV } from '../../core/warn'
 import { useChart } from '../context'
 import { toneVar } from '../ui/util'
+import { seriesScales } from './series'
 
 export interface BandProps<D> {
   /** Defaults to <Chart data>. */
@@ -22,15 +20,8 @@ export interface BandProps<D> {
 /** A soft area between `low` and `high` at each category, e.g. a likely range. Gaps break it. */
 export function Band<D>({ data, x, low, high, tone = 'accent' }: BandProps<D>) {
   const ctx = useChart('Band')
-  if (ctx.x.kind === 'linear' || ctx.y.kind !== 'linear') {
-    if (DEV) {
-      ctx.warn(
-        'band-scales',
-        'Band needs a point or band scale on <Chart x> and a linear scale on <Chart y>.',
-      )
-    }
-    return null
-  }
+  const scales = seriesScales(ctx, 'Band')
+  if (!scales) return null
   const getX = toFieldGetter(x) ?? ctx.x.field
   if (!getX) {
     if (DEV) {
@@ -43,18 +34,12 @@ export function Band<D>({ data, x, low, high, tone = 'accent' }: BandProps<D>) {
   }
   const getLow = resolveAccessor(low)
   const getHigh = resolveAccessor(high)
-  const xScale = ctx.x
-  const linear = ctx.y.scale
-  const px = (raw: unknown) => {
-    const v = toNumber(raw)
-    return Number.isFinite(v) ? clampToRange(linear, linear(v)) : Number.NaN
-  }
   const rows = (data ?? ctx.data) as readonly D[]
   const d = bandPath(
     rows.map((row, i) => ({
-      x: categoryCenter(xScale, getX(row, i)) ?? Number.NaN,
-      low: px(getLow(row, i)),
-      high: px(getHigh(row, i)),
+      x: scales.x(getX(row, i)),
+      low: scales.y(getLow(row, i)),
+      high: scales.y(getHigh(row, i)),
     })),
   )
   if (!d) return null
