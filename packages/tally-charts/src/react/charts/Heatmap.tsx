@@ -105,7 +105,11 @@ const MOVES = new Set([
 ])
 /** Rows PageUp and PageDown move. */
 const PAGE = 5
-/** Keys of the total cells; the NUL character can't collide with a row or column name. */
+/**
+ * Keys of the total cells: column totals by index, row totals by row name, the grand total by its
+ * index past the last column. The NUL keeps them apart from cell ids ("row:column") and from each
+ * other, even for an empty row or column name.
+ */
 const TOTAL = '\u0000total'
 
 /** The breaks Heatmap bins by (see `heatmapLevel`), warning about what it had to clean up. */
@@ -180,6 +184,8 @@ export function Heatmap<D>({
   const warn = useMemo(() => createWarner(), [])
   const fmt = useMemo(() => create(format), [create, format])
   const reactId = useId()
+  // An empty name would leave an empty header (axe empty-table-header): fall back to the default.
+  const totalName = totalLabel || 'Total'
   const baseId = `ch-${(chartId ?? reactId).replace(/[^a-zA-Z0-9_-]/g, '')}`
   const titleId = `${baseId}-title`
   const descId = `${baseId}-desc`
@@ -274,7 +280,7 @@ export function Heatmap<D>({
   const lastRow = model.rows.length - 1 + top
   const lastColumn = model.columns.length - 1 + (totals ? 1 : 0)
   const keyAt = (g: number, c: number): string => {
-    if (g < top) return `${TOTAL}\u0000${model.columns[c] ?? ''}`
+    if (g < top) return `${TOTAL}\u0000${c}`
     return model.cells[g - top]?.[c]?.id ?? `${model.rows[g - top]}${TOTAL}`
   }
   const keys = new Set<string>()
@@ -303,6 +309,11 @@ export function Heatmap<D>({
       onSelect?.(cell.id, cell)
       return
     }
+    // A total selects nothing, but Space must not scroll the page under the focused cell.
+    if (event.key === ' ') {
+      event.preventDefault()
+      return
+    }
     if (event.key === 'Escape') {
       // Only handled when it clears something, so an enclosing dialog can still close.
       if (activeRef.current !== null) {
@@ -312,9 +323,11 @@ export function Heatmap<D>({
       return
     }
     if (!MOVES.has(event.key)) return
-    event.preventDefault()
     // Ctrl+Home and Ctrl+End (Cmd on a Mac keyboard) go to the first and last cell of the grid.
+    // Other modified keys stay the browser's: Ctrl+PageDown switches tabs, Alt+arrows navigate.
     const corner = event.ctrlKey || event.metaKey
+    if (event.altKey || (corner && event.key !== 'Home' && event.key !== 'End')) return
+    event.preventDefault()
     let [ng, nc] = [g, c]
     if (event.key === 'ArrowUp') ng = Math.max(0, g - 1)
     else if (event.key === 'ArrowDown') ng = Math.min(lastRow, g + 1)
@@ -418,7 +431,7 @@ export function Heatmap<D>({
       >
         <div role="row" className="ch-heatmap-row" data-ch-part="heatmap-row">
           <div role="columnheader" className="ch-heatmap-corner" data-ch-part="heatmap-corner">
-            <span className="ch-sr-only">{rowLabel ?? headerOf(row, 'Row')}</span>
+            <span className="ch-sr-only">{rowLabel || headerOf(row, 'Row')}</span>
           </div>
           {model.columns.map((name) => (
             <div
@@ -436,7 +449,7 @@ export function Heatmap<D>({
               className="ch-heatmap-header ch-heatmap-total-header"
               data-ch-part="heatmap-total-header"
             >
-              {totalLabel}
+              {totalName}
             </div>
           ) : null}
         </div>
@@ -445,7 +458,7 @@ export function Heatmap<D>({
           // number. It stays on top, under the column names.
           <div role="row" className="ch-heatmap-row" data-ch-part="heatmap-total-row">
             <div role="rowheader" className="ch-heatmap-rowheader" data-ch-part="heatmap-rowheader">
-              <span className="ch-sr-only">{totalLabel}</span>
+              <span className="ch-sr-only">{totalName}</span>
             </div>
             {model.columns.map((name, j) => total(0, j, model.columnTotals[j], name))}
             {total(0, model.columns.length, sum(model.rowTotals), TOTAL)}

@@ -72,6 +72,14 @@ async function open(page: Page, id: string, theme?: 'light' | 'dark') {
     .locator('#storybook-root [data-ch-root], #storybook-root [data-ch-part]')
     .first()
     .waitFor()
+  // The preview decorator puts the theme on the canvas: a dark run must really render dark.
+  if (theme) {
+    const canvas = page.locator('#storybook-root .sb-canvas')
+    await expect(canvas).toHaveAttribute('data-ch-theme', theme)
+    // And the theme's tokens apply: ink is dark on light, light on dark.
+    const [red = 0] = channels(await canvas.evaluate((el) => getComputedStyle(el).color))
+    expect(red > 128).toBe(theme === 'dark')
+  }
 }
 
 for (const id of STORIES) {

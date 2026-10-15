@@ -155,6 +155,56 @@ describe('<Heatmap>', () => {
     expect(document.activeElement).toHaveAttribute('data-ch-part', 'heatmap-total')
   })
 
+  it('keeps a column named "" apart from the grand total', () => {
+    const { container } = renderHeatmap({
+      data: leaks.map((l) => (l.cause === 'Labor' ? { ...l, cause: '' } : l)),
+    })
+    const first = cells(container)[0] as HTMLElement
+    act(() => first.focus())
+    fireEvent.keyDown(first, { key: 'ArrowUp' })
+    expect(document.activeElement).toHaveTextContent('$24K')
+    fireEvent.keyDown(document.activeElement as HTMLElement, { key: 'End' })
+    expect(document.activeElement).toHaveTextContent('$42K')
+    fireEvent.keyDown(document.activeElement as HTMLElement, { key: 'Home' })
+    expect(document.activeElement).toHaveTextContent('$24K')
+    expect(container.querySelectorAll('[tabindex="0"]')).toHaveLength(1)
+  })
+
+  it('prevents Space on a total, so the page does not scroll, but leaves Enter alone', () => {
+    const onSelect = vi.fn()
+    const { container } = renderHeatmap({ onSelect })
+    const total = container.querySelector('[data-ch-part="heatmap-total"]') as HTMLElement
+    expect(fireEvent.keyDown(total, { key: ' ' })).toBe(false)
+    expect(fireEvent.keyDown(total, { key: 'Enter' })).toBe(true)
+    expect(onSelect).not.toHaveBeenCalled()
+  })
+
+  it('leaves modified keys other than Ctrl or Cmd with Home and End to the browser', () => {
+    const { container } = renderHeatmap()
+    const all = cells(container)
+    act(() => all[0]?.focus())
+    expect(fireEvent.keyDown(all[0] as HTMLElement, { key: 'PageDown', ctrlKey: true })).toBe(true)
+    expect(fireEvent.keyDown(all[0] as HTMLElement, { key: 'PageUp', metaKey: true })).toBe(true)
+    expect(fireEvent.keyDown(all[0] as HTMLElement, { key: 'ArrowDown', ctrlKey: true })).toBe(true)
+    expect(fireEvent.keyDown(all[0] as HTMLElement, { key: 'PageDown', altKey: true })).toBe(true)
+    expect(fireEvent.keyDown(all[0] as HTMLElement, { key: 'Home', altKey: true })).toBe(true)
+    expect(document.activeElement).toBe(all[0])
+    expect(fireEvent.keyDown(all[0] as HTMLElement, { key: 'End', ctrlKey: true })).toBe(false)
+    expect(document.activeElement).toHaveTextContent('$16.2K')
+  })
+
+  it('falls back to the default names for an empty rowLabel or totalLabel', () => {
+    renderHeatmap({ rowLabel: '', totalLabel: '' })
+    expect(texts(screen.getAllByRole('columnheader'))).toEqual([
+      'Branch',
+      'Labor',
+      'Materials',
+      'Callbacks',
+      'Total',
+    ])
+    expect(screen.getAllByRole('rowheader')[0]).toHaveTextContent('Total')
+  })
+
   it('marks the top-value cell for its glow', () => {
     const { container } = renderHeatmap()
     const peaks = container.querySelectorAll('[data-ch-peak="true"]')

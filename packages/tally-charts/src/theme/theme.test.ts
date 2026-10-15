@@ -248,6 +248,25 @@ describe('theme.css', () => {
     )
   })
 
+  it('keeps the light 1px outline on a glowing level 1 or 2 cell, with or without the glow', () => {
+    // Whitespace-insensitive: the formatter may wrap a long selector.
+    const flat = css.replace(/\s+/g, ' ').replace(/\( /g, '(').replace(/ \)/g, ')')
+    const peakLow =
+      '[data-ch-part="heatmap-cell"][data-ch-peak="true"]:where([data-ch-level="1"], [data-ch-level="2"])'
+    const outline =
+      'inset 0 0 0 var(--_ch-seq-outline) color-mix(in srgb, var(--ch-seq-base, var(--ch-loss)) 45%, var(--ch-surface))'
+    // Outline first, then the glow; :where keeps it under the active and focus rules after it.
+    expect(flat).toContain(`${peakLow} { box-shadow: ${outline}, 0 6px 18px -6px`)
+    expect(flat.indexOf(peakLow)).toBeLessThan(
+      flat.indexOf('[data-ch-part="heatmap-cell"][data-ch-active="true"] {'),
+    )
+    // Under reduced transparency only the outline is left.
+    const reduced = flat.slice(flat.indexOf('@media (prefers-reduced-transparency: reduce)'))
+    expect(reduced.slice(0, reduced.indexOf('} }') + 3)).toContain(
+      `${peakLow} { box-shadow: ${outline}; }`,
+    )
+  })
+
   it('paints toned text through one shared rule that mixes the tone with ink', () => {
     const inkMix =
       'color-mix(in srgb, var(--_ch-swatch-color) var(--ch-tone-text-mix), var(--ch-ink))'
