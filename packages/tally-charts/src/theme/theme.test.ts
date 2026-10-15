@@ -46,7 +46,7 @@ const THEMES = {
   dark: declarations(/\n\[data-ch-theme="dark"\]/),
 }
 const SEQ = declarations(
-  /\[data-ch-root\],\s*\[data-ch-part="legend"\],\s*\[data-ch-part="heatmap"\]/,
+  /\[data-ch-root\],\s*\[data-ch-part="legend"\],\s*\[data-ch-part="heatmap"\],\s*\[data-ch-part="runway"\]/,
 )
 const LEVELS = [1, 2, 3, 4, 5] as const
 
@@ -267,7 +267,7 @@ describe('theme.css', () => {
     expect(css).toContain(mix)
   })
 
-  it('builds the sequential levels from an inherited base on charts, legends and heatmaps', () => {
+  it('builds the sequential levels from an inherited base on charts, legends, heatmaps and runways', () => {
     const base = 'var(--ch-seq-base, var(--ch-loss))'
     expect(SEQ.get('--ch-seq-1')).toBe(
       `color-mix(in srgb, ${base} var(--ch-seq-mix-1, 12%), var(--ch-surface))`,

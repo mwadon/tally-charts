@@ -166,13 +166,14 @@
 /* ---------- Sequential levels ---------- */
 /* Resolved on each element from an inherited --ch-seq-base (default: loss) and --ch-seq-mix-N
    (default: loss's shares for the theme), so a base set on any ancestor, or Heatmap's `tone`,
-   recolors charts, heatmaps and legends alike. Levels 1–4 mix the base into --ch-surface and
+   recolors charts, heatmaps, runways and legends alike. Levels 1–4 mix the base into --ch-surface and
    carry --ch-ink text; level 5 mixes it with black, for white text in the light theme, and is
    the pure base, for dark text, in the dark theme. theme.test.ts checks every tone × theme ×
    level: text at 4.5:1, neighbouring levels at 1.3:1 and level 5 at 3:1 against the surface. */
 [data-ch-root],
 [data-ch-part="legend"],
-[data-ch-part="heatmap"] {
+[data-ch-part="heatmap"],
+[data-ch-part="runway"] {
   --ch-seq-1: color-mix(
     in srgb,
     var(--ch-seq-base, var(--ch-loss)) var(--ch-seq-mix-1, 12%),
