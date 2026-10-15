@@ -16,6 +16,7 @@ import { ColumnHighlight } from '../marks/ColumnHighlight'
 import { Callout } from '../overlays/Callout'
 import { Tooltip } from '../overlays/Tooltip'
 import type { TooltipSegment } from '../types'
+import { toneVar } from '../ui/util'
 import {
   type ChartPassThroughProps,
   type ChartTooltip,
@@ -145,10 +146,11 @@ function ColumnTotals<S>({ rows, fmt }: { rows: readonly BridgeRow<S>[]; fmt: Fo
               <text
                 data-ch-part="column-note"
                 data-ch-tone={r.capTone}
+                data-ch-tone-text="true"
                 x={x}
                 y={top - VALUE_GAP}
                 textAnchor="middle"
-                style={{ fill: `var(--ch-${r.capTone})` }}
+                style={toneVar(r.capTone)}
               >
                 {r.note}
               </text>

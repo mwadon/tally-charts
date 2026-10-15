@@ -14,6 +14,7 @@ import { NearestPointer } from '../marks/NearestPointer'
 import { Callout } from '../overlays/Callout'
 import { Tooltip } from '../overlays/Tooltip'
 import type { ChartPoint, TooltipSegment } from '../types'
+import { toneVar } from '../ui/util'
 import { useRegisterPoints } from '../useRegisterPoints'
 import {
   type ChartPassThroughProps,
@@ -172,11 +173,12 @@ function GroupLabels<D>({ rows }: { rows: readonly WaffleRow<D>[] }) {
           key={group}
           data-ch-part="group-label"
           data-ch-tone={span.tone === 'neutral' ? undefined : span.tone}
+          data-ch-tone-text={span.tone === 'neutral' ? undefined : 'true'}
           x={(span.from + span.to) / 2}
           y={ctx.innerHeight + 10}
           textAnchor="middle"
           dominantBaseline="hanging"
-          style={span.tone === 'neutral' ? undefined : { fill: `var(--ch-${span.tone})` }}
+          style={span.tone === 'neutral' ? undefined : toneVar(span.tone)}
         >
           {group}
         </text>

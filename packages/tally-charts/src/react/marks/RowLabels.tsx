@@ -3,6 +3,7 @@ import { truncateLabel } from '../../core/text'
 import type { Accessor, PerItem, Tone } from '../../core/types'
 import { DEV } from '../../core/warn'
 import { useChartContext } from '../context'
+import { toneVar } from '../ui/util'
 
 export interface RowLabelsProps<D> {
   /** Defaults to <Chart data>. */
@@ -95,12 +96,13 @@ export function RowLabels<D>(props: RowLabelsProps<D>) {
               <text
                 data-ch-part="row-label"
                 data-ch-tone={tone}
+                data-ch-tone-text={tone ? 'true' : undefined}
                 data-ch-muted={muted ? 'true' : undefined}
                 x={x}
                 y={mainY}
                 textAnchor={align}
                 dominantBaseline={baseline}
-                style={tone ? { fill: `var(--ch-${tone})` } : undefined}
+                style={tone ? toneVar(tone) : undefined}
               >
                 {text}
               </text>

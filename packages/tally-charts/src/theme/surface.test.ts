@@ -175,19 +175,13 @@ const STATES = [
   'soft',
   'theme',
   'tone',
+  'tone-text',
   'totals',
   'variant',
 ]
 
 /** Classes theme.css may still select: private plumbing, never documented. */
-const PRIVATE_CLASSES = [
-  'ch-fillable',
-  'ch-overlay',
-  'ch-sr-only',
-  'ch-svg',
-  'ch-tone-text',
-  'ch-tooltip',
-]
+const PRIVATE_CLASSES = ['ch-fillable', 'ch-overlay', 'ch-sr-only', 'ch-svg', 'ch-tooltip']
 
 const src = new URL('..', import.meta.url).pathname
 const css = readFileSync(new URL('./theme.css', import.meta.url), 'utf8')

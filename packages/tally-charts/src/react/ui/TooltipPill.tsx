@@ -19,7 +19,11 @@ export function TooltipPill({ segments, className }: TooltipPillProps) {
           data-ch-tone={segment.tone}
           style={segment.tone ? toneVar(segment.tone) : undefined}
         >
-          <span className="ch-pill-value" data-ch-part="pill-value">
+          <span
+            className="ch-pill-value"
+            data-ch-part="pill-value"
+            data-ch-tone-text={segment.tone ? 'true' : undefined}
+          >
             {segment.value}
           </span>
           {segment.label != null ? (

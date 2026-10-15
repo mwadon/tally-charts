@@ -129,6 +129,8 @@ export function Bars<D>(props: BarsProps<D>) {
           height: bar.height,
           fill: paint.fill,
           mask: paint.mask,
+          // The tone, for the outline theme.css draws on hatched and soft bars.
+          '--_ch-swatch-color': `var(--ch-${tone})`,
         } as CSSProperties
         const track = vertical
           ? { x: bar.x, y: 0, width: bar.width, height: ctx.innerHeight }

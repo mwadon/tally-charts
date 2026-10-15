@@ -8,9 +8,9 @@
   --ch-accent: #2f6bf0;
   --ch-accent-soft: #9dbcf6;
   --ch-loss: #e5368d;
-  --ch-warn: #f1a23b;
-  --ch-gain: #23a866;
-  --ch-neutral: #a3a3ab;
+  --ch-warn: #be802f;
+  --ch-gain: #22a363;
+  --ch-neutral: #8e8e95;
   --ch-ink: #111114;
   --ch-ink-muted: #6b6b73;
   --ch-grid: #e4e4e9;
@@ -498,10 +498,6 @@
   font-weight: 600;
 }
 
-[data-ch-part="pill-segment"][data-ch-tone] [data-ch-part="pill-value"] {
-  color: var(--_ch-swatch-color);
-}
-
 [data-ch-part="pill-label"] {
   color: var(--ch-ink-muted);
 }
@@ -568,10 +564,35 @@
   );
 }
 
-/* ---------- Small UI pieces ---------- */
-.ch-tone-text {
+/* ---------- Toned text and outlines ---------- */
+/* Every text painted in a tone (row and value labels, bridge notes, waffle group labels, pill
+   values, deltas, stats) mixes the tone with ink, which keeps 4.5:1 or more on the surface. */
+[data-ch-tone-text] {
   color: color-mix(in srgb, var(--_ch-swatch-color) var(--ch-tone-text-mix), var(--ch-ink));
+  fill: color-mix(in srgb, var(--_ch-swatch-color) var(--ch-tone-text-mix), var(--ch-ink));
 }
+
+/* Hatched marks and the soft accent (which means "estimate") keep their light fill and get a 1px
+   outline in the same inked tone, so their edge keeps 3:1 on the surface. */
+[data-ch-part="bar"][data-ch-fill="hatch"],
+[data-ch-part="bar"][data-ch-tone="accent-soft"],
+[data-ch-part="dot"][data-ch-tone="accent-soft"]:not([data-ch-soft]) {
+  stroke: color-mix(in srgb, var(--_ch-swatch-color) var(--ch-tone-text-mix), var(--ch-ink));
+  stroke-width: 1px;
+}
+
+[data-ch-fill="hatch"]:is(
+  [data-ch-part="legend-swatch"],
+  [data-ch-part="meter-fill"],
+  [data-ch-part="inline-bar-fill"],
+  [data-ch-part="range-gap"]
+),
+[data-ch-part="legend-swatch"][data-ch-tone="accent-soft"]:not([data-ch-shape="line"]) {
+  box-shadow: inset 0 0 0 1px
+    color-mix(in srgb, var(--_ch-swatch-color) var(--ch-tone-text-mix), var(--ch-ink));
+}
+
+/* ---------- Small UI pieces ---------- */
 
 [data-ch-part="delta"] {
   display: inline-flex;

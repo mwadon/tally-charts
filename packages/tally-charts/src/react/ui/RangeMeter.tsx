@@ -75,8 +75,9 @@ export function RangeMeter({
       <div className="ch-range-labels" data-ch-part="range-labels" aria-hidden="true">
         {hasValue ? (
           <span
-            className="ch-range-value-label ch-tone-text"
+            className="ch-range-value-label"
             data-ch-part="range-value-label"
+            data-ch-tone-text="true"
             style={at(pv)}
           >
             {valueLabel ?? fmt(value)}

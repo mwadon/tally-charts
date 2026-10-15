@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { type CSSProperties, useMemo } from 'react'
 import type { Id, Tone } from '../../core/types'
 import { useChartContext } from '../context'
 import type { ChartPoint, PointGroup, TooltipSegment } from '../types'
@@ -76,11 +76,14 @@ export function Dots({ dots, radius, interactive = true }: DotsProps) {
             cx={d.cx}
             cy={d.cy}
             r={r}
-            style={{
-              fill: d.soft
-                ? `color-mix(in srgb, var(--ch-${d.tone}) ${SOFT_MIX}%, var(--ch-surface))`
-                : `var(--ch-${d.tone})`,
-            }}
+            style={
+              {
+                fill: d.soft
+                  ? `color-mix(in srgb, var(--ch-${d.tone}) ${SOFT_MIX}%, var(--ch-surface))`
+                  : `var(--ch-${d.tone})`,
+                '--_ch-swatch-color': `var(--ch-${d.tone})`,
+              } as CSSProperties
+            }
           />
         )
       })}

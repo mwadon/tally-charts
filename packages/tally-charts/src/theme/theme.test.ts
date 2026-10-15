@@ -70,6 +70,16 @@ const MATRIX = (Object.keys(THEMES) as (keyof typeof THEMES)[]).flatMap((theme) 
   TONES.flatMap((tone) => LEVELS.map((level) => ({ theme, tone, level }))),
 )
 
+const TONE_MATRIX = (Object.keys(THEMES) as (keyof typeof THEMES)[]).flatMap((theme) =>
+  TONES.map((tone) => ({ theme, tone })),
+)
+/** Share of the tone in toned text and outlines (`--ch-tone-text-mix`), 0–1. */
+const TEXT_MIX =
+  Number.parseFloat(declarations(/\n:root(?=\s*\{)/).get('--ch-tone-text-mix') ?? '') / 100
+/** The color toned text and the outlines of soft and hatched marks are painted in. */
+const inked = (theme: keyof typeof THEMES, tone: string) =>
+  mix(hex(THEMES[theme].get(`--ch-${tone}`)), TEXT_MIX, hex(THEMES[theme].get('--ch-ink')))
+
 describe('theme.css', () => {
   it.each(TONES)('defines --ch-%s for light, system dark and forced dark', (tone) => {
     expect(css.match(new RegExp(`--ch-${tone}:`, 'g')) ?? []).toHaveLength(3)
@@ -158,6 +168,60 @@ describe('theme.css', () => {
     expect(css).toMatch(
       /@media \(prefers-reduced-motion: reduce\) \{[^}]*\[data-ch-part="heatmap"\] \*/,
     )
+  })
+
+  it('paints toned text through one shared rule that mixes the tone with ink', () => {
+    const inkMix =
+      'color-mix(in srgb, var(--_ch-swatch-color) var(--ch-tone-text-mix), var(--ch-ink))'
+    const rule = css.match(/\n\[data-ch-tone-text\] \{([^}]*)\}/)?.[1] ?? ''
+    expect(rule).toContain(`color: ${inkMix}`)
+    expect(rule).toContain(`fill: ${inkMix}`)
+    // No rule paints text in the raw tone any more.
+    expect(css).not.toMatch(/(?:^|[;{\s])(?:color|fill): var\(--_ch-swatch-color\)/)
+    expect(css).not.toContain('.ch-tone-text')
+  })
+
+  it('outlines hatched bars, soft-accent bars and dots, and hatched or soft swatches', () => {
+    const outline =
+      'stroke: color-mix(in srgb, var(--_ch-swatch-color) var(--ch-tone-text-mix), var(--ch-ink))'
+    const rule = css.match(/\[data-ch-part="bar"\]\[data-ch-fill="hatch"\],[^{]*\{([^}]*)\}/)
+    expect(rule?.[0]).toContain('[data-ch-part="bar"][data-ch-tone="accent-soft"]')
+    expect(rule?.[0]).toContain(
+      '[data-ch-part="dot"][data-ch-tone="accent-soft"]:not([data-ch-soft])',
+    )
+    expect(rule?.[1]).toContain(outline)
+    expect(rule?.[1]).toContain('stroke-width: 1px')
+    expect(css).toMatch(
+      /\[data-ch-part="legend-swatch"\]\[data-ch-tone="accent-soft"\]:not\(\[data-ch-shape="line"\]\) \{\s*box-shadow: inset 0 0 0 1px\s+color-mix/,
+    )
+  })
+
+  it.each(TONE_MATRIX)(
+    'keeps $tone text at 4.5:1 on the surface and the tooltip in the $theme theme',
+    ({ theme, tone }) => {
+      const text = inked(theme, tone)
+      expect(contrast(text, hex(THEMES[theme].get('--ch-surface')))).toBeGreaterThanOrEqual(4.5)
+      expect(contrast(text, hex(THEMES[theme].get('--ch-tooltip-bg')))).toBeGreaterThanOrEqual(4.5)
+    },
+  )
+
+  it.each(TONE_MATRIX)(
+    'keeps $tone marks at 3:1 on the surface in the $theme theme',
+    ({ theme, tone }) => {
+      const surface = hex(THEMES[theme].get('--ch-surface'))
+      // The outline of soft and hatched marks carries 3:1 for every tone.
+      expect(contrast(inked(theme, tone), surface)).toBeGreaterThanOrEqual(3)
+      // accent-soft keeps its soft fill (it means "estimate"); every other tone is a solid mark.
+      if (tone !== 'accent-soft') {
+        expect(contrast(hex(THEMES[theme].get(`--ch-${tone}`)), surface)).toBeGreaterThanOrEqual(3)
+      }
+    },
+  )
+
+  it('darkens the light warn, gain and neutral marks to the spec values', () => {
+    expect(THEMES.light.get('--ch-warn')).toBe('#be802f')
+    expect(THEMES.light.get('--ch-gain')).toBe('#22a363')
+    expect(THEMES.light.get('--ch-neutral')).toBe('#8e8e95')
   })
 
   it('declares the same dark tokens for the system preference and the forced theme', () => {

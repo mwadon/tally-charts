@@ -71,8 +71,11 @@ describe('<RowLabels>', () => {
   it('colors text by tone and marks muted columns', () => {
     const { container } = renderRows({ tone: (d) => (d.v > 5 ? 'loss' : undefined), muted: true })
     expect(labels(container)[0]).toHaveAttribute('data-ch-tone', 'loss')
-    expect(labels(container)[0]).toHaveStyle({ fill: 'var(--ch-loss)' })
+    // theme.css mixes the tone with ink for any [data-ch-tone-text], so the text keeps 4.5:1.
+    expect(labels(container)[0]).toHaveAttribute('data-ch-tone-text', 'true')
+    expect(labels(container)[0]?.getAttribute('style')).toBe('--_ch-swatch-color: var(--ch-loss);')
     expect(labels(container)[1]).not.toHaveAttribute('data-ch-tone')
+    expect(labels(container)[1]).not.toHaveAttribute('data-ch-tone-text')
     expect(labels(container)[0]).toHaveAttribute('data-ch-muted', 'true')
   })
 

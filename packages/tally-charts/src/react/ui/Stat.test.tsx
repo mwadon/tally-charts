@@ -28,7 +28,7 @@ describe('<Stat>', () => {
     const value = part(container, '.ch-stat-value')
     expect(value).toHaveTextContent('$51K')
     expect(value).toHaveAttribute('data-ch-tone', 'loss')
-    expect(value).toHaveClass('ch-tone-text')
+    expect(value).toHaveAttribute('data-ch-tone-text', 'true')
     expect(part(container, '.ch-stat-meta')).toBeNull()
   })
 

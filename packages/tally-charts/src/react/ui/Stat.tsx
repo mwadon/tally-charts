@@ -44,9 +44,10 @@ export function Stat({
         </div>
       ) : null}
       <div
-        className={tone ? 'ch-stat-value ch-tone-text' : 'ch-stat-value'}
+        className="ch-stat-value"
         data-ch-part="stat-value"
         data-ch-tone={tone}
+        data-ch-tone-text={tone ? 'true' : undefined}
         style={tone ? toneVar(tone) : undefined}
       >
         {text}
