@@ -3,7 +3,7 @@
 Opinionated React charts for narrative business dashboards: hatched means plan or reference,
 solid means actual, pink means loss, and targets are first-class.
 
-> Status: 0.5. The API may change before 1.0.
+> Status: 0.6. The public API is frozen for 1.0: see "Changes in 0.6" below.
 
 ```bash
 npm i tally-charts
@@ -99,10 +99,15 @@ import { BarChart, ComparisonBars, RankedBars } from 'tally-charts'
   `target`. Hover snaps to the nearest x and one tooltip lists every series there; ←/→ walk the
   x values. Point ids are the x values as strings, so `activeId` takes `'2025'`, not `2025`;
   for the same reason `1` and `'1'` are the same x, and a repeat is skipped with a warning. Give
-  each series its own `id`. `grid` follows the `axis` ticks, or `'all'` with `axis="none"`. A
+  each series its own `id`. `yAxis` and `yAxisFormat` set the value axis, `xAxis` and
+  `xAxisFormat` the x axis (tooltip headers, announcements and the data table use the x format
+  too). `grid` follows the `yAxis` ticks, or `'all'` with `yAxis="none"`. A
   forecast that continues the actuals repeats the last actual value, so the lines join; the
   tooltip lists that value once. Without `domain`, the inferred domain covers every series, the
-  band and the target.
+  band and the target. For dates, pass a time scale spec as `x`:
+  `x={{ type: 'time', field: 'date' }}` (`Date`, epoch ms or ISO strings). Rows are sorted by
+  date, point ids are ISO strings (`'2026-01-04T00:00:00.000Z'`), and `forecastFrom` takes a
+  date.
 - `Heatmap`: an HTML CSS grid (`role="grid"`) of long-format data (`row`, `column`, `value`) with
   column totals under the headers, a row total column, and `breaks` binned onto `--ch-seq-1…5`
   with a legend. One tab stop: arrow keys, Home/End and Enter move and select. `tone` changes
@@ -111,7 +116,9 @@ import { BarChart, ComparisonBars, RankedBars } from 'tally-charts'
   `--ch-loss`; only loss and accent bases are tuned for contrast that way. Cell ids are
   `"<row>:<column>"`, so names containing `:` can collide (`a:b` + `c` and `a` + `b:c`), and
   each row and column name must be unique. Missing values show a dash.
-- `onSelect` and `onActiveChange` receive your original data object as `point.datum`.
+- `onSelect` and `onActiveChange` receive your original data object as `point.datum`, typed:
+  `ChartPoint<D>`. `tooltip` takes `true`, `false`, or a function that renders the content for
+  a point, with the same `point.datum`.
 
 ## Small pieces
 
@@ -145,8 +152,55 @@ other values are missing.
 
 Building blocks added in 0.5: `Line`, `Band` (area between two values), `Grid` (horizontal
 lines at the y ticks) and `Region` (shaded run of categories), plus `type: 'point'` scales for
-`<Chart x>`. Time scales aren't in yet: put dates on a point scale with formatted labels.
-`Legend` draws `shape="line"` swatches (`dashed` for forecasts) and sequential `level` swatches.
+`<Chart x>`. `Legend` draws `shape="line"` swatches (`dashed` for forecasts) and sequential
+`level` swatches; `heatmapLevel(value, breaks)` gives the level a Heatmap uses for a value.
+
+## Time scales
+
+`<Chart x={{ type: 'time', field: 'date' }}>` puts dates on the x axis; `LineChart` takes the
+same spec as `x`. Values may be `Date`s, epoch ms or ISO 8601 strings (a date-only string is UTC
+midnight). Anything else, including an epoch outside the JS Date range (±8.64e15 ms), is skipped
+with one warning per chart (`Line`, `Band` and `Area` alike), and such a date formats as an empty
+string. The domain is inferred and rounded out to tick boundaries, a single date is padded by a
+day on each side, and an explicit `domain` is kept as given unless you also set `nice: true`.
+Ticks snap to calendar units from seconds to decades and are labelled multi-scale ("Jan 2026",
+"Feb", …, "2027"), or with a date format: `'day'`, `'month'`, `'quarter'`, `'year'` or any
+`Intl.DateTimeFormatOptions`, in the `ChartsProvider` locale.
+`zone` is `'utc'` by default, which renders the same on the server and the client; `'local'`
+uses the viewer's zone and can differ between them, so prefer `'utc'` for server rendering.
+`Line`, `Band`, `Area`, `Region`, `Target` (`x` as a date), `Grid`, `Axis` and `NearestPointer`
+work on time scales; `Bars` and `ColumnHighlight` need a band scale and warn instead.
+
+## Formatting
+
+`format` takes a preset (`'currency'`, `'currency-compact'`, `'percent'`, `'pts'`, `'number'`,
+`'hours'`), a preset with options (`{ preset: 'percent', digits: 0, signed: true }`), or a
+function of the number. Axes take the same, a date format on a time axis, or a function of the
+tick (`AxisValue`: a number, the category, or a `Date`). On an axis whose ticks are all whole
+numbers, percent and pts drop their decimals ("0%", not "0.0%"). `axis` and `axisFormat` mean the
+chart's only axis; `LineChart` has two, so it uses `xAxis` / `yAxis`.
+
+## Conventions
+
+- `BarChart`'s `x` is the category and `y` the value in both orientations.
+- `at` is scoped by its mark: a data index (number) on `ValueLabel`, a category on
+  `ColumnHighlight`, a value on a `Connector` link.
+- `radius` is the corner radius on `Bars` and `ColumnHighlight`, and the dot radius elsewhere.
+- Toggles are bare booleans (`legend`, `totals`, `grid`, `tooltip`, …); only `showValues` and
+  `showScale` carry `show`, where the bare word would be ambiguous.
+- Defaults follow the reference cards, so they differ by chart: heights (Chart 240, LineChart
+  280, DotHistogram 220, WaffleColumns 200, BridgeChart 360), band padding (0.2 on a band
+  scale, 0.35 BarChart, 0.45 BridgeChart, 0.3 WaffleColumns), tick counts (5, DotHistogram 6)
+  and tones (InlineBar, RangeMeter and DotCount 'loss', Meter 'accent').
+- `meta` is a number on a `WaterfallStep` and an accessor on `RankedBars`. To carry more per
+  step, extend the step type (`WaterfallChart<MyStep>`) rather than packing it into `meta`.
+
+## Custom marks
+
+Inside `<Chart>`, `useChart()` returns the size, the margins, the data, the scales (`x` and
+`y`, narrowed on `kind`: `'linear'`, `'band'`, `'point'` or `'time'`), the number formatter and
+the active point. `useRegisterPoints(points)` registers a mark's points for hover, keyboard and
+tooltips; memoize the array.
 
 ## Several React roots on one page
 
@@ -156,9 +210,46 @@ in separate roots (islands, micro-frontends), give each chart a `chartId`.
 ## Server Components
 
 Chart components are client components: the main entry `tally-charts` starts with `'use client'`,
-so you can render `<Chart>` from a Server Component file. In server code, import `fmt` and
-`createFormatter` from `tally-charts/core`, which has no React and is server-safe. Function props
+so you can render `<Chart>` from a Server Component file. In server code, import from
+`tally-charts/core`, which has no React and is server-safe: the formatters (`fmt`,
+`createFormatter`, `createFormatters`), `thresholds`, `heatmapLevel`, `toNumber`, `toTime` and
+the shared types. Function props
 (`fill`, `tone`, function `format`, `tooltip`) can't cross the server/client boundary, so pass
 them from a client component.
+
+## Changes in 0.6
+
+0.6 freezes the public API. Every breaking rename, before → after:
+
+- `<LineChart axis={…} axisFormat={…}>` → `<LineChart yAxis={…} yAxisFormat={…}>`, plus a new
+  `xAxisFormat`.
+- `<LineChart band={…}>`'s type `LineRange` → `LineBand`.
+- `<Bars tooltip={(d) => segments}>` → `<Bars segments={(d) => segments}>`.
+- `<ComparisonBars overIsBad={false}>` → `<ComparisonBars good="up">` (default `good="down"`);
+  `onPlanText` → `onPlanLabel`.
+- `useChart('MyMark')` → `useChart()`, which returns only the public fields (`chartId`, `warn`,
+  `radius`, `registerPoints` and `unregisterPoints` are gone).
+- `useRegisterPoints(ctx, points)` → `useRegisterPoints(points)`.
+- `ctx.x.scale` / `ctx.y.scale` are the library's own `LinearScale`, `BandScale`, `PointScale`
+  and `TimeScale`; d3-only methods such as `.copy()` are gone. d3-scale is no longer a
+  dependency.
+- Axis format functions get an `AxisValue` (`string | number | Date`): `(v: string | number) =>
+  string` → `(v: AxisValue) => string`, or drop the annotation.
+- The types `ComparisonStatus`, `WaterfallKind` and `DeltaDirection` are no longer exported; use
+  string literals.
+- `tally-charts/core` keeps only formatting, `thresholds`, `heatmapLevel`, `toNumber`, `toTime`
+  and the shared and scale types. `createScale`, `computeBars`, `categoryTicks` and the other
+  layout helpers, `createWarner` and `isDev` are internal now.
+- CSS: style `[data-ch-part="…"]`, not classes (`.ch-pill-seg` → `[data-ch-part="pill-segment"]`,
+  `.ch-swatch` → `[data-ch-part="legend-swatch"]`, …). `--ch-swatch-color`,
+  `--ch-range-ref-color`, `--ch-heatmap-columns` and `--ch-seq-ink-strong` became private
+  `--_ch-*` variables. `[data-ch-dir]` on bars → `[data-ch-direction]`, as on `Delta`.
+- Percent and pts axes drop their decimals when every tick is whole: "0%", not "0.0%".
+- `<Chart>` (and so every high-level chart) and `Heatmap` warn in development when `title` is
+  missing.
+
+Additions: time scales, `ChartPoint<D>` in callbacks, a function `tooltip` on high-level charts,
+`{ preset, digits, signed }` formats, `axisFormat` on `BarChart` and `DotHistogram`, `chartId`
+on `Heatmap`, `heatmapLevel`, and readonly arrays everywhere.
 
 MIT licensed.
