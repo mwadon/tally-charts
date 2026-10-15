@@ -428,6 +428,7 @@ describe('theme.css', () => {
     const outline =
       'stroke: color-mix(in srgb, var(--_ch-swatch-color) var(--ch-tone-text-mix), var(--ch-ink))'
     const rule = css.match(/\[data-ch-part="bar"\]\[data-ch-fill="hatch"\],[^{]*\{([^}]*)\}/)
+    expect(rule?.[0]).toContain('[data-ch-part="region"][data-ch-fill="hatch"]')
     expect(rule?.[0]).toContain('[data-ch-part="bar"][data-ch-tone="accent-soft"]')
     expect(rule?.[0]).toContain(
       '[data-ch-part="dot"][data-ch-tone="accent-soft"]:not([data-ch-soft])',

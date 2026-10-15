@@ -2,6 +2,7 @@ import { categoryCenter, categoryStep } from '../../core/scale'
 import { type TimeInput, toTime } from '../../core/time'
 import type { Tone } from '../../core/types'
 import { DEV } from '../../core/warn'
+import { paintFor } from '../../theme/patterns'
 import { useChartContext } from '../context'
 import { toneVar } from '../ui/util'
 
@@ -15,6 +16,8 @@ export interface RegionProps {
   to?: TimeInput
   /** Default 'accent'. */
   tone?: Tone
+  /** 'hatch' paints the tone's hatch pattern, e.g. for a locked span. Default 'solid'. */
+  fill?: 'solid' | 'hatch'
 }
 
 /**
@@ -22,7 +25,7 @@ export interface RegionProps {
  * time scale. On categories it covers whole steps, so it starts halfway between `from` and the
  * category before it; on time it starts and ends exactly at its dates.
  */
-export function Region({ from, to, tone = 'accent' }: RegionProps) {
+export function Region({ from, to, tone = 'accent', fill = 'solid' }: RegionProps) {
   const ctx = useChartContext('Region')
   const x = ctx.x
   if (x.kind === 'linear') {
@@ -55,16 +58,22 @@ export function Region({ from, to, tone = 'accent' }: RegionProps) {
   }
   const x0 = Math.max(0, Math.min(a, b) - half)
   const x1 = Math.min(ctx.innerWidth, Math.max(a, b) + half)
+  const hatch = fill === 'hatch'
   return (
     <rect
       data-ch-part="region"
       data-ch-tone={tone}
+      data-ch-fill={hatch ? 'hatch' : undefined}
       x={x0}
       y={0}
       width={Math.max(0, x1 - x0)}
       height={ctx.innerHeight}
-      rx={8}
-      style={toneVar(tone)}
+      rx={hatch ? 2 : 8}
+      style={
+        hatch
+          ? { ...toneVar(tone), fill: paintFor(ctx.chartId, tone, 'hatch').fill }
+          : toneVar(tone)
+      }
     />
   )
 }

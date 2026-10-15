@@ -52,6 +52,20 @@ describe('<Region>', () => {
     expect(rect(container)).toHaveAttribute('width', '200')
   })
 
+  it('paints a hatched region with the tone pattern and the hatch outline hook', () => {
+    const { container } = renderRegion({ from: 'May', to: 'Jun', tone: 'loss', fill: 'hatch' })
+    const el = rect(container) as SVGElement
+    expect(el.getAttribute('data-ch-fill')).toBe('hatch')
+    expect(el.style.fill).toMatch(/^url\("?#ch-.*-hatch-loss"?\)$/)
+  })
+
+  it('stays solid by default', () => {
+    const { container } = renderRegion({ from: 'May' })
+    const el = rect(container) as SVGElement
+    expect(el.getAttribute('data-ch-fill')).toBeNull()
+    expect(el.style.fill).toBe('')
+  })
+
   it('warns and draws nothing for a category that is not on the scale', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     const { container } = renderRegion({ from: 'Dec' })

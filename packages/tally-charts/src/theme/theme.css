@@ -728,6 +728,7 @@
 /* Hatched marks and the soft accent (which means "estimate") keep their light fill and get a 1px
    outline in the same inked tone, so their edge keeps 3:1 on the surface. */
 [data-ch-part="bar"][data-ch-fill="hatch"],
+[data-ch-part="region"][data-ch-fill="hatch"],
 [data-ch-part="bar"][data-ch-tone="accent-soft"],
 [data-ch-part="dot"][data-ch-tone="accent-soft"]:not([data-ch-soft]) {
   stroke: color-mix(in srgb, var(--_ch-swatch-color) var(--ch-tone-text-mix), var(--ch-ink));
