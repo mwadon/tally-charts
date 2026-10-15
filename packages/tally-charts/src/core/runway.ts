@@ -182,7 +182,7 @@ export function normalizeRow(row: RunwayRowInput, warn: Warn): RunwayTimes {
   const date = (value: TimeInput | undefined, name: string) => {
     if (value === undefined) return undefined
     const t = toTime(value)
-    if (t === undefined && DEV) {
+    if (DEV && t === undefined) {
       warn('runway-dates', `RunwayChart ignored an invalid ${name} in row "${row.id}".`)
     }
     return t

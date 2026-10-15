@@ -100,5 +100,13 @@
     "ignore": ["react", "react-dom"],
     "limit": "4 KB",
     "gzip": true
+  },
+  {
+    "name": "RunwayChart",
+    "path": "dist/index.js",
+    "import": "{ RunwayChart }",
+    "ignore": ["react", "react-dom"],
+    "limit": "15 KB",
+    "gzip": true
   }
 ]

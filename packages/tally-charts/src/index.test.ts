@@ -22,6 +22,7 @@ describe('public entry points', () => {
     'BarChart',
     'ComparisonBars',
     'RankedBars',
+    'RunwayChart',
     'RowLabels',
     'RowDividers',
     'DataTable',
