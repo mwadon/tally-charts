@@ -6,25 +6,42 @@ import { createWarner, DEV, type Warn } from './warn'
 
 /** A projected share of the allowance at a moment. */
 export interface RunwayPoint {
+  /** The moment. */
   at: Date
+  /** Cumulative share of the allowance used by then, 0–1. */
   used: number
 }
 
+/** What {@link runwayForecast} needs to know about one allowance. */
 export interface RunwayForecastInput {
   /** Share of the allowance used so far, 0–1 (may exceed 1). */
   used: number
+  /** When the current window began: the observed pace is measured from here. */
   windowStart: TimeInput
+  /** When the allowance resets and the window ends. */
   resetAt: TimeInput
+  /** The moment `used` was read. */
   now: TimeInput
-  /** Share of the allowance per millisecond. Default: used / (now − windowStart). */
+  /**
+   * Share of the allowance used per day: `0.113` is 11.3 percentage points a day. Default: the
+   * observed pace, used / (now − windowStart) in days.
+   *
+   * @example
+   * ```ts
+   * // 40% used, 5% a day from here: runs out 12 days after now unless it resets first.
+   * runwayForecast({ used: 0.4, pace: 0.05, windowStart, resetAt, now })
+   * ```
+   */
   pace?: number
 }
 
+/** What {@link runwayForecast} returns; spread it into a `RunwayChart` row. */
 export interface RunwayForecast {
   /** `[now, used]`, then a straight line at the pace to `runsOutAt` (used 1) or to `resetAt`. */
   projection: RunwayPoint[]
   /** When the projection reaches 1 before `resetAt`; undefined if it does not. */
   runsOutAt?: Date
+  /** The input's `resetAt` as a Date (an invalid Date when the input was invalid). */
   resetAt: Date
   /** Projected share at `resetAt`, uncapped (0.53 reads "~53% at reset"). */
   usedAtReset: number
@@ -71,7 +88,8 @@ export function runwayForecast(input: RunwayForecastInput): RunwayForecast {
     }
   }
   const window = reset - start
-  const rate = pace ?? (now > start ? used / (now - start) : 0)
+  // Share per ms: `pace` is given per day.
+  const rate = pace !== undefined ? pace / DAY : now > start ? used / (now - start) : 0
   const base = {
     resetAt: new Date(reset),
     paceRatio: rate * window,
@@ -89,7 +107,8 @@ export function runwayForecast(input: RunwayForecastInput): RunwayForecast {
       lockedMs: reset - now,
     }
   }
-  if (rate > 0 && usedAtReset >= 1) {
+  // Reaching exactly 1 at the reset is not running out: nothing is locked.
+  if (rate > 0 && usedAtReset > 1) {
     const out = now + (1 - used) / rate
     return {
       ...base,
@@ -248,14 +267,21 @@ export interface RunwayDateFormats {
 
 /** What RunwayChart derived for a row: passed to a custom `status`. */
 export interface RunwayFacts {
+  /** The row's `runsOutAt`, if valid and not after `resetAt`. */
   runsOutAt?: Date
+  /** The row's `resetAt`, if valid. */
   resetAt?: Date
-  /** The projection at `resetAt` (uncapped), or NaN without a forecast or a reset. */
+  /**
+   * The row's projection read at `resetAt`, or NaN without a forecast or a reset. It is only as
+   * uncapped as the projection: a row from `runwayForecast` that runs out ends its projection at
+   * 1, so it reads 1 here, not the forecast's own `usedAtReset`.
+   */
   usedAtReset: number
   /** True when `runsOutAt` falls after the domain end. */
   runsOutBeyond: boolean
   /** True when `resetAt` falls after the domain end. */
   resetBeyond: boolean
+  /** True when the row has projection points and is not disconnected. */
   forecast: boolean
 }
 
@@ -269,7 +295,8 @@ export function runwayDate(
   f: RunwayDateFormats,
 ): { text: string; beyond: boolean } {
   if (ms > end) return { text: f.day(ms), beyond: true }
-  const date = ms - now < SIX_DAYS ? f.weekday(ms) : f.day(ms)
+  // Weekday names only near now, on either side: weeks ago reads as a date.
+  const date = Math.abs(ms - now) < SIX_DAYS ? f.weekday(ms) : f.day(ms)
   return { text: `${date} ${f.time(ms)}`, beyond: false }
 }
 

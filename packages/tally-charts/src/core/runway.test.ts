@@ -48,16 +48,29 @@ describe('runwayForecast', () => {
     expect(f.projection.at(-1)?.used).toBeCloseTo(0.4, 9)
   })
 
-  it('takes an explicit pace in share per ms', () => {
+  it('takes an explicit pace in share per day', () => {
     const f = runwayForecast({
       used: 0.5,
       windowStart: start,
       resetAt: reset,
       now: at(0.5),
-      pace: 0.25 / D,
+      pace: 0.25,
     })
     expect(f.runsOutAt?.getTime()).toBe(at(0.5) + 2 * D)
     expect(f.paceRatio).toBeCloseTo(0.25 * 7, 9)
+    expect(f.usedAtReset).toBeCloseTo(0.5 + 0.25 * 3.5, 9)
+  })
+
+  it('does not run out when the projection reaches exactly 1 at reset', () => {
+    // 0.5 left over 3.5 days at 1/7 a day: exactly 1 at the reset.
+    const f = runwayForecast({ used: 0.5, windowStart: start, resetAt: reset, now: at(0.5) })
+    expect(f.usedAtReset).toBe(1)
+    expect(f.runsOutAt).toBeUndefined()
+    expect(f.lockedMs).toBe(0)
+    expect(f.projection.map((p) => [p.at.getTime(), p.used])).toEqual([
+      [at(0.5), 0.5],
+      [reset, 1],
+    ])
   })
 
   it('runs out now when the allowance is already used up', () => {
@@ -275,6 +288,14 @@ describe('status text', () => {
       beyond: true,
     })
     expect(runwayDate(end, now, end, f).beyond).toBe(false)
+  })
+
+  it('writes a date, not a weekday, for a moment weeks before now', () => {
+    expect(runwayDate(Date.UTC(2026, 8, 24, 9, 21), now, end, f)).toEqual({
+      text: 'Sep 24 09:21',
+      beyond: false,
+    })
+    expect(runwayDate(Date.UTC(2026, 9, 13, 9, 21), now, end, f).text).toBe('Tue 09:21')
   })
 
   it('covers the four cases', () => {
