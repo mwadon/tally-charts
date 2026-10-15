@@ -30,6 +30,12 @@ const STORIES = [
   'reference-margin-outlook--dark',
   'reference-where-it-leaks--light',
   'reference-where-it-leaks--dark',
+  'charts-time-axis--hourly-light',
+  'charts-time-axis--hourly-dark',
+  'charts-time-axis--daily-light',
+  'charts-time-axis--daily-dark',
+  'charts-time-axis--monthly-light',
+  'charts-time-axis--monthly-dark',
 ]
 
 // Stories whose reference layout needs more room than the default 800px viewport.
@@ -224,4 +230,25 @@ test('arrow keys move through the heatmap and Enter selects a cell', async ({ pa
   await expect(page.getByRole('gridcell', { name: '$5.1K' })).toBeFocused()
   await page.keyboard.press('Enter')
   await expect(page.getByTestId('heatmap-selected')).toHaveText('Selected: Austin · Materials')
+})
+
+test('a time axis labels dates and the keyboard announces them', async ({ page }) => {
+  await open(page, 'charts-time-axis--hourly-light')
+  const chart = page.getByRole('figure', { name: 'Line load today' })
+  await expect(chart.locator('[data-ch-part="axis-label"]').last()).toHaveText('Mar 3')
+  await chart.focus()
+  await page.keyboard.press('End')
+  await expect(chart.locator('[aria-live]')).toHaveText('Mar 2, 11:00 PM, 43.0% Line load today')
+  await expect(page.locator('[data-ch-part="tooltip"]')).toContainText('Mar 2, 11:00 PM')
+})
+
+test('a monthly time axis shows years and announces months', async ({ page }) => {
+  await open(page, 'charts-time-axis--monthly-light')
+  const chart = page.getByRole('figure', { name: 'Revenue over five years' })
+  await expect(
+    chart.locator('[data-ch-part="axis-label"]').filter({ hasText: /^20\d\d$/ }),
+  ).toHaveCount(6)
+  await chart.focus()
+  await page.keyboard.press('Home')
+  await expect(chart.locator('[aria-live]')).toHaveText('Jan 2021, 365 Revenue over five years')
 })
