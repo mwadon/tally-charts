@@ -7,13 +7,16 @@ import {
 import type { FormatPreset, FormatPresetSpec, Formatter } from '../../core/format'
 import {
   categoryTicks,
+  estimateWidth,
   linearTicks,
+  type MeasureTick,
   type Tick,
   type TickAnchor,
   type TickSpec,
   thinTicks,
 } from '../../core/ticks'
 import type { TimeScale } from '../../core/time'
+import { DEV } from '../../core/warn'
 import { useLocale } from '../ChartsProvider'
 import { type InternalChartContext, useChartContext } from '../context'
 
@@ -29,7 +32,8 @@ export type AxisFormatter = { format(value: AxisValue): string }['format']
 
 /**
  * Number presets label value axes, date specs label time axes, and a function labels any axis.
- * Category axes show the category unless a function is given.
+ * Category axes show the category unless a function is given; a preset or date spec there is
+ * ignored with a development warning.
  */
 export type AxisFormat = FormatPreset | FormatPresetSpec | DateFormatSpec | AxisFormatter
 
@@ -167,6 +171,24 @@ function withLabels(ticks: readonly Tick[], label: TimeLabels): Tick[] {
   return ticks.map((tick, i) => ({ ...tick, label: labels[i] ?? '' }))
 }
 
+/**
+ * Time labels for the ticks thinning kept. Labels are written again, since a dropped tick may
+ * have carried the year; a tick whose label repeats the one before it (a coarse format on fine
+ * ticks) is dropped; and the new labels are thinned again until nothing changes, so they fit.
+ */
+function fitTimeTicks(ticks: readonly Tick[], label: TimeLabels, measure?: MeasureTick): Tick[] {
+  let kept = withLabels(ticks, label)
+  for (let pass = 0; pass < 4; pass++) {
+    const distinct = kept.filter((tick, i) => i === 0 || tick.label !== kept[i - 1]?.label)
+    const next = withLabels(measure ? thinTicks(distinct, measure) : distinct, label)
+    if (next.length === kept.length && next.every((tick, i) => tick.label === kept[i]?.label)) {
+      return next
+    }
+    kept = next
+  }
+  return kept
+}
+
 export function Axis({
   side,
   ticks: spec = 'all',
@@ -192,12 +214,19 @@ export function Axis({
     const label = custom ?? valueFormatter(ctx, format, values)
     raw = values.map((tick) => ({ ...tick, label: label(tick.value as number) }))
   } else {
+    if (DEV && format !== undefined && !custom) {
+      ctx.warn(
+        'axis-category-format',
+        'Axis `format` must be a function on a band or point scale; presets and date formats are ignored there.',
+      )
+    }
     raw = categoryTicks(resolved.scale, spec, custom ?? String, { anchorEnds: horizontal })
   }
-  let ticks = thin ? thinTicks(raw, horizontal ? undefined : () => LABEL_HEIGHT) : raw
-  // Thinning can drop the tick that carried a change ("2026"), so time labels are written again
-  // for the ticks kept.
-  if (timeLabel) ticks = withLabels(ticks, timeLabel)
+  const measure: MeasureTick | undefined = horizontal ? undefined : () => LABEL_HEIGHT
+  let ticks = thin ? thinTicks(raw, measure) : raw
+  if (timeLabel) {
+    ticks = fitTimeTicks(ticks, timeLabel, thin ? (measure ?? estimateWidth) : undefined)
+  }
 
   return (
     <g data-ch-part="axis" data-ch-side={side}>

@@ -180,6 +180,38 @@ describe('<LineChart>', () => {
     expect(lines[6]).toHaveAttribute('y1', '0')
   })
 
+  it('rounds the inferred domain to the yAxis tick count, so the ends are labelled', () => {
+    const data = [
+      { month: 'Jan', v: 31.2 },
+      { month: 'Feb', v: 36.8 },
+    ]
+    const { container } = render(
+      <LineChart
+        data={data}
+        x="month"
+        series={[{ id: 'v', label: 'V', value: 'v' }]}
+        yAxis={4}
+        width={400}
+        height={100}
+        margin={{ top: 0, right: 0, bottom: 0, left: 0 }}
+        title="Four ticks"
+        animate={false}
+      />,
+    )
+    // Five ticks would nice the domain to 31–37 and label 32, 34, 36; four nice it to 30–38.
+    const left = container.querySelector('[data-ch-part="axis"][data-ch-side="left"]')
+    expect([...(left?.children ?? [])].map((el) => el.textContent)).toEqual([
+      '30',
+      '32',
+      '34',
+      '36',
+      '38',
+    ])
+    const lines = parts(container, 'grid-line')
+    expect(lines[0]).toHaveAttribute('y1', '100')
+    expect(lines.at(-1)).toHaveAttribute('y1', '0')
+  })
+
   it('skips a repeated x with one warning', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     const { container } = renderLines({
@@ -383,8 +415,9 @@ describe('<LineChart> on a time axis', () => {
   it('formats dates with xAxisFormat everywhere', () => {
     const { container } = renderTimeLines({ xAxisFormat: 'month', activeId: JAN_4, xAxis: 2 })
     expect(tooltip(container)).toHaveTextContent(/^Jan 202635\.0%Plan$/)
-    const labels = parts(container, 'axis-label').map((el) => el.textContent)
-    expect(labels.slice(-3)).toEqual(['Jan 2026', 'Jan 2026', 'Jan 2026'])
+    // The ticks, every other day, would all read "Jan 2026": the axis keeps the first.
+    const bottom = container.querySelector('[data-ch-part="axis"][data-ch-side="bottom"]')
+    expect([...(bottom?.children ?? [])].map((el) => el.textContent)).toEqual(['Jan 2026'])
   })
 
   it('sorts rows by date, skips invalid dates and repeats with one warning each', () => {

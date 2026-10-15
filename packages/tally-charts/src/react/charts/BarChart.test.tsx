@@ -44,6 +44,15 @@ describe('<BarChart>', () => {
     expect(parts(container, 'axis-label').map((t) => t.textContent)).toEqual(['Week 1', 'Week 3'])
   })
 
+  it('warns once and shows the categories when axisFormat is not a function', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const { container } = renderChart({ axisFormat: 'percent' })
+    expect(parts(container, 'axis-label').map((t) => t.textContent)).toEqual(['W1', 'W3'])
+    expect(warn).toHaveBeenCalledTimes(1)
+    expect(warn.mock.calls[0]?.[0]).toContain('must be a function on a band or point scale')
+    warn.mockRestore()
+  })
+
   it('draws a target from a number or from an object with a label', () => {
     // The inferred domain is [0, 35]; a target outside it would be hidden.
     const { container, unmount } = renderChart({ target: 33 })

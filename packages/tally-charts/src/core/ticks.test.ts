@@ -72,11 +72,17 @@ describe('thinTicks', () => {
   })
 
   it('falls back to the two ends with outer anchors', () => {
-    const ticks = thinTicks(row(5, 10, 'Sep 21'))
+    // 'Sep 21' is about 39px: every fourth tick (44px apart) still overlaps, the ends don't.
+    const ticks = thinTicks(row(9, 11, 'Sep 21'))
     expect(ticks.map((t) => [t.value, t.anchor])).toEqual([
       [0, 'start'],
-      [4, 'end'],
+      [8, 'end'],
     ])
+  })
+
+  it('keeps only the first label when even the two ends would overlap', () => {
+    expect(thinTicks(row(5, 10, 'Sep 21')).map((t) => [t.value, t.anchor])).toEqual([[0, 'start']])
+    expect(thinTicks(row(2, 20, 'Sep 21')).map((t) => [t.value, t.anchor])).toEqual([[0, 'start']])
   })
 })
 

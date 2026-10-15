@@ -40,6 +40,8 @@ const phrases = [
   'skipped a date outside the x domain',
   'has no valid dates',
   'has no `title`',
+  'has a value that is not a date',
+  'must be a function on a band or point scale',
 ]
 const leaks = phrases.filter((phrase) => code.includes(phrase))
 if (leaks.length > 0) {

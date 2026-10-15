@@ -234,6 +234,23 @@ describe('time scales', () => {
     expect(warn.mock.calls[0]?.[1]).toContain('no valid dates')
   })
 
+  it('warns once and uses the data when an explicit domain has a value that is not a date', () => {
+    const warn = vi.fn()
+    const s = createScale(
+      { type: 'time', field: 'at', domain: ['2026-03-01', 'soon'] },
+      [{ at: '2026-03-02' }, { at: '2026-03-04' }],
+      'x',
+      100,
+      warn,
+    )
+    if (s.kind !== 'time') throw new Error('expected a time scale')
+    // The inferred domain is the data's, rounded out to day ticks.
+    expect(s.scale.domain()).toEqual([Date.UTC(2026, 2, 2), Date.UTC(2026, 2, 4)])
+    expect(warn).toHaveBeenCalledTimes(1)
+    expect(warn.mock.calls[0]?.[0]).toBe('x-time-domain-invalid')
+    expect(warn.mock.calls[0]?.[1]).toContain('has a value that is not a date')
+  })
+
   it('has no category centre or step', () => {
     const s = createScale(
       { type: 'time', domain: ['2026-01-01', '2026-01-02'] },

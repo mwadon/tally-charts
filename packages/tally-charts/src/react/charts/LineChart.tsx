@@ -310,7 +310,8 @@ export function LineChart<D>({
   const labelled = useMemo(() => rows.map((r) => ({ ...r, label: xLabel(r) })), [rows, xLabel])
 
   const targetSpec = typeof target === 'number' ? { value: target } : target
-  // The target counts toward the inferred domain, so a goal above or below the data is drawn.
+  // The target counts toward the inferred domain, so a goal above or below the data is drawn. The
+  // domain is rounded with the axis's own tick count, so its ends land on labelled ticks.
   const resolvedDomain =
     domain ??
     niceDomain(
@@ -318,6 +319,7 @@ export function LineChart<D>({
         [...rows.flatMap((r) => [...r.values, r.low, r.high]), targetSpec?.value ?? Number.NaN],
         false,
       ),
+      typeof yAxis === 'number' ? yAxis : undefined,
     )
   if (DEV) {
     const ids = new Set<string>()

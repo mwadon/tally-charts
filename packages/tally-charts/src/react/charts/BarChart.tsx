@@ -43,7 +43,10 @@ export interface BarChartProps<D> extends ChartPassThroughProps<D> {
   format?: FormatSpec
   /** Category axis ticks, or 'none'. Default 'ends'. */
   axis?: TickSpec | 'none'
-  /** Category axis labels: a function of the category. Default: the category itself. */
+  /**
+   * Category axis labels: a function of the category. Number presets and date formats don't apply
+   * to categories and are ignored with a development warning. Default: the category itself.
+   */
   axisFormat?: AxisFormat
   /** Default 'accent'. */
   tone?: PerItem<D, Tone>

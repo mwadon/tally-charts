@@ -104,9 +104,12 @@ function fits(ticks: readonly Tick[], measure: MeasureTick): boolean {
   return true
 }
 
-/** Drops labels until they stop overlapping: every other, every fourth, …, then only the ends. */
+/**
+ * Drops labels until they stop overlapping: every other, every fourth, …, then only the ends,
+ * and only the first when even the ends would overlap.
+ */
 export function thinTicks(ticks: readonly Tick[], measure: MeasureTick = estimateWidth): Tick[] {
-  if (ticks.length <= 2 || fits(ticks, measure)) return [...ticks]
+  if (ticks.length <= 1 || fits(ticks, measure)) return [...ticks]
   for (let step = 2; step < ticks.length; step *= 2) {
     const kept = ticks.filter((_, i) => i % step === 0)
     if (kept.length > 2 && fits(kept, measure)) return kept
@@ -114,8 +117,9 @@ export function thinTicks(ticks: readonly Tick[], measure: MeasureTick = estimat
   const first = ticks[0]
   const last = ticks[ticks.length - 1]
   if (!first || !last) return []
-  return [
+  const ends: Tick[] = [
     { ...first, anchor: 'start' },
     { ...last, anchor: 'end' },
   ]
+  return fits(ends, measure) ? ends : [{ ...first, anchor: 'start' }]
 }

@@ -151,6 +151,12 @@ export function createScale<D>(
     const zone = spec.zone ?? 'utc'
     const explicit = spec.domain?.map(toTime)
     const valid = explicit?.every((t) => t !== undefined) ?? false
+    if (DEV && explicit && !valid) {
+      warn(
+        `${axis}-time-domain-invalid`,
+        `The ${axis} time scale's \`domain\` has a value that is not a date; using the dates in the data instead.`,
+      )
+    }
     const values = valid
       ? (explicit as number[])
       : field

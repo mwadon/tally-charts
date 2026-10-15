@@ -92,6 +92,50 @@ describe('marks on a time x scale', () => {
     expect(attrs(parts(container, 'axis-label'), 'text-anchor')).toEqual(['start', 'end'])
   })
 
+  it('keeps one label per run of repeated labels when the format is coarser than the ticks', () => {
+    // Daily ticks labelled by month all read "Jan 2026": only the first stays.
+    const { container } = renderTime(<Axis side="bottom" format="month" />)
+    expect(labels(container)).toEqual(['Jan 2026'])
+    expect(attrs(parts(container, 'axis-label'), 'x')).toEqual(['0'])
+  })
+
+  it('never lets relabelled time ticks overlap after thinning', () => {
+    // A year of weeks at many widths. At 196px, thinning kept "Oct 2025", "Apr", "Oct", and the
+    // relabelled "Apr 2026" no longer fitted between its neighbours.
+    const data = Array.from({ length: 52 }, (_, i) => ({ date: Date.UTC(2025, 11, 29 + 7 * i) }))
+    for (let width = 100; width <= 480; width += 4) {
+      const { container, unmount } = render(
+        <Chart
+          title="Weeks"
+          width={width}
+          height={100}
+          margin={{ top: 0, right: 0, bottom: 0, left: 0 }}
+          data={data}
+          x={{ type: 'time', field: 'date' }}
+          y={{ domain: [0, 2] }}
+        >
+          <Axis side="bottom" />
+        </Chart>,
+      )
+      const boxes = parts(container, 'axis-label').map((el) => {
+        const x = Number(el.getAttribute('x'))
+        const w = (el.textContent ?? '').length * 6.5
+        const anchor = el.getAttribute('text-anchor')
+        return anchor === 'start'
+          ? [x, x + w]
+          : anchor === 'end'
+            ? [x - w, x]
+            : [x - w / 2, x + w / 2]
+      })
+      for (let i = 1; i < boxes.length; i++) {
+        expect((boxes[i - 1]?.[1] ?? 0) + 8, `width ${width}`).toBeLessThanOrEqual(
+          boxes[i]?.[0] ?? 0,
+        )
+      }
+      unmount()
+    }
+  })
+
   it('uses the provider locale for dates', () => {
     const { container } = render(
       <ChartsProvider locale="de-DE">
