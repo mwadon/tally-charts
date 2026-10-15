@@ -309,8 +309,26 @@ export function LeakHeatmap() {
 export function UsageRunway() {
   const now = '2026-10-15T02:00:00Z'
   const rows = [
-    { id: 'pro', label: 'Pro plan', ...runwayForecast({ used: 0.85, windowStart: '2026-10-09T11:22:00Z', resetAt: '2026-10-16T11:22:00Z', now }) },
-    { id: 'team', label: 'Team seat', ...runwayForecast({ used: 0.48, windowStart: '2026-10-09T20:13:00Z', resetAt: '2026-10-16T20:13:00Z', now }) },
+    {
+      id: 'pro',
+      label: 'Pro plan',
+      ...runwayForecast({
+        used: 0.85,
+        windowStart: '2026-10-09T11:22:00Z',
+        resetAt: '2026-10-16T11:22:00Z',
+        now,
+      }),
+    },
+    {
+      id: 'team',
+      label: 'Team seat',
+      ...runwayForecast({
+        used: 0.48,
+        windowStart: '2026-10-09T20:13:00Z',
+        resetAt: '2026-10-16T20:13:00Z',
+        now,
+      }),
+    },
     { id: 'starter', label: 'Starter', disconnected: true, status: 'Reconnect to forecast' },
   ]
   return (

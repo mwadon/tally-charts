@@ -1457,11 +1457,21 @@
     fill: CanvasText;
   }
 
-  [data-ch-part="runway-cell"][data-ch-level="1"] { fill-opacity: 0.15; }
-  [data-ch-part="runway-cell"][data-ch-level="2"] { fill-opacity: 0.35; }
-  [data-ch-part="runway-cell"][data-ch-level="3"] { fill-opacity: 0.5; }
-  [data-ch-part="runway-cell"][data-ch-level="4"] { fill-opacity: 0.7; }
-  [data-ch-part="runway-cell"][data-ch-level="5"] { fill-opacity: 1; }
+  [data-ch-part="runway-cell"][data-ch-level="1"] {
+    fill-opacity: 0.15;
+  }
+  [data-ch-part="runway-cell"][data-ch-level="2"] {
+    fill-opacity: 0.35;
+  }
+  [data-ch-part="runway-cell"][data-ch-level="3"] {
+    fill-opacity: 0.5;
+  }
+  [data-ch-part="runway-cell"][data-ch-level="4"] {
+    fill-opacity: 0.7;
+  }
+  [data-ch-part="runway-cell"][data-ch-level="5"] {
+    fill-opacity: 1;
+  }
 
   [data-ch-part="runway-cell"][data-ch-state="runs-out"] {
     fill: Canvas;
