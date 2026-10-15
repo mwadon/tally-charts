@@ -17,7 +17,14 @@ import { NearestPointer } from '../marks/NearestPointer'
 import { RowLabels } from '../marks/RowLabels'
 import { Tooltip } from '../overlays/Tooltip'
 import { toneVar } from '../ui/util'
-import { type ChartPassThroughProps, headerOf, toNumber, userCallbacks } from './shared'
+import {
+  type ChartPassThroughProps,
+  type ChartTooltip,
+  headerOf,
+  toNumber,
+  tooltipContent,
+  userCallbacks,
+} from './shared'
 
 export interface StripSeries<D> {
   /** Unique key; also part of each point id (`<id>:<row id>`). */
@@ -54,8 +61,11 @@ export interface StripPlotProps<D> extends Omit<ChartPassThroughProps<D>, 'aspec
   axisFormat?: AxisFormat
   /** Hidden data table for screen readers. Default true. */
   dataTable?: boolean
-  /** Default true. */
-  tooltip?: boolean
+  /**
+   * Tooltip on hover and focus: `true` for the default pill, or a function that renders the
+   * content for a point (`point.datum` is your row). Default true.
+   */
+  tooltip?: ChartTooltip<D>
 }
 
 interface StripRow<D> {
@@ -272,7 +282,7 @@ export function StripPlot<D>({
       />
       <RowLabels data={seriesRows} y="key" text="label" maxWidth={labelWidth - 12} />
       {axis === 'none' ? null : <Axis side="bottom" ticks={axis} format={axisFmt} />}
-      {tooltip ? <Tooltip /> : null}
+      {tooltip ? <Tooltip content={tooltipContent(tooltip)} /> : null}
       {children}
     </Chart>
   )

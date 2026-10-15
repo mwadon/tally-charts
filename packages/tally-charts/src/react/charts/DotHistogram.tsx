@@ -20,7 +20,14 @@ import { Target } from '../marks/Target'
 import { Callout } from '../overlays/Callout'
 import { Tooltip } from '../overlays/Tooltip'
 import type { TooltipSegment } from '../types'
-import { type ChartPassThroughProps, headerOf, toNumber, userCallbacks } from './shared'
+import {
+  type ChartPassThroughProps,
+  type ChartTooltip,
+  headerOf,
+  toNumber,
+  tooltipContent,
+  userCallbacks,
+} from './shared'
 
 export interface DotHistogramProps<D> extends Omit<ChartPassThroughProps<D>, 'aspectRatio'> {
   data: readonly D[]
@@ -53,8 +60,11 @@ export interface DotHistogramProps<D> extends Omit<ChartPassThroughProps<D>, 'as
   minRadius?: number
   /** Hidden data table for screen readers. Default true. */
   dataTable?: boolean
-  /** Default true. */
-  tooltip?: boolean
+  /**
+   * Tooltip on hover and focus: `true` for the default pill, or a function that renders the
+   * content for a point (`point.datum` is your row). Default true.
+   */
+  tooltip?: ChartTooltip<D>
 }
 
 interface HistogramRow<D> {
@@ -246,7 +256,7 @@ export function DotHistogram<D>({
         warn={warn}
       />
       {axis === 'none' ? null : <Axis side="bottom" ticks={axis} format={axisFormat ?? format} />}
-      {tooltip ? <Tooltip /> : null}
+      {tooltip ? <Tooltip content={tooltipContent(tooltip)} /> : null}
       {children}
     </Chart>
   )

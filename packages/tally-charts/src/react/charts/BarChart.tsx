@@ -12,7 +12,13 @@ import { Bars } from '../marks/Bars'
 import { Target } from '../marks/Target'
 import { ValueLabel } from '../marks/ValueLabel'
 import { Tooltip } from '../overlays/Tooltip'
-import { type ChartPassThroughProps, headerOf, toNumber } from './shared'
+import {
+  type ChartPassThroughProps,
+  type ChartTooltip,
+  headerOf,
+  toNumber,
+  tooltipContent,
+} from './shared'
 
 export interface BarChartProps<D> extends ChartPassThroughProps<D> {
   data: readonly D[]
@@ -47,8 +53,11 @@ export interface BarChartProps<D> extends ChartPassThroughProps<D> {
   padding?: number
   /** Hidden data table for screen readers. Default true. */
   dataTable?: boolean
-  /** Default true. */
-  tooltip?: boolean
+  /**
+   * Tooltip on hover and focus: `true` for the default pill, or a function that renders the
+   * content for a point (`point.datum` is your row). Default true.
+   */
+  tooltip?: ChartTooltip<D>
 }
 
 const VERTICAL_MARGIN: Margin = { top: 24, right: 0, bottom: 28, left: 0 }
@@ -133,7 +142,7 @@ export function BarChart<D>({
       {axis === 'none' ? null : (
         <Axis side={vertical ? 'bottom' : 'left'} ticks={axis} format={axisFormat} />
       )}
-      {tooltip ? <Tooltip /> : null}
+      {tooltip ? <Tooltip content={tooltipContent(tooltip, false)} /> : null}
       {children}
     </Chart>
   )

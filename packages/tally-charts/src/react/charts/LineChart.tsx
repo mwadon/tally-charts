@@ -27,7 +27,14 @@ import { Target } from '../marks/Target'
 import { Tooltip } from '../overlays/Tooltip'
 import type { ChartPoint, TooltipSegment } from '../types'
 import { useRegisterPoints } from '../useRegisterPoints'
-import { type ChartPassThroughProps, headerOf, toNumber, userCallbacks } from './shared'
+import {
+  type ChartPassThroughProps,
+  type ChartTooltip,
+  headerOf,
+  toNumber,
+  tooltipContent,
+  userCallbacks,
+} from './shared'
 
 export type LineSeriesStyle = 'actual' | 'forecast' | 'scenario'
 
@@ -100,8 +107,11 @@ export interface LineChartProps<D> extends Omit<ChartPassThroughProps<D>, 'aspec
   radius?: number
   /** Hidden data table for screen readers. Default true. */
   dataTable?: boolean
-  /** Default true. */
-  tooltip?: boolean
+  /**
+   * Tooltip on hover and focus: `true` for the default pill, or a function that renders the
+   * content for a point (`point.datum` is your row). Default true.
+   */
+  tooltip?: ChartTooltip<D>
 }
 
 interface LineRow<D> {
@@ -396,7 +406,7 @@ export function LineChart<D>({
       <LinePoints rows={labelled} series={series} fmt={fmt} radius={radius} />
       {yAxis === 'none' ? null : <Axis side="left" ticks={yAxis} format={valueFormat} />}
       {xAxis === 'none' ? null : <Axis side="bottom" ticks={xAxis} format={xAxisFormat} />}
-      {tooltip ? <Tooltip /> : null}
+      {tooltip ? <Tooltip content={tooltipContent(tooltip)} /> : null}
       {children}
     </Chart>
   )

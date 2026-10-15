@@ -16,7 +16,12 @@ import { ColumnHighlight } from '../marks/ColumnHighlight'
 import { Callout } from '../overlays/Callout'
 import { Tooltip } from '../overlays/Tooltip'
 import type { TooltipSegment } from '../types'
-import { type ChartPassThroughProps, userCallbacks } from './shared'
+import {
+  type ChartPassThroughProps,
+  type ChartTooltip,
+  tooltipContent,
+  userCallbacks,
+} from './shared'
 
 export interface BridgeStart {
   label: string
@@ -55,8 +60,11 @@ export interface BridgeChartProps<S extends BridgeStep = BridgeStep>
   padding?: number
   /** Hidden data table for screen readers. Default true. */
   dataTable?: boolean
-  /** Default true. */
-  tooltip?: boolean
+  /**
+   * Tooltip on hover and focus: `true` for the default pill, or a function that renders the
+   * content for a point (`point.datum` is your row). Default true.
+   */
+  tooltip?: ChartTooltip<S | BridgeStart>
 }
 
 interface BridgeRow<S> {
@@ -329,7 +337,7 @@ export function BridgeChart<S extends BridgeStep = BridgeStep>({
         fill={(r) => (solidLast(r) ? 'solid' : 'hatch-fade')}
         format={format}
         ariaLabel={ariaOf}
-        tooltip={segmentsOf}
+        segments={segmentsOf}
       />
       <Bars<BridgeRow<S>>
         data={caps}
@@ -348,7 +356,7 @@ export function BridgeChart<S extends BridgeStep = BridgeStep>({
         highlight={highlightLast ? lastRow?.key : undefined}
       />
       {callout && lastRow ? <LastCallout row={lastRow} rows={rows} segments={callout} /> : null}
-      {tooltip ? <Tooltip /> : null}
+      {tooltip ? <Tooltip content={tooltipContent(tooltip)} /> : null}
       {children}
     </Chart>
   )

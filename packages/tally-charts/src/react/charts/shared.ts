@@ -1,8 +1,16 @@
 export { toNumber } from '../../core/number'
 
+import type { ReactNode } from 'react'
 import type { Id } from '../../core/types'
 import type { ChartProps } from '../Chart'
+import type { TooltipProps } from '../overlays/Tooltip'
 import type { ChartPoint } from '../types'
+
+/**
+ * A high-level chart's `tooltip`: `true` for the default pill, `false` for none, or a function
+ * that renders the content for a point, whose `datum` is your row.
+ */
+export type ChartTooltip<D> = boolean | ((point: ChartPoint<D>) => ReactNode)
 
 /** `<Chart>` props every high-level chart passes through unchanged. */
 export type ChartPassThroughProps<D> = Pick<
@@ -38,6 +46,18 @@ export interface WrappedRow<D> {
 
 function unwrapPoint<D>(point: ChartPoint): ChartPoint<D> {
   return { ...point, datum: (point.datum as WrappedRow<D>).datum }
+}
+
+/**
+ * `<Tooltip content>` for a chart's `tooltip` prop: undefined (the default pill) unless it is a
+ * function. `unwrap` is false for charts whose rows already are the user's data.
+ */
+export function tooltipContent<D>(
+  tooltip: ChartTooltip<D> | undefined,
+  unwrap = true,
+): TooltipProps['content'] {
+  if (typeof tooltip !== 'function') return undefined
+  return (point) => tooltip(unwrap ? unwrapPoint<D>(point) : (point as ChartPoint<D>))
 }
 
 /** Callbacks of a high-level chart report the user's datum, not the internal row. */

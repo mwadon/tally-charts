@@ -12,7 +12,14 @@ import { Bars } from '../marks/Bars'
 import { RowDividers, RowLabels } from '../marks/RowLabels'
 import { Tooltip } from '../overlays/Tooltip'
 import type { TooltipSegment } from '../types'
-import { type ChartPassThroughProps, headerOf, toNumber, userCallbacks } from './shared'
+import {
+  type ChartPassThroughProps,
+  type ChartTooltip,
+  headerOf,
+  toNumber,
+  tooltipContent,
+  userCallbacks,
+} from './shared'
 
 export type ComparisonStatus = 'over' | 'under' | 'on-plan' | 'unknown'
 
@@ -54,8 +61,11 @@ export interface ComparisonBarsProps<D> extends Omit<ChartPassThroughProps<D>, '
   dividers?: boolean
   /** Hidden data table for screen readers. Default true. */
   dataTable?: boolean
-  /** Default true. */
-  tooltip?: boolean
+  /**
+   * Tooltip on hover and focus: `true` for the default pill, or a function that renders the
+   * content for a point (`point.datum` is your row). Default true.
+   */
+  tooltip?: ChartTooltip<D>
 }
 
 interface ComparisonRow<D> {
@@ -249,7 +259,7 @@ export function ComparisonBars<D>({
         radius={radius}
         format={format}
         ariaLabel={ariaOf}
-        tooltip={segmentsOf}
+        segments={segmentsOf}
       />
       <Bars<ComparisonRow<D>>
         data={overRows}
@@ -274,7 +284,7 @@ export function ComparisonBars<D>({
           <RowLabels<ComparisonRow<D>> side="right" text="delta" tone={(r) => r.deltaTone} />
         </>
       ) : null}
-      {tooltip ? <Tooltip /> : null}
+      {tooltip ? <Tooltip content={tooltipContent(tooltip)} /> : null}
       {children}
     </Chart>
   )

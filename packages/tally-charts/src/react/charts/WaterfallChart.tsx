@@ -16,7 +16,12 @@ import { Connector, type ConnectorLink } from '../marks/Connector'
 import { RowLabels } from '../marks/RowLabels'
 import { Tooltip } from '../overlays/Tooltip'
 import type { TooltipSegment } from '../types'
-import { type ChartPassThroughProps, userCallbacks } from './shared'
+import {
+  type ChartPassThroughProps,
+  type ChartTooltip,
+  tooltipContent,
+  userCallbacks,
+} from './shared'
 
 export interface WaterfallStart {
   label: string
@@ -83,8 +88,11 @@ export interface WaterfallChartProps<S extends WaterfallStep = WaterfallStep>
   connectors?: boolean
   /** Hidden data table for screen readers. Default true. */
   dataTable?: boolean
-  /** Default true. */
-  tooltip?: boolean
+  /**
+   * Tooltip on hover and focus: `true` for the default pill, or a function that renders the
+   * content for a point (`point.datum` is your row). Default true.
+   */
+  tooltip?: ChartTooltip<S | WaterfallStart | WaterfallTotal>
 }
 
 interface WaterfallRow<S> {
@@ -309,14 +317,14 @@ export function WaterfallChart<S extends WaterfallStep = WaterfallStep>({
         size={barSize}
         format={format}
         ariaLabel={ariaOf}
-        tooltip={segmentsOf}
+        segments={segmentsOf}
       />
       <RowLabels<WaterfallRow<S>> text="label" position="above" />
       <RowLabels<WaterfallRow<S>> side="right" text="text" position="above" tone={toneOfText} />
       {axis === 'none' ? null : (
         <Axis side="bottom" ticks={axis} format={axisFmt} extent={valueDomain} />
       )}
-      {tooltip ? <Tooltip /> : null}
+      {tooltip ? <Tooltip content={tooltipContent(tooltip)} /> : null}
       {children}
     </Chart>
   )

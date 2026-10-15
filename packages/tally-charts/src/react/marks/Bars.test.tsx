@@ -1,6 +1,7 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { Chart, type ChartProps } from '../Chart'
+import { Tooltip } from '../overlays/Tooltip'
 import { Bars, type BarsProps } from './Bars'
 
 type Week = { week: string; margin: number | null }
@@ -279,5 +280,23 @@ describe('<Bars>', () => {
     const { container } = renderBars({}, { margin: { top: 10, right: 0, bottom: 20, left: 0 } })
     expect(hits(container)[0]).toHaveAttribute('y', '-10')
     expect(hits(container)[0]).toHaveAttribute('height', '120')
+  })
+
+  it('builds the tooltip pill from `segments`', () => {
+    const { container } = render(
+      <Chart<Week>
+        title="Bars"
+        data={weeks}
+        width={200}
+        height={120}
+        x={{ type: 'band', field: 'week', padding: 0 }}
+        y={{ field: 'margin', domain: [0, 20] }}
+        activeId={1}
+      >
+        <Bars<Week> segments={(d) => [{ value: d.week }, { value: 'custom' }]} />
+        <Tooltip />
+      </Chart>,
+    )
+    expect(container.querySelector('[data-ch-part="tooltip"]')).toHaveTextContent('W2custom')
   })
 })

@@ -51,7 +51,7 @@ export type { RankedBarsProps } from './react/charts/RankedBars'
 export { RankedBars } from './react/charts/RankedBars'
 export type { StripPlotProps, StripSeries } from './react/charts/StripPlot'
 export { StripPlot } from './react/charts/StripPlot'
-export type { ChartPassThroughProps } from './react/charts/shared'
+export type { ChartPassThroughProps, ChartTooltip } from './react/charts/shared'
 export type { WaffleColumnsProps } from './react/charts/WaffleColumns'
 export { WaffleColumns } from './react/charts/WaffleColumns'
 export type {

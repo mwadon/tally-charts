@@ -25,7 +25,7 @@ export interface BarsProps<D> {
   format?: FormatSpec
   /** Category label for tooltips and announcements. Defaults to the category value. */
   label?: Accessor<D, string>
-  tooltip?: (d: D, i: number) => TooltipSegment[]
+  segments?: (d: D, i: number) => readonly TooltipSegment[]
   /** Screen-reader text per bar. Default "<label>, <formatted value>". */
   ariaLabel?: (d: D, i: number) => string
   /** Start value per row; the bar runs from it to the value. Default: the zero baseline. */
@@ -83,7 +83,7 @@ export function Bars<D>(props: BarsProps<D>) {
   )
 
   const format = useMemo(() => createFormat(props.format), [createFormat, props.format])
-  const { label, tooltip, ariaLabel } = props
+  const { label, segments, ariaLabel } = props
   const points: ChartPoint[] = useMemo(() => {
     const getLabel = label ? resolveAccessor(label) : undefined
     return layout.bars.map((bar) => {
@@ -96,12 +96,12 @@ export function Bars<D>(props: BarsProps<D>) {
         x: bar.anchor.x,
         y: bar.anchor.y,
         label: ariaLabel ? ariaLabel(datum, bar.index) : `${name}, ${format(bar.value)}`,
-        segments: tooltip
-          ? tooltip(datum, bar.index)
+        segments: segments
+          ? segments(datum, bar.index)
           : [{ value: name }, { value: format(bar.value) }],
       }
     })
-  }, [layout, label, tooltip, ariaLabel, format])
+  }, [layout, label, segments, ariaLabel, format])
   useRegisterPoints(interactive ? points : NO_POINTS)
 
   const toneOf = resolvePerItem<D, Tone>(props.tone ?? 'accent')

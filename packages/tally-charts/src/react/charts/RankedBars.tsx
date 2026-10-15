@@ -10,7 +10,14 @@ import type { DataTableColumn, DataTableSpec } from '../DataTable'
 import { Bars } from '../marks/Bars'
 import { RowLabels, type RowLabelsProps } from '../marks/RowLabels'
 import { Tooltip } from '../overlays/Tooltip'
-import { type ChartPassThroughProps, headerOf, toNumber, userCallbacks } from './shared'
+import {
+  type ChartPassThroughProps,
+  type ChartTooltip,
+  headerOf,
+  toNumber,
+  tooltipContent,
+  userCallbacks,
+} from './shared'
 
 export interface RankedBarsProps<D> extends Omit<ChartPassThroughProps<D>, 'aspectRatio'> {
   data: readonly D[]
@@ -52,8 +59,11 @@ export interface RankedBarsProps<D> extends Omit<ChartPassThroughProps<D>, 'aspe
   track?: boolean
   /** Hidden data table for screen readers. Default true. */
   dataTable?: boolean
-  /** Full label and value on hover and focus, so cut labels stay readable. Default true. */
-  tooltip?: boolean
+  /**
+   * Tooltip on hover and focus, so cut labels stay readable: `true` for the default pill (full
+   * label and value), or a function that renders the content for a point. Default true.
+   */
+  tooltip?: ChartTooltip<D>
 }
 
 interface RankedRow<D> {
@@ -235,7 +245,7 @@ export function RankedBars<D>({
         track={track}
         format={format}
         ariaLabel={(r) => (r.meta ? `${r.label}, ${r.text}, ${r.meta}` : `${r.label}, ${r.text}`)}
-        tooltip={(r) => [{ value: r.label }, { value: r.text, tone: valueTone(r) }]}
+        segments={(r) => [{ value: r.label }, { value: r.text, tone: valueTone(r) }]}
       />
       <g data-ch-part="row-text" transform={textShift ? `translate(0 ${textShift})` : undefined}>
         {stacked ? (
@@ -271,7 +281,7 @@ export function RankedBars<D>({
           tone={valueTone}
         />
       </g>
-      {tooltip ? <Tooltip /> : null}
+      {tooltip ? <Tooltip content={tooltipContent(tooltip)} /> : null}
       {children}
     </Chart>
   )
