@@ -45,7 +45,8 @@ export function Tooltip({ content, offset = 10 }: TooltipProps) {
       className="ch-tooltip"
       data-ch-part="tooltip"
       data-ch-placement={position.placement}
-      style={{ left: position.left, top: position.top }}
+      // Never wider than the chart: a long pill wraps instead of widening the page.
+      style={{ left: position.left, top: position.top, maxWidth: ctx.width }}
     >
       {content ? content(point) : <TooltipPill segments={point.segments} />}
     </div>,

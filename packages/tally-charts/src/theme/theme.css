@@ -272,8 +272,11 @@
   outline-offset: 4px;
 }
 
+/* max-width: the svg's first-render width (640px) must not hold open a grid or flex track it
+   sits in; the chart measures the container and redraws at its width. */
 .ch-svg {
   display: block;
+  max-width: 100%;
   overflow: visible;
 }
 
@@ -567,9 +570,12 @@
 }
 
 /* ---------- Tooltip pill ---------- */
+/* As wide as the content (not the space left of the anchor), capped at the chart width by an
+   inline max-width; past that the pill wraps between, and then inside, its segments. */
 .ch-tooltip {
   position: absolute;
   z-index: 1;
+  width: max-content;
 }
 
 /* The pointer can rest on a hover tooltip without closing it (WCAG 1.4.13): over the tooltip,
@@ -587,6 +593,10 @@
 
 [data-ch-part="tooltip-pill"] {
   display: inline-flex;
+  flex-wrap: wrap;
+  row-gap: 2px;
+  box-sizing: border-box;
+  max-width: 100%;
   align-items: center;
   padding: 6px 14px;
   border-radius: 999px;
@@ -595,7 +605,6 @@
   box-shadow: var(--ch-tooltip-shadow);
   font-size: 13px;
   line-height: 1.4;
-  white-space: nowrap;
   font-variant-numeric: var(--ch-font-numeric);
 }
 

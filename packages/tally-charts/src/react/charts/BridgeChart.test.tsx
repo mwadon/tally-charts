@@ -291,4 +291,38 @@ describe('<BridgeChart>', () => {
       }
     }
   })
+
+  it('cuts notes to their column and keeps every total when the columns are roomy', () => {
+    const { container } = renderBridge()
+    expect(parts(container, '[data-ch-part="column-total"]')).toHaveLength(5)
+    expect(parts(container, '[data-ch-part="column-note"]').map((t) => t.textContent)).toEqual([
+      '−$260 discount',
+      '−$260 labor overrun',
+      '−$240 callback',
+      '−$100 materials',
+    ])
+  })
+
+  it('cuts a long note to its column and keeps the whole note in a title', () => {
+    const long = [
+      { label: 'After discount', value: -260, note: 'discount for the repeat customer' },
+    ]
+    const { container } = renderBridge({ steps: long, width: 300 })
+    const note = parts(container, '[data-ch-part="column-note"]')[0]
+    expect(note?.textContent).toMatch(/…$/)
+    expect(note?.parentElement?.querySelector('title')).toHaveTextContent(
+      '−$260 discount for the repeat customer',
+    )
+  })
+
+  it('thins the totals from the last one and leaves the notes out when the columns are narrow', () => {
+    const { container } = renderBridge({ width: 200 })
+    // 40px steps can't hold a 22px "$1,260": every other total, counted back from the last.
+    expect(parts(container, '[data-ch-part="column-total"]').map((t) => t.textContent)).toEqual([
+      '$1,260',
+      '$740',
+      '$400',
+    ])
+    expect(parts(container, '[data-ch-part="column-note"]')).toHaveLength(0)
+  })
 })

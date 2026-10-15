@@ -25,7 +25,7 @@ export interface RowLabelsProps<D> {
   inset?: number
   /** 'middle' centres the text in its row; 'above' puts it at the top of the row. Default 'middle'. */
   position?: 'middle' | 'above'
-  /** Longest text in px; longer text is cut with an ellipsis. */
+  /** Longest text in px; longer text is cut with an ellipsis, and the full text goes in a `<title>`. */
   maxWidth?: number
   /** Text color role per row. Default: ink. */
   tone?: PerItem<D, Tone | undefined>
@@ -80,8 +80,10 @@ export function RowLabels<D>(props: RowLabelsProps<D>) {
       {data.map((d, i) => {
         const start = band(String(getRow(d, i)))
         if (start === undefined) return null
-        const text = cut(getText(d, i))
-        const sub = getSub ? cut(getSub(d, i)) : ''
+        const fullText = String(getText(d, i) ?? '')
+        const fullSub = getSub ? String(getSub(d, i) ?? '') : ''
+        const text = cut(fullText)
+        const sub = getSub ? cut(fullSub) : ''
         if (!text && !sub) return null
         const tone = toneOf?.(d, i, data)
         const mid = start + size / 2
@@ -92,6 +94,9 @@ export function RowLabels<D>(props: RowLabelsProps<D>) {
         return (
           // biome-ignore lint/suspicious/noArrayIndexKey: one label group per data row, in order
           <g key={i}>
+            {text !== fullText || sub !== fullSub ? (
+              <title>{[fullText, fullSub].filter(Boolean).join(', ')}</title>
+            ) : null}
             {text ? (
               <text
                 data-ch-part="row-label"

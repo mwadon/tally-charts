@@ -201,4 +201,19 @@ describe('<WaterfallChart>', () => {
       }
     }
   })
+
+  it('cuts a step label to the room the widest value text leaves on its line', () => {
+    const { container } = renderWaterfall({
+      width: 200,
+      steps: [{ label: 'Material variance in Dallas', value: -20 }],
+      stepLabel: () => '−1.6 pts · $7.7K',
+    })
+    const step = column(container, 'left')[1] as Element
+    // 200px − 16 characters × 8px − 12px gap = 60px: eight characters, with the ellipsis.
+    expect(step.textContent).toBe('Materia…')
+    expect(step.parentElement?.querySelector('title')).toHaveTextContent(
+      'Material variance in Dallas',
+    )
+    expect(column(container, 'left')[0]).toHaveTextContent(/^Target$/)
+  })
 })

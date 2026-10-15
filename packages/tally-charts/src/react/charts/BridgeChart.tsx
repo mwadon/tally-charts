@@ -3,6 +3,8 @@ import type { FormatSpec, Formatter } from '../../core/format'
 import { niceDomain } from '../../core/linear'
 import { inferLinearDomain } from '../../core/scale'
 import { runningTotals } from '../../core/steps'
+import { truncateLabel } from '../../core/text'
+import { fits, type Tick } from '../../core/ticks'
 import type { Id, Tone } from '../../core/types'
 import { createWarner, DEV } from '../../core/warn'
 import { Chart } from '../Chart'
@@ -106,6 +108,8 @@ const CALLOUT_SPACE = 52
  * `[data-ch-part="column-total"]` font size in theme.css and must change with it.
  */
 const TOTAL_ASCENT = 18
+/** Width of one character of a 22px column total, in px (tabular figures, about 0.6em). */
+const TOTAL_CHAR = 13
 /** Gap between a pinned callout and the labels below it, in px. */
 const CALLOUT_GAP = 8
 /**
@@ -117,6 +121,24 @@ const CALLOUT_ROOM = 40
 /** Baseline of a column's total: above the cap, and above its note when it has one. */
 const totalBaseline = (top: number, note: string) => top - (note ? NOTE_GAP + VALUE_GAP : VALUE_GAP)
 
+/**
+ * Totals that fit side by side: all of them, else every other one counting back from the last
+ * (the highlighted result), every fourth, …, and at least the last.
+ */
+function fittingTotals(ticks: readonly Tick[]): Tick[] {
+  const measure = (t: Tick) => t.label.length * TOTAL_CHAR
+  for (let step = 1; step < ticks.length; step *= 2) {
+    const kept = ticks.filter((_, i) => (ticks.length - 1 - i) % step === 0)
+    if (fits(kept, measure)) return kept
+  }
+  return ticks.slice(-1)
+}
+
+/**
+ * Totals and notes above the columns. Notes are cut to a column step; in a chart too narrow for
+ * the 22px totals, the totals are thinned like axis labels (the last one stays) and the notes
+ * hidden, so nothing overlaps.
+ */
 function ColumnTotals<S>({ rows, fmt }: { rows: readonly BridgeRow<S>[]; fmt: Formatter }) {
   const ctx = useChartContext('BridgeChart')
   if (ctx.x.kind !== 'band' || ctx.y.kind !== 'linear') return null
@@ -125,6 +147,16 @@ function ColumnTotals<S>({ rows, fmt }: { rows: readonly BridgeRow<S>[]; fmt: Fo
   const half = band.bandwidth() / 2
   const [r0, r1] = linear.range()
   const clamp = (px: number) => Math.min(Math.max(r0, r1), Math.max(Math.min(r0, r1), px))
+  const ticks: Tick[] = rows.flatMap((r) => {
+    const start = band(r.key)
+    return start === undefined
+      ? []
+      : [{ value: r.key, position: start + half, label: fmt(r.total), anchor: 'middle' as const }]
+  })
+  // Roomy: every total fits its own column, so totals and the notes (cut to a column) can't meet.
+  // Otherwise the totals are thinned and the notes left to the tooltip and the data table.
+  const roomy = ticks.every((t) => t.label.length * TOTAL_CHAR <= band.step() - 8)
+  const shown = new Set((roomy ? ticks : fittingTotals(ticks)).map((t) => t.value))
   return (
     <g data-ch-part="column-totals">
       {rows.map((r) => {
@@ -132,17 +164,21 @@ function ColumnTotals<S>({ rows, fmt }: { rows: readonly BridgeRow<S>[]; fmt: Fo
         if (start === undefined) return null
         const x = start + half
         const top = clamp(linear(r.top))
+        const note = roomy ? truncateLabel(r.note, band.step() - 4) : ''
         return (
           <g key={r.key}>
-            <text
-              data-ch-part="column-total"
-              x={x}
-              y={totalBaseline(top, r.note)}
-              textAnchor="middle"
-            >
-              {fmt(r.total)}
-            </text>
-            {r.note ? (
+            {note && note !== r.note ? <title>{r.note}</title> : null}
+            {shown.has(r.key) ? (
+              <text
+                data-ch-part="column-total"
+                x={x}
+                y={totalBaseline(top, r.note)}
+                textAnchor="middle"
+              >
+                {fmt(r.total)}
+              </text>
+            ) : null}
+            {note ? (
               <text
                 data-ch-part="column-note"
                 data-ch-tone={r.capTone}
@@ -152,7 +188,7 @@ function ColumnTotals<S>({ rows, fmt }: { rows: readonly BridgeRow<S>[]; fmt: Fo
                 textAnchor="middle"
                 style={toneVar(r.capTone)}
               >
-                {r.note}
+                {note}
               </text>
             ) : null}
           </g>

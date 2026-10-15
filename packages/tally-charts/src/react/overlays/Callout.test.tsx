@@ -121,4 +121,9 @@ describe('<Callout>', () => {
     const { container } = renderCallout({ id: 99 })
     expect(callout(container)).toBeNull()
   })
+
+  it('is never wider than the chart, so a long pill wraps', () => {
+    const { container } = renderCallout({ id: 0 })
+    expect(callout(container)).toHaveStyle({ maxWidth: '200px' })
+  })
 })

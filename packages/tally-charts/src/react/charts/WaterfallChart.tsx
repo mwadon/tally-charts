@@ -3,6 +3,7 @@ import type { FormatSpec } from '../../core/format'
 import { niceDomain } from '../../core/linear'
 import { inferLinearDomain } from '../../core/scale'
 import { runningTotals } from '../../core/steps'
+import { CHAR_WIDTH } from '../../core/text'
 import type { TickSpec } from '../../core/ticks'
 import type { Fill, Id, Tone } from '../../core/types'
 import { createWarner, DEV } from '../../core/warn'
@@ -138,6 +139,34 @@ function padDomain([d0, d1]: readonly [number, number]): [number, number] {
   if (lo > 0) return [lo - pad, hi]
   if (hi < 0) return [lo, hi + pad]
   return [lo, hi]
+}
+
+/** Space between a row's label and its value text, in px. */
+const TEXT_GAP = 12
+
+/**
+ * The row label and the value text share the line above each bar: the label is cut to the width
+ * the widest value text leaves. The width is only known inside <Chart>.
+ */
+function StepLabels<S>({
+  rows,
+  toneOfText,
+}: {
+  rows: readonly WaterfallRow<S>[]
+  toneOfText: (r: WaterfallRow<S>) => Tone | undefined
+}) {
+  const ctx = useChartContext('WaterfallChart')
+  const widest = Math.max(0, ...rows.map((r) => r.text.length * (CHAR_WIDTH + 1)))
+  return (
+    <>
+      <RowLabels<WaterfallRow<S>>
+        text="label"
+        position="above"
+        maxWidth={Math.max(0, ctx.width - widest - TEXT_GAP)}
+      />
+      <RowLabels<WaterfallRow<S>> side="right" text="text" position="above" tone={toneOfText} />
+    </>
+  )
 }
 
 /** Connectors run from the bottom of one bar to the top of the next. */
@@ -324,8 +353,7 @@ export function WaterfallChart<S extends WaterfallStep = WaterfallStep>({
         ariaLabel={ariaOf}
         segments={segmentsOf}
       />
-      <RowLabels<WaterfallRow<S>> text="label" position="above" />
-      <RowLabels<WaterfallRow<S>> side="right" text="text" position="above" tone={toneOfText} />
+      <StepLabels<S> rows={rows} toneOfText={toneOfText} />
       {axis === 'none' ? null : (
         <Axis side="bottom" ticks={axis} format={axisFmt} extent={valueDomain} />
       )}

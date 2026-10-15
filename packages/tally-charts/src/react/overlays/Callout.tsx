@@ -105,7 +105,8 @@ export function Callout({
         className="ch-tooltip ch-callout"
         data-ch-part="callout"
         data-ch-placement={position.placement}
-        style={{ left: position.left, top: position.top }}
+        // Never wider than the chart: a long pill wraps instead of widening the page.
+        style={{ left: position.left, top: position.top, maxWidth: ctx.width }}
       >
         {content ?? <TooltipPill segments={segments ?? point.segments} />}
       </div>

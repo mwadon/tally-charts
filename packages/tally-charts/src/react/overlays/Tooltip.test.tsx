@@ -71,4 +71,9 @@ describe('<Tooltip>', () => {
     rerender(<Example data={three.slice(0, 2)} activeId={2} />)
     expect(tooltip(container)).toBeNull()
   })
+
+  it('is never wider than the chart, so a long pill wraps', () => {
+    const { container } = render(<Example activeId={1} />)
+    expect(tooltip(container)).toHaveStyle({ maxWidth: '300px' })
+  })
 })

@@ -62,10 +62,14 @@ describe('<RowLabels>', () => {
     expect(labels(container)[1]).toHaveAttribute('dominant-baseline', 'hanging')
   })
 
-  it('cuts long labels with an ellipsis', () => {
+  it('cuts long labels with an ellipsis and keeps the full text in a title', () => {
     const { container } = renderRows({ maxWidth: 70 })
-    expect(labels(container)[1]).toHaveTextContent('Materials…')
+    expect(labels(container)[1]).toHaveTextContent(/^Materials…$/)
+    expect(labels(container)[1]?.parentElement?.querySelector('title')).toHaveTextContent(
+      'Materials and supplies',
+    )
     expect(labels(container)[0]).toHaveTextContent('Labor')
+    expect(labels(container)[0]?.parentElement?.querySelector('title')).toBeNull()
   })
 
   it('colors text by tone and marks muted columns', () => {

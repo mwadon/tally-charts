@@ -93,7 +93,8 @@ function extent(tick: Tick, measure: MeasureTick): [number, number] {
   return [tick.position - size / 2, tick.position + size / 2]
 }
 
-function fits(ticks: readonly Tick[], measure: MeasureTick): boolean {
+/** True when no two labels overlap (with an 8px gap), measured with `measure`. */
+export function fits(ticks: readonly Tick[], measure: MeasureTick): boolean {
   // Vertical axes list ticks top-down (descending position); compare in position order.
   const sorted = [...ticks].sort((a, b) => a.position - b.position)
   for (let i = 1; i < sorted.length; i++) {

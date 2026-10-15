@@ -222,6 +222,18 @@ describe('theme.css', () => {
     expect(css).not.toMatch(/\[data-ch-part="callout"\][^{]*\{[^}]*pointer-events: auto/)
   })
 
+  it('lets a chart shrink inside a grid or flex track', () => {
+    expect(css).toMatch(/\.ch-svg \{[^}]*max-width: 100%;/)
+  })
+
+  it('sizes tooltips to their content and lets a capped pill wrap', () => {
+    expect(css).toMatch(/\.ch-tooltip \{[^}]*width: max-content;/)
+    const pill = css.match(/\[data-ch-part="tooltip-pill"\] \{([^}]*)\}/)?.[1] ?? ''
+    expect(pill).toContain('flex-wrap: wrap')
+    expect(pill).toContain('max-width: 100%')
+    expect(pill).not.toContain('white-space: nowrap')
+  })
+
   it('disables motion for reduced-motion users', () => {
     expect(css).toContain('@media (prefers-reduced-motion: reduce)')
   })
