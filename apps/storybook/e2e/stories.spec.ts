@@ -244,6 +244,16 @@ test('the waffle pins its peak and hands over to the tooltip on hover', async ({
   await expect(page.locator('[data-ch-part="tooltip"]')).toContainText('Aug 3')
 })
 
+test('the waffle peak pill keeps a gap above its column', async ({ page }) => {
+  await open(page, 'reference-profit-leaked--light')
+  const pill = await page.locator('[data-ch-part="callout"]').boundingBox()
+  if (!pill) throw new Error('no callout')
+  const tops = await page
+    .locator('[data-ch-part="dot"]')
+    .evaluateAll((els) => els.map((el) => el.getBoundingClientRect().top))
+  expect(Math.min(...tops) - (pill.y + pill.height)).toBeGreaterThanOrEqual(8)
+})
+
 test('the line chart snaps to the nearest month and lists every series', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 640 })
   await open(page, 'reference-margin-outlook--light')

@@ -11,7 +11,8 @@ const weeks: Week[] = [
 ]
 
 // unit 2 → 4, 6, 12 and 5 dots; 2 across → the tallest column has 6 rows.
-// 400 × 200 with 8px top and 28px bottom: 164px of plot height, cells of 164/6 px.
+// 400 × 200 with a 44px top (room for the peak pill) and 28px bottom: 128px of plot height,
+// cells of 128/6 px.
 function renderWaffle(props: Partial<WaffleColumnsProps<Week>> = {}) {
   return render(
     <WaffleColumns<Week>
@@ -41,7 +42,7 @@ describe('<WaffleColumns>', () => {
     const { container } = renderWaffle()
     expect(dots(container)).toHaveLength(27)
     const bottom = Math.max(...dots(container).map((d) => Number(d.getAttribute('cy'))))
-    expect(bottom).toBeCloseTo(164 - 164 / 6 / 2)
+    expect(bottom).toBeCloseTo(128 - 128 / 6 / 2)
   })
 
   it('tones groups and makes the peak solid', () => {
@@ -65,6 +66,16 @@ describe('<WaffleColumns>', () => {
     expect(callout).toHaveTextContent('Peak')
     expect(callout).toHaveTextContent('Sep 7')
     expect(callout).toHaveTextContent('24')
+  })
+
+  it('leaves room above the plot for the peak pill, and none without it', () => {
+    const plotTop = (root: HTMLElement) =>
+      root.querySelector('svg > g')?.getAttribute('transform') ?? ''
+    const { container, unmount } = renderWaffle()
+    expect(plotTop(container)).toBe('translate(0,44)')
+    unmount()
+    const without = renderWaffle({ callout: false })
+    expect(plotTop(without.container)).toBe('translate(0,8)')
   })
 
   it('activates a whole column from anywhere above it', () => {
@@ -132,10 +143,10 @@ describe('<WaffleColumns>', () => {
     const { container } = renderWaffle({
       data: weeks.map((w) => (w.week === 'Sep 7' ? { ...w, leaked: 1000 } : w)),
     })
-    // 164px of plot height fits floor(164 / (2 × 1.5 + 3)) = 27 rows: 54 dots two across.
-    expect(dots(container)).toHaveLength(4 + 6 + 54 + 5)
+    // 128px of plot height fits floor(128 / (2 × 1.5 + 3)) = 21 rows: 42 dots two across.
+    expect(dots(container)).toHaveLength(4 + 6 + 42 + 5)
     expect(warn).toHaveBeenCalledTimes(1)
-    expect(warn.mock.calls[0]?.[0]).toContain('columns are capped at 54 dots')
+    expect(warn.mock.calls[0]?.[0]).toContain('columns are capped at 42 dots')
     for (const el of dots(container)) {
       for (const name of ['cx', 'cy', 'r']) {
         expect(Number.isFinite(Number(el.getAttribute(name)))).toBe(true)

@@ -37,6 +37,8 @@ describe('<RangeMeter>', () => {
     expect(container.querySelector('.ch-range-value-label')).toHaveTextContent('Actual 12.3%')
     expect(container.querySelector('.ch-range-ref-label')).toHaveTextContent('Estimated 36.0%')
     expect(container.querySelector('.ch-range-scale')).toHaveTextContent('0.0%40.0%')
+    expect(container.querySelector('[data-ch-part="range-scale-min"]')).toHaveTextContent('0.0%')
+    expect(container.querySelector('[data-ch-part="range-scale-max"]')).toHaveTextContent('40.0%')
     rerender(<RangeMeter value={12.3} reference={36} max={40} label="m" showScale={false} />)
     expect(container.querySelector('.ch-range-scale')).toBeNull()
   })

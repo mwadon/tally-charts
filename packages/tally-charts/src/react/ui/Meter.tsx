@@ -79,7 +79,11 @@ export function Meter({
       </div>
       {showMin || showTarget ? (
         <div className="ch-meter-labels" data-ch-part="meter-labels" aria-hidden="true">
-          {showMin ? <span>{minLabel ?? fmt(min)}</span> : null}
+          {showMin ? (
+            <span className="ch-meter-min-label" data-ch-part="meter-min-label">
+              {minLabel ?? fmt(min)}
+            </span>
+          ) : null}
           {showTarget ? (
             <span
               className="ch-meter-target-label"

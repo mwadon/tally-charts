@@ -107,8 +107,8 @@ export function RangeMeter({
       </div>
       {showScale ? (
         <div className="ch-range-scale" data-ch-part="range-scale" aria-hidden="true">
-          <span>{fmt(min)}</span>
-          <span>{fmt(max)}</span>
+          <span data-ch-part="range-scale-min">{fmt(min)}</span>
+          <span data-ch-part="range-scale-max">{fmt(max)}</span>
         </div>
       ) : null}
     </div>

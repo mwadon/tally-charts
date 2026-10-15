@@ -26,7 +26,8 @@ function ProfitLeaked() {
         delta={<Delta value={8300} format="currency-compact" good="down" />}
         caption="vs the same days in August"
       />
-      <div style={{ marginTop: 32 }}>
+      {/* The chart's own top margin holds the peak pill, so no extra space above it. */}
+      <div>
         <WaffleColumns
           title="Profit leaked by week"
           description="September leaked more than August; the week of Sep 7 peaked at $23.4K."
@@ -36,7 +37,7 @@ function ProfitLeaked() {
           group="month"
           unit={2000}
           format="currency-compact"
-          height={180}
+          height={216}
         />
       </div>
     </article>

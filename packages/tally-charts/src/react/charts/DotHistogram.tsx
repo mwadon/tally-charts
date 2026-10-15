@@ -142,9 +142,24 @@ function HistogramDots<D>(props: {
     }
     return limit
   }
+  // The pinned dot wears the active ring while its callout shows (the callout hides on activation).
+  const pinned =
+    props.calloutId !== undefined && ctx.activeId === null
+      ? items.find((d) => d.id === props.calloutId)
+      : undefined
   return (
     <>
       <Dots dots={items} radius={layout.radius} />
+      {pinned ? (
+        <circle
+          data-ch-part="dot-ring"
+          data-ch-tone={pinned.tone}
+          cx={pinned.cx}
+          cy={pinned.cy}
+          r={layout.radius + 3}
+          style={{ stroke: `var(--ch-${pinned.tone})` }}
+        />
+      ) : null}
       <NearestPointer radius={Math.max(12, layout.radius * 2 + 4)} />
       {props.calloutId !== undefined ? (
         <Callout id={props.calloutId} stem clearance={clearance} />

@@ -83,6 +83,35 @@ describe('<DotHistogram>', () => {
     expect(container.querySelector('[data-ch-part="callout-stem"]')).not.toBeNull()
   })
 
+  it('rings the pinned dot while the callout shows, and hands the ring over on activation', () => {
+    const { container, rerender } = renderHistogram({ calloutId: 2 })
+    const ring = () => container.querySelectorAll('[data-ch-part="dot-ring"]')
+    const pinned = dots(container)[1] as Element
+    expect(ring()).toHaveLength(1)
+    expect(ring()[0]).toHaveAttribute('cx', pinned.getAttribute('cx'))
+    expect(ring()[0]).toHaveAttribute('cy', pinned.getAttribute('cy'))
+    expect(ring()[0]).toHaveAttribute('data-ch-tone', 'warn')
+    // While another dot is active, the callout hides and the ring follows the active dot.
+    rerender(
+      <DotHistogram<Job>
+        data={jobs}
+        value="margin"
+        id="id"
+        label={(d) => `#${d.id}`}
+        format="percent"
+        toneBy={th}
+        domain={[0, 60]}
+        width={600}
+        title="Jobs by margin"
+        animate={false}
+        calloutId={2}
+        activeId={5}
+      />,
+    )
+    expect(ring()).toHaveLength(1)
+    expect(ring()[0]).toHaveAttribute('cx', (dots(container)[4] as Element).getAttribute('cx'))
+  })
+
   it('lifts the callout clear of the taller stacks it spans', () => {
     vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function (
       this: HTMLElement,

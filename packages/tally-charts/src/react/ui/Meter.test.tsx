@@ -30,6 +30,7 @@ describe('<Meter>', () => {
       <Meter value={34} min={20} max={45} target={38} format="percent" label="m" />,
     )
     expect(container.querySelector('.ch-meter-labels')).toHaveTextContent('20.0%Target 38.0%')
+    expect(container.querySelector('[data-ch-part="meter-min-label"]')).toHaveTextContent('20.0%')
     rerender(
       <Meter
         value={34}

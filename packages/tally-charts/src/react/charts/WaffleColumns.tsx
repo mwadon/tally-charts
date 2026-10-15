@@ -76,6 +76,8 @@ interface WaffleRow<D> {
 }
 
 const MARGIN: Margin = { top: 8, right: 0, bottom: 28, left: 0 }
+/** Top margin with the peak pill: the pill and a gap above the tallest column, in px. */
+const CALLOUT_ROOM = 44
 /** Space between dots, in px. */
 const GAP = 3
 /** Smallest dot radius, in px; columns are capped at the dots that fit at this size. */
@@ -275,7 +277,11 @@ export function WaffleColumns<D>({
         : [{ value: 'Peak' }, { value: peakRow.label }, { value: fmt(peakRow.value) }]
       : undefined
   const across = Number.isFinite(wide) && wide >= 1 ? Math.floor(wide) : 2
-  const m: Margin = { ...MARGIN, ...margin }
+  const m: Margin = {
+    ...MARGIN,
+    ...(peakRow && calloutSegments ? { top: CALLOUT_ROOM } : null),
+    ...margin,
+  }
 
   let table: DataTableSpec<WaffleRow<D>> | undefined
   if (dataTable) {
