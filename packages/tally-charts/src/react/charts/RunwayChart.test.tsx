@@ -163,6 +163,18 @@ describe('<RunwayChart>', () => {
     ).not.toBeNull()
   })
 
+  it('measures the strip when rows arrive after an empty first render', () => {
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue({
+      width: 600,
+    } as DOMRect)
+    const { container, rerender } = renderRunway({ rows: [] })
+    expect(part(container, 'runway-strip')).toHaveLength(0)
+    rerender(
+      <RunwayChart rows={rows} domain={domain} now={now} title="Runway" initialWidth={900} />,
+    )
+    expect(part(container, 'runway-strip')[0]?.getAttribute('width')).toBe('600')
+  })
+
   it('renders empty for no rows or a bad domain, with warnings', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     expect(renderRunway({ rows: [] }).container.textContent).toContain('No data')

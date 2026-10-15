@@ -136,6 +136,17 @@ export function RunwayChart({
     warn('runway-title', 'RunwayChart has no `title`, so screen readers announce an unnamed list.')
   }
 
+  const d0 = toTime(domainProp[0])
+  const d1 = toTime(domainProp[1])
+  const now = toTime(nowProp)
+  const valid = d0 !== undefined && d1 !== undefined && now !== undefined && d0 < d1
+  if (DEV && !valid) {
+    warn(
+      'runway-domain',
+      'RunwayChart needs a domain of two valid dates, start before end, and a valid `now`.',
+    )
+  }
+
   const rootRef = useRef<HTMLDivElement>(null)
   const axisRef = useRef<HTMLDivElement>(null)
   // jsdom and display:none containers measure 0: keep the initial width then.
@@ -147,7 +158,8 @@ export function RunwayChart({
   const initialStrip = stacked
     ? initialWidth
     : Math.max(0, initialWidth - labelWidth - STATUS_WIDTH - 2 * COLUMN_GAP)
-  const measuredStrip = useWidth(axisRef, initialStrip, true)
+  // The axis only exists once there is something to draw; `enabled` re-runs the measurement then.
+  const measuredStrip = useWidth(axisRef, initialStrip, valid && rows.length > 0)
   const width = measuredStrip > 0 ? measuredStrip : initialStrip
 
   const [hatch, setHatch] = useState(DEFAULT_HATCH)
@@ -155,17 +167,6 @@ export function RunwayChart({
     const el = rootRef.current
     if (el) setHatch(readHatchGeometry(getComputedStyle(el)))
   }, [])
-
-  const d0 = toTime(domainProp[0])
-  const d1 = toTime(domainProp[1])
-  const now = toTime(nowProp)
-  const valid = d0 !== undefined && d1 !== undefined && now !== undefined && d0 < d1
-  if (DEV && !valid) {
-    warn(
-      'runway-domain',
-      'RunwayChart needs a domain of two valid dates, start before end, and a valid `now`.',
-    )
-  }
 
   const cellMs = useMemo(() => {
     const ms = parseCell(cell)
