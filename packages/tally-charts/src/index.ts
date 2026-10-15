@@ -60,6 +60,7 @@ export type {
   WaterfallKind,
   WaterfallStart,
   WaterfallStep,
+  WaterfallTotal,
 } from './react/charts/WaterfallChart'
 export { WaterfallChart } from './react/charts/WaterfallChart'
 export type { ChartContextValue, Margin } from './react/context'

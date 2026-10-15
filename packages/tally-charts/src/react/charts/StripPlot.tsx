@@ -28,7 +28,7 @@ export interface StripSeries<D> {
   tone?: Tone
 }
 
-export interface StripPlotProps<D> extends Omit<ChartPassThroughProps<unknown>, 'aspectRatio'> {
+export interface StripPlotProps<D> extends Omit<ChartPassThroughProps<D>, 'aspectRatio'> {
   data: readonly D[]
   /** One row of dots per series. */
   series: readonly StripSeries<D>[]

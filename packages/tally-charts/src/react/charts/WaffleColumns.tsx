@@ -17,7 +17,7 @@ import type { ChartPoint, TooltipSegment } from '../types'
 import { useRegisterPoints } from '../useRegisterPoints'
 import { type ChartPassThroughProps, headerOf, toNumber, userCallbacks } from './shared'
 
-export interface WaffleColumnsProps<D> extends Omit<ChartPassThroughProps<unknown>, 'aspectRatio'> {
+export interface WaffleColumnsProps<D> extends Omit<ChartPassThroughProps<D>, 'aspectRatio'> {
   data: readonly D[]
   /** Period label, e.g. "Sep 7". */
   x: Accessor<D, string | number>
@@ -36,7 +36,7 @@ export interface WaffleColumnsProps<D> extends Omit<ChartPassThroughProps<unknow
   /** The largest column solid, the others soft. Default true. */
   peak?: boolean
   /** Pinned pill over the peak column: true for "Peak | <period> | <value>", or custom segments. Default true. */
-  callout?: boolean | ((d: D) => TooltipSegment[])
+  callout?: boolean | ((d: D) => readonly TooltipSegment[])
   /** Default 'number'. */
   format?: FormatSpec
   /** Inner band padding, 0–1. Default 0.3. */
@@ -251,7 +251,7 @@ export function WaffleColumns<D>({
         undefined,
       )
     : undefined
-  const calloutSegments: TooltipSegment[] | undefined =
+  const calloutSegments: readonly TooltipSegment[] | undefined =
     peakRow && callout
       ? typeof callout === 'function'
         ? callout(peakRow.datum)

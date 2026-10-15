@@ -11,7 +11,7 @@ export interface CalloutProps {
   /** Id of the point to pin to: any point a mark registered. */
   id: Id
   /** Pill segments. Default: the point's own tooltip segments. */
-  segments?: TooltipSegment[]
+  segments?: readonly TooltipSegment[]
   /** Custom content instead of the pill. */
   content?: ReactNode
   /** A thin line from the pill to the point. Default false. */

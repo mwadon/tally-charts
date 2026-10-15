@@ -36,7 +36,7 @@ export interface WrappedRow<D> {
   datum: D
 }
 
-function unwrapPoint<D>(point: ChartPoint): ChartPoint {
+function unwrapPoint<D>(point: ChartPoint): ChartPoint<D> {
   return { ...point, datum: (point.datum as WrappedRow<D>).datum }
 }
 

@@ -37,10 +37,17 @@ export interface WaterfallEnd {
   label: string
 }
 
+/** The calculated end row as callbacks see it: `point.datum` when `id === 'end'`. */
+export interface WaterfallTotal {
+  label: string
+  value: number
+}
+
 export type WaterfallKind = 'start' | 'step' | 'end'
 
+/** In `onSelect` and `onActiveChange`, `point.datum` is the start, one of your steps, or the total. */
 export interface WaterfallChartProps<S extends WaterfallStep = WaterfallStep>
-  extends Omit<ChartPassThroughProps<unknown>, 'aspectRatio'> {
+  extends Omit<ChartPassThroughProps<S | WaterfallStart | WaterfallTotal>, 'aspectRatio'> {
   start: WaterfallStart
   steps: readonly S[]
   /**
@@ -86,7 +93,7 @@ interface WaterfallRow<S> {
   kind: WaterfallKind
   /** Index in `steps`; -1 for the start and end rows. */
   index: number
-  datum: WaterfallStart | S | { label: string; value: number }
+  datum: WaterfallStart | S | WaterfallTotal
   label: string
   /** Start of a step's floating bar; NaN for start and end (they run from the baseline). */
   from: number

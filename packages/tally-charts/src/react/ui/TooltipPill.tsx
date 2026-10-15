@@ -2,7 +2,7 @@ import type { CSSProperties } from 'react'
 import type { TooltipSegment } from '../types'
 
 export interface TooltipPillProps {
-  segments: TooltipSegment[]
+  segments: readonly TooltipSegment[]
   className?: string
 }
 

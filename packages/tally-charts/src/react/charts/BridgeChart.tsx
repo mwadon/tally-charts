@@ -34,8 +34,9 @@ export interface BridgeStep {
   id?: Id
 }
 
+/** In `onSelect` and `onActiveChange`, `point.datum` is the start or one of your steps. */
 export interface BridgeChartProps<S extends BridgeStep = BridgeStep>
-  extends Omit<ChartPassThroughProps<unknown>, 'aspectRatio'> {
+  extends Omit<ChartPassThroughProps<S | BridgeStart>, 'aspectRatio'> {
   start: BridgeStart
   steps: readonly S[]
   /** Default 'number'. */
@@ -45,7 +46,7 @@ export interface BridgeChartProps<S extends BridgeStep = BridgeStep>
   /** Solid, highlighted last column with an emphasized label. Default true. */
   highlightLast?: boolean
   /** A pill pinned above the last column, e.g. `$400 kept | 12.3% margin`. */
-  callout?: TooltipSegment[]
+  callout?: readonly TooltipSegment[]
   /** Gradient area joining the column totals. Default true. */
   area?: boolean
   /** Value domain. Default: zero to the largest total, rounded to nice ticks. */
@@ -157,7 +158,7 @@ function LastCallout<S>({
 }: {
   row: BridgeRow<S>
   rows: readonly BridgeRow<S>[]
-  segments: TooltipSegment[]
+  segments: readonly TooltipSegment[]
 }) {
   const ctx = useChartContext('BridgeChart')
   if (ctx.x.kind !== 'band' || ctx.y.kind !== 'linear') return null

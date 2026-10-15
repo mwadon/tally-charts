@@ -17,11 +17,14 @@ export interface PointGroup {
   axis: 'vertical' | 'horizontal'
 }
 
-/** A focusable data point registered by a mark. Coordinates are in plot space. */
-export interface ChartPoint {
+/**
+ * A focusable data point registered by a mark. Coordinates are in plot space. `D` is the type of
+ * `datum`: in a high-level chart's callbacks it is your data type.
+ */
+export interface ChartPoint<D = unknown> {
   id: Id
   index: number
-  datum: unknown
+  datum: D
   x: number
   y: number
   /** Hit-test centre for NearestPointer; defaults to x/y. */
@@ -30,7 +33,7 @@ export interface ChartPoint {
   hitY?: number
   /** Screen-reader text, e.g. "Sep 21, 34.0%". */
   label: string
-  segments: TooltipSegment[]
+  segments: readonly TooltipSegment[]
   /** Stack or row membership; arrow keys move within and across groups when set. */
   group?: PointGroup
 }

@@ -17,12 +17,12 @@ export interface ThresholdLegendItem {
 }
 
 export interface Thresholds {
-  bins: ThresholdBin[]
+  bins: readonly ThresholdBin[]
   /** Bin index for a value, or -1 when it is missing or not a number. */
   indexOf(value: unknown): number
   toneOf(value: unknown): Tone | undefined
   /** Legend entries with counts, ready for `<Legend shape="dot" items={…} />`. */
-  legend(values: readonly unknown[]): ThresholdLegendItem[]
+  legend(values: readonly unknown[]): readonly ThresholdLegendItem[]
 }
 
 /**

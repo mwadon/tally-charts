@@ -17,7 +17,7 @@ export interface DotItem {
   soft?: boolean
   /** Screen-reader text and default tooltip. */
   label: string
-  segments?: TooltipSegment[]
+  segments?: readonly TooltipSegment[]
   /** Stack or row for the arrow keys. */
   group?: PointGroup
 }

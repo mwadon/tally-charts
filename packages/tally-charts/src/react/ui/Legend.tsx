@@ -17,7 +17,7 @@ export interface LegendItem {
 }
 
 export interface LegendProps {
-  items: LegendItem[]
+  items: readonly LegendItem[]
   shape?: LegendShape
   className?: string
 }

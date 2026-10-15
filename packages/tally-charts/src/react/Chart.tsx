@@ -14,7 +14,7 @@ import { DEFAULT_HATCH, DEFAULT_RADIUS, readHatchGeometry, readRadius } from '..
 import { useFormat } from './ChartsProvider'
 import { ChartContext, type InternalChartContext, type Margin } from './context'
 import { DataTable, type DataTableSpec } from './DataTable'
-import { navigate, useInteraction } from './interaction'
+import { type InteractionOptions, navigate, useInteraction } from './interaction'
 import { PatternDefs } from './PatternDefs'
 import type { ChartPoint } from './types'
 import { useIsoLayoutEffect } from './useIsoLayoutEffect'
@@ -40,8 +40,10 @@ export interface ChartProps<D> {
   /** Visually hidden table of the data for screen readers. High-level charts set it by default. */
   dataTable?: DataTableSpec<D>
   activeId?: Id | null
-  onActiveChange?: (id: Id | null, point: ChartPoint | null) => void
-  onSelect?: (id: Id, point: ChartPoint) => void
+  /** Called with the new active id, and its point; `point.datum` is the row from `data`. */
+  onActiveChange?: (id: Id | null, point: ChartPoint<D> | null) => void
+  /** Called on click, Enter or Space; `point.datum` is the row from `data`. */
+  onSelect?: (id: Id, point: ChartPoint<D>) => void
   animate?: boolean
   dimInactive?: boolean
   /** Rendered instead of the plot when `data` is an empty array. Default "No data". */
@@ -108,7 +110,11 @@ export function Chart<D>({
   )
 
   const formatters = useFormat()
-  const interaction = useInteraction({ activeId, onActiveChange })
+  // Marks register `datum` as a row of `data`, so the points the store hands back are ChartPoint<D>.
+  const interaction = useInteraction({
+    activeId,
+    onActiveChange: onActiveChange as InteractionOptions['onActiveChange'],
+  })
   const [overlay, setOverlay] = useState<HTMLDivElement | null>(null)
   const [hatch, setHatch] = useState(DEFAULT_HATCH)
   const [radius, setRadius] = useState(DEFAULT_RADIUS)
@@ -134,12 +140,12 @@ export function Chart<D>({
     const point = interaction.activePoint
     if ((event.key === 'Enter' || event.key === ' ') && onSelect && point) {
       event.preventDefault()
-      onSelect(point.id, point)
+      onSelect(point.id, point as ChartPoint<D>)
     }
   }
 
   const select = (point: ChartPoint) => {
-    if (onSelect) onSelect(point.id, point)
+    if (onSelect) onSelect(point.id, point as ChartPoint<D>)
   }
 
   const ctx: InternalChartContext = {

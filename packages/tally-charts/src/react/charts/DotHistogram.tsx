@@ -22,7 +22,7 @@ import { Tooltip } from '../overlays/Tooltip'
 import type { TooltipSegment } from '../types'
 import { type ChartPassThroughProps, headerOf, toNumber, userCallbacks } from './shared'
 
-export interface DotHistogramProps<D> extends Omit<ChartPassThroughProps<unknown>, 'aspectRatio'> {
+export interface DotHistogramProps<D> extends Omit<ChartPassThroughProps<D>, 'aspectRatio'> {
   data: readonly D[]
   /** The binned value, e.g. margin. */
   value: Accessor<D, number>
@@ -31,7 +31,7 @@ export interface DotHistogramProps<D> extends Omit<ChartPassThroughProps<unknown
   /** Item name for announcements and the default tooltip, e.g. "#5819". */
   label?: Accessor<D, string>
   /** Custom tooltip segments per item. */
-  segments?: (d: D, i: number) => TooltipSegment[]
+  segments?: (d: D, i: number) => readonly TooltipSegment[]
   /** Tone per item: a `thresholds()` result or a function. Default 'accent'. */
   toneBy?: Thresholds | ((d: D, i: number) => Tone)
   /** Bin width in value units. Default: a nice step that gives about 50 bins. */
@@ -66,7 +66,7 @@ interface HistogramRow<D> {
   tone: Tone
   name: string
   aria: string
-  segments: TooltipSegment[]
+  segments: readonly TooltipSegment[]
 }
 
 const MARGIN: Margin = { top: 28, right: 8, bottom: 28, left: 8 }

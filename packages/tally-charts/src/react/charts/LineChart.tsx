@@ -58,7 +58,7 @@ export interface LineRange<D> {
   tone?: Tone
 }
 
-export interface LineChartProps<D> extends Omit<ChartPassThroughProps<unknown>, 'aspectRatio'> {
+export interface LineChartProps<D> extends Omit<ChartPassThroughProps<D>, 'aspectRatio'> {
   data: readonly D[]
   /**
    * The x of each row. An accessor puts categories on a point scale: each value appears once,
