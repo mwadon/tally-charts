@@ -39,6 +39,11 @@ describe('<BarChart>', () => {
     expect(parts(container, 'axis-label').map((t) => t.textContent)).toEqual(['W1', 'W3'])
   })
 
+  it('formats the category axis with axisFormat', () => {
+    const { container } = renderChart({ axisFormat: (v) => `Week ${String(v).slice(1)}` })
+    expect(parts(container, 'axis-label').map((t) => t.textContent)).toEqual(['Week 1', 'Week 3'])
+  })
+
   it('draws a target from a number or from an object with a label', () => {
     // The inferred domain is [0, 35]; a target outside it would be hidden.
     const { container, unmount } = renderChart({ target: 33 })

@@ -72,10 +72,49 @@ describe('<Axis>', () => {
         <Axis side="left" ticks={2} format="percent" />
       </Chart>,
     )
-    expect(labels(container)).toEqual(['30.0%', '35.0%', '40.0%'])
+    // Every tick is whole, so the percent preset drops its decimal.
+    expect(labels(container)).toEqual(['30%', '35%', '40%'])
     const [first] = container.querySelectorAll('[data-ch-part="axis-label"]')
     expect(first).toHaveAttribute('text-anchor', 'end')
     expect(first).toHaveAttribute('x', '-8')
+  })
+
+  it('keeps the preset decimals when a tick is not whole', () => {
+    const { container } = render(
+      <Chart {...frame} width={300} x={{ domain: [0, 1] }} y={{ domain: [0, 1] }}>
+        <Axis side="left" ticks={2} format="percent" />
+      </Chart>,
+    )
+    expect(labels(container)).toEqual(['0.0%', '0.5%', '1.0%'])
+  })
+
+  it('drops whole-tick decimals for pts and keeps explicit digits', () => {
+    const { container } = render(
+      <Chart {...frame} width={300} x={{ domain: [-2, 2] }} y={{ domain: [30, 40] }}>
+        <Axis side="bottom" ticks={2} format="pts" />
+        <Axis side="left" ticks={2} format={{ preset: 'percent', digits: 2 }} />
+      </Chart>,
+    )
+    expect(labels(container)).toEqual(['−2 pts', '0 pts', '+2 pts', '30.00%', '35.00%', '40.00%'])
+  })
+
+  it('gives a format function the number on a value axis', () => {
+    const pct = (v: number) => `${v.toFixed(0)} pct`
+    const { container } = render(
+      <Chart {...frame} width={300} x={{ domain: [0, 1] }} y={{ domain: [30, 40] }}>
+        <Axis side="left" ticks={2} format={pct} />
+      </Chart>,
+    )
+    expect(labels(container)).toEqual(['30 pct', '35 pct', '40 pct'])
+  })
+
+  it('ignores a date spec on a value axis', () => {
+    const { container } = render(
+      <Chart {...frame} width={300} x={{ domain: [0, 1] }} y={{ domain: [30, 40] }}>
+        <Axis side="left" ticks={2} format="month" />
+      </Chart>,
+    )
+    expect(labels(container)).toEqual(['30', '35', '40'])
   })
 
   it('accepts a custom format function', () => {

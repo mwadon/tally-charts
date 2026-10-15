@@ -237,9 +237,7 @@ export function StripPlot<D>({
     left: labelWidth,
     ...margin,
   }
-  const axisFmt: AxisFormat | undefined =
-    axisFormat ??
-    (typeof format === 'function' ? (v: string | number) => format(Number(v)) : format)
+  const axisFmt: AxisFormat | undefined = axisFormat ?? format
 
   const table: DataTableSpec<StripRow<D>> | undefined = dataTable
     ? {

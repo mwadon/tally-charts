@@ -1,5 +1,11 @@
 import { createContext, type ReactNode, useContext, useMemo } from 'react'
 import {
+  createDateFormatter,
+  type DateFormatOptions,
+  type DateFormatSpec,
+  type DateFormatter,
+} from '../core/date'
+import {
   createFormatter,
   createFormatters,
   DEFAULT_CURRENCY,
@@ -37,6 +43,8 @@ export function ChartsProvider({
 
 export interface UseFormatResult extends Formatters {
   create: (spec?: FormatSpec, options?: Pick<FormatOptions, 'signed'>) => Formatter
+  /** A date formatter in the provider's locale. */
+  date: (spec?: DateFormatSpec, options?: Omit<DateFormatOptions, 'locale'>) => DateFormatter
 }
 
 export function useFormat(): UseFormatResult {
@@ -45,6 +53,7 @@ export function useFormat(): UseFormatResult {
     () => ({
       ...createFormatters({ locale, currency }),
       create: (spec, options) => createFormatter(spec, { locale, currency, ...options }),
+      date: (spec, options) => createDateFormatter(spec, { ...options, locale }),
     }),
     [locale, currency],
   )

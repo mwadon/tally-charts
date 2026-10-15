@@ -64,8 +64,15 @@ describe('<DotHistogram>', () => {
     const { container } = renderHistogram({ target: { value: 38, label: 'Target 38%' } })
     expect(container.querySelector('[data-ch-part="target-label"]')).toHaveTextContent('Target 38%')
     const labels = parts(container, '[data-ch-part="axis-label"]').map((t) => t.textContent)
-    expect(labels[0]).toBe('0.0%')
-    expect(labels.at(-1)).toBe('60.0%')
+    expect(labels[0]).toBe('0%')
+    expect(labels.at(-1)).toBe('60%')
+  })
+
+  it('formats the axis with axisFormat', () => {
+    const { container } = renderHistogram({ axisFormat: (v) => `${v} pct` })
+    const labels = parts(container, '[data-ch-part="axis-label"]').map((t) => t.textContent)
+    expect(labels[0]).toBe('0 pct')
+    expect(labels.at(-1)).toBe('60 pct')
   })
 
   it('pins a callout with a stem to an item', () => {

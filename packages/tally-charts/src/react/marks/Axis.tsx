@@ -1,9 +1,23 @@
-import type { FormatPreset } from '../../core/format'
+import { type DateFormatSpec, isDateFormat } from '../../core/date'
+import type { FormatPreset, FormatPresetSpec, Formatter } from '../../core/format'
 import { categoryTicks, linearTicks, type Tick, type TickSpec, thinTicks } from '../../core/ticks'
-import { useChart } from '../context'
+import { type ChartContextValue, useChart } from '../context'
 
 export type AxisSide = 'bottom' | 'top' | 'left' | 'right'
-export type AxisFormat = FormatPreset | ((value: string | number) => string)
+/** A tick value: a number on a value axis, the category on a band or point axis, a Date on a time axis. */
+export type AxisValue = string | number | Date
+
+/**
+ * A tick label function. Declared as a method so that a number-only `(v: number) => string`
+ * stays assignable for value axes, while an unannotated arrow gets `AxisValue`.
+ */
+export type AxisFormatter = { format(value: AxisValue): string }['format']
+
+/**
+ * Number presets label value axes, date specs label time axes, and a function labels any axis.
+ * Category axes show the category unless a function is given.
+ */
+export type AxisFormat = FormatPreset | FormatPresetSpec | DateFormatSpec | AxisFormatter
 
 export interface AxisProps {
   side: AxisSide
@@ -60,6 +74,29 @@ function place(
   }
 }
 
+const FIXED_DECIMALS: ReadonlySet<FormatPreset> = new Set(['percent', 'pts'])
+
+/**
+ * The number formatter for a value axis. A preset that always shows decimals (percent, pts) drops
+ * them when every tick is a whole number, so the axis reads "0%" rather than "0.0%"; explicit
+ * `digits` are kept. Date specs don't apply to numbers and fall back to 'number'.
+ */
+function valueFormatter(
+  ctx: ChartContextValue,
+  format: AxisFormat | undefined,
+  ticks: readonly Tick[],
+): Formatter {
+  if (format === undefined || typeof format === 'function' || isDateFormat(format)) {
+    return ctx.format('number')
+  }
+  const spec = typeof format === 'string' ? { preset: format } : format
+  const whole =
+    spec.digits === undefined &&
+    FIXED_DECIMALS.has(spec.preset) &&
+    ticks.every((tick) => Number.isInteger(tick.value))
+  return ctx.format(whole ? { ...spec, digits: 0 } : spec)
+}
+
 export function Axis({
   side,
   ticks: spec = 'all',
@@ -73,13 +110,15 @@ export function Axis({
   const horizontal = side === 'bottom' || side === 'top'
   const resolved = horizontal ? ctx.x : ctx.y
   const custom = typeof format === 'function' ? format : undefined
-  const numeric = ctx.format(typeof format === 'string' ? format : 'number')
 
-  const label = (v: string) => (custom ? custom(v) : v)
-  const raw =
-    resolved.kind === 'linear'
-      ? linearTicks(resolved.scale, spec, (v) => (custom ? custom(v) : numeric(v)), extent)
-      : categoryTicks(resolved.scale, spec, label, { anchorEnds: horizontal })
+  let raw: Tick[]
+  if (resolved.kind === 'linear') {
+    const values = linearTicks(resolved.scale, spec, String, extent)
+    const label = custom ?? valueFormatter(ctx, format, values)
+    raw = values.map((tick) => ({ ...tick, label: label(tick.value as number) }))
+  } else {
+    raw = categoryTicks(resolved.scale, spec, custom ?? String, { anchorEnds: horizontal })
+  }
   const ticks = thin ? thinTicks(raw, horizontal ? undefined : () => LABEL_HEIGHT) : raw
 
   return (

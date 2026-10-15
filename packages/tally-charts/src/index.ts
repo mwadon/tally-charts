@@ -1,5 +1,12 @@
 export type { BarAlign } from './core/bars'
-export type { FormatPreset, FormatSpec, Formatter, Formatters } from './core/format'
+export type { DateFormatOptions, DateFormatSpec, DateFormatter } from './core/date'
+export type {
+  FormatPreset,
+  FormatPresetSpec,
+  FormatSpec,
+  Formatter,
+  Formatters,
+} from './core/format'
 export { createFormatter, fmt } from './core/format'
 export type { BandScaleSpec, LinearScaleSpec, PointScaleSpec, ScaleSpec } from './core/scale'
 export type { ThresholdBin, ThresholdLegendItem, Thresholds } from './core/thresholds'
@@ -49,7 +56,13 @@ export type { DataTableColumn, DataTableProps, DataTableSpec } from './react/Dat
 export { DataTable } from './react/DataTable'
 export type { AreaProps } from './react/marks/Area'
 export { Area } from './react/marks/Area'
-export type { AxisFormat, AxisProps, AxisSide } from './react/marks/Axis'
+export type {
+  AxisFormat,
+  AxisFormatter,
+  AxisProps,
+  AxisSide,
+  AxisValue,
+} from './react/marks/Axis'
 export { Axis } from './react/marks/Axis'
 export type { BandProps } from './react/marks/Band'
 export { Band } from './react/marks/Band'

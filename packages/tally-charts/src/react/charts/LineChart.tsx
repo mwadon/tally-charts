@@ -246,9 +246,7 @@ export function LineChart<D>({
   const ordered = series
     .map((s, i) => ({ s, i }))
     .sort((a, b) => Number(styleOf(a.s) === 'actual') - Number(styleOf(b.s) === 'actual'))
-  const valueFormat =
-    axisFormat ??
-    (typeof format === 'function' ? (v: string | number) => format(Number(v)) : format)
+  const valueFormat: AxisFormat | undefined = axisFormat ?? format
   const m: Margin = { ...MARGIN, ...margin }
 
   let table: DataTableSpec<LineRow<D>> | undefined

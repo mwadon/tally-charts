@@ -7,7 +7,7 @@ import { Chart } from '../Chart'
 import { useFormat } from '../ChartsProvider'
 import type { Margin } from '../context'
 import type { DataTableSpec } from '../DataTable'
-import { Axis } from '../marks/Axis'
+import { Axis, type AxisFormat } from '../marks/Axis'
 import { Bars } from '../marks/Bars'
 import { Target } from '../marks/Target'
 import { ValueLabel } from '../marks/ValueLabel'
@@ -37,6 +37,8 @@ export interface BarChartProps<D> extends ChartPassThroughProps<D> {
   format?: FormatSpec
   /** Category axis ticks, or 'none'. Default 'ends'. */
   axis?: TickSpec | 'none'
+  /** Category axis labels: a function of the category. Default: the category itself. */
+  axisFormat?: AxisFormat
   /** Default 'accent'. */
   tone?: PerItem<D, Tone>
   /** Default: history 'hatch-fade', last bar 'solid'. */
@@ -69,6 +71,7 @@ export function BarChart<D>({
   valueFormat,
   format,
   axis = 'ends',
+  axisFormat,
   tone = 'accent',
   fill = historyThenSolid,
   padding = 0.35,
@@ -127,7 +130,9 @@ export function BarChart<D>({
       {valueLabel === 'none' ? null : (
         <ValueLabel<D> at={valueLabel} format={valueFormat ?? format} />
       )}
-      {axis === 'none' ? null : <Axis side={vertical ? 'bottom' : 'left'} ticks={axis} />}
+      {axis === 'none' ? null : (
+        <Axis side={vertical ? 'bottom' : 'left'} ticks={axis} format={axisFormat} />
+      )}
       {tooltip ? <Tooltip /> : null}
       {children}
     </Chart>

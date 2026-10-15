@@ -13,7 +13,7 @@ import { Chart } from '../Chart'
 import { useFormat } from '../ChartsProvider'
 import { type Margin, useChart } from '../context'
 import type { DataTableColumn, DataTableSpec } from '../DataTable'
-import { Axis } from '../marks/Axis'
+import { Axis, type AxisFormat } from '../marks/Axis'
 import { type DotItem, Dots } from '../marks/Dots'
 import { NearestPointer } from '../marks/NearestPointer'
 import { Target } from '../marks/Target'
@@ -45,6 +45,8 @@ export interface DotHistogramProps<D> extends Omit<ChartPassThroughProps<unknown
   format?: FormatSpec
   /** Value axis ticks, or 'none'. Default 6. */
   axis?: TickSpec | 'none'
+  /** Axis label format. Default: `format`. */
+  axisFormat?: AxisFormat
   /** Default 6. */
   maxRadius?: number
   /** Default 2. */
@@ -146,6 +148,7 @@ export function DotHistogram<D>({
   calloutId,
   format,
   axis = 6,
+  axisFormat,
   maxRadius = 6,
   minRadius = 2,
   dataTable = true,
@@ -242,13 +245,7 @@ export function DotHistogram<D>({
         calloutId={calloutId}
         warn={warn}
       />
-      {axis === 'none' ? null : (
-        <Axis
-          side="bottom"
-          ticks={axis}
-          format={typeof format === 'function' ? (v) => format(Number(v)) : format}
-        />
-      )}
+      {axis === 'none' ? null : <Axis side="bottom" ticks={axis} format={axisFormat ?? format} />}
       {tooltip ? <Tooltip /> : null}
       {children}
     </Chart>

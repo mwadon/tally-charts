@@ -59,3 +59,33 @@ describe('fmt', () => {
     expect(fmt.hours(6.1)).toBe('6.1 h')
   })
 })
+
+describe('createFormatter with a preset object', () => {
+  it('sets the fraction digits', () => {
+    expect(createFormatter({ preset: 'percent', digits: 0 })(34)).toBe('34%')
+    expect(createFormatter({ preset: 'currency', digits: 2 })(3240.5)).toBe('$3,240.50')
+    expect(createFormatter({ preset: 'pts', digits: 2 })(-1.6)).toBe('−1.60 pts')
+    expect(createFormatter({ preset: 'number', digits: 0 })(1234.56)).toBe('1,235')
+    expect(createFormatter({ preset: 'currency-compact', digits: 0 })(82400)).toBe('$82K')
+  })
+
+  it('takes the sign from the object unless the caller sets it', () => {
+    expect(createFormatter({ preset: 'pts', signed: false })(1.5)).toBe('1.5 pts')
+    expect(createFormatter({ preset: 'currency', signed: true })(420)).toBe('+$420')
+    expect(createFormatter({ preset: 'currency', signed: true }, { signed: false })(420)).toBe(
+      '$420',
+    )
+  })
+
+  it('uses the given locale', () => {
+    expect(norm(createFormatter({ preset: 'percent', digits: 0 }, { locale: 'de-DE' })(12))).toBe(
+      '12 %',
+    )
+  })
+
+  it('falls back to the preset digits for digits it cannot use, without throwing', () => {
+    for (const digits of [-1, 2.5, 21, Number.NaN]) {
+      expect(createFormatter({ preset: 'percent', digits })(34)).toBe('34.0%')
+    }
+  })
+})

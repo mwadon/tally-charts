@@ -267,9 +267,7 @@ export function WaterfallChart<S extends WaterfallStep = WaterfallStep>({
           { value: fmt(r.to), label: 'total' },
         ]
       : [{ value: r.label }, { value: r.text }]
-  const axisFmt: AxisFormat | undefined =
-    axisFormat ??
-    (typeof format === 'function' ? (v: string | number) => format(Number(v)) : format)
+  const axisFmt: AxisFormat | undefined = axisFormat ?? format
 
   const table: DataTableSpec<WaterfallRow<S>> | undefined = dataTable
     ? {

@@ -11,6 +11,7 @@ export type {
   BarRect,
 } from './bars'
 export { computeBars } from './bars'
+export type { DateFormatOptions, DateFormatSpec, DateFormatter } from './date'
 export type {
   BinnedDot,
   DotBinInput,
@@ -23,6 +24,7 @@ export { binDots, medianOf, stackStrip } from './dots'
 export type {
   FormatOptions,
   FormatPreset,
+  FormatPresetSpec,
   FormatSpec,
   Formatter,
   Formatters,
