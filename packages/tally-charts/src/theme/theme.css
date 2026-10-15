@@ -1204,7 +1204,7 @@
   background: color-mix(in srgb, var(--ch-ink) 3%, transparent);
 }
 
-[data-ch-part="runway-row"][aria-selected="true"] {
+[data-ch-part="runway-row"][data-ch-selected="true"] {
   background: color-mix(in srgb, var(--ch-ink) 5%, transparent);
 }
 
@@ -1517,7 +1517,7 @@
     background: CanvasText;
   }
 
-  [data-ch-part="runway-row"][aria-selected="true"] {
+  [data-ch-part="runway-row"][data-ch-selected="true"] {
     outline: 2px dashed CanvasText;
   }
 

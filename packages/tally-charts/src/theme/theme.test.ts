@@ -164,7 +164,7 @@ describe('theme.css', () => {
       '[data-ch-part="runway-cell"][data-ch-state="empty"]',
       '[data-ch-part="runway-dot"]',
       '[data-ch-part="runway-reset"]',
-      '[data-ch-part="runway-row"][aria-selected="true"]',
+      '[data-ch-part="runway-row"][data-ch-selected="true"]',
       '[data-ch-part="runway-rows"]:focus-visible [data-ch-part="runway-row"][data-ch-focus="true"] {\n    outline: 2px solid Highlight;',
     ]) {
       expect(forced).toContain(selector)
@@ -192,7 +192,7 @@ describe('theme.css', () => {
       'stroke-opacity',
     )
     // Muted text on a selected or hovered row: 5% ink keeps it at 4.56:1 in the light theme.
-    for (const state of ['[data-ch-active="true"]', '[aria-selected="true"]']) {
+    for (const state of ['[data-ch-active="true"]', '[data-ch-selected="true"]']) {
       const share = rule(`[data-ch-part="runway-row"]${state}`).match(/var\(--ch-ink\) (\d+)%/)
       expect(Number(share?.[1])).toBeLessThanOrEqual(5)
     }

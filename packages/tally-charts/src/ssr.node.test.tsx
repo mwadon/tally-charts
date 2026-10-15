@@ -17,6 +17,7 @@ import {
   UsageRunway,
 } from '../test/fixtures'
 import { Chart } from './react/Chart'
+import { RunwayChart } from './react/charts/RunwayChart'
 
 describe('server rendering', () => {
   it('renders the 0.3 charts without a DOM, deterministically', () => {
@@ -135,5 +136,18 @@ describe('server rendering', () => {
     expect(html.match(/data-ch-part="runway-strip"/g)).toHaveLength(3)
     expect(html).toContain('data-ch-state="locked"')
     expect(html).toContain('Runs out Fri')
+  })
+
+  it('renders the runway in columns with the default initial width', () => {
+    const html = renderToString(
+      <RunwayChart
+        title="Usage runway"
+        rows={[{ id: 'a', label: 'A', projection: [{ at: '2026-10-15T02:00:00Z', used: 0.4 }] }]}
+        domain={['2026-10-15T00:00:00Z', '2026-10-22T00:00:00Z']}
+        now="2026-10-15T02:00:00Z"
+      />,
+    )
+    expect(html).toContain('data-ch-layout="columns"')
+    expect(html).toContain('data-ch-part="data-table"')
   })
 })

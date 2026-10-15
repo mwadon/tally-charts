@@ -5,6 +5,7 @@ import {
   type CSSProperties,
   Fragment,
   type KeyboardEvent,
+  memo,
   type ReactNode,
   useId,
   useMemo,
@@ -40,26 +41,38 @@ import { type DataTableOptions, withTableOptions } from './shared'
 
 export type { RunwayFacts } from '../../core/runway'
 
+/** One entity of a {@link RunwayChart}: an allowance and where it is heading. */
 export interface RunwayRow {
+  /** Unique per row; `selectedId`, `activeId` and the callbacks use it. */
   id: string
+  /** Name in the label column and the start of the option's accessible name. */
   label: string
+  /** Decorative mark before the label, hidden from assistive tech. */
   icon?: ReactNode
   /** Extra description, e.g. "Side project". Not drawn in the strip; shown in the data table. */
   sublabel?: string
-  /** Projected cumulative use, 0–1, linear between points. Absent or empty: no forecast. */
+  /**
+   * Projected cumulative use, 0–1, linear between points. Absent or empty: no forecast. Cells
+   * before the first point take its value, so start the domain at `now` or include history.
+   */
   projection?: readonly { at: TimeInput; used: number }[]
+  /** When the allowance runs out: the dot, and locked cells from there to `resetAt`. */
   runsOutAt?: TimeInput
+  /** When the allowance resets: the reset tick; cells from there on are empty. */
   resetAt?: TimeInput
   /** A muted row with every cell empty. */
   disconnected?: boolean
-  /** Replaces the default status text. */
+  /** Replaces the default status text; `null` shows none. A string is also the table's Status. */
   status?: ReactNode
 }
 
+/** Props of {@link RunwayChart}. */
 export interface RunwayChartProps {
+  /** One strip per row, in this order. */
   rows: readonly RunwayRow[]
   /** Time span of the strips. */
   domain: readonly [TimeInput, TimeInput]
+  /** The present: the Now line, and the reference for "Fri 03:24" versus "Oct 21 09:21". */
   now: TimeInput
   /** Cell length: '30m', '6h', '1d' or ms. Default '6h'. */
   cell?: string | number
@@ -69,25 +82,41 @@ export interface RunwayChartProps {
   tone?: Tone
   /** 'auto' stacks the rows when the strip would be under 240 px. Default 'auto'. */
   layout?: 'auto' | 'columns' | 'stacked'
-  /** Width before the first measurement and on the server. Default 640. */
+  /** Width before the first measurement and on the server. Default 960 (the columns layout). */
   initialWidth?: number
   /** Label column width in px in the columns layout. Default 200. */
   labelWidth?: number
-  /** With `onSelect`, the rows are a listbox. */
+  /** The selected row, marked with `data-ch-selected`; with `onSelect` also `aria-selected`. */
   selectedId?: string | null
+  /** Click, Enter or Space on a row. With it, the rows are a listbox; without, a plain list. */
   onSelect?: (id: string, row: RunwayRow) => void
+  /**
+   * The highlighted row (hover or keyboard cursor). Pass it to control the highlight, e.g. to
+   * link it with another view; `null` for none. Leave it out to let the chart keep its own.
+   */
   activeId?: string | null
+  /** Called when hover, the keyboard or Escape changes the highlighted row. */
   onActiveChange?: (id: string | null, row: RunwayRow | null) => void
-  /** Custom status per row; return undefined to keep the default. A row's own `status` wins. */
+  /**
+   * Custom status per row: return `undefined` to keep the default, `null` for none. A string is
+   * also the table's Status and part of the option's name. A row's own `status` wins.
+   */
   status?: (row: RunwayRow, facts: RunwayFacts) => ReactNode
   /** Default true. */
   legend?: boolean
+  /** Accessible name of the list; also the data table caption. */
   title?: string
+  /** Accessible description, usually the takeaway sentence. */
   description?: string
+  /** A visually hidden table of the rows for screen readers. Default true. */
   dataTable?: boolean | DataTableOptions
+  /** Rendered instead of the rows when there are none or the domain is invalid. Default "No data". */
   empty?: ReactNode
+  /** Class on the root element. */
   className?: string
+  /** Style on the root element. */
   style?: CSSProperties
+  /** Stable base for the element ids. Default: React's `useId`. */
   chartId?: string
   /** Zone of the day boundaries and the dates. Default 'utc'. */
   timeZone?: TimeZone
@@ -108,6 +137,10 @@ interface RowModel {
   statusText: string
 }
 
+/**
+ * Where each allowance is heading: one strip of time cells per row, shaded by projected use, with
+ * when it runs out, how long it stays locked, and when it resets.
+ */
 export function RunwayChart({
   rows,
   domain: domainProp,
@@ -116,7 +149,7 @@ export function RunwayChart({
   breaks = DEFAULT_BREAKS,
   tone = 'neutral',
   layout = 'auto',
-  initialWidth = 640,
+  initialWidth = 960,
   labelWidth = 200,
   selectedId,
   onSelect,
@@ -126,7 +159,7 @@ export function RunwayChart({
   legend = true,
   title,
   description,
-  dataTable,
+  dataTable = true,
   empty,
   className,
   style,
@@ -226,24 +259,31 @@ export function RunwayChart({
       const times = normalizeRow(row, warn)
       const facts = runwayFacts(times, d1)
       const lines = statusLines(facts, !!row.disconnected, now, d1, formats)
-      const custom = row.status ?? status?.(row, facts)
+      // `undefined` keeps the default; `null` (or any other node) replaces it.
+      const custom = row.status !== undefined ? row.status : status?.(row, facts)
+      const own = custom !== undefined
       return {
         row,
         cells: runwayCells(times, bounds, edges, levels),
         facts,
-        status:
-          custom ??
-          // A space between the lines keeps them apart in the accessible name and textContent;
-          // grid layout drops the whitespace.
-          lines.map((line, j) => (
-            <Fragment key={line}>
-              {j > 0 ? ' ' : null}
-              <span className="ch-runway-status-line" data-ch-part="runway-status-line">
-                {line}
-              </span>
-            </Fragment>
-          )),
-        statusText: typeof row.status === 'string' ? row.status : lines.join(', '),
+        status: own
+          ? custom
+          : // A space between the lines keeps them apart in the accessible name and textContent;
+            // grid layout drops the whitespace.
+            lines.map((line, j) => (
+              <Fragment key={line}>
+                {j > 0 ? ' ' : null}
+                <span className="ch-runway-status-line" data-ch-part="runway-status-line">
+                  {line}
+                </span>
+              </Fragment>
+            )),
+        statusText:
+          typeof custom === 'string' || typeof custom === 'number'
+            ? String(custom)
+            : own && custom === null
+              ? ''
+              : lines.join(', '),
       }
     })
   }, [valid, d0, d1, now, cellMs, rows, edges, levels, formats, status, warn])
@@ -257,6 +297,8 @@ export function RunwayChart({
   activeProp.current = activeId
   const [focusId, setFocusId] = useState<string | null>(null)
   const [focused, setFocused] = useState(false)
+  // The row a pointer pressed: the focus that follows starts there and does not scroll.
+  const pressed = useRef<string | null>(null)
   const byId = useMemo(() => {
     const map = new Map<string, number>()
     model.forEach((m, i) => {
@@ -332,7 +374,16 @@ export function RunwayChart({
     style: { ...style, '--_ch-runway-label': `${labelWidth}px` } as CSSProperties,
   }
 
-  if (!valid || model.length === 0) {
+  // Stable across hover and focus changes, so the memoised strips do not redraw.
+  const x = useMemo(
+    () =>
+      valid && d0 !== undefined && d1 !== undefined
+        ? timeScale([d0, d1], [0, width], timeZone)
+        : null,
+    [valid, d0, d1, width, timeZone],
+  )
+
+  if (!valid || x === null || model.length === 0) {
     return (
       <div {...rootProps}>
         <div data-ch-part="empty" className="ch-empty">
@@ -342,7 +393,6 @@ export function RunwayChart({
     )
   }
 
-  const x = timeScale([d0, d1], [0, width], timeZone)
   const nowX = now >= d0 && now <= d1 ? x(now) : null
 
   const dateText = (d: Date | undefined) =>
@@ -400,6 +450,12 @@ export function RunwayChart({
         onFocus={() => {
           if (!selectable) return
           setFocused(true)
+          const from = pressed.current
+          pressed.current = null
+          if (from !== null) {
+            setActive(from)
+            return
+          }
           const start = current ?? (selectedId != null ? (byId.get(selectedId) ?? 0) : 0)
           moveTo(start)
         }}
@@ -427,15 +483,23 @@ export function RunwayChart({
             data-ch-part="runway-row"
             data-ch-muted={m.row.disconnected ? 'true' : undefined}
             data-ch-selectable={selectable ? 'true' : undefined}
+            data-ch-selected={m.row.id === selectedId ? 'true' : undefined}
             data-ch-active={m.row.id === active ? 'true' : undefined}
             data-ch-focus={selectable && focused && i === (current ?? 0) ? 'true' : undefined}
-            onPointerEnter={() => {
-              if (selectable) setFocusId(m.row.id)
-              setActive(m.row.id)
-            }}
+            // Hover highlights only; the keyboard cursor moves on press, before focus lands.
+            onPointerEnter={() => setActive(m.row.id)}
+            onPointerDown={
+              selectable
+                ? () => {
+                    if (!focused) pressed.current = m.row.id
+                    setFocusId(m.row.id)
+                  }
+                : undefined
+            }
             onClick={
               selectable
                 ? () => {
+                    pressed.current = null
                     setFocusId(m.row.id)
                     onSelect?.(m.row.id, m.row)
                   }
@@ -484,7 +548,8 @@ export function RunwayChart({
 
 type Scale = ReturnType<typeof timeScale>
 
-function RunwayStrip({
+// Pure: lets bundlers drop it with the rest of RunwayChart when only other charts are imported.
+const RunwayStrip = /* @__PURE__ */ memo(function RunwayStrip({
   model,
   x,
   width,
@@ -556,7 +621,7 @@ function RunwayStrip({
       ) : null}
     </svg>
   )
-}
+})
 
 function RunwayAxis({
   x,

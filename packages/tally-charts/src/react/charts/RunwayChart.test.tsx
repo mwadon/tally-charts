@@ -378,6 +378,94 @@ describe('<RunwayChart>', () => {
     expect(onActiveChange).not.toHaveBeenCalled()
   })
 
+  it('renders the data table by default, with a string status as the Status text', () => {
+    const { container } = render(
+      <RunwayChart
+        rows={rows}
+        domain={domain}
+        now={now}
+        title="Runway"
+        status={(row) => (row.id === 'team' ? 'On track' : undefined)}
+      />,
+    )
+    const table = container.querySelector('[data-ch-part="data-table"]')
+    expect(table).not.toBeNull()
+    const status = [...(table?.querySelectorAll('tbody tr') ?? [])].map(
+      (tr) => tr.lastElementChild?.textContent,
+    )
+    expect(status).toEqual([
+      'Runs out Fri 03:00, Resets Fri 11:00',
+      'On track',
+      'Reconnect to forecast',
+    ])
+    expect(
+      renderRunway({ dataTable: false }).container.querySelector('[data-ch-part="data-table"]'),
+    ).toBeNull()
+  })
+
+  it('renders no status for null, and names the option from a string status', () => {
+    const { container } = renderRunway({
+      onSelect: vi.fn(),
+      status: (row) => (row.id === 'pro' ? null : row.id === 'team' ? 'On track' : undefined),
+      rows: [
+        rows[0] as RunwayRow,
+        rows[1] as RunwayRow,
+        { ...(rows[2] as RunwayRow), status: undefined },
+      ],
+    })
+    const statuses = part(container, 'runway-status').map((el) => el.textContent)
+    expect(statuses).toEqual(['', 'On track', 'Disconnected'])
+    const options = screen.getAllByRole('option')
+    expect(options[0]).toHaveAccessibleName('Pro plan')
+    expect(options[1]).toHaveAccessibleName('Team seat On track')
+    const cells = [...container.querySelectorAll('[data-ch-part="data-table"] tbody tr')].map(
+      (tr) => tr.lastElementChild?.textContent,
+    )
+    expect(cells).toEqual(['—no value', 'On track', 'Disconnected'])
+  })
+
+  it('marks the selected row in list mode too', () => {
+    const { container } = renderRunway({ selectedId: 'team' })
+    const marked = part(container, 'runway-row').map((r) => r.getAttribute('data-ch-selected'))
+    expect(marked).toEqual([null, 'true', null])
+    expect(part(container, 'runway-row')[1]).not.toHaveAttribute('aria-selected')
+  })
+
+  it('does not move the keyboard cursor on hover', () => {
+    renderRunway({ onSelect: vi.fn(), selectedId: 'starter' })
+    const box = screen.getByRole('listbox')
+    const options = within(box).getAllByRole('option')
+    // Hover before focus: tabbing in still starts on the selected row.
+    fireEvent.pointerEnter(options[0] as HTMLElement)
+    expect(options[0]).toHaveAttribute('data-ch-active', 'true')
+    act(() => box.focus())
+    expect(box.getAttribute('aria-activedescendant')).toBe(options[2]?.id)
+    // Hover while focused: highlights the row, the cursor stays.
+    fireEvent.pointerEnter(options[1] as HTMLElement)
+    expect(options[1]).toHaveAttribute('data-ch-active', 'true')
+    expect(box.getAttribute('aria-activedescendant')).toBe(options[2]?.id)
+    fireEvent.keyDown(box, { key: 'ArrowUp' })
+    expect(box.getAttribute('aria-activedescendant')).toBe(options[1]?.id)
+  })
+
+  it('puts the cursor on a pressed row without scrolling to another row', () => {
+    renderRunway({ onSelect: vi.fn(), selectedId: 'starter' })
+    const box = screen.getByRole('listbox')
+    const options = within(box).getAllByRole('option')
+    const scroll = vi.fn()
+    for (const o of options) o.scrollIntoView = scroll
+    fireEvent.pointerDown(options[1] as HTMLElement)
+    act(() => box.focus())
+    expect(box.getAttribute('aria-activedescendant')).toBe(options[1]?.id)
+    expect(options[1]).toHaveAttribute('data-ch-active', 'true')
+    expect(scroll).not.toHaveBeenCalled()
+    // Keyboard focus later scrolls as usual.
+    act(() => box.blur())
+    act(() => box.focus())
+    expect(box.getAttribute('aria-activedescendant')).toBe(options[1]?.id)
+    expect(scroll).toHaveBeenCalledTimes(1)
+  })
+
   it('keeps the keyboard cursor on its row when the rows are reordered', () => {
     const { rerender } = renderRunway({ onSelect: vi.fn() })
     const box = screen.getByRole('listbox')

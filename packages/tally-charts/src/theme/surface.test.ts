@@ -194,6 +194,7 @@ const STATES = [
   'placement',
   'root',
   'selectable',
+  'selected',
   'seq-tone',
   'shape',
   'side',
