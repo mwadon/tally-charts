@@ -1,8 +1,7 @@
-import type { ScaleBand } from 'd3-scale'
 import type { FieldGetter } from './accessor'
 import type { LinearScale } from './linear'
 import { toNumber } from './number'
-import type { ResolvedScale } from './scale'
+import type { BandScale, ResolvedScale } from './scale'
 import type { Id } from './types'
 import { DEV, type Warn } from './warn'
 
@@ -66,7 +65,7 @@ export function computeBars(input: BarLayoutInput): BarLayout {
 
 function layoutBars(
   input: BarLayoutInput,
-  band: ScaleBand<string>,
+  band: BandScale,
   linear: LinearScale,
   getCategory: FieldGetter,
   getValue: FieldGetter,

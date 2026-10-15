@@ -1,9 +1,9 @@
-import { scaleBand, scalePoint } from 'd3-scale'
 import { describe, expect, it } from 'vitest'
+import { bandScale, pointScale } from './band'
 import { linearScale } from './linear'
 import { bandTicks, linearTicks, pointTicks, type Tick, thinTicks } from './ticks'
 
-const band = scaleBand<string>().domain(['a', 'b', 'c', 'd']).range([0, 400]).paddingInner(0)
+const band = bandScale(['a', 'b', 'c', 'd'], [0, 400], 0, 0)
 
 describe('bandTicks', () => {
   it('places ticks at band centres', () => {
@@ -75,7 +75,7 @@ describe('thinTicks', () => {
 
 describe('pointTicks', () => {
   // 400px, padding 0.5: a 100px step, points at 50, 150, 250 and 350.
-  const s = scalePoint<string>().domain(['Apr', 'May', 'Jun', 'Jul']).range([0, 400]).padding(0.5)
+  const s = pointScale(['Apr', 'May', 'Jun', 'Jul'], [0, 400], 0.5)
 
   it('labels every point, centred', () => {
     expect(pointTicks(s, 'all', String).map((t) => [t.label, t.position, t.anchor])).toEqual([
@@ -96,6 +96,6 @@ describe('pointTicks', () => {
       'APR',
       'JUL',
     ])
-    expect(pointTicks(scalePoint<string>(), 'all', String)).toEqual([])
+    expect(pointTicks(pointScale([], [0, 1], 0), 'all', String)).toEqual([])
   })
 })

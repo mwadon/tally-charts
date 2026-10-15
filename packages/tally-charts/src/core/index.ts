@@ -37,8 +37,10 @@ export { toNumber } from './number'
 export type { Placement, PlacementInput } from './placement'
 export { placeTooltip } from './placement'
 export type {
+  BandScale,
   BandScaleSpec,
   LinearScaleSpec,
+  PointScale,
   PointScaleSpec,
   ResolvedScale,
   ScaleSpec,

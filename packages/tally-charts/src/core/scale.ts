@@ -1,5 +1,5 @@
-import { type ScaleBand, type ScalePoint, scaleBand, scalePoint } from 'd3-scale'
 import { type FieldGetter, toFieldGetter } from './accessor'
+import { bandScale, pointScale } from './band'
 import { type LinearScale, linearScale, niceDomain } from './linear'
 import { toNumber } from './number'
 import type { Accessor } from './types'
@@ -34,10 +34,36 @@ export interface PointScaleSpec<D> {
 
 export type ScaleSpec<D> = LinearScaleSpec<D> | BandScaleSpec<D> | PointScaleSpec<D>
 
+/** Categories to bands: `scale(category)` is the band's start in px. */
+export interface BandScale {
+  (value: string): number | undefined
+  domain(): string[]
+  range(): [number, number]
+  /** Width of one band in px. */
+  bandwidth(): number
+  /** Distance between the starts of neighbouring bands in px. */
+  step(): number
+}
+
+/** Categories to points: `scale(category)` is the point's position in px. */
+export interface PointScale {
+  (value: string): number | undefined
+  domain(): string[]
+  range(): [number, number]
+  /** Always 0: points have no width. */
+  bandwidth(): number
+  /** Distance between neighbouring points in px. */
+  step(): number
+}
+
+/** A chart axis's scale, as `useChart()` reports it. Narrow on `kind` to use `scale`. */
 export type ResolvedScale =
-  | { kind: 'band'; scale: ScaleBand<string>; field?: FieldGetter }
-  | { kind: 'point'; scale: ScalePoint<string>; field?: FieldGetter }
-  | { kind: 'linear'; scale: LinearScale; field?: FieldGetter }
+  | { kind: 'linear'; scale: LinearScale }
+  | { kind: 'band'; scale: BandScale }
+  | { kind: 'point'; scale: PointScale }
+
+/** Internal: a resolved scale plus the field its axis reads, which marks fall back to. */
+export type FieldScale = ResolvedScale & { field?: FieldGetter }
 
 export function inferLinearDomain(values: readonly number[], zero = true): [number, number] {
   let min = Number.POSITIVE_INFINITY
@@ -75,7 +101,7 @@ export function createScale<D>(
   axis: 'x' | 'y',
   length: number,
   warn: Warn,
-): ResolvedScale {
+): FieldScale {
   const field = toFieldGetter<D>(spec?.field)
 
   if (spec?.type === 'band' || spec?.type === 'point') {
@@ -87,17 +113,9 @@ export function createScale<D>(
       )
     }
     if (spec.type === 'point') {
-      const scale = scalePoint<string>()
-        .domain(domain)
-        .range([0, length])
-        .padding(spec.padding ?? 0.5)
-      return { kind: 'point', scale, field }
+      return { kind: 'point', scale: pointScale(domain, [0, length], spec.padding ?? 0.5), field }
     }
-    const scale = scaleBand<string>()
-      .domain(domain)
-      .range([0, length])
-      .paddingInner(spec.padding ?? 0.2)
-      .paddingOuter(spec.paddingOuter ?? 0)
+    const scale = bandScale(domain, [0, length], spec.padding ?? 0.2, spec.paddingOuter ?? 0)
     return { kind: 'band', scale, field }
   }
 

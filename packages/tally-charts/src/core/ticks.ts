@@ -1,6 +1,6 @@
 import { ticks } from 'd3-array'
-import type { ScaleBand, ScalePoint } from 'd3-scale'
 import type { LinearScale } from './linear'
+import type { BandScale, PointScale } from './scale'
 
 export type TickSpec = 'all' | 'ends' | number
 export type TickAnchor = 'start' | 'middle' | 'end'
@@ -13,7 +13,7 @@ export interface Tick {
 }
 
 export function bandTicks(
-  scale: ScaleBand<string>,
+  scale: BandScale,
   spec: TickSpec,
   format: (value: string) => string,
   /**
@@ -67,7 +67,7 @@ export function bandTicks(
 
 /** Labels for a point scale: every point ('all'), the first and last ('ends'), or every nth. */
 export function pointTicks(
-  scale: ScalePoint<string>,
+  scale: PointScale,
   spec: TickSpec,
   format: (value: string) => string,
 ): Tick[] {

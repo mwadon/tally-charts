@@ -1,5 +1,13 @@
-import { describe, expect, it, vi } from 'vitest'
-import { categoryCenter, categoryStep, createScale, inferLinearDomain } from './scale'
+import { describe, expect, expectTypeOf, it, vi } from 'vitest'
+import type { LinearScale } from './linear'
+import {
+  type BandScale,
+  categoryCenter,
+  categoryStep,
+  createScale,
+  inferLinearDomain,
+  type PointScale,
+} from './scale'
 
 const noop = () => {}
 
@@ -149,5 +157,15 @@ describe('categoryCenter and categoryStep', () => {
     expect(categoryCenter(point, undefined)).toBeUndefined()
     expect(categoryCenter(linear, 0)).toBeUndefined()
     expect(categoryStep(linear)).toBe(0)
+  })
+})
+
+describe('resolved scale types', () => {
+  it("narrows to the library's own scale interfaces", () => {
+    const s = createScale({ type: 'band', domain: ['a', 'b'] }, [], 'x', 200, noop)
+    if (s.kind === 'band') expectTypeOf(s.scale).toEqualTypeOf<BandScale>()
+    if (s.kind === 'point') expectTypeOf(s.scale).toEqualTypeOf<PointScale>()
+    if (s.kind === 'linear') expectTypeOf(s.scale).toEqualTypeOf<LinearScale>()
+    expect(s.kind).toBe('band')
   })
 })

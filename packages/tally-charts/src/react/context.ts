@@ -1,6 +1,6 @@
 import { createContext, useContext } from 'react'
 import type { FormatOptions, FormatSpec, Formatter } from '../core/format'
-import type { ResolvedScale } from '../core/scale'
+import type { FieldScale } from '../core/scale'
 import type { Id } from '../core/types'
 import type { Warn } from '../core/warn'
 import type { ActiveSource, ChartPoint } from './types'
@@ -20,8 +20,8 @@ export interface ChartContextValue {
   innerHeight: number
   margin: Margin
   data: readonly unknown[]
-  x: ResolvedScale
-  y: ResolvedScale
+  x: FieldScale
+  y: FieldScale
   format: (spec?: FormatSpec, options?: Pick<FormatOptions, 'signed'>) => Formatter
   warn: Warn
   dimInactive: boolean
