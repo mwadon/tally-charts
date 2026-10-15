@@ -14,7 +14,7 @@ import { DEFAULT_HATCH, DEFAULT_RADIUS, readHatchGeometry, readRadius } from '..
 import { useFormat } from './ChartsProvider'
 import { ChartContext, type InternalChartContext, type Margin } from './context'
 import { DataTable, type DataTableSpec } from './DataTable'
-import { type InteractionOptions, navigate, useInteraction } from './interaction'
+import { announcement, type InteractionOptions, navigate, useInteraction } from './interaction'
 import { PatternDefs } from './PatternDefs'
 import type { ChartPoint } from './types'
 import { useIsoLayoutEffect } from './useIsoLayoutEffect'
@@ -94,6 +94,8 @@ export function Chart<D>({
   children,
 }: ChartProps<D>) {
   const rootRef = useRef<HTMLElement>(null)
+  // Set by a pointer press on the plot, so the focus that follows a click doesn't act like Tab.
+  const pressed = useRef(false)
   const reactId = useId()
   const chartId = `ch-${(chartIdProp ?? reactId).replace(/[^a-zA-Z0-9_-]/g, '')}`
   const measured = useWidth(rootRef, initialWidth, width === undefined)
@@ -183,9 +185,9 @@ export function Chart<D>({
     overlay,
   }
 
-  const announcement =
+  const spoken =
     interaction.source === 'keyboard' && interaction.activePoint
-      ? interaction.activePoint.label
+      ? announcement(interaction.points, interaction.activePoint)
       : ''
   const titleId = `${chartId}-title`
   const descId = `${chartId}-desc`
@@ -255,6 +257,18 @@ export function Chart<D>({
                   'aria-describedby': describedBy || undefined,
                   tabIndex: 0,
                   onKeyDown,
+                  onPointerDown: () => {
+                    pressed.current = true
+                  },
+                  // Keyboard focus alone shows the first point, its tooltip and announcement.
+                  onFocus: () => {
+                    const byPointer = pressed.current
+                    pressed.current = false
+                    const first = interaction.points[0]
+                    if (!byPointer && !interaction.activePoint && first) {
+                      interaction.setActive(first.id, 'keyboard')
+                    }
+                  },
                   onBlur: () => {
                     if (interaction.source === 'keyboard') interaction.setActive(null, 'keyboard')
                   },
@@ -279,7 +293,7 @@ export function Chart<D>({
         <DataTable data={rows} columns={dataTable.columns} caption={dataTable.caption ?? title} />
       ) : null}
       <div aria-live="polite" className="ch-sr-only">
-        {announcement}
+        {spoken}
       </div>
     </figure>
   )

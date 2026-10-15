@@ -277,12 +277,41 @@ describe('<Chart>', () => {
     const live = container.querySelector('[aria-live]')
     fireEvent.keyDown(chart, { key: 'ArrowRight' })
     expect(onActiveChange).toHaveBeenLastCalledWith(1, expect.objectContaining({ label: 'Week 1' }))
-    expect(live).toHaveTextContent('Week 1')
+    expect(live?.textContent).toBe('1 of 3, Week 1')
     fireEvent.keyDown(chart, { key: 'End' })
-    expect(live).toHaveTextContent('Week 3')
+    expect(live?.textContent).toBe('3 of 3, Week 3')
     fireEvent.keyDown(chart, { key: 'Escape' })
     expect(onActiveChange).toHaveBeenLastCalledWith(null, null)
     expect(live?.textContent).toBe('')
+  })
+
+  it('activates and announces the first point when keyboard focus arrives', () => {
+    const onActiveChange = vi.fn()
+    const { container } = render(
+      <Chart width={300} onActiveChange={onActiveChange}>
+        <PointsProbe ids={[1, 2, 3]} />
+      </Chart>,
+    )
+    fireEvent.focus(screen.getByRole('application'))
+    expect(onActiveChange).toHaveBeenLastCalledWith(1, expect.objectContaining({ id: 1 }))
+    expect(container.querySelector('[aria-live]')?.textContent).toBe('1 of 3, Week 1')
+  })
+
+  it('leaves the active point alone when a pointer press focuses the chart', () => {
+    const onActiveChange = vi.fn()
+    render(
+      <Chart width={300} onActiveChange={onActiveChange}>
+        <PointsProbe ids={[1, 2]} />
+      </Chart>,
+    )
+    const chart = screen.getByRole('application')
+    fireEvent.pointerDown(chart)
+    fireEvent.focus(chart)
+    expect(onActiveChange).not.toHaveBeenCalled()
+    // The next focus, by keyboard, activates again.
+    fireEvent.blur(chart)
+    fireEvent.focus(chart)
+    expect(onActiveChange).toHaveBeenLastCalledWith(1, expect.objectContaining({ id: 1 }))
   })
 
   it('calls onSelect with the active point on Enter', () => {

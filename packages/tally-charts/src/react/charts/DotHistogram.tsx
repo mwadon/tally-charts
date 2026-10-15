@@ -81,6 +81,8 @@ interface HistogramRow<D> {
   tone: Tone
   name: string
   aria: string
+  /** The `toneBy` thresholds bin label, e.g. "Critical"; announced as the series. */
+  group: string | undefined
   segments: readonly TooltipSegment[]
 }
 
@@ -125,6 +127,7 @@ function HistogramDots<D>(props: {
         cy: d.cy,
         tone: row.tone,
         label: row.aria,
+        series: row.group,
         segments: row.segments,
         group: { key: d.bin, axis: 'vertical' },
       },
@@ -202,6 +205,10 @@ export function DotHistogram<D>({
         tone,
         name,
         aria: name ? `${name}, ${text}` : text,
+        group:
+          toneBy && typeof toneBy !== 'function'
+            ? toneBy.bins[toneBy.indexOf(v)]?.label
+            : undefined,
         segments: segments
           ? segments(d, i)
           : name
@@ -234,7 +241,7 @@ export function DotHistogram<D>({
     if (toneBy && typeof toneBy !== 'function') {
       columns.push({
         header: 'Group',
-        value: (r) => toneBy.bins[toneBy.indexOf(r.value)]?.label ?? '',
+        value: (r) => r.group ?? '',
       })
     }
     table = { columns }

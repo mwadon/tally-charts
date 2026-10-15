@@ -132,11 +132,11 @@ describe('<DotHistogram>', () => {
     const chart = screen.getByRole('application', { name: 'Jobs by margin' })
     const live = () => container.querySelector('[aria-live]')?.textContent
     fireEvent.keyDown(chart, { key: 'ArrowRight' })
-    expect(live()).toBe('#1, 3.0%')
+    expect(live()).toBe('Critical, 1 of 1, #1, 3.0%')
     fireEvent.keyDown(chart, { key: 'ArrowRight' })
-    expect(live()).toBe('#2, 12.3%')
+    expect(live()).toBe('At risk, 1 of 2, #2, 12.3%')
     fireEvent.keyDown(chart, { key: 'ArrowUp' })
-    expect(live()).toBe('#3, 12.8%')
+    expect(live()).toBe('At risk, 2 of 2, #3, 12.8%')
   })
 
   it('skips missing values without throwing', () => {
@@ -176,7 +176,11 @@ describe('<DotHistogram>', () => {
       fireEvent.keyDown(chart, { key: 'ArrowRight' })
       seen.add(container.querySelector('[aria-live]')?.textContent ?? '')
     }
-    expect([...seen]).toEqual(['job 0, 3.0%', 'job 1, 20.0%', 'job 2, 40.0%'])
+    expect([...seen]).toEqual([
+      'Critical, 1 of 1, job 0, 3.0%',
+      'At risk, 1 of 1, job 1, 20.0%',
+      'On target, 1 of 1, job 2, 40.0%',
+    ])
     expect(warn).toHaveBeenCalledTimes(1)
     expect(warn.mock.calls[0]?.[0]).toContain('duplicate id')
   })

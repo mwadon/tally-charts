@@ -33,6 +33,11 @@ export interface ChartPoint<D = unknown> {
   hitY?: number
   /** Screen-reader text, e.g. "Sep 21, 34.0%". */
   label: string
+  /**
+   * The series the point belongs to, e.g. "Estimated". When a chart's points come from more than
+   * one series, announcements start with it; the position ("2 of 7") counts within it.
+   */
+  series?: string
   segments: readonly TooltipSegment[]
   /** Stack or row membership; arrow keys move within and across groups when set. */
   group?: PointGroup

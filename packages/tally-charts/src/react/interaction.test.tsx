@@ -1,7 +1,7 @@
 import { act, renderHook } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import type { Id } from '../core/types'
-import { navigate, samePoints, uniquePoints, useInteraction } from './interaction'
+import { announcement, navigate, samePoints, uniquePoints, useInteraction } from './interaction'
 import type { ChartPoint } from './types'
 
 const pts = (ids: Id[]): ChartPoint[] =>
@@ -45,6 +45,30 @@ describe('navigate', () => {
   it('ignores other keys and empty charts', () => {
     expect(navigate(points, 'a', 'x')).toBeUndefined()
     expect(navigate([], null, 'ArrowRight')).toBeUndefined()
+  })
+})
+
+describe('announcement', () => {
+  it('gives the position and leaves out a series every point shares', () => {
+    const points = pts(['a', 'b', 'c'])
+    expect(announcement(points, points[1] as ChartPoint)).toBe('2 of 3, Pb')
+    const same = points.map((p) => ({ ...p, series: 'Margin' }))
+    expect(announcement(same, same[2] as ChartPoint)).toBe('3 of 3, Pc')
+  })
+
+  it('starts with the series and counts within it when there are several', () => {
+    const points = [
+      ...pts(['a', 'b']).map((p) => ({ ...p, series: 'Estimated' })),
+      ...pts(['c', 'd', 'e']).map((p) => ({ ...p, series: 'Actual' })),
+    ]
+    expect(announcement(points, points[1] as ChartPoint)).toBe('Estimated, 2 of 2, Pb')
+    expect(announcement(points, points[2] as ChartPoint)).toBe('Actual, 1 of 3, Pc')
+  })
+
+  it('counts points without a series together and never prints "undefined"', () => {
+    const points = [...pts(['a']), { ...(pts(['b'])[0] as ChartPoint), series: 'Target' }]
+    expect(announcement(points, points[0] as ChartPoint)).toBe('1 of 1, Pa')
+    expect(announcement(points, points[1] as ChartPoint)).toBe('Target, 1 of 1, Pb')
   })
 })
 

@@ -20,6 +20,8 @@ export interface DotItem {
   segments?: readonly TooltipSegment[]
   /** Stack or row for the arrow keys. */
   group?: PointGroup
+  /** Series name for announcements, see `ChartPoint.series`. */
+  series?: string
 }
 
 export interface DotsProps {
@@ -51,6 +53,7 @@ export function Dots({ dots, radius, interactive = true }: DotsProps) {
           label: d.label,
           segments: d.segments ?? [{ value: d.label }],
           group: d.group,
+          series: d.series,
         }),
       ),
     [dots, r],

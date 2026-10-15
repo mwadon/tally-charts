@@ -143,11 +143,11 @@ describe('<LineChart>', () => {
     const { container } = renderLines()
     const chart = screen.getByRole('application', { name: 'Margin outlook' })
     fireEvent.keyDown(chart, { key: 'End' })
-    expect(live(container)).toBe('Sep, 36.0% on the current path, 38.0% with changes')
+    expect(live(container)).toBe('4 of 4, Sep, 36.0% on the current path, 38.0% with changes')
     fireEvent.keyDown(chart, { key: 'Home' })
-    expect(live(container)).toBe('Jun, 34.0% Actual')
+    expect(live(container)).toBe('1 of 4, Jun, 34.0% Actual')
     fireEvent.keyDown(chart, { key: 'ArrowRight' })
-    expect(live(container)).toBe('Jul, 32.0% Actual')
+    expect(live(container)).toBe('2 of 4, Jul, 32.0% Actual')
   })
 
   it('snaps the pointer to the nearest x', () => {
@@ -281,7 +281,7 @@ describe('<LineChart>', () => {
     expect(dots).toHaveLength(1)
     expect(dots[0]).toHaveAttribute('cx', '200')
     fireEvent.keyDown(screen.getByRole('application', { name: 'Margin outlook' }), { key: 'Home' })
-    expect(live(container)).toBe('Jun, 34.0% Actual')
+    expect(live(container)).toBe('1 of 1, Jun, 34.0% Actual')
   })
 
   it('draws nothing for an all-missing series and leaves it out of the tooltip', () => {
@@ -404,7 +404,7 @@ describe('<LineChart> on a time axis', () => {
     unmount()
     const again = renderTimeLines()
     fireEvent.keyDown(screen.getByRole('application', { name: 'Readings' }), { key: 'End' })
-    expect(live(again.container)).toBe('Jan 4, 2026, 35.0% Plan')
+    expect(live(again.container)).toBe('3 of 3, Jan 4, 2026, 35.0% Plan')
     const table = screen.getByRole('table', { name: 'Readings' })
     expect(
       within(table)
@@ -447,15 +447,15 @@ describe('<LineChart> on a time axis', () => {
     })
     const chart = screen.getByRole('application', { name: 'Readings' })
     fireEvent.keyDown(chart, { key: 'Home' })
-    expect(live(container)).toBe('Jan 1, 2026, 34.0% Actual')
+    expect(live(container)).toBe('1 of 3, Jan 1, 2026, 34.0% Actual')
     fireEvent.keyDown(chart, { key: 'ArrowRight' })
-    expect(live(container)).toBe('Jan 2, 2026, 32.0% Actual')
+    expect(live(container)).toBe('2 of 3, Jan 2, 2026, 32.0% Actual')
     fireEvent.keyDown(chart, { key: 'ArrowRight' })
-    expect(live(container)).toBe('Jan 4, 2026, 35.0% Plan')
+    expect(live(container)).toBe('3 of 3, Jan 4, 2026, 35.0% Plan')
     fireEvent.keyDown(chart, { key: 'ArrowLeft' })
-    expect(live(container)).toBe('Jan 2, 2026, 32.0% Actual')
+    expect(live(container)).toBe('2 of 3, Jan 2, 2026, 32.0% Actual')
     fireEvent.keyDown(chart, { key: 'ArrowLeft' })
-    expect(live(container)).toBe('Jan 1, 2026, 34.0% Actual')
+    expect(live(container)).toBe('1 of 3, Jan 1, 2026, 34.0% Actual')
   })
 
   it('skips dates outside an explicit domain: not drawn, not reachable, one warning', () => {
@@ -476,9 +476,9 @@ describe('<LineChart> on a time axis', () => {
     }
     const chart = screen.getByRole('application', { name: 'Readings' })
     fireEvent.keyDown(chart, { key: 'Home' })
-    expect(live(container)).toBe('Jan 2, 2026, 32.0% Actual')
+    expect(live(container)).toBe('1 of 2, Jan 2, 2026, 32.0% Actual')
     fireEvent.keyDown(chart, { key: 'End' })
-    expect(live(container)).toBe('Jan 4, 2026, 35.0% Plan')
+    expect(live(container)).toBe('2 of 2, Jan 4, 2026, 35.0% Plan')
     expect(warn).toHaveBeenCalledTimes(1)
     expect(warn.mock.calls[0]?.[0]).toContain('skipped a date outside the x domain')
   })

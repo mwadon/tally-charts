@@ -83,7 +83,7 @@ describe('<WaffleColumns>', () => {
     const { container } = renderWaffle()
     const chart = screen.getByRole('application', { name: 'Profit leaked' })
     for (let i = 0; i < 3; i++) fireEvent.keyDown(chart, { key: 'ArrowRight' })
-    expect(container.querySelector('[aria-live]')?.textContent).toBe('Sep 7, 24')
+    expect(container.querySelector('[aria-live]')?.textContent).toBe('3 of 4, Sep 7, 24')
   })
 
   it('draws an empty column for a missing value', () => {
@@ -117,7 +117,12 @@ describe('<WaffleColumns>', () => {
       fireEvent.keyDown(chart, { key: 'ArrowRight' })
       seen.add(container.querySelector('[aria-live]')?.textContent ?? '')
     }
-    expect([...seen]).toEqual(['Aug 3, 8', 'Aug 10, 12', 'Sep 7, 24', 'Sep 14, 10'])
+    expect([...seen]).toEqual([
+      '1 of 4, Aug 3, 8',
+      '2 of 4, Aug 10, 12',
+      '3 of 4, Sep 7, 24',
+      '4 of 4, Sep 14, 10',
+    ])
     expect(warn).toHaveBeenCalledTimes(1)
     expect(warn.mock.calls[0]?.[0]).toContain('duplicate id')
   })

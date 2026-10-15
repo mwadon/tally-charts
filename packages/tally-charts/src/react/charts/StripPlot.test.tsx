@@ -86,11 +86,11 @@ describe('<StripPlot>', () => {
     const chart = screen.getByRole('application', { name: 'Dallas installs' })
     const live = () => container.querySelector('[aria-live]')?.textContent
     fireEvent.keyDown(chart, { key: 'ArrowRight' })
-    expect(live()).toBe('Estimated, A, 6 h')
+    expect(live()).toBe('Estimated, 1 of 3, A, 6 h')
     fireEvent.keyDown(chart, { key: 'ArrowRight' })
-    expect(live()).toBe('Estimated, B, 6.1 h')
+    expect(live()).toBe('Estimated, 2 of 3, B, 6.1 h')
     fireEvent.keyDown(chart, { key: 'ArrowDown' })
-    expect(live()).toBe('Actual, A, 8 h')
+    expect(live()).toBe('Actual, 1 of 3, A, 8 h')
   })
 
   it('reports the user datum on hover', () => {

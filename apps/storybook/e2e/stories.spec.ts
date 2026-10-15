@@ -79,13 +79,18 @@ for (const id of STORIES) {
   })
 }
 
-test('keyboard focus shows the tooltip and announces the point', async ({ page }) => {
+test('keyboard focus shows the first point, and the keys move and announce it', async ({
+  page,
+}) => {
   await open(page, 'reference-last-12-weeks--light')
   const chart = page.locator('[data-ch-root]')
-  await chart.getByRole('application').focus()
+  await page.keyboard.press('Tab')
+  await expect(chart.getByRole('application')).toBeFocused()
+  await expect(page.locator('[data-ch-part="tooltip"]')).toContainText('Jul 6')
+  await expect(chart.locator('[aria-live]')).toHaveText('1 of 12, Jul 6, 37.5%')
   await page.keyboard.press('End')
   await expect(page.locator('[data-ch-part="tooltip"]')).toContainText('Sep 21')
-  await expect(chart.locator('[aria-live]')).toHaveText('Sep 21, 34.0%')
+  await expect(chart.locator('[aria-live]')).toHaveText('12 of 12, Sep 21, 34.0%')
   await page.keyboard.press('Escape')
   await expect(page.locator('[data-ch-part="tooltip"]')).toHaveCount(0)
 })
@@ -126,8 +131,8 @@ test('clicking a drill row moves the selection', async ({ page }) => {
 test('arrow keys and Enter select a drill row', async ({ page }) => {
   await open(page, 'reference-drill-columns--light')
   const causes = page.getByRole('figure', { name: 'Leakage by cause' })
+  // Focus activates the first row; one step down is the second.
   await causes.getByRole('application').focus()
-  await page.keyboard.press('ArrowDown')
   await page.keyboard.press('ArrowDown')
   await page.keyboard.press('Enter')
   await expect(page.getByTestId('drill-selected')).toHaveText('Selected cause: Material variance')
@@ -137,8 +142,9 @@ test('comparison rows announce plan, actual and difference', async ({ page }) =>
   await open(page, 'reference-estimate-vs-actual--light')
   const chart = page.getByRole('figure', { name: 'Estimate vs actual by cost line' })
   await chart.getByRole('application').focus()
-  await page.keyboard.press('ArrowDown')
-  await expect(chart.locator('[aria-live]')).toHaveText('Labor, plan $640, actual $1,060, +$420')
+  await expect(chart.locator('[aria-live]')).toHaveText(
+    '1 of 6, Labor, plan $640, actual $1,060, +$420',
+  )
 })
 
 test('the waterfall announces running totals', async ({ page }) => {
@@ -146,9 +152,8 @@ test('the waterfall announces running totals', async ({ page }) => {
   const chart = page.getByRole('figure', { name: 'Why margin is under target' })
   await chart.getByRole('application').focus()
   await page.keyboard.press('ArrowDown')
-  await page.keyboard.press('ArrowDown')
   await expect(chart.locator('[aria-live]')).toHaveText(
-    'Labor overruns, −1.6 pts · $7.7K, running total 36.4%',
+    '2 of 7, Labor overruns, −1.6 pts · $7.7K, running total 36.4%',
   )
 })
 
@@ -167,10 +172,9 @@ test('the dot histogram walks bins with the arrow keys', async ({ page }) => {
   await open(page, 'reference-jobs-by-margin--light')
   const chart = page.getByRole('figure', { name: 'Jobs by margin this week' })
   await chart.getByRole('application').focus()
+  await expect(chart.locator('[aria-live]')).toHaveText('Critical, 1 of 6, #5600, 3.1%')
   await page.keyboard.press('ArrowRight')
-  await expect(chart.locator('[aria-live]')).toHaveText('#5600, 3.1%')
-  await page.keyboard.press('ArrowRight')
-  await expect(chart.locator('[aria-live]')).toHaveText('#5601, 4.2%')
+  await expect(chart.locator('[aria-live]')).toHaveText('Critical, 2 of 6, #5601, 4.2%')
 })
 
 test('hovering near a strip dot shows its tooltip', async ({ page }) => {
@@ -217,7 +221,7 @@ test('the line chart announces every series at a month', async ({ page }) => {
   await chart.getByRole('application').focus()
   await page.keyboard.press('End')
   await expect(chart.locator('[aria-live]')).toHaveText(
-    'Dec, 36.0% on the current path, 37.6% with changes',
+    '9 of 9, Dec, 36.0% on the current path, 37.6% with changes',
   )
 })
 
@@ -238,7 +242,9 @@ test('a time axis labels dates and the keyboard announces them', async ({ page }
   await expect(chart.locator('[data-ch-part="axis-label"]').last()).toHaveText('Mar 3')
   await chart.getByRole('application').focus()
   await page.keyboard.press('End')
-  await expect(chart.locator('[aria-live]')).toHaveText('Mar 2, 11:00 PM, 43.0% Line load today')
+  await expect(chart.locator('[aria-live]')).toHaveText(
+    '24 of 24, Mar 2, 11:00 PM, 43.0% Line load today',
+  )
   await expect(page.locator('[data-ch-part="tooltip"]')).toContainText('Mar 2, 11:00 PM')
 })
 
@@ -250,5 +256,7 @@ test('a monthly time axis shows years and announces months', async ({ page }) =>
   ).toHaveCount(6)
   await chart.getByRole('application').focus()
   await page.keyboard.press('Home')
-  await expect(chart.locator('[aria-live]')).toHaveText('Jan 2021, 365 Revenue over five years')
+  await expect(chart.locator('[aria-live]')).toHaveText(
+    '1 of 60, Jan 2021, 365 Revenue over five years',
+  )
 })

@@ -260,6 +260,7 @@ export interface ChartPoint<D = unknown> {
     label: string;
     // (undocumented)
     segments: readonly TooltipSegment[];
+    series?: string;
     // (undocumented)
     x: number;
     // (undocumented)
@@ -493,6 +494,7 @@ export interface DotItem {
     label: string;
     // (undocumented)
     segments?: readonly TooltipSegment[];
+    series?: string;
     soft?: boolean;
     // (undocumented)
     tone: Tone;

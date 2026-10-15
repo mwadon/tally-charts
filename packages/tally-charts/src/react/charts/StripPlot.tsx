@@ -141,7 +141,8 @@ function StripRows<D>(props: {
         cx: d.cx,
         cy: d.cy,
         tone,
-        label: row.name ? `${s.label}, ${row.name}, ${text}` : `${s.label}, ${text}`,
+        label: row.name ? `${row.name}, ${text}` : text,
+        series: s.label,
         segments: row.name
           ? [{ value: s.label }, { value: row.name }, { value: text, tone }]
           : [{ value: s.label }, { value: text, tone }],
