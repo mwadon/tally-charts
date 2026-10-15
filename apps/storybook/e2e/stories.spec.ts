@@ -36,6 +36,8 @@ const STORIES = [
   'charts-time-axis--daily-dark',
   'charts-time-axis--monthly-light',
   'charts-time-axis--monthly-dark',
+  'primitives-sequential--light',
+  'primitives-sequential--dark',
 ]
 
 // Stories whose reference layout needs more room than the default 800px viewport.
@@ -282,3 +284,55 @@ test('a monthly time axis shows years and announces months', async ({ page }) =>
     '1 of 60, Jan 2021, 365 Revenue over five years',
   )
 })
+
+/** sRGB channels 0–255 from a computed color: `rgb(…)`, `color(srgb …)` or `#rrggbb`. */
+function channels(color: string): number[] {
+  if (color.startsWith('#')) return [1, 3, 5].map((i) => Number.parseInt(color.slice(i, i + 2), 16))
+  const values = color.match(/[\d.]+/g)?.map(Number) ?? []
+  return color.startsWith('color(') ? values.slice(0, 3).map((v) => v * 255) : values.slice(0, 3)
+}
+
+function contrastOf(a: string, b: string): number {
+  const lum = (c: string) => {
+    const [r = 0, g = 0, bl = 0] = channels(c).map((v) => {
+      const s = v / 255
+      return s <= 0.04045 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4
+    })
+    return 0.2126 * r + 0.7152 * g + 0.0722 * bl
+  }
+  const [hi, lo] = [lum(a), lum(b)].sort((x, y) => y - x) as [number, number]
+  return (hi + 0.05) / (lo + 0.05)
+}
+
+for (const theme of ['light', 'dark']) {
+  test(`every sequential ramp keeps its contrast in the browser (${theme})`, async ({ page }) => {
+    // The system prefers the other scheme: the story's own data-ch-theme must still win.
+    await page.emulateMedia({ colorScheme: theme === 'light' ? 'dark' : 'light' })
+    await open(page, `primitives-sequential--${theme}`)
+    const ramps = await page.evaluate(() =>
+      [...document.querySelectorAll('[data-ch-part="heatmap"]')].map((heatmap) => ({
+        surface: getComputedStyle(heatmap).getPropertyValue('--ch-surface').trim(),
+        cells: [...heatmap.querySelectorAll('[data-ch-part="heatmap-cell"]')].map((cell) => ({
+          bg: getComputedStyle(cell).backgroundColor,
+          fg: getComputedStyle(cell).color,
+        })),
+        swatches: [...heatmap.querySelectorAll('[data-ch-part="legend-swatch"]')].map(
+          (swatch) => getComputedStyle(swatch).backgroundColor,
+        ),
+      })),
+    )
+    expect(ramps).toHaveLength(6)
+    // White text on the light theme's top level, dark text on the dark theme's.
+    const topText = ramps[0]?.cells[4]?.fg ?? ''
+    expect(channels(topText)[0]).toBe(theme === 'light' ? 255 : 18)
+    for (const { surface, cells, swatches } of ramps) {
+      expect(cells).toHaveLength(5)
+      expect(swatches).toEqual(cells.map((cell) => cell.bg))
+      for (const cell of cells) expect(contrastOf(cell.fg, cell.bg)).toBeGreaterThanOrEqual(4.5)
+      for (let i = 1; i < 5; i++) {
+        expect(contrastOf(cells[i - 1]?.bg ?? '', cells[i]?.bg ?? '')).toBeGreaterThanOrEqual(1.3)
+      }
+      expect(contrastOf(cells[4]?.bg ?? '', surface)).toBeGreaterThanOrEqual(3)
+    }
+  })
+}

@@ -50,25 +50,57 @@ const SEQ = declarations(
 )
 const LEVELS = [1, 2, 3, 4, 5] as const
 
-/** Share of the base and the color it mixes into, for one level under one tone. */
-function levelMix(tone: string, level: number): { share: number; into: string } {
-  const formula = SEQ.get(`--ch-seq-${level}`) ?? ''
-  const parsed = formula.match(
-    new RegExp(
-      `(?:var\\(--ch-seq-mix-${level}, (\\d+)%\\)|(\\d+)%), (var\\(--ch-surface\\)|#000)\\)$`,
-    ),
-  )
-  expect(parsed, formula).not.toBeNull()
-  const override = declarations(new RegExp(`\\[data-ch-seq-tone="${tone}"\\]`)).get(
-    `--ch-seq-mix-${level}`,
-  )
-  const share = override ?? parsed?.[1] ?? parsed?.[2] ?? ''
-  return { share: Number.parseFloat(share) / 100, into: parsed?.[3] ?? '' }
+const toHex = (c: Rgb) => `#${c.map((v) => v.toString(16).padStart(2, '0')).join('')}`
+
+/**
+ * A custom property value as the browser computes it: every `var()` replaced from `env` (or its
+ * fallback), then every `color-mix(in srgb, #a p%, #b)` evaluated to a hex color.
+ */
+function resolve(value: string, env: ReadonlyMap<string, string>): string {
+  let out = value
+  for (let guard = 0; guard < 100 && out.includes('var('); guard++) {
+    // The last var( has no var( inside it.
+    const start = out.lastIndexOf('var(')
+    let depth = 0
+    let end = start + 3
+    for (; end < out.length; end++) {
+      if (out[end] === '(') depth++
+      if (out[end] === ')' && --depth === 0) break
+    }
+    const inner = out.slice(start + 4, end)
+    const comma = inner.indexOf(',')
+    const name = (comma < 0 ? inner : inner.slice(0, comma)).trim()
+    const fallback = comma < 0 ? undefined : inner.slice(comma + 1).trim()
+    const found = env.get(name) ?? fallback
+    expect(found, `${name} in ${value}`).toBeDefined()
+    out = out.slice(0, start) + found + out.slice(end + 1)
+  }
+  const MIX = /color-mix\(in srgb, (#[0-9a-f]{3,6}) ([\d.]+)%, (#[0-9a-f]{3,6})\)/i
+  for (let guard = 0; guard < 20 && MIX.test(out); guard++) {
+    out = out.replace(MIX, (_, a: string, p: string, b: string) =>
+      toHex(mix(hex(a), Number.parseFloat(p) / 100, hex(b))),
+    )
+  }
+  return out
+}
+
+/** The custom properties a heatmap or legend sees in a theme, under a `data-ch-seq-tone`. */
+function seqEnv(theme: keyof typeof THEMES, tone?: string): Map<string, string> {
+  const toneRule = tone ? declarations(new RegExp(`\\[data-ch-seq-tone="${tone}"\\]`)) : []
+  return new Map([...THEMES[theme], ...toneRule])
+}
+
+/** The five level colors of a ramp. */
+function ramp(theme: keyof typeof THEMES, tone?: string): Rgb[] {
+  const env = seqEnv(theme, tone)
+  return LEVELS.map((level) => hex(resolve(SEQ.get(`--ch-seq-${level}`) ?? '', env)))
 }
 
 const MATRIX = (Object.keys(THEMES) as (keyof typeof THEMES)[]).flatMap((theme) =>
   TONES.flatMap((tone) => LEVELS.map((level) => ({ theme, tone, level }))),
 )
+
+const STEP_MATRIX = MATRIX.filter(({ level }) => level < 5)
 
 const TONE_MATRIX = (Object.keys(THEMES) as (keyof typeof THEMES)[]).flatMap((theme) =>
   TONES.map((tone) => ({ theme, tone })),
@@ -149,15 +181,52 @@ describe('theme.css', () => {
       `color-mix(in srgb, ${base} var(--ch-seq-mix-1, 12%), var(--ch-surface))`,
     )
     expect(SEQ.get('--ch-seq-4')).toBe(
-      `color-mix(in srgb, ${base} var(--ch-seq-mix-4, 65%), var(--ch-surface))`,
+      `color-mix(in srgb, ${base} var(--ch-seq-mix-4, var(--_ch-seq-loss-4)), var(--ch-surface))`,
     )
-    expect(SEQ.get('--ch-seq-5')).toBe(`color-mix(in srgb, ${base} var(--ch-seq-mix-5, 75%), #000)`)
-    expect(SEQ.get('--_ch-seq-ink-strong')).toBe('#fff')
-    // A default base or default shares would stop an ancestor's values from reaching the levels.
-    expect(css).not.toMatch(/--ch-seq-base:/)
-    expect(css).not.toMatch(
-      /(:root|\[data-ch-part="heatmap"\]|\[data-ch-part="legend"\])[^{]*\{[^}]*--ch-seq-mix-\d:/,
+    expect(SEQ.get('--ch-seq-5')).toBe(
+      `color-mix(in srgb, ${base} var(--ch-seq-mix-5, var(--_ch-seq-loss-5)), #000)`,
     )
+    // A default base or default shares would stop an ancestor's values from reaching the levels:
+    // only the data-ch-seq-tone rules set them.
+    const rules = [...css.matchAll(/([^{}]+)\{([^}]*)\}/g)]
+    for (const [, selector, body] of rules) {
+      if (/--ch-seq-base:|--ch-seq-mix-\d:/.test(body ?? '')) {
+        const bare = (selector ?? '').replace(/\/\*[\s\S]*?\*\//g, '').trim()
+        expect(bare).toMatch(/^\[data-ch-seq-tone="[a-z-]+"\]$/)
+      }
+    }
+  })
+
+  it('keys a base and the level shares for every tone on data-ch-seq-tone', () => {
+    for (const tone of TONES) {
+      const rule = declarations(new RegExp(`\\[data-ch-seq-tone="${tone}"\\]`))
+      expect(rule.get('--ch-seq-base')).toContain(`var(--ch-${tone})`)
+      for (const level of [2, 3, 4, 5]) {
+        expect(rule.get(`--ch-seq-mix-${level}`)).toBe(`var(--_ch-seq-${tone}-${level})`)
+      }
+    }
+    // Without a tone the ramp is loss's.
+    for (const theme of ['light', 'dark'] as const) {
+      expect(ramp(theme)).toEqual(ramp(theme, 'loss'))
+    }
+  })
+
+  it('makes the dark top level the pure base, with dark text, and the light one darker, with white', () => {
+    for (const tone of TONES) {
+      expect(ramp('dark', tone)[4]).toEqual(hex(THEMES.dark.get(`--ch-${tone}`)))
+    }
+    expect(THEMES.light.get('--_ch-seq-ink-strong')).toBe('#fff')
+    expect(THEMES.dark.get('--_ch-seq-ink-strong')).toBe('var(--ch-surface)')
+    // The loss ramp tops out at the hot pink of the reference, darkened only for white text.
+    expect(toHex(ramp('light', 'loss')[4] as Rgb)).toBe('#d33282')
+  })
+
+  it('outlines the two lightest levels in the light theme only', () => {
+    expect(css).toMatch(
+      /\[data-ch-part="heatmap-cell"\]:is\(\[data-ch-level="1"\], \[data-ch-level="2"\]\),\s*\[data-ch-part="legend-swatch"\]:is\(\[data-ch-level="1"\], \[data-ch-level="2"\]\) \{\s*box-shadow: inset 0 0 0 var\(--_ch-seq-outline\)\s+color-mix\(in srgb, var\(--ch-seq-base, var\(--ch-loss\)\) 45%, var\(--ch-surface\)\)/,
+    )
+    expect(THEMES.light.get('--_ch-seq-outline')).toBe('1px')
+    expect(THEMES.dark.get('--_ch-seq-outline')).toBe('0px')
   })
 
   it('puts white text only on the darkest heatmap level', () => {
@@ -233,16 +302,28 @@ describe('theme.css', () => {
   it.each(MATRIX)(
     'keeps heatmap text at 4.5:1 on $tone level $level in the $theme theme',
     ({ theme, tone, level }) => {
-      const tokens = THEMES[theme]
-      const { share, into } = levelMix(tone, level)
-      const background = mix(
-        hex(tokens.get(`--ch-${tone}`)),
-        share,
-        into === '#000' ? [0, 0, 0] : hex(tokens.get('--ch-surface')),
-      )
+      const env = seqEnv(theme, tone)
+      const background = ramp(theme, tone)[level - 1] as Rgb
       // Levels 1–4 inherit the cell's --ch-ink; level 5 switches to --_ch-seq-ink-strong.
-      const text = level === 5 ? hex(SEQ.get('--_ch-seq-ink-strong')) : hex(tokens.get('--ch-ink'))
+      const ink = level === 5 ? '--_ch-seq-ink-strong' : '--ch-ink'
+      const text = hex(resolve(env.get(ink) ?? '', env))
       expect(contrast(background, text)).toBeGreaterThanOrEqual(4.5)
+    },
+  )
+
+  it.each(STEP_MATRIX)(
+    'sets $tone level $level apart from the next by 1.3:1 in the $theme theme',
+    ({ theme, tone, level }) => {
+      const levels = ramp(theme, tone)
+      expect(contrast(levels[level - 1] as Rgb, levels[level] as Rgb)).toBeGreaterThanOrEqual(1.3)
+    },
+  )
+
+  it.each(TONE_MATRIX)(
+    'keeps the $tone level 5 at 3:1 on the surface in the $theme theme',
+    ({ theme, tone }) => {
+      const surface = hex(THEMES[theme].get('--ch-surface'))
+      expect(contrast(ramp(theme, tone)[4] as Rgb, surface)).toBeGreaterThanOrEqual(3)
     },
   )
 })

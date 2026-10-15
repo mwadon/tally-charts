@@ -19,6 +19,35 @@
   --ch-tooltip-ink: #111114;
   --ch-tooltip-shadow: 0 1px 2px rgb(0 0 0 / 0.06), 0 6px 20px rgb(0 0 0 / 0.08);
   --ch-hatch-tint: 0.14;
+  /* Sequential ramp (private): ink on the darkest level, the light outline width, the
+     soft accent's ramp depth and each tone's level 2–5 shares. Level 1 is 12% everywhere. */
+  --_ch-seq-ink-strong: #fff;
+  --_ch-seq-outline: 1px;
+  --_ch-seq-accent-soft-depth: 84%;
+  --_ch-seq-accent-2: 36%;
+  --_ch-seq-accent-3: 58%;
+  --_ch-seq-accent-4: 79%;
+  --_ch-seq-accent-5: 100%;
+  --_ch-seq-accent-soft-2: 44%;
+  --_ch-seq-accent-soft-3: 73%;
+  --_ch-seq-accent-soft-4: 100%;
+  --_ch-seq-accent-soft-5: 74%;
+  --_ch-seq-loss-2: 36%;
+  --_ch-seq-loss-3: 59%;
+  --_ch-seq-loss-4: 83%;
+  --_ch-seq-loss-5: 92%;
+  --_ch-seq-warn-2: 44%;
+  --_ch-seq-warn-3: 72%;
+  --_ch-seq-warn-4: 98%;
+  --_ch-seq-warn-5: 83%;
+  --_ch-seq-gain-2: 42%;
+  --_ch-seq-gain-3: 71%;
+  --_ch-seq-gain-4: 100%;
+  --_ch-seq-gain-5: 81%;
+  --_ch-seq-neutral-2: 45%;
+  --_ch-seq-neutral-3: 74%;
+  --_ch-seq-neutral-4: 100%;
+  --_ch-seq-neutral-5: 82%;
 }
 
 /* ---------- Color tokens: dark (system preference) ---------- */
@@ -38,6 +67,35 @@
     --ch-tooltip-ink: #f4f4f6;
     --ch-tooltip-shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 6px 20px rgb(0 0 0 / 0.5);
     --ch-hatch-tint: 0.2;
+    /* Sequential ramp (private): ink on the darkest level, the light outline width, the
+       soft accent's ramp depth and each tone's level 2–5 shares. Level 1 is 12% everywhere. */
+    --_ch-seq-ink-strong: var(--ch-surface);
+    --_ch-seq-outline: 0px;
+    --_ch-seq-accent-soft-depth: 100%;
+    --_ch-seq-accent-2: 35%;
+    --_ch-seq-accent-3: 55%;
+    --_ch-seq-accent-4: 76%;
+    --_ch-seq-accent-5: 100%;
+    --_ch-seq-accent-soft-2: 36%;
+    --_ch-seq-accent-soft-3: 57%;
+    --_ch-seq-accent-soft-4: 77%;
+    --_ch-seq-accent-soft-5: 100%;
+    --_ch-seq-loss-2: 34%;
+    --_ch-seq-loss-3: 53%;
+    --_ch-seq-loss-4: 72%;
+    --_ch-seq-loss-5: 100%;
+    --_ch-seq-warn-2: 26%;
+    --_ch-seq-warn-3: 39%;
+    --_ch-seq-warn-4: 52%;
+    --_ch-seq-warn-5: 100%;
+    --_ch-seq-gain-2: 28%;
+    --_ch-seq-gain-3: 42%;
+    --_ch-seq-gain-4: 56%;
+    --_ch-seq-gain-5: 100%;
+    --_ch-seq-neutral-2: 36%;
+    --_ch-seq-neutral-3: 57%;
+    --_ch-seq-neutral-4: 77%;
+    --_ch-seq-neutral-5: 100%;
   }
 }
 
@@ -57,6 +115,35 @@
   --ch-tooltip-ink: #f4f4f6;
   --ch-tooltip-shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 6px 20px rgb(0 0 0 / 0.5);
   --ch-hatch-tint: 0.2;
+  /* Sequential ramp (private): ink on the darkest level, the light outline width, the
+     soft accent's ramp depth and each tone's level 2–5 shares. Level 1 is 12% everywhere. */
+  --_ch-seq-ink-strong: var(--ch-surface);
+  --_ch-seq-outline: 0px;
+  --_ch-seq-accent-soft-depth: 100%;
+  --_ch-seq-accent-2: 35%;
+  --_ch-seq-accent-3: 55%;
+  --_ch-seq-accent-4: 76%;
+  --_ch-seq-accent-5: 100%;
+  --_ch-seq-accent-soft-2: 36%;
+  --_ch-seq-accent-soft-3: 57%;
+  --_ch-seq-accent-soft-4: 77%;
+  --_ch-seq-accent-soft-5: 100%;
+  --_ch-seq-loss-2: 34%;
+  --_ch-seq-loss-3: 53%;
+  --_ch-seq-loss-4: 72%;
+  --_ch-seq-loss-5: 100%;
+  --_ch-seq-warn-2: 26%;
+  --_ch-seq-warn-3: 39%;
+  --_ch-seq-warn-4: 52%;
+  --_ch-seq-warn-5: 100%;
+  --_ch-seq-gain-2: 28%;
+  --_ch-seq-gain-3: 42%;
+  --_ch-seq-gain-4: 56%;
+  --_ch-seq-gain-5: 100%;
+  --_ch-seq-neutral-2: 36%;
+  --_ch-seq-neutral-3: 57%;
+  --_ch-seq-neutral-4: 77%;
+  --_ch-seq-neutral-5: 100%;
 }
 
 /* ---------- Theme-independent tokens ---------- */
@@ -77,10 +164,12 @@
 }
 
 /* ---------- Sequential levels ---------- */
-/* Resolved on each element from an inherited --ch-seq-base (default: loss), so a base set on
-   any ancestor, or Heatmap's `tone`, recolors charts, heatmaps and legends alike. Levels 1–4
-   mix the base into --ch-surface and carry --ch-ink text; level 5 mixes it with black for
-   white text. The default shares keep 4.5:1 for loss and accent in both themes. */
+/* Resolved on each element from an inherited --ch-seq-base (default: loss) and --ch-seq-mix-N
+   (default: loss's shares for the theme), so a base set on any ancestor, or Heatmap's `tone`,
+   recolors charts, heatmaps and legends alike. Levels 1–4 mix the base into --ch-surface and
+   carry --ch-ink text; level 5 mixes it with black, for white text in the light theme, and is
+   the pure base, for dark text, in the dark theme. theme.test.ts checks every tone × theme ×
+   level: text at 4.5:1, neighbouring levels at 1.3:1 and level 5 at 3:1 against the surface. */
 [data-ch-root],
 [data-ch-part="legend"],
 [data-ch-part="heatmap"] {
@@ -91,47 +180,75 @@
   );
   --ch-seq-2: color-mix(
     in srgb,
-    var(--ch-seq-base, var(--ch-loss)) var(--ch-seq-mix-2, 30%),
+    var(--ch-seq-base, var(--ch-loss)) var(--ch-seq-mix-2, var(--_ch-seq-loss-2)),
     var(--ch-surface)
   );
   --ch-seq-3: color-mix(
     in srgb,
-    var(--ch-seq-base, var(--ch-loss)) var(--ch-seq-mix-3, 50%),
+    var(--ch-seq-base, var(--ch-loss)) var(--ch-seq-mix-3, var(--_ch-seq-loss-3)),
     var(--ch-surface)
   );
   --ch-seq-4: color-mix(
     in srgb,
-    var(--ch-seq-base, var(--ch-loss)) var(--ch-seq-mix-4, 65%),
+    var(--ch-seq-base, var(--ch-loss)) var(--ch-seq-mix-4, var(--_ch-seq-loss-4)),
     var(--ch-surface)
   );
-  --ch-seq-5: color-mix(in srgb, var(--ch-seq-base, var(--ch-loss)) var(--ch-seq-mix-5, 75%), #000);
-  --_ch-seq-ink-strong: #fff;
+  --ch-seq-5: color-mix(
+    in srgb,
+    var(--ch-seq-base, var(--ch-loss)) var(--ch-seq-mix-5, var(--_ch-seq-loss-5)),
+    #000
+  );
 }
 
-/* Per-tone shares for the other tones, set by Heatmap's `tone` and inherited by its legend:
-   light tones darken level 5 further, and bright tones lighten the ramp so the dark theme's
-   ink keeps 4.5:1. theme.test.ts checks every tone × theme × level. */
+/* data-ch-seq-tone (set by Heatmap's `tone`, or by you on any ancestor of a Legend) picks a tone's
+   base and its shares for the theme. The soft accent is too light for five steps, so its ramp
+   starts from a darker shade of it in the light theme. */
+[data-ch-seq-tone="accent"] {
+  --ch-seq-base: var(--ch-accent);
+  --ch-seq-mix-2: var(--_ch-seq-accent-2);
+  --ch-seq-mix-3: var(--_ch-seq-accent-3);
+  --ch-seq-mix-4: var(--_ch-seq-accent-4);
+  --ch-seq-mix-5: var(--_ch-seq-accent-5);
+}
+
 [data-ch-seq-tone="accent-soft"] {
-  --ch-seq-mix-5: 60%;
+  --ch-seq-base: color-mix(in srgb, var(--ch-accent-soft) var(--_ch-seq-accent-soft-depth), #000);
+  --ch-seq-mix-2: var(--_ch-seq-accent-soft-2);
+  --ch-seq-mix-3: var(--_ch-seq-accent-soft-3);
+  --ch-seq-mix-4: var(--_ch-seq-accent-soft-4);
+  --ch-seq-mix-5: var(--_ch-seq-accent-soft-5);
 }
 
-[data-ch-seq-tone="neutral"] {
-  --ch-seq-mix-5: 66%;
+[data-ch-seq-tone="loss"] {
+  --ch-seq-base: var(--ch-loss);
+  --ch-seq-mix-2: var(--_ch-seq-loss-2);
+  --ch-seq-mix-3: var(--_ch-seq-loss-3);
+  --ch-seq-mix-4: var(--_ch-seq-loss-4);
+  --ch-seq-mix-5: var(--_ch-seq-loss-5);
 }
 
 [data-ch-seq-tone="warn"] {
-  --ch-seq-mix-1: 10%;
-  --ch-seq-mix-2: 24%;
-  --ch-seq-mix-3: 38%;
-  --ch-seq-mix-4: 50%;
-  --ch-seq-mix-5: 56%;
+  --ch-seq-base: var(--ch-warn);
+  --ch-seq-mix-2: var(--_ch-seq-warn-2);
+  --ch-seq-mix-3: var(--_ch-seq-warn-3);
+  --ch-seq-mix-4: var(--_ch-seq-warn-4);
+  --ch-seq-mix-5: var(--_ch-seq-warn-5);
 }
 
 [data-ch-seq-tone="gain"] {
-  --ch-seq-mix-2: 27%;
-  --ch-seq-mix-3: 42%;
-  --ch-seq-mix-4: 54%;
-  --ch-seq-mix-5: 60%;
+  --ch-seq-base: var(--ch-gain);
+  --ch-seq-mix-2: var(--_ch-seq-gain-2);
+  --ch-seq-mix-3: var(--_ch-seq-gain-3);
+  --ch-seq-mix-4: var(--_ch-seq-gain-4);
+  --ch-seq-mix-5: var(--_ch-seq-gain-5);
+}
+
+[data-ch-seq-tone="neutral"] {
+  --ch-seq-base: var(--ch-neutral);
+  --ch-seq-mix-2: var(--_ch-seq-neutral-2);
+  --ch-seq-mix-3: var(--_ch-seq-neutral-3);
+  --ch-seq-mix-4: var(--_ch-seq-neutral-4);
+  --ch-seq-mix-5: var(--_ch-seq-neutral-5);
 }
 
 /* ---------- Chart root ---------- */
@@ -900,6 +1017,14 @@
 [data-ch-part="heatmap-cell"][data-ch-level="5"] {
   background: var(--ch-seq-5);
   color: var(--_ch-seq-ink-strong);
+}
+
+/* The two lightest levels are close to the light surface: a 1px outline keeps them shapes. The
+   width is 0 in the dark themes. */
+[data-ch-part="heatmap-cell"]:is([data-ch-level="1"], [data-ch-level="2"]),
+[data-ch-part="legend-swatch"]:is([data-ch-level="1"], [data-ch-level="2"]) {
+  box-shadow: inset 0 0 0 var(--_ch-seq-outline)
+    color-mix(in srgb, var(--ch-seq-base, var(--ch-loss)) 45%, var(--ch-surface));
 }
 
 [data-ch-part="heatmap-cell"][data-ch-active="true"] {

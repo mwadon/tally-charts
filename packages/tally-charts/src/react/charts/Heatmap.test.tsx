@@ -219,9 +219,9 @@ describe('<Heatmap>', () => {
   it('recolors the levels and the legend with tone', () => {
     const { container } = renderHeatmap({ tone: 'warn' })
     const root = container.querySelector('[data-ch-part="heatmap"]') as HTMLElement
-    expect(root.style.getPropertyValue('--ch-seq-base')).toBe('var(--ch-warn)')
-    // Keys the per-tone level mixes in theme.css; the legend inherits them from the root.
+    // Keys the tone's base and level shares in theme.css; the legend inherits them from the root.
     expect(root).toHaveAttribute('data-ch-seq-tone', 'warn')
+    expect(root.style.getPropertyValue('--ch-seq-base')).toBe('')
     expect(root.querySelector('[data-ch-part="legend"]')).not.toBeNull()
   })
 

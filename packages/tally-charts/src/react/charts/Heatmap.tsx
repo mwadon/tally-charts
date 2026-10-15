@@ -299,16 +299,13 @@ export function Heatmap<D>({
 
   const valueText = (v: number | undefined): ReactNode =>
     v !== undefined && Number.isFinite(v) ? fmt(v) : <NoData />
-  // Only an explicit tone overrides a --ch-seq-base set on an ancestor; data-ch-seq-tone picks
-  // that tone's level mixes in theme.css, and the legend inside inherits them.
-  const rootStyle = (tone ? { '--ch-seq-base': `var(--ch-${tone})`, ...style } : style) as
-    | CSSProperties
-    | undefined
+  // Only an explicit tone overrides a --ch-seq-base set on an ancestor: data-ch-seq-tone picks
+  // that tone's base and level shares in theme.css, and the legend inside inherits them.
   const rootProps = {
     className: cx('ch-heatmap', className),
     'data-ch-part': 'heatmap',
     'data-ch-seq-tone': tone,
-    style: rootStyle,
+    style,
   }
 
   if (model.rows.length === 0 || model.columns.length === 0) {
