@@ -230,8 +230,8 @@ Numbers in data follow one rule: numbers and numeric strings count, while blanks
 other values are missing.
 
 Building blocks added in 0.5: `Line`, `Band` (area between two values), `Grid` (horizontal
-lines at the y ticks) and `Region` (shaded run of categories; `fill="hatch"` hatches it instead of tinting it), plus `type: 'point'` scales for
-`<Chart x>`. `Legend` draws `shape="line"` swatches (`dashed` for forecasts, and `marker: 'dot'`
+lines at the y ticks) and `Region` (shaded run of categories; `fill="hatch"` hatches it instead of
+tinting it), plus `type: 'point'` scales for `<Chart x>`. `Legend` draws `shape="line"` swatches (`dashed` for forecasts, and `marker: 'dot'`
 or `'ring'` for the series' points), `shape="band"` swatches for a `Band`'s soft fill, and
 sequential `level` swatches; `heatmapLevel(value, breaks)` gives the level a Heatmap uses for a
 value.
@@ -302,8 +302,8 @@ in separate roots (islands, micro-frontends), give each chart a `chartId`.
 Chart components are client components: the main entry `tally-charts` starts with `'use client'`,
 so you can render `<Chart>` from a Server Component file. In server code, import from
 `tally-charts/core`, which has no React and is server-safe: the formatters (`fmt`,
-`createFormatter`, `createFormatters`), `thresholds`, `heatmapLevel`, `runwayForecast`, `toNumber`, `toTime` and the
-shared types. Function props (`fill`, `tone`, function `format`, `tooltip`) can't cross the
+`createFormatter`, `createFormatters`), `thresholds`, `heatmapLevel`, `runwayForecast`, `toNumber`,
+`toTime` and the shared types. Function props (`fill`, `tone`, function `format`, `tooltip`) can't cross the
 server/client boundary, so pass them from a client component.
 
 ## Accessibility
