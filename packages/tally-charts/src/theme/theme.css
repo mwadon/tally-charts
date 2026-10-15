@@ -1057,7 +1057,11 @@
     0 6px 16px rgb(0 0 0 / 0.14);
 }
 
+/* The ring is a shadow, which forced-colors mode removes; the transparent outline is what it
+   paints in the system color instead. */
 [data-ch-part="heatmap-cell"]:focus-visible {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
   box-shadow:
     0 0 0 2px var(--ch-surface),
     0 0 0 4px var(--ch-accent);
@@ -1100,5 +1104,99 @@
   .ch-tooltip {
     animation: none !important;
     transition: none !important;
+  }
+}
+
+/* ---------- Forced colors (Windows high contrast) ---------- */
+/* The tokens map onto the system palette, so SVG marks and text (which forced colors leave
+   alone) follow the user's colors: marks in CanvasText, the accent in Highlight, soft and
+   neutral in GrayText. HTML marks opt out of forcing so their fills stay visible shapes. */
+@media (forced-colors: active) {
+  :root,
+  :root:not([data-ch-theme="light"]),
+  [data-ch-theme] {
+    --ch-accent: Highlight;
+    --ch-accent-soft: GrayText;
+    --ch-loss: CanvasText;
+    --ch-warn: CanvasText;
+    --ch-gain: CanvasText;
+    --ch-neutral: GrayText;
+    --ch-ink: CanvasText;
+    --ch-ink-muted: GrayText;
+    --ch-grid: GrayText;
+    --ch-surface: Canvas;
+    --ch-tooltip-bg: Canvas;
+    --ch-tooltip-ink: CanvasText;
+  }
+
+  .ch-svg text {
+    fill: CanvasText;
+  }
+
+  .ch-svg
+    :is(
+      [data-ch-part="axis-label"],
+      [data-ch-part="target-label"],
+      [data-ch-part="row-sublabel"],
+      [data-ch-part="group-label"]
+    ) {
+    fill: GrayText;
+  }
+
+  [data-ch-part="legend-swatch"],
+  [data-ch-part="meter-fill"],
+  [data-ch-part="inline-bar-fill"],
+  [data-ch-part="range-dot"],
+  [data-ch-part="range-gap"],
+  [data-ch-part="dot-count-dot"] {
+    forced-color-adjust: none;
+  }
+
+  /* Tracks and pills lose their only edge, a background or a shadow: draw one. */
+  [data-ch-part="meter-track"],
+  [data-ch-part="inline-bar"],
+  [data-ch-part="tooltip-pill"],
+  [data-ch-part="delta"] {
+    border: 1px solid CanvasText;
+  }
+
+  /* Heatmap levels (and their swatches) differ by border width, as fills are forced away. */
+  [data-ch-part="heatmap-cell"],
+  [data-ch-part="legend-swatch"][data-ch-level] {
+    box-sizing: border-box;
+    border: 1px solid CanvasText;
+  }
+
+  [data-ch-part="heatmap-cell"][data-ch-level="0"] {
+    border-style: dashed;
+  }
+
+  :is([data-ch-part="heatmap-cell"], [data-ch-part="legend-swatch"])[data-ch-level="2"] {
+    border-width: 2px;
+  }
+
+  :is([data-ch-part="heatmap-cell"], [data-ch-part="legend-swatch"])[data-ch-level="3"] {
+    border-width: 3px;
+  }
+
+  :is([data-ch-part="heatmap-cell"], [data-ch-part="legend-swatch"])[data-ch-level="4"] {
+    border-width: 4px;
+  }
+
+  :is([data-ch-part="heatmap-cell"], [data-ch-part="legend-swatch"])[data-ch-level="5"] {
+    border-width: 5px;
+  }
+
+  [data-ch-part="heatmap-cell"][data-ch-active="true"] {
+    outline: 2px dashed CanvasText;
+  }
+
+  /* After the active outline: a focused cell is active too, and shows the focus ring. */
+  [data-ch-part="heatmap-cell"]:focus-visible {
+    outline: 2px solid Highlight;
+  }
+
+  [data-ch-part="heatmap-cell"][data-ch-peak="true"] {
+    box-shadow: none;
   }
 }

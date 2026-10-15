@@ -112,9 +112,14 @@ const TEXT_MIX =
 const inked = (theme: keyof typeof THEMES, tone: string) =>
   mix(hex(THEMES[theme].get(`--ch-${tone}`)), TEXT_MIX, hex(THEMES[theme].get('--ch-ink')))
 
+/** The forced-colors block, and the stylesheet before it (the themes). */
+const FORCED_AT = css.indexOf('@media (forced-colors: active)')
+const themed = css.slice(0, FORCED_AT)
+const forced = css.slice(FORCED_AT)
+
 describe('theme.css', () => {
   it.each(TONES)('defines --ch-%s for light, system dark and forced dark', (tone) => {
-    expect(css.match(new RegExp(`--ch-${tone}:`, 'g')) ?? []).toHaveLength(3)
+    expect(themed.match(new RegExp(`--ch-${tone}:`, 'g')) ?? []).toHaveLength(3)
   })
 
   it.each([
@@ -125,7 +130,62 @@ describe('theme.css', () => {
     '--ch-tooltip-bg:',
     '--ch-tooltip-ink:',
   ])('defines %s in all three theme blocks', (token) => {
-    expect(css.split(token).length - 1).toBe(3)
+    expect(themed.split(token).length - 1).toBe(3)
+  })
+
+  it('maps the color tokens onto system colors in forced-colors mode', () => {
+    expect(FORCED_AT).toBeGreaterThan(0)
+    const tokens = new Map(
+      [...forced.matchAll(/(--ch-[\w-]+):\s*([A-Za-z]+);/g)].map((m) => [m[1], m[2]]),
+    )
+    expect(Object.fromEntries(tokens)).toEqual({
+      '--ch-accent': 'Highlight',
+      '--ch-accent-soft': 'GrayText',
+      '--ch-loss': 'CanvasText',
+      '--ch-warn': 'CanvasText',
+      '--ch-gain': 'CanvasText',
+      '--ch-neutral': 'GrayText',
+      '--ch-ink': 'CanvasText',
+      '--ch-ink-muted': 'GrayText',
+      '--ch-grid': 'GrayText',
+      '--ch-surface': 'Canvas',
+      '--ch-tooltip-bg': 'Canvas',
+      '--ch-tooltip-ink': 'CanvasText',
+    })
+    // Later than, and at least as specific as, every theme block it overrides.
+    expect(forced).toMatch(
+      /:root,\s*:root:not\(\[data-ch-theme="light"\]\),\s*\[data-ch-theme\] \{/,
+    )
+  })
+
+  it('keeps HTML marks visible and levels distinct in forced-colors mode', () => {
+    for (const part of [
+      'legend-swatch',
+      'meter-fill',
+      'inline-bar-fill',
+      'range-dot',
+      'range-gap',
+      'dot-count-dot',
+    ]) {
+      expect(forced).toMatch(
+        new RegExp(`\\[data-ch-part="${part}"\\][^{]*\\{[^}]*forced-color-adjust: none`),
+      )
+    }
+    for (const level of [2, 3, 4, 5]) {
+      expect(forced).toContain(`)[data-ch-level="${level}"] {\n    border-width: ${level}px;`)
+    }
+    expect(forced).toMatch(/\.ch-svg text \{\s*fill: CanvasText;/)
+    expect(forced).toMatch(
+      /\[data-ch-part="heatmap-cell"\]\[data-ch-peak="true"\] \{\s*box-shadow: none;/,
+    )
+  })
+
+  it('gives a focused heatmap cell a transparent outline that forced colors can paint', () => {
+    expect(themed).toMatch(
+      /\[data-ch-part="heatmap-cell"\]:focus-visible \{\s*outline: 2px solid transparent;\s*outline-offset: 2px;/,
+    )
+    // Not at rest: forced colors would paint a resting outline around every cell.
+    expect(themed).toMatch(/\[data-ch-part="heatmap-cell"\] \{[^}]*outline: none;/)
   })
 
   it.each([
