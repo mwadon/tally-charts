@@ -55,7 +55,7 @@ private and can change in any release: select `[data-ch-part="…"]` instead.
 | Text and surfaces | `--ch-ink`, `--ch-ink-muted`, `--ch-grid`, `--ch-surface`, `--ch-tooltip-bg`, `--ch-tooltip-ink`, `--ch-tooltip-shadow` |
 | Hatching | `--ch-hatch-angle` (degrees, unitless), `--ch-hatch-width`, `--ch-hatch-gap` (px, unitless), `--ch-hatch-tint` (stripe background opacity, 0–1) |
 | Sequential | `--ch-seq-base` (default `--ch-loss`) and `--ch-seq-mix-1` … `--ch-seq-mix-5` (each level's share of the base). `--ch-seq-1` … `--ch-seq-5` are computed from them on every chart, legend and heatmap: read them, but steer them with the base and the mixes, since overriding them has no effect |
-| Heatmap | `--ch-heatmap-cell-height` (default 44px) |
+| Heatmap | `--ch-heatmap-cell-height` (default 44px), `--ch-heatmap-min-cell` (default 56px: the narrowest a column gets before the grid scrolls sideways) |
 | Misc | `--ch-font-numeric`, `--ch-radius` (px), `--ch-duration`, `--ch-ease`, `--ch-dim-opacity`, `--ch-tone-text-mix` |
 
 ## High-level charts

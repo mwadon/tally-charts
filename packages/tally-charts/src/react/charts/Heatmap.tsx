@@ -18,6 +18,7 @@ import { createWarner, DEV, type Warn } from '../../core/warn'
 import { useFormat } from '../ChartsProvider'
 import { Legend } from '../ui/Legend'
 import { cx } from '../ui/util'
+import { useIsoLayoutEffect } from '../useIsoLayoutEffect'
 import { headerOf } from './shared'
 
 export interface HeatmapCell<D> {
@@ -263,6 +264,21 @@ export function Heatmap<D>({
   }, [data, row, column, value, rowOrder, columnOrder, edges, levels, warn])
 
   const byId = useMemo(() => new Map(model.cells.flat().map((c) => [c.id, c])), [model])
+  // A narrow container scrolls the grid sideways; only then is the scroller a named, focusable
+  // group, so keyboard users can scroll it too.
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const [overflowing, setOverflowing] = useState(false)
+  useIsoLayoutEffect(() => {
+    const el = scrollRef.current
+    if (!el) return
+    const check = () => setOverflowing(el.scrollWidth > el.clientWidth + 1)
+    check()
+    if (typeof ResizeObserver === 'undefined') return
+    const observer = new ResizeObserver(check)
+    observer.observe(el)
+    if (el.firstElementChild) observer.observe(el.firstElementChild)
+    return () => observer.disconnect()
+  }, [model])
   const [innerActive, setInnerActive] = useState<string | null>(null)
   const controlled = activeId !== undefined
   const active = controlled ? activeId : innerActive
@@ -413,87 +429,107 @@ export function Heatmap<D>({
         </span>
       ) : null}
       <div
-        role="grid"
-        className="ch-heatmap-grid"
-        data-ch-part="heatmap-grid"
-        data-ch-totals={totals ? 'true' : undefined}
-        aria-labelledby={title ? titleId : undefined}
-        aria-describedby={description ? descId : undefined}
-        style={{ '--_ch-heatmap-columns': model.columns.length } as CSSProperties}
-        onPointerLeave={(event) => {
-          // Keyboard focus keeps its cell active; the pointer only clears what it activated.
-          const focused = event.currentTarget.contains(document.activeElement)
-          setActive(focused && focusKey !== null && byId.has(focusKey) ? focusKey : null)
-        }}
-        onBlur={(event) => {
-          if (!event.currentTarget.contains(event.relatedTarget)) setActive(null)
-        }}
+        ref={scrollRef}
+        className="ch-heatmap-scroll"
+        data-ch-part="heatmap-scroll"
+        {...(overflowing ? { tabIndex: 0, role: 'group', 'aria-label': title ?? 'Heatmap' } : null)}
       >
-        <div role="row" className="ch-heatmap-row" data-ch-part="heatmap-row">
-          <div role="columnheader" className="ch-heatmap-corner" data-ch-part="heatmap-corner">
-            <span className="ch-sr-only">{rowLabel || headerOf(row, 'Row')}</span>
-          </div>
-          {model.columns.map((name) => (
-            <div
-              key={name}
-              role="columnheader"
-              className="ch-heatmap-header"
-              data-ch-part="heatmap-header"
-            >
-              {name}
+        <div
+          role="grid"
+          className="ch-heatmap-grid"
+          data-ch-part="heatmap-grid"
+          data-ch-totals={totals ? 'true' : undefined}
+          aria-labelledby={title ? titleId : undefined}
+          aria-describedby={description ? descId : undefined}
+          style={{ '--_ch-heatmap-columns': model.columns.length } as CSSProperties}
+          onPointerLeave={(event) => {
+            // Keyboard focus keeps its cell active; the pointer only clears what it activated.
+            const focused = event.currentTarget.contains(document.activeElement)
+            setActive(focused && focusKey !== null && byId.has(focusKey) ? focusKey : null)
+          }}
+          onBlur={(event) => {
+            if (!event.currentTarget.contains(event.relatedTarget)) setActive(null)
+          }}
+        >
+          <div role="row" className="ch-heatmap-row" data-ch-part="heatmap-row">
+            <div role="columnheader" className="ch-heatmap-corner" data-ch-part="heatmap-corner">
+              <span className="ch-sr-only">{rowLabel || headerOf(row, 'Row')}</span>
             </div>
-          ))}
-          {totals ? (
-            <div
-              role="columnheader"
-              className="ch-heatmap-header ch-heatmap-total-header"
-              data-ch-part="heatmap-total-header"
-            >
-              {totalName}
-            </div>
-          ) : null}
-        </div>
-        {totals ? (
-          // Column totals: their own row, named by its row header, so no column header carries a
-          // number. It stays on top, under the column names.
-          <div role="row" className="ch-heatmap-row" data-ch-part="heatmap-total-row">
-            <div role="rowheader" className="ch-heatmap-rowheader" data-ch-part="heatmap-rowheader">
-              <span className="ch-sr-only">{totalName}</span>
-            </div>
-            {model.columns.map((name, j) => total(0, j, model.columnTotals[j], name))}
-            {total(0, model.columns.length, sum(model.rowTotals), TOTAL)}
-          </div>
-        ) : null}
-        {model.cells.map((rowCells, r) => (
-          <div key={model.rows[r]} role="row" className="ch-heatmap-row" data-ch-part="heatmap-row">
-            <div role="rowheader" className="ch-heatmap-rowheader" data-ch-part="heatmap-rowheader">
-              {model.rows[r]}
-            </div>
-            {rowCells.map((cell, c) => (
+            {model.columns.map((name) => (
               <div
-                key={cell.id}
-                {...navigable(r + top, c)}
-                role="gridcell"
-                className="ch-heatmap-cell"
-                data-ch-part="heatmap-cell"
-                data-ch-level={cell.level}
-                data-ch-active={cell.id === active ? 'true' : undefined}
-                data-ch-peak={cell.id === peakId ? 'true' : undefined}
-                data-ch-selectable={onSelect ? 'true' : undefined}
-                onFocus={() => {
-                  setFocusKey(cell.id)
-                  setActive(cell.id)
-                }}
-                onPointerEnter={() => setActive(cell.id)}
-                onClick={() => onSelect?.(cell.id, cell)}
-                onKeyDown={(event) => onKeyDown(event, r + top, c)}
+                key={name}
+                role="columnheader"
+                className="ch-heatmap-header"
+                data-ch-part="heatmap-header"
               >
-                {valueText(cell.value)}
+                {name}
               </div>
             ))}
-            {totals ? total(r + top, rowCells.length, model.rowTotals[r], TOTAL) : null}
+            {totals ? (
+              <div
+                role="columnheader"
+                className="ch-heatmap-header ch-heatmap-total-header"
+                data-ch-part="heatmap-total-header"
+              >
+                {totalName}
+              </div>
+            ) : null}
           </div>
-        ))}
+          {totals ? (
+            // Column totals: their own row, named by its row header, so no column header carries a
+            // number. It stays on top, under the column names.
+            <div role="row" className="ch-heatmap-row" data-ch-part="heatmap-total-row">
+              <div
+                role="rowheader"
+                className="ch-heatmap-rowheader"
+                data-ch-part="heatmap-rowheader"
+              >
+                <span className="ch-sr-only">{totalName}</span>
+              </div>
+              {model.columns.map((name, j) => total(0, j, model.columnTotals[j], name))}
+              {total(0, model.columns.length, sum(model.rowTotals), TOTAL)}
+            </div>
+          ) : null}
+          {model.cells.map((rowCells, r) => (
+            <div
+              key={model.rows[r]}
+              role="row"
+              className="ch-heatmap-row"
+              data-ch-part="heatmap-row"
+            >
+              <div
+                role="rowheader"
+                className="ch-heatmap-rowheader"
+                data-ch-part="heatmap-rowheader"
+              >
+                {model.rows[r]}
+              </div>
+              {rowCells.map((cell, c) => (
+                <div
+                  key={cell.id}
+                  {...navigable(r + top, c)}
+                  role="gridcell"
+                  className="ch-heatmap-cell"
+                  data-ch-part="heatmap-cell"
+                  data-ch-level={cell.level}
+                  data-ch-active={cell.id === active ? 'true' : undefined}
+                  data-ch-peak={cell.id === peakId ? 'true' : undefined}
+                  data-ch-selectable={onSelect ? 'true' : undefined}
+                  onFocus={() => {
+                    setFocusKey(cell.id)
+                    setActive(cell.id)
+                  }}
+                  onPointerEnter={() => setActive(cell.id)}
+                  onClick={() => onSelect?.(cell.id, cell)}
+                  onKeyDown={(event) => onKeyDown(event, r + top, c)}
+                >
+                  {valueText(cell.value)}
+                </div>
+              ))}
+              {totals ? total(r + top, rowCells.length, model.rowTotals[r], TOTAL) : null}
+            </div>
+          ))}
+        </div>
       </div>
       {legend ? (
         <Legend

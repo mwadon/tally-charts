@@ -41,6 +41,7 @@ const TOKENS = [
   '--ch-seq-4',
   '--ch-seq-5',
   '--ch-heatmap-cell-height',
+  '--ch-heatmap-min-cell',
   // Misc
   '--ch-font-numeric',
   '--ch-radius',
@@ -91,6 +92,7 @@ const PARTS = [
   'heatmap-header',
   'heatmap-row',
   'heatmap-rowheader',
+  'heatmap-scroll',
   'heatmap-total',
   'heatmap-total-header',
   'heatmap-total-row',
@@ -190,6 +192,27 @@ const PRIVATE_CLASSES = ['ch-fillable', 'ch-overlay', 'ch-sr-only', 'ch-svg', 'c
 
 const src = new URL('..', import.meta.url).pathname
 const css = readFileSync(new URL('./theme.css', import.meta.url), 'utf8')
+const readme = readFileSync(new URL('../../README.md', import.meta.url), 'utf8')
+
+/** The tokens the README's styling table lists; "`--ch-x-1` … `--ch-x-5`" is a range. */
+function readmeTokens(): string[] {
+  const table = readme.split('## Styling')[1]?.split('\n## ')[0] ?? ''
+  const rows = table
+    .split('\n')
+    .filter((line) => line.startsWith('| ') && !line.startsWith('| Group'))
+  return rows.flatMap((row) =>
+    [...row.matchAll(/`(--ch-[a-z0-9-]+)`(?:\s*…\s*`(--ch-[a-z0-9-]+)`)?/g)].flatMap((m) => {
+      const [, first = '', last] = m
+      const from = /^(.*-)(\d+)$/.exec(first)
+      const to = last ? /^(.*-)(\d+)$/.exec(last) : null
+      if (!from || !to) return [first]
+      return Array.from(
+        { length: Number(to[2]) - Number(from[2]) + 1 },
+        (_, i) => `${from[1]}${Number(from[2]) + i}`,
+      )
+    }),
+  )
+}
 
 function sources(dir: string): string[] {
   return readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
@@ -208,6 +231,10 @@ describe('the public CSS surface', () => {
   it('uses exactly the listed --ch-* tokens, in theme.css and in components', () => {
     const used = unique([css, ...code].flatMap((text) => text.match(TOKEN) ?? []))
     expect(used).toEqual(unique(TOKENS))
+  })
+
+  it('documents exactly the listed tokens in the README table', () => {
+    expect(unique(readmeTokens())).toEqual(unique(TOKENS))
   })
 
   it('uses exactly the listed data-ch-part values', () => {

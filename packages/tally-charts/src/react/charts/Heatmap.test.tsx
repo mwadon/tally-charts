@@ -212,6 +212,23 @@ describe('<Heatmap>', () => {
     expect(peaks[0]).toHaveTextContent('$14.8K')
   })
 
+  it('wraps the grid in a scroll container that becomes a focusable group only when it overflows', () => {
+    const { container, unmount } = renderHeatmap()
+    const scroller = () => container.querySelector('[data-ch-part="heatmap-scroll"]') as HTMLElement
+    expect(scroller().firstElementChild).toHaveAttribute('role', 'grid')
+    expect(scroller()).not.toHaveAttribute('tabindex')
+    expect(scroller()).not.toHaveAttribute('role')
+    unmount()
+    // Too narrow: the columns keep their minimum width and the container scrolls sideways.
+    vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockReturnValue(600)
+    vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(300)
+    const narrow = renderHeatmap()
+    const group = narrow.container.querySelector('[data-ch-part="heatmap-scroll"]')
+    expect(group).toHaveAttribute('tabindex', '0')
+    expect(group).toHaveAttribute('role', 'group')
+    expect(group).toHaveAttribute('aria-label', 'Where it leaks')
+  })
+
   it('bins values onto the sequential levels', () => {
     const { container } = renderHeatmap()
     expect(levels(cells(container))).toEqual(['5', '4', '1', '4', '2', '1'])

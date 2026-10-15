@@ -299,6 +299,18 @@ describe('theme.css', () => {
     )
   })
 
+  it('keeps heatmap columns at least a minimum cell wide and scrolls the grid instead', () => {
+    expect(css).toMatch(
+      /\[data-ch-part="heatmap-cell"\] \{[^}]*min-width: var\(--ch-heatmap-min-cell, 56px\);/,
+    )
+    expect(css).toMatch(
+      /\[data-ch-part="heatmap-grid"\] \{[^}]*grid-template-columns: max-content repeat\(var\(--_ch-heatmap-columns\), 1fr\);/,
+    )
+    expect(css).toMatch(/\[data-ch-part="heatmap-scroll"\] \{[^}]*overflow-x: auto;/)
+    // minmax(0, 1fr) let names and values overlap at 320px (A11Y-8).
+    expect(css).not.toContain('minmax(0, 1fr)')
+  })
+
   it('lets the top heatmap cell glow in the base color, except under reduced transparency', () => {
     expect(css).toMatch(
       /\[data-ch-part="heatmap-cell"\]\[data-ch-peak="true"\] \{\s*box-shadow: [^;]*color-mix\(in srgb, var\(--ch-seq-base, var\(--ch-loss\)\)/,

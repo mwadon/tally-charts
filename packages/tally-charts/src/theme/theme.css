@@ -965,16 +965,30 @@
   font-variant-numeric: var(--ch-font-numeric);
 }
 
+/* A narrow container scrolls the grid sideways: a 2-D layout may scroll, text may not overlap.
+   The padding keeps focus rings and the glow inside the scroller's clip. */
+[data-ch-part="heatmap-scroll"] {
+  margin: -8px;
+  padding: 8px;
+  overflow-x: auto;
+  border-radius: 6px;
+  outline: none;
+}
+
+[data-ch-part="heatmap-scroll"]:focus-visible {
+  outline: 2px solid var(--ch-accent);
+}
+
+/* Columns share the width but never get narrower than their longest name or a minimum cell
+   (`--ch-heatmap-min-cell` on the cells): below that, the grid scrolls. */
 [data-ch-part="heatmap-grid"] {
   display: grid;
-  grid-template-columns: max-content repeat(var(--_ch-heatmap-columns), minmax(0, 1fr));
+  grid-template-columns: max-content repeat(var(--_ch-heatmap-columns), 1fr);
   gap: 10px 12px;
 }
 
 [data-ch-part="heatmap-grid"][data-ch-totals="true"] {
-  grid-template-columns:
-    max-content repeat(var(--_ch-heatmap-columns), minmax(0, 1fr))
-    max-content;
+  grid-template-columns: max-content repeat(var(--_ch-heatmap-columns), 1fr) max-content;
 }
 
 /* Rows are subgrids, so the ARIA row elements stay in the tree and every column lines up. */
@@ -1007,6 +1021,7 @@
 [data-ch-part="heatmap-cell"] {
   display: grid;
   place-items: center;
+  min-width: var(--ch-heatmap-min-cell, 56px);
   height: var(--ch-heatmap-cell-height, 44px);
   border-radius: 10px;
   color: var(--ch-ink);
