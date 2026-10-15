@@ -1,3 +1,4 @@
+import type { DateFormatter } from './date'
 import { levelFor } from './thresholds'
 import { DAY, type TimeInput, toTime } from './time'
 import type { SeqLevel } from './types'
@@ -237,4 +238,73 @@ export function runwayCells(
     if (runsOutAt !== undefined && mid > runsOutAt) return cell('locked')
     return cell('level', levelFor(projectionAt(points, mid), edges, levels))
   })
+}
+
+export interface RunwayDateFormats {
+  weekday: DateFormatter
+  day: DateFormatter
+  time: DateFormatter
+}
+
+/** What RunwayChart derived for a row: passed to a custom `status`. */
+export interface RunwayFacts {
+  runsOutAt?: Date
+  resetAt?: Date
+  /** The projection at `resetAt` (uncapped), or NaN without a forecast or a reset. */
+  usedAtReset: number
+  /** True when `runsOutAt` falls after the domain end. */
+  runsOutBeyond: boolean
+  /** True when `resetAt` falls after the domain end. */
+  resetBeyond: boolean
+  forecast: boolean
+}
+
+const SIX_DAYS = 6 * DAY
+
+/** "Fri 03:24" within six days of now, "Oct 21 09:21" later in the domain, "Nov 9" past its end. */
+export function runwayDate(
+  ms: number,
+  now: number,
+  end: number,
+  f: RunwayDateFormats,
+): { text: string; beyond: boolean } {
+  if (ms > end) return { text: f.day(ms), beyond: true }
+  const date = ms - now < SIX_DAYS ? f.weekday(ms) : f.day(ms)
+  return { text: `${date} ${f.time(ms)}`, beyond: false }
+}
+
+export function runwayFacts(times: RunwayTimes, end: number): RunwayFacts {
+  const { runsOutAt, resetAt, forecast, points } = times
+  return {
+    runsOutAt: runsOutAt === undefined ? undefined : new Date(runsOutAt),
+    resetAt: resetAt === undefined ? undefined : new Date(resetAt),
+    usedAtReset: forecast && resetAt !== undefined ? projectionAt(points, resetAt) : Number.NaN,
+    runsOutBeyond: runsOutAt !== undefined && runsOutAt > end,
+    resetBeyond: resetAt !== undefined && resetAt > end,
+    forecast,
+  }
+}
+
+/** The default two-line status (spec §3.2). */
+export function statusLines(
+  facts: RunwayFacts,
+  disconnected: boolean,
+  now: number,
+  end: number,
+  f: RunwayDateFormats,
+): string[] {
+  if (disconnected) return ['Disconnected']
+  const lines: string[] = []
+  if (facts.runsOutAt) {
+    lines.push(`Runs out ${runwayDate(facts.runsOutAt.getTime(), now, end, f).text}`)
+  } else if (facts.forecast && Number.isFinite(facts.usedAtReset)) {
+    lines.push(`~${Math.round(facts.usedAtReset * 100)}% at reset`)
+  } else {
+    lines.push('No forecast')
+  }
+  if (facts.resetAt) {
+    const d = runwayDate(facts.resetAt.getTime(), now, end, f)
+    lines.push(`Resets ${d.text}${d.beyond ? ' →' : ''}`)
+  }
+  return lines
 }

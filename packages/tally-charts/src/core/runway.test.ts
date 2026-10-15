@@ -1,11 +1,15 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { createDateFormatter } from './date'
 import {
   cellBounds,
   normalizeRow,
   parseCell,
   projectionAt,
   runwayCells,
+  runwayDate,
+  runwayFacts,
   runwayForecast,
+  statusLines,
 } from './runway'
 import { binLevels } from './thresholds'
 
@@ -245,5 +249,89 @@ describe('runwayCells', () => {
     expect(new Set(states(runwayCells(before, bounds, edges, levels)))).toEqual(new Set(['empty']))
     const after = { points: [{ at: 500, used: 0.6 }], forecast: true }
     expect(new Set(states(runwayCells(after, bounds, edges, levels)))).toEqual(new Set(['L4']))
+  })
+})
+
+describe('status text', () => {
+  const f = {
+    weekday: createDateFormatter({ weekday: 'short' }),
+    day: createDateFormatter({ month: 'short', day: 'numeric' }),
+    time: createDateFormatter({ hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }),
+  }
+  const now = Date.UTC(2026, 9, 15, 2) // Thu Oct 15 02:00 UTC
+  const end = now + 7 * D
+
+  it('writes a weekday within 6 days, the date later in the domain, and the day past it', () => {
+    expect(runwayDate(Date.UTC(2026, 9, 16, 3, 24), now, end, f)).toEqual({
+      text: 'Fri 03:24',
+      beyond: false,
+    })
+    expect(runwayDate(Date.UTC(2026, 9, 21, 9, 21), now, end, f)).toEqual({
+      text: 'Oct 21 09:21',
+      beyond: false,
+    })
+    expect(runwayDate(Date.UTC(2026, 10, 9, 8), now, end, f)).toEqual({
+      text: 'Nov 9',
+      beyond: true,
+    })
+    expect(runwayDate(end, now, end, f).beyond).toBe(false)
+  })
+
+  it('covers the four cases', () => {
+    const base = {
+      usedAtReset: Number.NaN,
+      runsOutBeyond: false,
+      resetBeyond: false,
+      forecast: true,
+    }
+    const reset = new Date(Date.UTC(2026, 9, 16, 11, 22))
+    expect(
+      statusLines(
+        {
+          ...base,
+          runsOutAt: new Date(Date.UTC(2026, 9, 16, 3, 24)),
+          resetAt: reset,
+          usedAtReset: 1.05,
+        },
+        false,
+        now,
+        end,
+        f,
+      ),
+    ).toEqual(['Runs out Fri 03:24', 'Resets Fri 11:22'])
+    expect(
+      statusLines({ ...base, resetAt: reset, usedAtReset: 0.534 }, false, now, end, f),
+    ).toEqual(['~53% at reset', 'Resets Fri 11:22'])
+    expect(
+      statusLines(
+        { ...base, resetAt: new Date(Date.UTC(2026, 10, 9)), resetBeyond: true, usedAtReset: 0.6 },
+        false,
+        now,
+        end,
+        f,
+      ),
+    ).toEqual(['~60% at reset', 'Resets Nov 9 →'])
+    expect(statusLines({ ...base, forecast: false, resetAt: reset }, false, now, end, f)).toEqual([
+      'No forecast',
+      'Resets Fri 11:22',
+    ])
+    expect(statusLines({ ...base, forecast: false }, true, now, end, f)).toEqual(['Disconnected'])
+  })
+
+  it('derives the facts, reading the projection at reset', () => {
+    const facts = runwayFacts(
+      {
+        points: [
+          { at: now, used: 0.2 },
+          { at: now + 2 * D, used: 0.6 },
+        ],
+        resetAt: now + 2 * D,
+        forecast: true,
+      },
+      end,
+    )
+    expect(facts.usedAtReset).toBeCloseTo(0.6, 9)
+    expect(facts.resetBeyond).toBe(false)
+    expect(runwayFacts({ points: [], forecast: false }, end).usedAtReset).toBeNaN()
   })
 })
