@@ -255,7 +255,7 @@ export function RunwayChart({
   activeRef.current = active
   const activeProp = useRef(activeId)
   activeProp.current = activeId
-  const [focusIndex, setFocusIndex] = useState<number | null>(null)
+  const [focusId, setFocusId] = useState<string | null>(null)
   const [focused, setFocused] = useState(false)
   const byId = useMemo(() => {
     const map = new Map<string, number>()
@@ -264,8 +264,8 @@ export function RunwayChart({
     })
     return map
   }, [model])
-  // A focus index past the end (rows removed) falls back to the first row.
-  const current = focusIndex !== null && focusIndex < model.length ? focusIndex : null
+  // The cursor follows its row by id; a row that is gone falls back to the first row.
+  const current = focusId !== null ? (byId.get(focusId) ?? null) : null
   const selectable = onSelect !== undefined
 
   const setActive = (next: string | null) => {
@@ -283,7 +283,7 @@ export function RunwayChart({
   const moveTo = (i: number) => {
     const m = model[i]
     if (!m) return
-    setFocusIndex(i)
+    setFocusId(m.row.id)
     setActive(m.row.id)
     document.getElementById(`${baseId}-row-${i}`)?.scrollIntoView?.({ block: 'nearest' })
   }
@@ -430,13 +430,13 @@ export function RunwayChart({
             data-ch-active={m.row.id === active ? 'true' : undefined}
             data-ch-focus={selectable && focused && i === (current ?? 0) ? 'true' : undefined}
             onPointerEnter={() => {
-              if (selectable) setFocusIndex(i)
+              if (selectable) setFocusId(m.row.id)
               setActive(m.row.id)
             }}
             onClick={
               selectable
                 ? () => {
-                    setFocusIndex(i)
+                    setFocusId(m.row.id)
                     onSelect?.(m.row.id, m.row)
                   }
                 : undefined

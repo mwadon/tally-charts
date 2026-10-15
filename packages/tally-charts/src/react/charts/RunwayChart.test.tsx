@@ -343,4 +343,57 @@ describe('<RunwayChart>', () => {
     )
     expect(starter.at(-1)).toBe('Reconnect to forecast')
   })
+
+  it('lets a controlled activeId decide the active row', () => {
+    const onActiveChange = vi.fn()
+    const props = { onSelect: vi.fn(), onActiveChange }
+    const { rerender } = renderRunway({ ...props, activeId: 'team' })
+    const options = screen.getAllByRole('option')
+    expect(options[1]).toHaveAttribute('data-ch-active', 'true')
+    fireEvent.pointerEnter(options[0] as HTMLElement)
+    expect(onActiveChange).toHaveBeenLastCalledWith('pro', expect.objectContaining({ id: 'pro' }))
+    expect(options[0]).not.toHaveAttribute('data-ch-active')
+    expect(options[1]).toHaveAttribute('data-ch-active', 'true')
+    rerender(
+      <RunwayChart
+        rows={rows}
+        domain={domain}
+        now={now}
+        title="Runway"
+        {...props}
+        activeId="pro"
+      />,
+    )
+    expect(screen.getAllByRole('option')[0]).toHaveAttribute('data-ch-active', 'true')
+    expect(screen.getAllByRole('option')[1]).not.toHaveAttribute('data-ch-active')
+  })
+
+  it('ignores Escape when nothing is active', () => {
+    const onActiveChange = vi.fn()
+    renderRunway({ onSelect: vi.fn(), onActiveChange })
+    const box = screen.getByRole('listbox')
+    const event = new KeyboardEvent('keydown', { key: 'Escape', bubbles: true, cancelable: true })
+    box.dispatchEvent(event)
+    expect(event.defaultPrevented).toBe(false)
+    expect(onActiveChange).not.toHaveBeenCalled()
+  })
+
+  it('keeps the keyboard cursor on its row when the rows are reordered', () => {
+    const { rerender } = renderRunway({ onSelect: vi.fn() })
+    const box = screen.getByRole('listbox')
+    act(() => box.focus())
+    fireEvent.keyDown(box, { key: 'ArrowDown' })
+    rerender(
+      <RunwayChart
+        rows={[rows[1] as RunwayRow, rows[0] as RunwayRow, rows[2] as RunwayRow]}
+        domain={domain}
+        now={now}
+        title="Runway"
+        onSelect={vi.fn()}
+      />,
+    )
+    const list = screen.getByRole('listbox')
+    const target = document.getElementById(list.getAttribute('aria-activedescendant') ?? '')
+    expect(target).toHaveAccessibleName(expect.stringMatching(/^Team seat/))
+  })
 })
