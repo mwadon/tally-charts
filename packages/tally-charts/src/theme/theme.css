@@ -1199,12 +1199,13 @@
   cursor: pointer;
 }
 
+/* Light enough that muted text and the "reset" label keep 4.5:1 on the row (5% ink: 4.56:1). */
 [data-ch-part="runway-row"][data-ch-active="true"] {
-  background: color-mix(in srgb, var(--ch-ink) 4%, transparent);
+  background: color-mix(in srgb, var(--ch-ink) 3%, transparent);
 }
 
 [data-ch-part="runway-row"][aria-selected="true"] {
-  background: color-mix(in srgb, var(--ch-ink) 8%, transparent);
+  background: color-mix(in srgb, var(--ch-ink) 5%, transparent);
 }
 
 [data-ch-part="runway-label"] {
@@ -1244,8 +1245,8 @@
     [data-ch-part="runway-strip"],
     [data-ch-part="runway-status"]
   ) {
+  /* Muted ink alone, not faded further: fading takes the text under 4.5:1. */
   color: var(--ch-ink-muted);
-  opacity: 0.6;
 }
 
 [data-ch-part="runway-cell"][data-ch-state="level"] {
@@ -1279,8 +1280,8 @@
 
 [data-ch-part="runway-cell"][data-ch-state="empty"] {
   fill: none;
+  /* Full muted ink: the outline is all an empty cell shows, so it keeps 3:1 (5:1 here). */
   stroke: var(--ch-ink-muted);
-  stroke-opacity: 0.6;
   stroke-width: 1px;
   stroke-dasharray: 3 2;
 }
@@ -1508,7 +1509,8 @@
     outline: 2px dashed CanvasText;
   }
 
-  [data-ch-part="runway-row"][data-ch-focus="true"] {
+  /* Keyboard focus only, and as specific as the normal-mode focus rule so it wins over it. */
+  [data-ch-part="runway-rows"]:focus-visible [data-ch-part="runway-row"][data-ch-focus="true"] {
     outline: 2px solid Highlight;
   }
 }

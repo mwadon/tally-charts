@@ -165,7 +165,7 @@ describe('theme.css', () => {
       '[data-ch-part="runway-dot"]',
       '[data-ch-part="runway-reset"]',
       '[data-ch-part="runway-row"][aria-selected="true"]',
-      '[data-ch-part="runway-row"][data-ch-focus="true"]',
+      '[data-ch-part="runway-rows"]:focus-visible [data-ch-part="runway-row"][data-ch-focus="true"] {\n    outline: 2px solid Highlight;',
     ]) {
       expect(forced).toContain(selector)
     }
@@ -176,6 +176,26 @@ describe('theme.css', () => {
     expect(css.lastIndexOf('/* ---------- Forced colors')).toBeGreaterThan(
       css.indexOf('/* ---------- Runway ---------- */'),
     )
+  })
+
+  it('keeps runway text at 4.5:1 and empty-cell outlines at 3:1 against the surface', () => {
+    const runway = css.slice(css.indexOf('/* ---------- Runway ---------- */'), FORCED_AT)
+    const rule = (selector: string) => {
+      const at = runway.indexOf(`${selector} {`)
+      expect(at).toBeGreaterThanOrEqual(0)
+      return runway.slice(at, runway.indexOf('}', at))
+    }
+    // A muted row is muted ink, not muted ink faded further.
+    const muted = runway.slice(runway.indexOf('[data-ch-part="runway-row"][data-ch-muted="true"]'))
+    expect(muted.slice(0, muted.indexOf('}'))).not.toMatch(/^\s*opacity:/m)
+    expect(rule('[data-ch-part="runway-cell"][data-ch-state="empty"]')).not.toContain(
+      'stroke-opacity',
+    )
+    // Muted text on a selected or hovered row: 5% ink keeps it at 4.56:1 in the light theme.
+    for (const state of ['[data-ch-active="true"]', '[aria-selected="true"]']) {
+      const share = rule(`[data-ch-part="runway-row"]${state}`).match(/var\(--ch-ink\) (\d+)%/)
+      expect(Number(share?.[1])).toBeLessThanOrEqual(5)
+    }
   })
 
   it('keeps HTML marks visible and levels distinct in forced-colors mode', () => {
