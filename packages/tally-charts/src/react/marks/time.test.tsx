@@ -141,6 +141,18 @@ describe('marks on a time x scale', () => {
     expect(warn.mock.calls[0]?.[0]).toContain('Line skipped an x value that is not a date')
   })
 
+  it('skips area points whose x is not a date, with one warning', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const { container } = renderTime(<Area<Day> />, X, [
+      ...days,
+      { date: 'soon', v: 1, lo: 0, hi: 2 },
+    ])
+    expect(parts(container, 'area')[0]?.getAttribute('d')).toMatch(/^M0,80L100,50L300,20/)
+    expect(container.innerHTML).not.toContain('NaN')
+    expect(warn).toHaveBeenCalledTimes(1)
+    expect(warn.mock.calls[0]?.[0]).toContain('Area skipped an x value that is not a date')
+  })
+
   it('shades a region between dates, or from a date to the end', () => {
     const { container } = renderTime(
       <>

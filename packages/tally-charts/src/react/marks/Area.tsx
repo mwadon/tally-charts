@@ -68,7 +68,13 @@ export function Area<D>({
   const startOf = (value: unknown): number | undefined => {
     if (xScale.kind === 'band') return xScale.scale(String(value))
     const t = toTime(value)
-    return t === undefined ? undefined : xScale.scale(t)
+    if (t === undefined) {
+      if (DEV) {
+        ctx.warn('x-time-value', `Area skipped an x value that is not a date: ${String(value)}.`)
+      }
+      return undefined
+    }
+    return xScale.scale(t)
   }
   const rows = (data ?? ctx.data) as readonly D[]
   const columns = rows.flatMap((d, i) => {
