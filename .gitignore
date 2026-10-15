@@ -7,3 +7,4 @@ playwright-report/
 .DS_Store
 .remember/
 .superpowers/
+packages/tally-charts/temp/

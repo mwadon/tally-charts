@@ -1,0 +1,65 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/api-extractor/v7/api-extractor.schema.json",
+  "mainEntryPointFilePath": "<projectFolder>/dist/index.d.ts",
+  "compiler": {
+    "overrideTsconfig": {
+      "compilerOptions": {
+        "target": "ES2022",
+        "lib": ["ES2022", "DOM", "DOM.Iterable"],
+        "module": "ESNext",
+        "moduleResolution": "Bundler",
+        "jsx": "react-jsx",
+        "strict": true,
+        "skipLibCheck": true,
+        "types": []
+      },
+      "files": ["dist/index.d.ts"]
+    }
+  },
+  "apiReport": {
+    "enabled": true,
+    "reportFileName": "tally-charts",
+    "reportFolder": "<projectFolder>/api/",
+    "reportTempFolder": "<projectFolder>/temp/api/"
+  },
+  "docModel": {
+    "enabled": false
+  },
+  "dtsRollup": {
+    "enabled": false
+  },
+  "tsdocMetadata": {
+    "enabled": false
+  },
+  "messages": {
+    "compilerMessageReporting": {
+      "default": {
+        "logLevel": "warning"
+      }
+    },
+    "extractorMessageReporting": {
+      "default": {
+        "logLevel": "warning",
+        "addToApiReportFile": true
+      },
+      "ae-missing-release-tag": {
+        "logLevel": "none",
+        "addToApiReportFile": false
+      },
+      "ae-undocumented": {
+        "logLevel": "none",
+        "addToApiReportFile": false
+      },
+      "ae-forgotten-export": {
+        "logLevel": "error",
+        "addToApiReportFile": false
+      }
+    },
+    "tsdocMessageReporting": {
+      "default": {
+        "logLevel": "none",
+        "addToApiReportFile": false
+      }
+    }
+  }
+}

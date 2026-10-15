@@ -20,6 +20,7 @@ jobs:
       - run: pnpm lint
       - run: pnpm test
       - run: pnpm build
+      - run: pnpm --filter tally-charts api:check
       - run: pnpm size
       - run: pnpm --filter tally-charts check:dev-strip
 

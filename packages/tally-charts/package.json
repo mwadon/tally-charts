@@ -28,7 +28,9 @@
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "size": "size-limit",
-    "check:dev-strip": "node scripts/check-dev-strip.mjs"
+    "check:dev-strip": "node scripts/check-dev-strip.mjs",
+    "api:check": "api-extractor run --config api-extractor.json && api-extractor run --config api-extractor.core.json",
+    "api:update": "api-extractor run --local --config api-extractor.json && api-extractor run --local --config api-extractor.core.json"
   },
   "dependencies": {
     "d3-array": "^3.2.4",
@@ -39,6 +41,7 @@
     "react-dom": "^18.2.0 || ^19.0.0"
   },
   "devDependencies": {
+    "@microsoft/api-extractor": "7.59.3",
     "@size-limit/preset-small-lib": "14.2.0",
     "@testing-library/jest-dom": "7.0.1",
     "@testing-library/react": "16.3.3",

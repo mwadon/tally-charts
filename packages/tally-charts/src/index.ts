@@ -7,6 +7,7 @@ export type {
   FormatSpec,
   Formatter,
   Formatters,
+  LocaleOptions,
 } from './core/format'
 export { createFormatter, fmt } from './core/format'
 export type { LinearScale } from './core/linear'
