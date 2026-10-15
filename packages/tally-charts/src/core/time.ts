@@ -43,8 +43,9 @@ export const DAY = 864e5
 const YEAR = 365 * DAY
 
 /**
- * Epoch milliseconds from a `Date`, a finite number, or a string `Date.parse` accepts (so a
- * date-only ISO string is UTC midnight). Anything else, or an invalid date, is `undefined`.
+ * Epoch milliseconds from a `Date`, a number within the Date range (±8.64e15), or a string
+ * `Date.parse` accepts (so a date-only ISO string is UTC midnight). Anything else, or an invalid
+ * date, is `undefined`.
  */
 export function toTime(value: unknown): number | undefined {
   const ms =
@@ -55,7 +56,8 @@ export function toTime(value: unknown): number | undefined {
         : typeof value === 'string'
           ? Date.parse(value)
           : Number.NaN
-  return Number.isFinite(ms) ? ms : undefined
+  // Also rejects NaN, infinities and ms outside the Date range, where toISOString() throws.
+  return Math.abs(ms) <= 8.64e15 ? ms : undefined
 }
 
 /** Second, minute, hour, day, week, month and year in each zone. */

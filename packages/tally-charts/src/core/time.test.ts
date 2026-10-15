@@ -37,6 +37,13 @@ describe('toTime', () => {
       expect(toTime(bad)).toBeUndefined()
     }
   })
+
+  it('accepts only epoch ms within the Date range', () => {
+    expect(toTime(8.64e15)).toBe(8.64e15)
+    expect(toTime(-8.64e15)).toBe(-8.64e15)
+    expect(toTime(8.64e15 + 1)).toBeUndefined()
+    expect(toTime(-8.64e15 - 1)).toBeUndefined()
+  })
 })
 
 describe('inferTimeDomain', () => {

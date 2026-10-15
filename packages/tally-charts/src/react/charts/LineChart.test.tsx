@@ -323,7 +323,7 @@ describe('<LineChart> axis props', () => {
   })
 })
 
-type Reading = { at: string | Date | null; actual: number | null; plan: number | null }
+type Reading = { at: string | number | Date | null; actual: number | null; plan: number | null }
 const readings: Reading[] = [
   { at: '2026-01-01', actual: 34, plan: null },
   { at: '2026-01-02', actual: 32, plan: 32 },
@@ -405,6 +405,35 @@ describe('<LineChart> on a time axis', () => {
     expect(warn).toHaveBeenCalledTimes(2)
     expect(warn.mock.calls[0]?.[0]).toContain('not a date at index 1')
     expect(warn.mock.calls[1]?.[0]).toContain('repeated x value "2026-01-02T00:00:00.000Z"')
+  })
+
+  it('steps the keyboard through out-of-order data in date order', () => {
+    const { container } = renderTimeLines({
+      data: [readings[2] as Reading, readings[0] as Reading, readings[1] as Reading],
+    })
+    const figure = screen.getByRole('figure', { name: 'Readings' })
+    fireEvent.keyDown(figure, { key: 'Home' })
+    expect(live(container)).toBe('Jan 1, 2026, 34.0% Actual')
+    fireEvent.keyDown(figure, { key: 'ArrowRight' })
+    expect(live(container)).toBe('Jan 2, 2026, 32.0% Actual')
+    fireEvent.keyDown(figure, { key: 'ArrowRight' })
+    expect(live(container)).toBe('Jan 4, 2026, 35.0% Plan')
+    fireEvent.keyDown(figure, { key: 'ArrowLeft' })
+    expect(live(container)).toBe('Jan 2, 2026, 32.0% Actual')
+    fireEvent.keyDown(figure, { key: 'ArrowLeft' })
+    expect(live(container)).toBe('Jan 1, 2026, 34.0% Actual')
+  })
+
+  it('skips a number outside the Date range with the missing-date warning', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const { container } = renderTimeLines({
+      data: [...readings, { at: 1e20, actual: 39, plan: null }],
+    })
+    const [plan, actual] = groups(container)
+    expect(pathOf(actual)).toHaveAttribute('d', 'M0,60L100,80')
+    expect(pathOf(plan)).toHaveAttribute('d', 'M100,80L300,50')
+    expect(warn).toHaveBeenCalledTimes(1)
+    expect(warn.mock.calls[0]?.[0]).toContain('not a date at index 3')
   })
 
   it('shades the forecast from halfway after the last date before it', () => {
