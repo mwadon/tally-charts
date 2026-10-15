@@ -1158,10 +1158,6 @@
   }
 }
 
-/* ---------- Forced colors (Windows high contrast) ---------- */
-/* The tokens map onto the system palette, so SVG marks and text (which forced colors leave
-   alone) follow the user's colors: marks in CanvasText, the accent in Highlight, soft and
-   neutral in GrayText. HTML marks opt out of forcing so their fills stay visible shapes. */
 /* ---------- Runway ---------- */
 [data-ch-part="runway"] {
   display: grid;
@@ -1358,6 +1354,10 @@
     0 0 0 4px var(--ch-accent);
 }
 
+/* ---------- Forced colors (Windows high contrast) ---------- */
+/* The tokens map onto the system palette, so SVG marks and text (which forced colors leave
+   alone) follow the user's colors: marks in CanvasText, the accent in Highlight, soft and
+   neutral in GrayText. HTML marks opt out of forcing so their fills stay visible shapes. */
 @media (forced-colors: active) {
   :root,
   :root:not([data-ch-theme="light"]),
@@ -1445,5 +1445,58 @@
 
   [data-ch-part="heatmap-cell"][data-ch-peak="true"] {
     box-shadow: none;
+  }
+
+  /* Runway: SVG fills aren't forced; paint the levels with steps of the text color. */
+  [data-ch-part="runway-cell"] {
+    stroke: CanvasText;
+    stroke-width: 1px;
+  }
+
+  [data-ch-part="runway-cell"][data-ch-state="level"] {
+    fill: CanvasText;
+  }
+
+  [data-ch-part="runway-cell"][data-ch-level="1"] { fill-opacity: 0.15; }
+  [data-ch-part="runway-cell"][data-ch-level="2"] { fill-opacity: 0.35; }
+  [data-ch-part="runway-cell"][data-ch-level="3"] { fill-opacity: 0.5; }
+  [data-ch-part="runway-cell"][data-ch-level="4"] { fill-opacity: 0.7; }
+  [data-ch-part="runway-cell"][data-ch-level="5"] { fill-opacity: 1; }
+
+  [data-ch-part="runway-cell"][data-ch-state="runs-out"] {
+    fill: Canvas;
+    stroke-width: 2px;
+  }
+
+  [data-ch-part="runway-cell"][data-ch-state="empty"] {
+    fill: none;
+    stroke: GrayText;
+    stroke-opacity: 1;
+  }
+
+  [data-ch-part="runway-dot"] {
+    fill: Highlight;
+    stroke: Canvas;
+  }
+
+  [data-ch-part="runway-reset"] {
+    fill: CanvasText;
+  }
+
+  [data-ch-part="runway-now"] {
+    stroke: CanvasText;
+  }
+
+  [data-ch-part="legend-swatch"][data-ch-shape="tick"] {
+    forced-color-adjust: none;
+    background: CanvasText;
+  }
+
+  [data-ch-part="runway-row"][aria-selected="true"] {
+    outline: 2px dashed CanvasText;
+  }
+
+  [data-ch-part="runway-row"][data-ch-focus="true"] {
+    outline: 2px solid Highlight;
   }
 }

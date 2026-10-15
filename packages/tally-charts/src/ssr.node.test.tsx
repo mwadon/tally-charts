@@ -14,6 +14,7 @@ import {
   ProfitBridge,
   SmallPieces,
   UnderTarget,
+  UsageRunway,
 } from '../test/fixtures'
 import { Chart } from './react/Chart'
 
@@ -125,5 +126,14 @@ describe('server rendering', () => {
     expect(heatmap.match(/data-ch-part="heatmap-cell"/g)).toHaveLength(6)
     expect(heatmap).toContain('$14.8K')
     expect(heatmap).toContain('$13K and up')
+  })
+
+  it('renders the runway without a DOM, with its strips drawn at the initial width', () => {
+    const html = renderToString(<UsageRunway />)
+    expect(html).toBe(renderToString(<UsageRunway />))
+    expect(html).not.toContain('NaN')
+    expect(html.match(/data-ch-part="runway-strip"/g)).toHaveLength(3)
+    expect(html).toContain('data-ch-state="locked"')
+    expect(html).toContain('Runs out Fri')
   })
 })

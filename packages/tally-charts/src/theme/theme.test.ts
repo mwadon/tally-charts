@@ -158,6 +158,26 @@ describe('theme.css', () => {
     )
   })
 
+  it('keeps runway cells, marks and the focused row visible in forced-colors mode', () => {
+    for (const selector of [
+      '[data-ch-part="runway-cell"]',
+      '[data-ch-part="runway-cell"][data-ch-state="empty"]',
+      '[data-ch-part="runway-dot"]',
+      '[data-ch-part="runway-reset"]',
+      '[data-ch-part="runway-row"][aria-selected="true"]',
+      '[data-ch-part="runway-row"][data-ch-focus="true"]',
+    ]) {
+      expect(forced).toContain(selector)
+    }
+  })
+
+  it('puts the runway rules before the forced-colors block', () => {
+    expect(css.indexOf('/* ---------- Runway ---------- */')).toBeLessThan(FORCED_AT)
+    expect(css.lastIndexOf('/* ---------- Forced colors')).toBeGreaterThan(
+      css.indexOf('/* ---------- Runway ---------- */'),
+    )
+  })
+
   it('keeps HTML marks visible and levels distinct in forced-colors mode', () => {
     for (const part of [
       'legend-swatch',

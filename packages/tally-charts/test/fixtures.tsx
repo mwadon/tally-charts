@@ -14,6 +14,8 @@ import {
   Meter,
   RangeMeter,
   RankedBars,
+  RunwayChart,
+  runwayForecast,
   Stat,
   StripPlot,
   Target,
@@ -300,6 +302,27 @@ export function LeakHeatmap() {
       value="amount"
       breaks={[4000, 7000, 13000]}
       format="currency-compact"
+    />
+  )
+}
+
+export function UsageRunway() {
+  const now = '2026-10-15T02:00:00Z'
+  const rows = [
+    { id: 'pro', label: 'Pro plan', ...runwayForecast({ used: 0.85, windowStart: '2026-10-09T11:22:00Z', resetAt: '2026-10-16T11:22:00Z', now }) },
+    { id: 'team', label: 'Team seat', ...runwayForecast({ used: 0.48, windowStart: '2026-10-09T20:13:00Z', resetAt: '2026-10-16T20:13:00Z', now }) },
+    { id: 'starter', label: 'Starter', disconnected: true, status: 'Reconnect to forecast' },
+  ]
+  return (
+    <RunwayChart
+      title="Usage runway"
+      rows={rows}
+      domain={['2026-10-15T00:00:00Z', '2026-10-22T00:00:00Z']}
+      now={now}
+      initialWidth={900}
+      onSelect={() => {}}
+      selectedId="pro"
+      dataTable
     />
   )
 }
