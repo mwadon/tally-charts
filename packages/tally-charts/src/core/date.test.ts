@@ -85,6 +85,20 @@ describe("autoTickLabels ('auto' on an axis)", () => {
     ])
   })
 
+  it('keeps a day grain across a DST change in the local zone', () => {
+    // 23h (spring forward) and 25h (fall back) steps are still days.
+    expect(labelsOver('2026-03-29T00:00:00+01:00', '2026-04-02T00:00:00+02:00', 'local')[0]).toBe(
+      'Mar 29, 2026',
+    )
+    expect(labelsOver('2026-10-25T00:00:00+02:00', '2026-10-29T00:00:00+01:00', 'local')[0]).toBe(
+      'Oct 25, 2026',
+    )
+  })
+
+  it('writes an empty string for a value outside the Date range', () => {
+    expect(autoTickLabels([1e16, 1e16 + DAY])).toEqual(['', ''])
+  })
+
   it('returns nothing for no ticks', () => {
     expect(autoTickLabels([])).toEqual([])
   })
@@ -123,6 +137,13 @@ describe('createDateFormatter', () => {
   it('writes an empty string for a non-finite value', () => {
     expect(createDateFormatter('day')(Number.NaN)).toBe('')
     expect(createDateFormatter('quarter')(Number.NaN)).toBe('')
+  })
+
+  it('writes an empty string for a value outside the Date range, without throwing', () => {
+    for (const spec of ['auto', 'day', 'month', 'quarter', 'year', { weekday: 'long' }] as const) {
+      expect(createDateFormatter(spec)(1e16)).toBe('')
+      expect(createDateFormatter(spec)(-1e16)).toBe('')
+    }
   })
 })
 

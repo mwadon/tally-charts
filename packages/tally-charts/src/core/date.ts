@@ -31,6 +31,8 @@ export interface DateFormatOptions {
 /** Formats one date, given in epoch ms. Non-finite values give an empty string. */
 export type DateFormatter = (ms: number) => string
 
+const HOUR = DAY / 24
+
 type Grain = 'year' | 'month' | 'day' | 'time'
 
 const GRAINS: readonly Grain[] = ['year', 'month', 'day', 'time']
@@ -44,9 +46,10 @@ export function isDateFormat(spec: unknown): spec is DateFormatSpec {
 }
 
 function grainOf(step: number): Grain {
-  if (!(step < 365 * DAY)) return 'year'
-  if (step >= 28 * DAY) return 'month'
-  return step >= DAY ? 'day' : 'time'
+  // An hour of slack: in a local zone a day or a month can be 23h or an hour shorter at DST.
+  if (!(step < 365 * DAY - HOUR)) return 'year'
+  if (step >= 28 * DAY - HOUR) return 'month'
+  return step >= DAY - HOUR ? 'day' : 'time'
 }
 
 /** The coarsest calendar boundary `ms` sits on in `zone`. */
@@ -83,6 +86,11 @@ function withSeconds(fields: Intl.DateTimeFormatOptions, step: number): Intl.Dat
     : { ...fields, second: '2-digit' }
 }
 
+/** False for NaN and for epoch values outside the Date range, which Intl would throw on. */
+function validDate(d: Date): boolean {
+  return !Number.isNaN(d.getTime())
+}
+
 function intl(locale: string, zone: TimeZone, fields: Intl.DateTimeFormatOptions) {
   // 'local' leaves the zone unset: the runtime's own zone.
   return new Intl.DateTimeFormat(locale, zone === 'utc' ? { ...fields, timeZone: 'UTC' } : fields)
@@ -97,8 +105,8 @@ export function createDateFormatter(
     // Intl has no quarter field, so the quarter comes from the month.
     const year = intl(locale, zone, { year: 'numeric' })
     return (ms) => {
-      if (!Number.isFinite(ms)) return ''
       const d = new Date(ms)
+      if (!validDate(d)) return ''
       const month = zone === 'utc' ? d.getUTCMonth() : d.getMonth()
       return `Q${Math.floor(month / 3) + 1} ${year.format(d)}`
     }
@@ -110,7 +118,7 @@ export function createDateFormatter(
         ? withSeconds(FULL[grainOf(step)], step)
         : FULL[spec]
   const f = intl(locale, zone, fields)
-  return (ms) => (Number.isFinite(ms) ? f.format(ms) : '')
+  return (ms) => (validDate(new Date(ms)) ? f.format(ms) : '')
 }
 
 /**
@@ -135,7 +143,7 @@ export function autoTickLabels(
       f = intl(locale, zone, withSeconds(fields, step))
       formats.set(fields, f)
     }
-    return f.format(ms)
+    return validDate(new Date(ms)) ? f.format(ms) : ''
   }
   return ticks.map((ms, i) => {
     if (i === 0) return format(FULL[grain], ms)
