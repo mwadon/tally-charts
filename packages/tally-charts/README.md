@@ -253,7 +253,7 @@ the first point and its tooltip, ←/→ (and ↑/↓) move, Home and End jump, 
 `keyboardHint` translates the instructions read on focus; `keyboardHint=""` turns them off. A
 `<Chart>` whose marks register no points is not a tab stop. Escape also closes a hover tooltip,
 and the pointer can rest on it. Text keeps 4.5:1 and marks 3:1 in both themes, forced-colors
-(high-contrast) mode keeps marks and focus rings visible, and at 320px nothing overlaps: bridge
+(high-contrast) mode keeps marks and focus rings visible, and at 320px no chart text overlaps: bridge
 totals thin out, row labels are cut with an ellipsis, ComparisonBars stacks and Heatmap scrolls.
 `docs/a11y.md` in the repository has the keyboard model, what screen readers hear per chart, the
 decorative elements and a manual checklist.
@@ -302,7 +302,7 @@ Accessibility changes you may notice (0.6b):
   tone with ink, keyed on `data-ch-tone-text`; the `ch-tone-text` class is gone.
 - Light `--ch-warn` is `#be802f` (was `#f1a23b`), `--ch-gain` `#22a363` (`#23a866`) and
   `--ch-neutral` `#8e8e95` (`#a3a3ab`). Hatched and soft-accent marks have a 1px outline in both
-  themes (dots drawn soft, other than accent-soft, are decorative and get none).
+  themes (soft dots are decorative and get none).
 - The sequential levels have new shares per tone and theme, and the dark top level is the pure
   base with dark text. `data-ch-seq-tone` now also sets `--ch-seq-base`.
 - Heatmap column headers hold only the names; the column totals are a row of their own
