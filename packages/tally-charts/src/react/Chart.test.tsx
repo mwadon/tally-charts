@@ -63,6 +63,7 @@ describe('<Chart>', () => {
         width={400}
         title="Margin by week"
         description="Under target for 12 weeks."
+        dataTable={{ columns: [{ header: 'Week', value: (d) => d.week }] }}
       >
         <PointsProbe ids={[1, 2]} />
       </Chart>,
@@ -79,6 +80,11 @@ describe('<Chart>', () => {
     )
     // The data table and the live region stay outside the widget, where browse mode reads them.
     expect(chart.querySelector('[aria-live]')).toBeNull()
+    const table = within(fig).getByRole('table', { name: 'Margin by week' })
+    expect(chart).not.toContainElement(table)
+    expect(fig).toContainElement(table)
+    expect(chart.closest('[role="application"]')).toBe(chart)
+    expect(table.closest('[role="application"]')).toBeNull()
   })
 
   it('adds Enter to the hint with onSelect, takes a custom hint, and drops an empty one', () => {
@@ -102,6 +108,34 @@ describe('<Chart>', () => {
       </Chart>,
     )
     expect(screen.getByRole('application')).not.toHaveAttribute('aria-describedby')
+    rerender(
+      <Chart width={400} title="Probe" description="About it." keyboardHint="">
+        <PointsProbe ids={[1]} />
+      </Chart>,
+    )
+    const app = screen.getByRole('application')
+    const descId = screen.getByRole('figure').getAttribute('aria-describedby')
+    expect(descId).toBeTruthy()
+    expect(app.getAttribute('aria-describedby')).toBe(descId)
+    expect(app).toHaveAccessibleDescription('About it.')
+  })
+
+  it('leaves Alt, Ctrl and Cmd shortcuts to the browser', () => {
+    render(
+      <Chart width={400} title="Probe">
+        <PointsProbe ids={[1, 2, 3]} />
+      </Chart>,
+    )
+    const chart = screen.getByRole('application', { name: 'Probe' })
+    fireEvent.keyDown(chart, { key: 'ArrowRight' })
+    const active = chart.getAttribute('aria-activedescendant')
+    for (const mod of [{ altKey: true }, { ctrlKey: true }, { metaKey: true }]) {
+      for (const key of ['ArrowRight', 'ArrowLeft', 'Home', 'End']) {
+        expect(fireEvent.keyDown(chart, { key, ...mod })).toBe(true)
+      }
+    }
+    expect(chart.getAttribute('aria-activedescendant')).toBe(active)
+    expect(fireEvent.keyDown(chart, { key: 'End' })).toBe(false)
   })
 
   it('is not focusable while no mark registers points', () => {

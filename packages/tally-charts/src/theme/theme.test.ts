@@ -373,6 +373,37 @@ describe('theme.css', () => {
     expect(css).not.toContain('.ch-tone-text')
   })
 
+  it('keeps the forced-colors block last, so nothing after it can undo it', () => {
+    // After the media block's closing brace only whitespace remains: no top-level rule follows.
+    let depth = 0
+    let end = -1
+    for (let i = css.indexOf('{', FORCED_AT); i < css.length; i++) {
+      if (css[i] === '{') depth++
+      else if (css[i] === '}' && --depth === 0) {
+        end = i
+        break
+      }
+    }
+    expect(end).toBeGreaterThan(FORCED_AT)
+    expect(
+      css
+        .slice(end + 1)
+        .replace(/\/\*[\s\S]*?\*\//g, '')
+        .trim(),
+    ).toBe('')
+  })
+
+  it('scopes the legend marker rules to line swatches', () => {
+    expect(css).not.toMatch(/\[data-ch-part="legend-swatch"\]\[data-ch-marker/)
+    expect(css).toMatch(/\[data-ch-shape="line"\]\[data-ch-marker="ring"\]::after/)
+  })
+
+  it('insets an outline on hatched swatches, meter and inline bar fills and range gaps', () => {
+    expect(css).toMatch(
+      /\[data-ch-fill="hatch"\]:is\(\s*\[data-ch-part="legend-swatch"\],\s*\[data-ch-part="meter-fill"\],\s*\[data-ch-part="inline-bar-fill"\],\s*\[data-ch-part="range-gap"\]\s*\),[^{]*\{\s*box-shadow: inset 0 0 0 1px\s+color-mix/,
+    )
+  })
+
   it('outlines hatched bars, soft-accent bars and dots, and hatched or soft swatches', () => {
     const outline =
       'stroke: color-mix(in srgb, var(--_ch-swatch-color) var(--ch-tone-text-mix), var(--ch-ink))'

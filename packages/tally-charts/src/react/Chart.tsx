@@ -169,6 +169,8 @@ export function Chart<D>({
   }, [hovering, setActive])
 
   const onKeyDown = (event: KeyboardEvent<HTMLElement>) => {
+    // Alt+arrow (history), Ctrl/Cmd+Home/End and friends belong to the browser.
+    if (event.altKey || event.ctrlKey || event.metaKey) return
     const next = navigate(interaction.points, effectiveActiveId, event.key)
     if (next !== undefined) {
       event.preventDefault()

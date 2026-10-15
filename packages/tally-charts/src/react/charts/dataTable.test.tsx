@@ -8,7 +8,7 @@ import { DotHistogram } from './DotHistogram'
 import { LineChart } from './LineChart'
 import { RankedBars } from './RankedBars'
 import { StripPlot } from './StripPlot'
-import { headerOf } from './shared'
+import { headerOf, withTableOptions } from './shared'
 import { WaffleColumns } from './WaffleColumns'
 import { WaterfallChart } from './WaterfallChart'
 
@@ -64,6 +64,20 @@ describe('dataTable options on a high-level chart', () => {
     render(chart())
     const table = screen.getByRole('table', { name: 'Rows' })
     expect(within(table).getAllByRole('columnheader')[0]).toHaveTextContent(/^Row$/)
+  })
+})
+
+describe('renaming headers', () => {
+  it('ignores prototype keys: a header named like one stays as it is', () => {
+    const table = {
+      columns: [
+        { header: 'constructor', value: () => 'a' },
+        { header: 'toString', value: () => 'b' },
+        { header: 'Name', value: () => 'c' },
+      ],
+    }
+    const out = withTableOptions(table, { columns: { Name: 'Row' } })
+    expect(out?.columns.map((column) => column.header)).toEqual(['constructor', 'toString', 'Row'])
   })
 })
 

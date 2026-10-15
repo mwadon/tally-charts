@@ -28,6 +28,7 @@ const MARKS = [
   ['primitives-small-pieces--default', 'inline-bar-fill'],
   ['primitives-small-pieces--default', 'dot-count-dot'],
   ['reference-result--light', 'range-dot'],
+  ['reference-result--light', 'range-gap'],
 ] as const
 
 for (const colorScheme of ['light', 'dark'] as const) {

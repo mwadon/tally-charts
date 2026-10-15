@@ -258,7 +258,6 @@
   margin: 0;
   color: var(--ch-ink);
   font-variant-numeric: var(--ch-font-numeric);
-  border-radius: 6px;
 }
 
 /* The plot takes keyboard focus. Its ring is an outline, which forced-colors mode keeps. */
@@ -675,11 +674,11 @@
 }
 
 /* The series' point on a line swatch: filled, or hollow like a forecast's dots. */
-[data-ch-part="legend-swatch"][data-ch-marker] {
+[data-ch-part="legend-swatch"][data-ch-shape="line"][data-ch-marker] {
   position: relative;
 }
 
-[data-ch-part="legend-swatch"][data-ch-marker]::after {
+[data-ch-part="legend-swatch"][data-ch-shape="line"][data-ch-marker]::after {
   content: "";
   position: absolute;
   top: 50%;
@@ -692,7 +691,7 @@
   background: var(--_ch-swatch-color);
 }
 
-[data-ch-part="legend-swatch"][data-ch-marker="ring"]::after {
+[data-ch-part="legend-swatch"][data-ch-shape="line"][data-ch-marker="ring"]::after {
   border: 2px solid var(--_ch-swatch-color);
   background: var(--ch-surface);
 }

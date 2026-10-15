@@ -52,8 +52,8 @@ export interface ComparisonBarsProps<D> extends Omit<ChartPassThroughProps<D>, '
    */
   good?: 'up' | 'down'
   /**
-   * 'columns': label, bars and values side by side. 'stacked': the label and the values on one
-   * line above bars that span the full width. 'auto' stacks when the bars would get less than
+   * 'columns': label, bars and values side by side. 'stacked': the label and the values in a block
+   * of up to two lines above bars that span the full width. 'auto' stacks when the bars would get less than
    * 120px between the columns. Default 'auto'.
    */
   layout?: 'auto' | 'columns' | 'stacked'

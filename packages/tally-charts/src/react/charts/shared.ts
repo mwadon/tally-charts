@@ -72,7 +72,9 @@ export function withTableOptions<R>(
     caption: options.caption ?? table.caption,
     columns: table.columns.map((column) => ({
       ...column,
-      header: headers[column.header] ?? column.header,
+      header: Object.hasOwn(headers, column.header)
+        ? (headers[column.header] ?? column.header)
+        : column.header,
     })),
   }
 }

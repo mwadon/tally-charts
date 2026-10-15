@@ -432,7 +432,7 @@ export function Heatmap<D>({
         ref={scrollRef}
         className="ch-heatmap-scroll"
         data-ch-part="heatmap-scroll"
-        {...(overflowing ? { tabIndex: 0, role: 'group', 'aria-label': title ?? 'Heatmap' } : null)}
+        {...(overflowing ? { tabIndex: 0, role: 'group', 'aria-label': title || 'Heatmap' } : null)}
       >
         <div
           role="grid"

@@ -1,3 +1,4 @@
+import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
 import { open, STORIES } from './stories'
 
@@ -47,5 +48,18 @@ for (const id of [...STORIES, 'reference-last-12-weeks--selectable']) {
     expect(result.overlaps).toEqual([])
     expect(result.offscreen).toEqual([])
     expect(result.clipped).toEqual([])
+  })
+}
+
+// The same axe pass as the main gate, at 320px: the heatmap's scroll region gets its role, name
+// and tab stop only while it overflows, and that state only exists at narrow widths.
+for (const id of [...STORIES, 'reference-last-12-weeks--selectable']) {
+  test(`${id} has no axe violations at 320px`, async ({ page }) => {
+    await open(page, id)
+    const results = await new AxeBuilder({ page })
+      .include('#storybook-root')
+      .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa', 'best-practice'])
+      .analyze()
+    expect(results.violations).toEqual([])
   })
 }
