@@ -167,13 +167,12 @@ export type ResolvedScale = {
     scale: TimeScale;
 };
 
-// @public (undocumented)
+// @public
 export interface RunwayForecast {
     elapsed: number;
     lockedMs: number;
     paceRatio: number;
     projection: RunwayPoint[];
-    // (undocumented)
     resetAt: Date;
     runsOutAt?: Date;
     usedAtReset: number;
@@ -182,23 +181,18 @@ export interface RunwayForecast {
 // @public
 export function runwayForecast(input: RunwayForecastInput): RunwayForecast;
 
-// @public (undocumented)
+// @public
 export interface RunwayForecastInput {
-    // (undocumented)
     now: TimeInput;
     pace?: number;
-    // (undocumented)
     resetAt: TimeInput;
     used: number;
-    // (undocumented)
     windowStart: TimeInput;
 }
 
 // @public
 export interface RunwayPoint {
-    // (undocumented)
     at: Date;
-    // (undocumented)
     used: number;
 }
 

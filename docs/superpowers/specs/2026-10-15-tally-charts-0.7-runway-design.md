@@ -39,7 +39,7 @@ interface RunwayForecastInput {
   windowStart: TimeInput
   resetAt: TimeInput
   now: TimeInput
-  /** Share of the allowance per millisecond. Default: used / (now − windowStart). */
+  /** Share of the allowance per day (0.113 = 11.3 points a day). Default: the observed pace, used / (now − windowStart). */
   pace?: number
 }
 
@@ -64,6 +64,8 @@ interface RunwayForecast {
 
 Rules:
 - `used >= 1` → `runsOutAt = now`, projection is the single point `[now, used]`.
+- Projected exactly 1 at `resetAt` → no `runsOutAt` (it must exceed 1 to run out).
+- *Amended in the final review:* `pace` is per day, not per ms.
 - `pace` 0 (or `now == windowStart` with no `pace`) → no `runsOutAt`, `usedAtReset = used`, `paceRatio` 0.
 - `resetAt <= now` → projection `[now, used]`, `usedAtReset = used`, `lockedMs` 0.
 - Invalid input (NaN, negative `used` or `pace`, unparseable dates, `windowStart >= resetAt`) → dev warning (`runway-forecast-input`), result with `projection: []`, `usedAtReset` NaN, `paceRatio` NaN, `elapsed` NaN, `lockedMs` 0. Never throws.
@@ -102,21 +104,22 @@ interface RunwayChartProps {
   tone?: Tone
   /** 'auto' stacks rows below the stack width (§4.1). Default 'auto'. */
   layout?: 'auto' | 'columns' | 'stacked'
-  /** Width used before the first measurement (SSR). */
+  /** Width used before the first measurement (SSR). Default 960, which renders the columns layout. */
   initialWidth?: number
   /** Width of the label column in the columns layout, px. Default 200. */
   labelWidth?: number
-  /** Rows become a listbox when set. */
+  /** Marked with `data-ch-selected` in both modes; with `onSelect` also `aria-selected`. */
   selectedId?: string | null
   onSelect?: (id: string, row: RunwayRow) => void
   activeId?: string | null
   onActiveChange?: (id: string | null, row: RunwayRow | null) => void
-  /** Custom status per row; overrides the default but not a row's own `status`. */
+  /** Custom status per row; overrides the default but not a row's own `status`. `undefined` keeps the default, `null` shows none. */
   status?: (row: RunwayRow, facts: RunwayFacts) => ReactNode
   /** Built-in legend under the rows. Default true. */
   legend?: boolean
   title?: string
   description?: string
+  /** Default true, like every other chart. */
   dataTable?: boolean | DataTableOptions
   empty?: ReactNode
   className?: string
@@ -178,7 +181,7 @@ Two lines, English, with dates formatted in `timeZone`:
 
 An HTML CSS grid, three columns in the columns layout: label (`labelWidth`), strip (`1fr`), status (`max-content`, min 9rem).
 
-- Header row: empty, the axis SVG, empty. The axis shows day names at day starts in `timeZone`, thinned by the existing time-tick fitting, plus a "Now" label above the now line.
+- Header row: empty, the axis SVG, empty. The axis shows day names centred on each day's span in `timeZone` (a sliver under half a day at either end gets none), thinned by the existing time-tick fitting, plus a "Now" label above the now line.
 - Row: icon + label (ellipsis, full text in `title`), strip SVG, two-line status.
 - Stacked layout (`layout='stacked'`, or `'auto'` when the strip column would be under 240 px): label and status share the first line, the strip spans the full width below. The axis keeps its own full-width row.
 
@@ -198,7 +201,7 @@ Hatch patterns come from `PatternDefs`, rendered once in a hidden SVG at the cha
 
 ### 4.3 Theme
 
-Only existing tokens. New rules go in `theme.css` before the forced-colors block (enforced by the existing test). Parts (`data-ch-part`): `runway`, `runway-axis`, `runway-now-label`, `runway-rows`, `runway-row`, `runway-label`, `runway-icon`, `runway-name`, `runway-strip`, `runway-cell`, `runway-now`, `runway-reset`, `runway-reset-label`, `runway-dot`, `runway-status`, `runway-status-line`; the axis day labels reuse `axis-label` and the legend reuses the `legend` parts. Classes `ch-runway-*`. Cells carry the new state attribute `data-ch-state` (`level`, `runs-out`, `locked`, `empty`) and, for levels, the existing `data-ch-level` (1…N). Rows use `aria-selected` for selection, the existing `data-ch-active` for hover/focus and `data-ch-muted` for disconnected.
+Only existing tokens. New rules go in `theme.css` before the forced-colors block (enforced by the existing test). Parts (`data-ch-part`): `runway`, `runway-axis`, `runway-now-label`, `runway-rows`, `runway-row`, `runway-label`, `runway-icon`, `runway-name`, `runway-strip`, `runway-cell`, `runway-now`, `runway-reset`, `runway-reset-label`, `runway-dot`, `runway-status`, `runway-status-line`; the axis day labels reuse `axis-label` and the legend reuses the `legend` parts. Classes `ch-runway-*`. Cells carry the new state attribute `data-ch-state` (`level`, `runs-out`, `locked`, `empty`) and, for levels, the existing `data-ch-level` (1…N). Rows carry `data-ch-selected="true"` for selection in both modes (and `aria-selected` as options), styled by `data-ch-selected`; the existing `data-ch-active` for hover/focus and `data-ch-muted` for disconnected.
 
 - Levels: `tone` (default `neutral`) is always written as `data-ch-seq-tone`, which picks that tone's base and level shares.
 - Selected row: the same background as other charts' highlighted item; active (hover/focus) row: the hover background; focus ring on the focused row per the 0.6b focus rules.
@@ -216,8 +219,8 @@ Built in, under the rows, off with `legend={false}`. Items: "Projected use" with
 - Strips, axis and legend swatches are `aria-hidden`; the legend text stays readable. Per-cell detail lives in the data table.
 - Missing `title`: dev warning, as `Chart` does.
 - Keyboard (listbox): one tab stop on the container with `aria-activedescendant`; Up/Down, Home/End, PageUp/PageDown (5 rows); Enter and Space select; keys with Alt/Ctrl/Meta pass through; visible focus ring on the active row. Focus/hover drive `activeId`/`onActiveChange`.
-- Pointer: click selects; hover sets active. No per-cell tooltips in 0.7.
-- `dataTable`: one row per entity — label, sublabel, Runs out, Resets, Projected at reset (`usedAtReset` as %), Status (the row's `status` when it is a string, otherwise the default status text).
+- Pointer: click selects; hover sets active only (it does not move the keyboard cursor). Pressing a row moves the cursor there; a click that focuses the listbox does not scroll. No per-cell tooltips in 0.7.
+- `dataTable`: one row per entity — label, sublabel, Runs out, Resets, Projected at reset (`usedAtReset` as %), Status (the row's or the `status` callback's result when it is a string, empty for `null`, otherwise the default status text).
 - Non-text contrast: levels are supplementary; the information is in the status text and the table. The runs-out dot, reset tick and empty-cell outlines meet 3:1 against the surface in both themes.
 
 ### 5.1 Bad input (dev warning, safe output, never throws)
@@ -227,7 +230,7 @@ Built in, under the rows, off with `legend={false}`. Items: "Projected use" with
 | reversed or invalid `domain`, or bad `now` | render `empty` | `runway-domain` |
 | more than 200 cells | cut to the first 200 | `runway-cells` |
 | invalid `cell` | default '6h' | `runway-cell` |
-| unsorted `projection` | sorted | `runway-projection` |
+| unsorted `projection` | sorted | `runway-projection-order` |
 | projection point with NaN/negative `used` or bad `at` | point dropped | `runway-projection` |
 | `runsOutAt` after `resetAt` | `runsOutAt` ignored | `runway-runs-out` |
 | unparseable `runsOutAt`/`resetAt` | treated as absent | `runway-dates` |

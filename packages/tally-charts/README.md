@@ -143,7 +143,8 @@ One strip per account across a time axis: each cell is coloured by the projected
 allowance in use, a dot marks the moment it runs out, hatched cells are the locked span until the
 reset tick, and a "Now" line shows today. Beside each strip are the label and a two-line status
 ("Runs out Fri 03:24", "Resets Mon 09:21"). `runwayForecast` computes the facts from usage, the
-window and the pace.
+window and the pace (by default the pace so far; `pace` takes a share per day, so `0.113` is 11.3
+points a day).
 
 ```tsx
 import { RunwayChart, runwayForecast } from 'tally-charts'
@@ -160,16 +161,16 @@ const rows = accounts.map((a) => ({
 
 | Prop | Default | |
 | --- | --- | --- |
-| `rows` | | `{ id, label, icon?, sublabel?, projection?, runsOutAt?, resetAt?, disconnected?, status? }`. `projection` is `{ at, used }[]` (used 0-1, linear between points); no projection means no forecast |
+| `rows` | | `{ id, label, icon?, sublabel?, projection?, runsOutAt?, resetAt?, disconnected?, status? }`. `projection` is `{ at, used }[]` (used 0-1, linear between points); no projection means no forecast. Cells before the first point take its value, so start the domain at `now` or include history |
 | `domain`, `now` | | Time span of the strips and the "Now" line; dates, epoch ms or ISO strings |
 | `cell` | `'6h'` | Cell length: `'30m'`, `'6h'`, `'1d'` or ms. At most 200 cells, then a warning |
 | `breaks` | `[0.25, 0.5, 0.75]` | 1-4 ascending level edges as shares; `n` edges make `n + 1` levels |
 | `tone` | `'neutral'` | Tone of the levels and the legend, always applied: an ancestor's `--ch-seq-base` does not reach it |
 | `layout` | `'auto'` | `'auto'` stacks the rows when the strip would be under 240px; or `'columns'` / `'stacked'` |
-| `initialWidth`, `labelWidth` | `640`, `200` | Width before the first measurement and on the server; label column in px |
-| `selectedId`, `onSelect` | | With `onSelect` the rows are a listbox |
+| `initialWidth`, `labelWidth` | `960`, `200` | Width before the first measurement and on the server (960 renders columns); label column in px |
+| `selectedId`, `onSelect` | | The selected row is marked in both modes; with `onSelect` the rows are a listbox |
 | `activeId`, `onActiveChange` | | Hovered or keyboard-focused row, controlled or not |
-| `status` | | `(row, facts) => ReactNode` for a custom status; a row's own `status` wins |
+| `status` | | `(row, facts) => ReactNode` for a custom status: `undefined` keeps the default, `null` shows none, a string is also the table's Status; a row's own `status` wins |
 | `legend` | `true` | |
 | `title`, `description` | | Name and describe the list |
 | `dataTable` | `true` | Hidden table: Name, Detail, Runs out, Resets, Projected at reset, Status |
@@ -197,7 +198,8 @@ spread it into a row. The parts are `runway`, `runway-axis`, `runway-now-label`,
 `runway-cell`, `runway-now`, `runway-reset`, `runway-reset-label`, `runway-dot`, `runway-status`
 and `runway-status-line`; the attributes are `data-ch-layout` (`columns` / `stacked`),
 `data-ch-state` (on cells: `level`, `runs-out`, `locked`, `empty`), `data-ch-focus` and, on rows,
-`data-ch-active`, `data-ch-muted` and `data-ch-selectable`. See `docs/a11y.md` for the keys.
+`data-ch-active`, `data-ch-muted`, `data-ch-selectable` and `data-ch-selected`. See
+`docs/a11y.md` for the keys.
 
 ## Small pieces
 
@@ -230,11 +232,11 @@ Numbers in data follow one rule: numbers and numeric strings count, while blanks
 other values are missing.
 
 Building blocks added in 0.5: `Line`, `Band` (area between two values), `Grid` (horizontal
-lines at the y ticks) and `Region` (shaded run of categories; `fill="hatch"` hatches it instead of
-tinting it), plus `type: 'point'` scales for `<Chart x>`. `Legend` draws `shape="line"` swatches (`dashed` for forecasts, and `marker: 'dot'`
-or `'ring'` for the series' points), `shape="band"` swatches for a `Band`'s soft fill, and
-sequential `level` swatches; `heatmapLevel(value, breaks)` gives the level a Heatmap uses for a
-value.
+lines at the y ticks) and `Region` (shaded run of categories; `fill="hatch"` hatches it instead
+of tinting it), plus `type: 'point'` scales for `<Chart x>`. `Legend` draws `shape="line"`
+swatches (`dashed` for forecasts, and `marker: 'dot'` or `'ring'` for the series' points),
+`shape="band"` swatches for a `Band`'s soft fill, and sequential `level` swatches;
+`heatmapLevel(value, breaks)` gives the level a Heatmap uses for a value.
 
 ## Time scales
 
@@ -303,8 +305,8 @@ Chart components are client components: the main entry `tally-charts` starts wit
 so you can render `<Chart>` from a Server Component file. In server code, import from
 `tally-charts/core`, which has no React and is server-safe: the formatters (`fmt`,
 `createFormatter`, `createFormatters`), `thresholds`, `heatmapLevel`, `runwayForecast`, `toNumber`,
-`toTime` and the shared types. Function props (`fill`, `tone`, function `format`, `tooltip`) can't cross the
-server/client boundary, so pass them from a client component.
+`toTime` and the shared types. Function props (`fill`, `tone`, function `format`, `tooltip`)
+can't cross the server/client boundary, so pass them from a client component.
 
 ## Accessibility
 
