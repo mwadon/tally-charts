@@ -102,6 +102,28 @@ test('hovering a bar dims the others', async ({ page }) => {
   await expect(page.locator('[data-ch-part="tooltip"]')).toContainText('Jul 27')
 })
 
+test('Escape closes a hover tooltip', async ({ page }) => {
+  await open(page, 'reference-last-12-weeks--light')
+  await page.locator('[data-ch-part="bar-hit"]').nth(3).hover()
+  await expect(page.locator('[data-ch-part="tooltip"]')).toContainText('Jul 27')
+  await page.keyboard.press('Escape')
+  await expect(page.locator('[data-ch-part="tooltip"]')).toHaveCount(0)
+})
+
+test('the pointer can move onto a hover tooltip without closing it', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 600 })
+  await open(page, 'reference-dallas-installs--light')
+  const dot = await page.locator('[data-ch-part="dot"]').first().boundingBox()
+  if (!dot) throw new Error('no dot')
+  await page.mouse.move(dot.x + dot.width / 2, dot.y + dot.height / 2)
+  const tooltip = page.locator('[data-ch-part="tooltip"]')
+  await expect(tooltip).toContainText('Estimated')
+  const tip = await tooltip.boundingBox()
+  if (!tip) throw new Error('no tooltip')
+  await page.mouse.move(tip.x + tip.width / 2, tip.y + tip.height / 2, { steps: 8 })
+  await expect(tooltip).toContainText('Estimated')
+})
+
 test('a fast click selects the clicked bar, not the one hovered before', async ({ page }) => {
   await open(page, 'reference-last-12-weeks--selectable')
   const hits = page.locator('[data-ch-part="bar-hit"]')

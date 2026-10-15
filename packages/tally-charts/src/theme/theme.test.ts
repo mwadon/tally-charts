@@ -115,6 +115,11 @@ describe('theme.css', () => {
     expect(rule?.[1]).toContain('pointer-events: none')
   })
 
+  it('lets the pointer rest on a hover tooltip but not on a pinned callout', () => {
+    expect(css).toMatch(/\[data-ch-part="tooltip"\] \{\s*pointer-events: auto;/)
+    expect(css).not.toMatch(/\[data-ch-part="callout"\][^{]*\{[^}]*pointer-events: auto/)
+  })
+
   it('disables motion for reduced-motion users', () => {
     expect(css).toContain('@media (prefers-reduced-motion: reduce)')
   })

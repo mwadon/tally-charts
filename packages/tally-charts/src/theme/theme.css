@@ -455,6 +455,12 @@
   z-index: 1;
 }
 
+/* The pointer can rest on a hover tooltip without closing it (WCAG 1.4.13): over the tooltip,
+   the hit areas under it get no pointer moves. Pinned callouts stay click-through. */
+[data-ch-part="tooltip"] {
+  pointer-events: auto;
+}
+
 [data-ch-part="callout-stem"] {
   position: absolute;
   width: 1px;

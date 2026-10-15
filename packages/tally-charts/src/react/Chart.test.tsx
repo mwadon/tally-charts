@@ -363,6 +363,30 @@ describe('<Chart>', () => {
     expect(onActiveChange).toHaveBeenLastCalledWith(null, null)
   })
 
+  it('closes a hover tooltip on Escape wherever focus is', () => {
+    const onActiveChange = vi.fn()
+    let ctx: InternalChartContext | undefined
+    render(
+      <Chart width={300} onActiveChange={onActiveChange}>
+        <PointsProbe ids={[1, 2]} />
+        <Probe
+          onContext={(c) => {
+            ctx = c
+          }}
+        />
+      </Chart>,
+    )
+    act(() => ctx?.setActive(2, 'pointer'))
+    fireEvent.keyDown(document.body, { key: 'Enter' })
+    expect(onActiveChange).toHaveBeenLastCalledWith(2, expect.objectContaining({ id: 2 }))
+    fireEvent.keyDown(document.body, { key: 'Escape' })
+    expect(onActiveChange).toHaveBeenLastCalledWith(null, null)
+    // Nothing is listening once the tooltip is gone.
+    onActiveChange.mockClear()
+    fireEvent.keyDown(document.body, { key: 'Escape' })
+    expect(onActiveChange).not.toHaveBeenCalled()
+  })
+
   it('reports a null active id when the controlled id is not among the registered points', () => {
     let ctx: InternalChartContext | undefined
     const { container } = render(

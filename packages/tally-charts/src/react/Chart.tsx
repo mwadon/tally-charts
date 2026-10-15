@@ -2,6 +2,7 @@ import {
   type CSSProperties,
   type KeyboardEvent,
   type ReactNode,
+  useEffect,
   useId,
   useMemo,
   useRef,
@@ -141,6 +142,18 @@ export function Chart<D>({
   }, [])
 
   const effectiveActiveId = interaction.activePoint ? interaction.activePoint.id : null
+
+  // A tooltip opened by hover closes on Escape wherever focus is (WCAG 1.4.13).
+  const hovering = interaction.source === 'pointer' && effectiveActiveId !== null
+  const { setActive } = interaction
+  useEffect(() => {
+    if (!hovering) return
+    const onEscape = (event: globalThis.KeyboardEvent) => {
+      if (event.key === 'Escape') setActive(null, 'pointer')
+    }
+    document.addEventListener('keydown', onEscape)
+    return () => document.removeEventListener('keydown', onEscape)
+  }, [hovering, setActive])
 
   const onKeyDown = (event: KeyboardEvent<HTMLElement>) => {
     const next = navigate(interaction.points, effectiveActiveId, event.key)
