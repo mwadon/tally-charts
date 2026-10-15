@@ -54,7 +54,7 @@ describe('public entry points', () => {
     expect(main).toHaveProperty(name)
   })
 
-  it('keeps tally-charts/core to formatting, thresholds, value parsing and types', () => {
+  it('keeps tally-charts/core to formatting, thresholds, value parsing, the runway forecast and types', () => {
     expect(Object.keys(core).sort()).toEqual([
       'DEFAULT_CURRENCY',
       'DEFAULT_LOCALE',
@@ -63,6 +63,7 @@ describe('public entry points', () => {
       'createFormatters',
       'fmt',
       'heatmapLevel',
+      'runwayForecast',
       'thresholds',
       'toNumber',
       'toTime',

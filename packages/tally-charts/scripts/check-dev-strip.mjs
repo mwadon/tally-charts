@@ -41,6 +41,7 @@ const phrases = [
   'has no valid dates',
   'has no `title`',
   'has a value that is not a date',
+  'runwayForecast needs',
   'must be a function on a band or point scale',
 ]
 const leaks = phrases.filter((phrase) => code.includes(phrase))

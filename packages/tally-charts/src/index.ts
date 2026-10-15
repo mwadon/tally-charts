@@ -11,6 +11,8 @@ export type {
 } from './core/format'
 export { createFormatter, fmt } from './core/format'
 export type { LinearScale } from './core/linear'
+export type { RunwayForecast, RunwayForecastInput, RunwayPoint } from './core/runway'
+export { runwayForecast } from './core/runway'
 export type {
   BandScale,
   BandScaleSpec,
