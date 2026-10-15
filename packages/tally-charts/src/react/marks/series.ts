@@ -1,25 +1,27 @@
 import { clampToRange } from '../../core/linear'
 import { toNumber } from '../../core/number'
 import { categoryCenter } from '../../core/scale'
+import { toTime } from '../../core/time'
 import { DEV } from '../../core/warn'
 import type { ChartContextValue } from '../context'
 
 /** Pixel positions for marks that draw values along x, such as `Line` and `Band`. */
 export interface SeriesScales {
-  /** Plot x of a category; NaN when the scale doesn't know it. */
+  /** Plot x of a category or date; NaN when the scale can't place it. */
   x: (value: unknown) => number
   /** Plot y of a value, clamped into the plot; NaN when the value is missing. */
   y: (value: unknown) => number
   /**
-   * The point id an x value gets: the category as a string, so a chart that registers one point
-   * per x (as LineChart does) lights the matching dots.
+   * The point id an x value gets: the category as a string, or the date as an ISO string, so a
+   * chart that registers one point per x (as LineChart does) lights the matching dots.
    */
   key: (value: unknown) => string
 }
 
 /**
- * The shared scale guard of `Line` and `Band`: a point or band scale on x and a linear scale on
- * y. Otherwise it warns once per chart and returns undefined, and the mark draws nothing.
+ * The shared scale guard of `Line` and `Band`: a point, band or time scale on x and a linear
+ * scale on y. Otherwise it warns once per chart and returns undefined, and the mark draws
+ * nothing. On a time scale, x values `toTime` rejects are skipped with one warning per chart.
  */
 export function seriesScales(
   ctx: ChartContextValue,
@@ -30,18 +32,40 @@ export function seriesScales(
     if (DEV) {
       ctx.warn(
         `${mark.toLowerCase()}-scales`,
-        `${mark} needs a point or band scale on <Chart x> and a linear scale on <Chart y>.`,
+        `${mark} needs a point, band or time scale on <Chart x> and a linear scale on <Chart y>.`,
       )
     }
     return undefined
   }
   const linear = y.scale
+  const yOf = (value: unknown) => {
+    const v = toNumber(value)
+    return Number.isFinite(v) ? clampToRange(linear, linear(v)) : Number.NaN
+  }
+  if (x.kind === 'time') {
+    const time = x.scale
+    const ms = (value: unknown) => {
+      const t = toTime(value)
+      if (DEV && t === undefined) {
+        ctx.warn('x-time-value', `${mark} skipped an x value that is not a date: ${String(value)}.`)
+      }
+      return t
+    }
+    return {
+      x: (value) => {
+        const t = ms(value)
+        return t === undefined ? Number.NaN : time(t)
+      },
+      y: yOf,
+      key: (value) => {
+        const t = toTime(value)
+        return t === undefined ? '' : new Date(t).toISOString()
+      },
+    }
+  }
   return {
     x: (value) => categoryCenter(x, value) ?? Number.NaN,
-    y: (value) => {
-      const v = toNumber(value)
-      return Number.isFinite(v) ? clampToRange(linear, linear(v)) : Number.NaN
-    },
+    y: yOf,
     key: String,
   }
 }

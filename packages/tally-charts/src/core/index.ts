@@ -46,6 +46,7 @@ export type {
   PointScaleSpec,
   ResolvedScale,
   ScaleSpec,
+  TimeScaleSpec,
 } from './scale'
 export { categoryCenter, categoryStep, createScale, inferLinearDomain } from './scale'
 export type { StepTone, StepTotal } from './steps'
@@ -55,6 +56,8 @@ export type { ThresholdBin, ThresholdLegendItem, Thresholds } from './thresholds
 export { thresholds } from './thresholds'
 export type { MeasureTick, Tick, TickAnchor, TickSpec } from './ticks'
 export { categoryTicks, estimateWidth, linearTicks, thinTicks } from './ticks'
+export type { TimeInput, TimeScale, TimeZone } from './time'
+export { toTime } from './time'
 export type { Accessor, Fill, Id, PerItem, SeqLevel, Tone } from './types'
 export { TONES } from './types'
 export type { WaffleCell, WaffleLayout } from './waffle'

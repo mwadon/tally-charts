@@ -1,9 +1,13 @@
+import { type TimeInput, toTime } from '../../core/time'
 import { DEV } from '../../core/warn'
 import { useChart } from '../context'
 
 export interface TargetProps {
-  /** Draws a vertical rule at this x value. */
-  x?: number
+  /**
+   * Draws a vertical rule at this x value: a number on a linear scale, or a date (`Date`, epoch
+   * ms or ISO string) on a time scale.
+   */
+  x?: TimeInput
   /** Draws a horizontal rule at this y value. */
   y?: number
   label?: string
@@ -23,23 +27,29 @@ export function Target({
 }: TargetProps) {
   const ctx = useChart('Target')
   const horizontal = y !== undefined
-  const value = horizontal ? y : x
+  const raw = horizontal ? y : x
   const resolved = horizontal ? ctx.y : ctx.x
-  if (value === undefined) {
+  if (raw === undefined) {
     if (DEV) ctx.warn('target-value', 'Target needs an `x` or `y` value.')
     return null
   }
-  if (resolved.kind !== 'linear') {
-    if (DEV) ctx.warn('target-scale', 'Target needs a linear scale on the axis it marks.')
+  if (resolved.kind !== 'linear' && resolved.kind !== 'time') {
+    if (DEV) ctx.warn('target-scale', 'Target needs a linear or time scale on the axis it marks.')
     return null
   }
+  const value =
+    resolved.kind === 'time'
+      ? (toTime(raw) ?? Number.NaN)
+      : typeof raw === 'number'
+        ? raw
+        : Number.NaN
 
   const [d0, d1] = resolved.scale.domain()
   if (!Number.isFinite(value) || value < Math.min(d0, d1) || value > Math.max(d0, d1)) {
     if (DEV) {
       ctx.warn(
         'target-domain',
-        `Target value ${value} is outside the chart domain and was not drawn.`,
+        `Target value ${String(raw)} is outside the chart domain and was not drawn.`,
       )
     }
     return null

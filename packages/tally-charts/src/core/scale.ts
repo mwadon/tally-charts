@@ -2,6 +2,15 @@ import { type FieldGetter, toFieldGetter } from './accessor'
 import { bandScale, pointScale } from './band'
 import { type LinearScale, linearScale, niceDomain } from './linear'
 import { toNumber } from './number'
+import {
+  inferTimeDomain,
+  niceTimeDomain,
+  type TimeInput,
+  type TimeScale,
+  type TimeZone,
+  timeScale,
+  toTime,
+} from './time'
 import type { Accessor } from './types'
 import { DEV, type Warn } from './warn'
 
@@ -32,7 +41,25 @@ export interface PointScaleSpec<D> {
   padding?: number
 }
 
-export type ScaleSpec<D> = LinearScaleSpec<D> | BandScaleSpec<D> | PointScaleSpec<D>
+export interface TimeScaleSpec<D> {
+  type: 'time'
+  /** Dates as `Date`, epoch ms or ISO strings; values `toTime` rejects are skipped. */
+  field?: Accessor<D, TimeInput>
+  domain?: readonly [TimeInput, TimeInput]
+  /**
+   * Round the domain out to tick interval boundaries. Default true for an inferred domain and
+   * false for an explicit one.
+   */
+  nice?: boolean
+  /** Default 'utc', which renders the same on the server and the client. */
+  zone?: TimeZone
+}
+
+export type ScaleSpec<D> =
+  | LinearScaleSpec<D>
+  | BandScaleSpec<D>
+  | PointScaleSpec<D>
+  | TimeScaleSpec<D>
 
 /** Categories to bands: `scale(category)` is the band's start in px. */
 export interface BandScale {
@@ -61,6 +88,7 @@ export type ResolvedScale =
   | { kind: 'linear'; scale: LinearScale }
   | { kind: 'band'; scale: BandScale }
   | { kind: 'point'; scale: PointScale }
+  | { kind: 'time'; scale: TimeScale }
 
 /** Internal: a resolved scale plus the field its axis reads, which marks fall back to. */
 export type FieldScale = ResolvedScale & { field?: FieldGetter }
@@ -119,6 +147,27 @@ export function createScale<D>(
     return { kind: 'band', scale, field }
   }
 
+  if (spec?.type === 'time') {
+    const zone = spec.zone ?? 'utc'
+    const explicit = spec.domain?.map(toTime)
+    const valid = explicit?.every((t) => t !== undefined) ?? false
+    const values = valid
+      ? (explicit as number[])
+      : field
+        ? data.map((d, i) => toTime(field(d, i)) ?? Number.NaN)
+        : []
+    if (DEV && !values.some(Number.isFinite)) {
+      warn(
+        `${axis}-time-domain`,
+        `The ${axis} time scale has no valid dates. Set \`field\` or \`domain\` on <Chart ${axis}>.`,
+      )
+    }
+    let domain = inferTimeDomain(values)
+    if (spec.nice ?? !valid) domain = niceTimeDomain(domain, zone)
+    const range: [number, number] = axis === 'y' ? [length, 0] : [0, length]
+    return { kind: 'time', scale: timeScale(domain, range, zone), field }
+  }
+
   const linear = spec as LinearScaleSpec<D> | undefined
   let domain: [number, number]
   if (linear?.domain) {
@@ -144,15 +193,16 @@ export function createScale<D>(
 
 /**
  * Centre of a category in px: the middle of a band, or the position of a point. Undefined on a
- * linear scale and for a category the scale doesn't know.
+ * linear or time scale and for a category the scale doesn't know.
  */
 export function categoryCenter(resolved: ResolvedScale, value: unknown): number | undefined {
-  if (resolved.kind === 'linear' || value === null || value === undefined) return undefined
+  if (resolved.kind === 'linear' || resolved.kind === 'time') return undefined
+  if (value === null || value === undefined) return undefined
   const start = resolved.scale(String(value))
   return start === undefined ? undefined : start + resolved.scale.bandwidth() / 2
 }
 
-/** Distance between neighbouring categories in px; 0 on a linear scale. */
+/** Distance between neighbouring categories in px; 0 on a linear or time scale. */
 export function categoryStep(resolved: ResolvedScale): number {
-  return resolved.kind === 'linear' ? 0 : resolved.scale.step()
+  return resolved.kind === 'band' || resolved.kind === 'point' ? resolved.scale.step() : 0
 }

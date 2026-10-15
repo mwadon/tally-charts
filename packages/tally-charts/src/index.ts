@@ -8,10 +8,17 @@ export type {
   Formatters,
 } from './core/format'
 export { createFormatter, fmt } from './core/format'
-export type { BandScaleSpec, LinearScaleSpec, PointScaleSpec, ScaleSpec } from './core/scale'
+export type {
+  BandScaleSpec,
+  LinearScaleSpec,
+  PointScaleSpec,
+  ScaleSpec,
+  TimeScaleSpec,
+} from './core/scale'
 export type { ThresholdBin, ThresholdLegendItem, Thresholds } from './core/thresholds'
 export { thresholds } from './core/thresholds'
 export type { TickSpec } from './core/ticks'
+export type { TimeInput, TimeZone } from './core/time'
 export type { Accessor, Fill, Id, PerItem, SeqLevel, Tone } from './core/types'
 export { TONES } from './core/types'
 export type { ChartProps } from './react/Chart'

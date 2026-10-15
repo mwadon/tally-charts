@@ -55,6 +55,6 @@ describe('<Band>', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     const { container } = renderBand({ x: { domain: [0, 1] } })
     expect(band(container)).toBeNull()
-    expect(warn.mock.calls[0]?.[0]).toContain('Band needs a point or band scale')
+    expect(warn.mock.calls[0]?.[0]).toContain('Band needs a point, band or time scale')
   })
 })

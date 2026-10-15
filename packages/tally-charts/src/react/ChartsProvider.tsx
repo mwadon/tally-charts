@@ -41,6 +41,11 @@ export function ChartsProvider({
   return <LocaleContext.Provider value={value}>{children}</LocaleContext.Provider>
 }
 
+/** Internal: the provider's locale and currency, for formatters that aren't number presets. */
+export function useLocale(): LocaleContextValue {
+  return useContext(LocaleContext)
+}
+
 export interface UseFormatResult extends Formatters {
   create: (spec?: FormatSpec, options?: Pick<FormatOptions, 'signed'>) => Formatter
   /** A date formatter in the provider's locale. */

@@ -60,7 +60,7 @@ describe('<Target>', () => {
       </Chart>,
     )
     expect(container.querySelector('[data-ch-part="target"]')).toBeNull()
-    expect(String(warn.mock.calls[0]?.[0])).toContain('linear scale')
+    expect(String(warn.mock.calls[0]?.[0])).toContain('linear or time scale')
   })
 
   it('draws nothing for a value outside the domain or non-finite', () => {

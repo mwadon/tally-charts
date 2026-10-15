@@ -9,15 +9,15 @@ import { seriesScales } from './series'
 export interface BandProps<D> {
   /** Defaults to <Chart data>. */
   data?: readonly D[]
-  /** Category field. Defaults to the field on <Chart x>. */
-  x?: Accessor<D, string | number>
+  /** Category or date field. Defaults to the field on <Chart x>. */
+  x?: Accessor<D, string | number | Date>
   low: Accessor<D, number>
   high: Accessor<D, number>
   /** Default 'accent'. */
   tone?: Tone
 }
 
-/** A soft area between `low` and `high` at each category, e.g. a likely range. Gaps break it. */
+/** A soft area between `low` and `high` at each category or date, e.g. a likely range. Gaps break it. */
 export function Band<D>({ data, x, low, high, tone = 'accent' }: BandProps<D>) {
   const ctx = useChart('Band')
   const scales = seriesScales(ctx, 'Band')

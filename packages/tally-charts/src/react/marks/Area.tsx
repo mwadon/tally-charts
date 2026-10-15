@@ -2,6 +2,7 @@ import { useId } from 'react'
 import { toFieldGetter } from '../../core/accessor'
 import { areaPath } from '../../core/area'
 import { toNumber } from '../../core/number'
+import { toTime } from '../../core/time'
 import type { Accessor, Tone } from '../../core/types'
 import { DEV } from '../../core/warn'
 import { useChart } from '../context'
@@ -9,8 +10,8 @@ import { useChart } from '../context'
 export interface AreaProps<D> {
   /** Defaults to <Chart data>. */
   data?: readonly D[]
-  /** Band field. Defaults to the field on <Chart x>. */
-  x?: Accessor<D, string | number>
+  /** Band or date field. Defaults to the field on <Chart x>. */
+  x?: Accessor<D, string | number | Date>
   /** Value field. Defaults to the field on <Chart y>. */
   y?: Accessor<D, number>
   /** Default 'accent'. */
@@ -24,7 +25,10 @@ export interface AreaProps<D> {
   between?: boolean
 }
 
-/** A soft gradient area through the band centres, e.g. joining the tops of bridge columns. */
+/**
+ * A soft gradient area through the band centres, or through the dates on a time scale, e.g.
+ * joining the tops of bridge columns.
+ */
 export function Area<D>({
   data,
   x,
@@ -35,11 +39,12 @@ export function Area<D>({
 }: AreaProps<D>) {
   const ctx = useChart('Area')
   const gradientId = `${ctx.chartId}-area-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`
-  if (ctx.x.kind !== 'band' || ctx.y.kind !== 'linear') {
+  const xScale = ctx.x
+  if ((xScale.kind !== 'band' && xScale.kind !== 'time') || ctx.y.kind !== 'linear') {
     if (DEV)
       ctx.warn(
         'area-scales',
-        'Area needs a band scale on <Chart x> and a linear scale on <Chart y>.',
+        'Area needs a band or time scale on <Chart x> and a linear scale on <Chart y>.',
       )
     return null
   }
@@ -53,16 +58,21 @@ export function Area<D>({
       )
     return null
   }
-  const band = ctx.x.scale
   const linear = ctx.y.scale
   const [r0, r1] = linear.range()
   const clamp = (px: number) => Math.min(Math.max(r0, r1), Math.max(Math.min(r0, r1), px))
   const [d0, d1] = linear.domain()
   const baseline = clamp(linear(Math.min(Math.max(0, Math.min(d0, d1)), Math.max(d0, d1))))
-  const size = band.bandwidth()
+  // A date is a band of width 0 at its position.
+  const size = xScale.kind === 'band' ? xScale.scale.bandwidth() : 0
+  const startOf = (value: unknown): number | undefined => {
+    if (xScale.kind === 'band') return xScale.scale(String(value))
+    const t = toTime(value)
+    return t === undefined ? undefined : xScale.scale(t)
+  }
   const rows = (data ?? ctx.data) as readonly D[]
   const columns = rows.flatMap((d, i) => {
-    const start = band(String(getX(d, i)))
+    const start = startOf(getX(d, i))
     const value = toNumber(getY(d, i))
     if (start === undefined || !Number.isFinite(value)) return []
     return [{ start, y: clamp(linear(value)) }]

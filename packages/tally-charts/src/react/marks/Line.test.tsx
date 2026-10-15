@@ -137,6 +137,6 @@ describe('<Line>', () => {
     const { container } = renderLine({}, { x: { domain: [0, 1] } })
     expect(parts(container, 'line-group')).toHaveLength(0)
     expect(warn).toHaveBeenCalledTimes(1)
-    expect(warn.mock.calls[0]?.[0]).toContain('Line needs a point or band scale')
+    expect(warn.mock.calls[0]?.[0]).toContain('Line needs a point, band or time scale')
   })
 })

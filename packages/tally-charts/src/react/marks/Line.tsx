@@ -11,8 +11,8 @@ export type LineDots = 'filled' | 'hollow' | 'none'
 export interface LineProps<D> {
   /** Defaults to <Chart data>. */
   data?: readonly D[]
-  /** Category field. Defaults to the field on <Chart x>. */
-  x?: Accessor<D, string | number>
+  /** Category or date field. Defaults to the field on <Chart x>. */
+  x?: Accessor<D, string | number | Date>
   /** Value field. Defaults to the field on <Chart y>. */
   y?: Accessor<D, number>
   /** Default 'accent'. */
@@ -26,9 +26,10 @@ export interface LineProps<D> {
 }
 
 /**
- * Straight segments through the category centres of a point or band x scale. A missing value
- * breaks the line. The dot whose category equals the chart's active id gets a ring, so a chart
- * that registers one point per category (id = the category) lights every line at that x.
+ * Straight segments through the category centres of a point or band x scale, or through the
+ * dates on a time scale, in data order. A missing value breaks the line. The dot whose x equals
+ * the chart's active id gets a ring (a category as a string, a date as its ISO string), so a
+ * chart that registers one point per x lights every line at that x.
  */
 export function Line<D>({
   data,

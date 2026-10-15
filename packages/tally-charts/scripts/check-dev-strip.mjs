@@ -34,8 +34,10 @@ const phrases = [
   'RowLabels need a row field',
   'RowDividers need a band scale',
   'Target needs an',
-  'Target needs a linear scale',
+  'Target needs a linear or time scale',
   'Target value',
+  'skipped an x value that is not a date',
+  'has no valid dates',
 ]
 const leaks = phrases.filter((phrase) => code.includes(phrase))
 if (leaks.length > 0) {

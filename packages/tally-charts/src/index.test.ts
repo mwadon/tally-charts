@@ -75,6 +75,7 @@ describe('public entry points', () => {
     'categoryCenter',
     'categoryStep',
     'clampToRange',
+    'toTime',
   ])('core exports %s', (name) => {
     expect(core).toHaveProperty(name)
   })

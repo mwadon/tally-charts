@@ -1,32 +1,49 @@
 import { categoryCenter, categoryStep } from '../../core/scale'
+import { type TimeInput, toTime } from '../../core/time'
 import type { Tone } from '../../core/types'
 import { DEV } from '../../core/warn'
 import { useChart } from '../context'
 import { toneVar } from '../ui/util'
 
 export interface RegionProps {
-  /** First category in the region, e.g. the first forecast month. */
-  from: string | number
-  /** Last category. Default: the last category on the scale. */
-  to?: string | number
+  /**
+   * Where the region starts: a category on a point or band scale, e.g. the first forecast month,
+   * or a date (`Date`, epoch ms or ISO string) on a time scale.
+   */
+  from: TimeInput
+  /** Where it ends. Default: the last category, or the end of the time scale. */
+  to?: TimeInput
   /** Default 'accent'. */
   tone?: Tone
 }
 
 /**
- * A soft backdrop over a run of categories on a point or band x scale. It covers whole steps,
- * so it starts halfway between `from` and the category before it.
+ * A soft backdrop over a run of categories on a point or band x scale, or a span of dates on a
+ * time scale. On categories it covers whole steps, so it starts halfway between `from` and the
+ * category before it; on time it starts and ends exactly at its dates.
  */
 export function Region({ from, to, tone = 'accent' }: RegionProps) {
   const ctx = useChart('Region')
-  if (ctx.x.kind === 'linear') {
-    if (DEV) ctx.warn('region-scale', 'Region needs a point or band scale on <Chart x>.')
+  const x = ctx.x
+  if (x.kind === 'linear') {
+    if (DEV) ctx.warn('region-scale', 'Region needs a point, band or time scale on <Chart x>.')
     return null
   }
-  const domain = ctx.x.scale.domain()
-  const last = to ?? domain[domain.length - 1]
-  const a = categoryCenter(ctx.x, from)
-  const b = categoryCenter(ctx.x, last)
+  let a: number | undefined
+  let b: number | undefined
+  let half = 0
+  if (x.kind === 'time') {
+    const start = toTime(from)
+    const end = to === undefined ? x.scale.domain()[1] : toTime(to)
+    a = start === undefined ? undefined : x.scale(start)
+    b = end === undefined ? undefined : x.scale(end)
+  } else {
+    const domain = x.scale.domain()
+    a = categoryCenter(x, from)
+    b = categoryCenter(x, to ?? domain[domain.length - 1])
+    half = categoryStep(x) / 2
+  }
+  const last = to ?? 'the end'
   if (a === undefined || b === undefined) {
     if (DEV) {
       ctx.warn(
@@ -36,7 +53,6 @@ export function Region({ from, to, tone = 'accent' }: RegionProps) {
     }
     return null
   }
-  const half = categoryStep(ctx.x) / 2
   const x0 = Math.max(0, Math.min(a, b) - half)
   const x1 = Math.min(ctx.innerWidth, Math.max(a, b) + half)
   return (

@@ -169,3 +169,80 @@ describe('resolved scale types', () => {
     expect(s.kind).toBe('band')
   })
 })
+
+describe('time scales', () => {
+  const rows = [
+    { at: '2026-03-02T05:00:00Z' },
+    { at: new Date('2026-03-02T17:00:00Z') },
+    { at: 'not a date' },
+    { at: null },
+  ]
+
+  it('infers the domain from valid dates and rounds it out to tick boundaries', () => {
+    const s = createScale({ type: 'time', field: 'at' }, rows, 'x', 600, noop)
+    if (s.kind !== 'time') throw new Error('expected a time scale')
+    // 05:00–17:00 picks 3-hour ticks, so the domain becomes 03:00–18:00.
+    expect(s.scale.domain().map((t) => new Date(t).toISOString())).toEqual([
+      '2026-03-02T03:00:00.000Z',
+      '2026-03-02T18:00:00.000Z',
+    ])
+    expect(s.scale.range()).toEqual([0, 600])
+    expect(s.scale.zone).toBe('utc')
+  })
+
+  it('keeps an explicit domain unless nice is asked for', () => {
+    const exact = createScale(
+      { type: 'time', domain: ['2026-03-02T05:00:00Z', Date.parse('2026-03-02T17:00:00Z')] },
+      [],
+      'x',
+      600,
+      noop,
+    )
+    if (exact.kind !== 'time') throw new Error('expected a time scale')
+    expect(exact.scale(Date.parse('2026-03-02T11:00:00Z'))).toBe(300)
+    const niced = createScale(
+      { type: 'time', domain: ['2026-03-02T05:00:00Z', '2026-03-02T17:00:00Z'], nice: true },
+      [],
+      'x',
+      600,
+      noop,
+    )
+    if (niced.kind !== 'time') throw new Error('expected a time scale')
+    expect(niced.scale.domain()[0]).toBe(Date.parse('2026-03-02T03:00:00Z'))
+  })
+
+  it('pads a single date by a day on each side and flips the range on y', () => {
+    const s = createScale(
+      { type: 'time', field: 'at', nice: false, zone: 'local' },
+      [{ at: '2026-03-02' }],
+      'y',
+      100,
+      noop,
+    )
+    if (s.kind !== 'time') throw new Error('expected a time scale')
+    expect(s.scale.domain()).toEqual([Date.UTC(2026, 2, 1), Date.UTC(2026, 2, 3)])
+    expect(s.scale.range()).toEqual([100, 0])
+    expect(s.scale.zone).toBe('local')
+  })
+
+  it('warns and falls back to the last day without valid dates', () => {
+    const warn = vi.fn()
+    const s = createScale({ type: 'time', field: 'at' }, [{ at: 'never' }], 'x', 100, warn)
+    expect(s.kind).toBe('time')
+    expect(warn).toHaveBeenCalledTimes(1)
+    expect(warn.mock.calls[0]?.[0]).toBe('x-time-domain')
+    expect(warn.mock.calls[0]?.[1]).toContain('no valid dates')
+  })
+
+  it('has no category centre or step', () => {
+    const s = createScale(
+      { type: 'time', domain: ['2026-01-01', '2026-01-02'] },
+      [],
+      'x',
+      100,
+      noop,
+    )
+    expect(categoryCenter(s, '2026-01-01')).toBeUndefined()
+    expect(categoryStep(s)).toBe(0)
+  })
+})
