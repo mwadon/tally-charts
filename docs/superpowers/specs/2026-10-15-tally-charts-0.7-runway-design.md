@@ -94,11 +94,11 @@ interface RunwayChartProps {
   /** Time span of the strip. */
   domain: readonly [TimeInput, TimeInput]
   now: TimeInput
-  /** Cell length: a d3-time-style interval string ('6h', '1d', …) or milliseconds. Default '6h'. */
+  /** Cell length: `<number>m|h|d` ('30m', '6h', '1d') or milliseconds. Default '6h'. */
   cell?: string | number
   /** Ascending level edges, as shares. Default [0.25, 0.5, 0.75]: four levels. 1–4 edges. */
   breaks?: readonly number[]
-  /** Sequential tone of the levels and the legend swatches. Default: --ch-seq-base, else 'neutral'. */
+  /** Sequential tone of the levels and the legend swatches. Default 'neutral' (an ancestor --ch-seq-base does not apply; pass `tone`). */
   tone?: Tone
   /** 'auto' stacks rows below the stack width (§4.1). Default 'auto'. */
   layout?: 'auto' | 'columns' | 'stacked'
@@ -122,7 +122,7 @@ interface RunwayChartProps {
   className?: string
   style?: CSSProperties
   chartId?: string
-  /** Time zone of labels and day boundaries. Default 'UTC', like the time scale. */
+  /** Time zone of labels and day boundaries. Default 'utc', like the time scale. */
   timeZone?: TimeZone
 }
 
@@ -189,18 +189,18 @@ Width is measured once for the strip column with a ResizeObserver and shared by 
 One SVG per row, height 32 px, `aria-hidden`. Cells have a 2 px gap (1 px when a cell is under 6 px wide) and 2 px radius. Paint order:
 
 1. cells by state: levels as `--ch-seq-1…N`; `empty` as an unfilled cell with a dashed `--ch-grid`-colored outline; `runs-out` as the soft `loss` fill; `locked` as the existing `hatch` pattern in `loss`
-2. the now line: dashed, `--ch-muted`, through every row's strip at `now`
+2. the now line: dashed, `--ch-ink-muted`, through every row's strip at `now`
 3. the reset tick: 2 px `--ch-ink`, full strip height, at `resetAt`
 4. the runs-out dot: radius 5, `loss` fill with a surface-colored 2 px ring, at `runsOutAt`
-5. the "reset" label: right of the tick if it fits before the domain end, else left of it, else omitted (the status says it anyway); `--ch-muted` text, 4.5:1 against the surface
+5. the "reset" label: right of the tick if it fits before the domain end, else omitted (the status says it anyway); never left, where it would sit on hatched cells; `--ch-ink-muted` text, 4.5:1 against the surface
 
 Hatch patterns come from `PatternDefs`, rendered once in a hidden SVG at the chart root with ids prefixed by the chart id (the chart is not inside `<Chart>`).
 
 ### 4.3 Theme
 
-Only existing tokens. New rules go in `theme.css` before the forced-colors block (enforced by the existing test). Parts: `data-ch-part` = `runway`, `runway-axis`, `runway-row`, `runway-label`, `runway-strip`, `runway-cell`, `runway-status`, `runway-legend`; classes `ch-runway-*`. Cells carry `data-state` (`level-1`…, `runs-out`, `locked`, `empty`).
+Only existing tokens. New rules go in `theme.css` before the forced-colors block (enforced by the existing test). Parts (`data-ch-part`): `runway`, `runway-axis`, `runway-now-label`, `runway-rows`, `runway-row`, `runway-label`, `runway-icon`, `runway-name`, `runway-strip`, `runway-cell`, `runway-now`, `runway-reset`, `runway-reset-label`, `runway-dot`, `runway-status`, `runway-status-line`; the axis day labels reuse `axis-label` and the legend reuses the `legend` parts. Classes `ch-runway-*`. Cells carry the new state attribute `data-ch-state` (`level`, `runs-out`, `locked`, `empty`) and, for levels, the existing `data-ch-level` (1…N). Rows use `aria-selected` for selection, the existing `data-ch-active` for hover/focus and `data-ch-muted` for disconnected.
 
-- Levels: `tone` sets `data-ch-seq-tone` like `Heatmap` (explicit tone overrides an ancestor `--ch-seq-base`; default `neutral` when nothing is set).
+- Levels: `tone` (default `neutral`) is always written as `data-ch-seq-tone`, which picks that tone's base and level shares.
 - Selected row: the same background as other charts' highlighted item; active (hover/focus) row: the hover background; focus ring on the focused row per the 0.6b focus rules.
 - Disconnected row: label, icon and strip at the muted opacity used for disabled text.
 - Forced colors: cell outlines `CanvasText`; levels by fill opacity steps of `CanvasText`; locked hatch stays visible in `CanvasText`; runs-out dot and selected row in `Highlight`; now line and reset tick `CanvasText`.
