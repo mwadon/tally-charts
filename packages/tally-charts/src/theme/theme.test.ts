@@ -327,6 +327,17 @@ describe('theme.css', () => {
     )
   })
 
+  it('draws band swatches with the band fill and line markers like the series points', () => {
+    const bandFill = 'color-mix(in srgb, var(--_ch-swatch-color) 18%, transparent)'
+    expect(css).toContain(`[data-ch-part="band"] {\n  fill: ${bandFill};`)
+    expect(css).toContain(
+      `[data-ch-part="legend-swatch"][data-ch-shape="band"] {\n  background: ${bandFill};`,
+    )
+    expect(css).toMatch(
+      /\[data-ch-marker="ring"\]::after \{\s*border: 2px solid var\(--_ch-swatch-color\);\s*background: var\(--ch-surface\);/,
+    )
+  })
+
   it('paints toned text through one shared rule that mixes the tone with ink', () => {
     const inkMix =
       'color-mix(in srgb, var(--_ch-swatch-color) var(--ch-tone-text-mix), var(--ch-ink))'

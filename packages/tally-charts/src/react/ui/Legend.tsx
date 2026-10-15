@@ -1,7 +1,8 @@
 import type { CSSProperties, ReactNode } from 'react'
 import type { Fill, SeqLevel, Tone } from '../../core/types'
 
-export type LegendShape = 'bar' | 'dot' | 'line'
+/** 'band' is the soft fill of a `Band`, e.g. a likely range. */
+export type LegendShape = 'bar' | 'dot' | 'line' | 'band'
 
 export interface LegendItem {
   label: ReactNode
@@ -12,6 +13,11 @@ export interface LegendItem {
   shape?: LegendShape
   /** A dashed line swatch, e.g. for a forecast. Only with shape 'line'. */
   dashed?: boolean
+  /**
+   * A dot on a line swatch, filled ('dot') or hollow ('ring'), matching the series' points, so
+   * series that share a color and a dash still differ. Only with shape 'line'.
+   */
+  marker?: 'dot' | 'ring'
   /** A sequential level (`--ch-seq-N`), e.g. a heatmap bin. Replaces `tone`. */
   level?: SeqLevel
 }
@@ -40,6 +46,7 @@ export function Legend({ items, shape = 'bar', className }: LegendProps) {
               data-ch-fill={item.fill ?? 'solid'}
               data-ch-shape={item.shape ?? shape}
               data-ch-dashed={item.dashed ? 'true' : undefined}
+              data-ch-marker={item.marker}
               style={{ '--_ch-swatch-color': color } as CSSProperties}
             />
             <span className="ch-legend-label" data-ch-part="legend-label">

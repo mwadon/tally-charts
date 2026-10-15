@@ -71,4 +71,29 @@ describe('<Legend>', () => {
       'neutral',
     )
   })
+
+  it('marks line swatches with the series dot, filled or hollow', () => {
+    render(
+      <Legend
+        shape="line"
+        items={[
+          { label: 'Actual', tone: 'accent', marker: 'dot' },
+          { label: 'Current path', tone: 'accent', dashed: true, marker: 'ring' },
+          { label: 'Target', tone: 'neutral' },
+        ]}
+      />,
+    )
+    const swatches = screen.getAllByRole('listitem').map((li) => li.querySelector('.ch-swatch'))
+    expect(swatches[0]).toHaveAttribute('data-ch-marker', 'dot')
+    expect(swatches[1]).toHaveAttribute('data-ch-marker', 'ring')
+    expect(swatches[2]).not.toHaveAttribute('data-ch-marker')
+  })
+
+  it('draws a band swatch like the Band mark', () => {
+    render(<Legend items={[{ label: 'Likely range', tone: 'accent', shape: 'band' }]} />)
+    expect(screen.getByRole('listitem').querySelector('.ch-swatch')).toHaveAttribute(
+      'data-ch-shape',
+      'band',
+    )
+  })
 })

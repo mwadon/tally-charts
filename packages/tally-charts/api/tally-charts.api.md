@@ -652,6 +652,7 @@ export interface LegendItem {
     // (undocumented)
     label: ReactNode;
     level?: SeqLevel;
+    marker?: 'dot' | 'ring';
     // (undocumented)
     shape?: LegendShape;
     tone?: Tone;
@@ -667,8 +668,8 @@ export interface LegendProps {
     shape?: LegendShape;
 }
 
-// @public (undocumented)
-export type LegendShape = 'bar' | 'dot' | 'line';
+// @public
+export type LegendShape = 'bar' | 'dot' | 'line' | 'band';
 
 // @public
 export function Line<D>(input: LineProps<D>): JSX.Element | null;

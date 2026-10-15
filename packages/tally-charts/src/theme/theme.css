@@ -665,6 +665,34 @@
   background: repeating-linear-gradient(90deg, var(--_ch-swatch-color) 0 4px, transparent 4px 6px);
 }
 
+/* The series' point on a line swatch: filled, or hollow like a forecast's dots. */
+[data-ch-part="legend-swatch"][data-ch-marker] {
+  position: relative;
+}
+
+[data-ch-part="legend-swatch"][data-ch-marker]::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  box-sizing: border-box;
+  width: 8px;
+  height: 8px;
+  margin: -4px 0 0 -4px;
+  border-radius: 50%;
+  background: var(--_ch-swatch-color);
+}
+
+[data-ch-part="legend-swatch"][data-ch-marker="ring"]::after {
+  border: 2px solid var(--_ch-swatch-color);
+  background: var(--ch-surface);
+}
+
+/* The soft fill of a Band. */
+[data-ch-part="legend-swatch"][data-ch-shape="band"] {
+  background: color-mix(in srgb, var(--_ch-swatch-color) 18%, transparent);
+}
+
 /* Every HTML fill (legend swatches, meters, inline bars) paints --_ch-swatch-color this way. */
 .ch-fillable {
   background: var(--_ch-swatch-color);

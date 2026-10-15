@@ -164,6 +164,7 @@ const STATES = [
   'fill',
   'hollow',
   'level',
+  'marker',
   'muted',
   'peak',
   'placement',
