@@ -8,7 +8,7 @@ import type { Fill, Id, Tone } from '../../core/types'
 import { createWarner, DEV } from '../../core/warn'
 import { Chart } from '../Chart'
 import { useFormat } from '../ChartsProvider'
-import { type Margin, useChart } from '../context'
+import { type Margin, useChartContext } from '../context'
 import type { DataTableSpec } from '../DataTable'
 import { Axis, type AxisFormat } from '../marks/Axis'
 import { Bars, type BarsProps } from '../marks/Bars'
@@ -122,14 +122,14 @@ function padDomain([d0, d1]: readonly [number, number]): [number, number] {
 
 /** Connectors run from the bottom of one bar to the top of the next. */
 function StepConnectors({ links, barSize }: { links: ConnectorLink[]; barSize: number }) {
-  const ctx = useChart('WaterfallChart')
+  const ctx = useChartContext('WaterfallChart')
   const band = ctx.y.kind === 'band' ? ctx.y.scale.bandwidth() : 0
   const top = barTop(band, barSize)
   return <Connector links={links} fromInset={Math.max(0, band - top - barSize)} toInset={top} />
 }
 
 function StepBars<S>(props: BarsProps<WaterfallRow<S>> & { size: number }) {
-  const ctx = useChart('WaterfallChart')
+  const ctx = useChartContext('WaterfallChart')
   const band = ctx.y.kind === 'band' ? ctx.y.scale.bandwidth() : 0
   return <Bars<WaterfallRow<S>> {...props} align="start" offset={barTop(band, props.size)} />
 }

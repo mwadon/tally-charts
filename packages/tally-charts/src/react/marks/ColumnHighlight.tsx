@@ -1,5 +1,5 @@
 import { DEV } from '../../core/warn'
-import { useChart } from '../context'
+import { useChartContext } from '../context'
 
 export interface ColumnHighlightProps {
   /** The band (category) to back. */
@@ -12,7 +12,7 @@ export interface ColumnHighlightProps {
 
 /** A soft backdrop behind one column (or row), drawn before the marks. */
 export function ColumnHighlight({ at, pad = 12, radius = 16 }: ColumnHighlightProps) {
-  const ctx = useChart('ColumnHighlight')
+  const ctx = useChartContext('ColumnHighlight')
   const bandOnX = ctx.x.kind === 'band'
   const band = bandOnX ? ctx.x : ctx.y
   if (band.kind !== 'band') {

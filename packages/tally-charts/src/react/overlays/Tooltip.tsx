@@ -1,7 +1,7 @@
 import { type ReactNode, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { placeTooltip } from '../../core/placement'
-import { useChart } from '../context'
+import { useChartContext } from '../context'
 import type { ChartPoint } from '../types'
 import { TooltipPill } from '../ui/TooltipPill'
 import { useIsoLayoutEffect } from '../useIsoLayoutEffect'
@@ -13,7 +13,7 @@ export interface TooltipProps {
 }
 
 export function Tooltip({ content, offset = 10 }: TooltipProps) {
-  const ctx = useChart('Tooltip')
+  const ctx = useChartContext('Tooltip')
   const ref = useRef<HTMLDivElement>(null)
   const [size, setSize] = useState({ width: 0, height: 0 })
   const point = ctx.activePoint

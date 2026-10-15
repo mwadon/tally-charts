@@ -1,8 +1,13 @@
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, expectTypeOf, it, vi } from 'vitest'
 import type { Id } from '../core/types'
 import { Chart } from './Chart'
-import { type ChartContextValue, useChart } from './context'
+import {
+  type ChartContextValue,
+  type InternalChartContext,
+  useChart,
+  useChartContext,
+} from './context'
 import { useRegisterPoints } from './useRegisterPoints'
 
 const weeks = [
@@ -10,15 +15,13 @@ const weeks = [
   { week: 'W2', margin: 34 },
 ]
 
-function Probe({ onContext }: { onContext: (ctx: ChartContextValue) => void }) {
-  onContext(useChart('Probe'))
+function Probe({ onContext }: { onContext: (ctx: InternalChartContext) => void }) {
+  onContext(useChartContext('Probe'))
   return null
 }
 
 function PointsProbe({ ids }: { ids: Id[] }) {
-  const ctx = useChart('PointsProbe')
   useRegisterPoints(
-    ctx,
     ids.map((id, index) => ({
       id,
       index,
@@ -39,7 +42,7 @@ describe('<Chart>', () => {
   })
 
   it('exposes the default corner radius through context', () => {
-    let ctx: ChartContextValue | undefined
+    let ctx: InternalChartContext | undefined
     render(
       <Chart width={100}>
         <Probe
@@ -78,7 +81,7 @@ describe('<Chart>', () => {
   })
 
   it('exposes inner size and scales through context', () => {
-    let ctx: ChartContextValue | undefined
+    let ctx: InternalChartContext | undefined
     render(
       <Chart
         data={weeks}
@@ -114,6 +117,59 @@ describe('<Chart>', () => {
     expect(warn).not.toHaveBeenCalled()
   })
 
+  it('gives custom marks the public context through useChart()', () => {
+    let ctx: ChartContextValue | undefined
+    function Custom() {
+      ctx = useChart()
+      return null
+    }
+    render(
+      <Chart data={weeks} width={400} x={{ type: 'band', field: 'week' }} y={{ domain: [0, 40] }}>
+        <Custom />
+      </Chart>,
+    )
+    expect(ctx?.innerWidth).toBe(400)
+    expect(ctx?.x.kind).toBe('band')
+    expect(ctx?.format('percent')(34)).toBe('34.0%')
+    expectTypeOf<keyof ChartContextValue>().toEqualTypeOf<
+      | 'width'
+      | 'height'
+      | 'innerWidth'
+      | 'innerHeight'
+      | 'margin'
+      | 'data'
+      | 'x'
+      | 'y'
+      | 'format'
+      | 'dimInactive'
+      | 'activeId'
+      | 'activePoint'
+      | 'points'
+      | 'setActive'
+      | 'select'
+      | 'selectable'
+      | 'overlay'
+    >()
+    vi.spyOn(console, 'error').mockImplementation(() => {})
+    expect(() => render(<Custom />)).toThrow(
+      '[tally-charts] <useChart> must be rendered inside <Chart>.',
+    )
+  })
+
+  it('registers points with useRegisterPoints(points) alone', () => {
+    const onActiveChange = vi.fn()
+    render(
+      <Chart width={400} title="Probe" onActiveChange={onActiveChange}>
+        <PointsProbe ids={['a', 'b']} />
+      </Chart>,
+    )
+    fireEvent.keyDown(screen.getByRole('figure', { name: 'Probe' }), { key: 'End' })
+    expect(onActiveChange).toHaveBeenLastCalledWith(
+      'b',
+      expect.objectContaining({ label: 'Week b' }),
+    )
+  })
+
   it('throws when a building block is rendered outside <Chart>', () => {
     vi.spyOn(console, 'error').mockImplementation(() => {})
     expect(() => render(<Probe onContext={() => {}} />)).toThrow(
@@ -134,7 +190,7 @@ describe('<Chart>', () => {
   })
 
   it('keeps geometry finite at zero width', () => {
-    let ctx: ChartContextValue | undefined
+    let ctx: InternalChartContext | undefined
     const { container } = render(
       <Chart width={0} height={0} x={{ type: 'band', domain: ['a'] }} y={{ domain: [0, 1] }}>
         <Probe
@@ -183,7 +239,7 @@ describe('<Chart>', () => {
 
   it('clears pointer activation when the pointer leaves', () => {
     const onActiveChange = vi.fn()
-    let ctx: ChartContextValue | undefined
+    let ctx: InternalChartContext | undefined
     render(
       <Chart width={300} onActiveChange={onActiveChange}>
         <PointsProbe ids={[1, 2]} />
@@ -201,7 +257,7 @@ describe('<Chart>', () => {
   })
 
   it('reports a null active id when the controlled id is not among the registered points', () => {
-    let ctx: ChartContextValue | undefined
+    let ctx: InternalChartContext | undefined
     const { container } = render(
       <Chart width={300} activeId={99}>
         <PointsProbe ids={[1, 2]} />

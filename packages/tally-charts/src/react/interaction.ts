@@ -141,7 +141,7 @@ export interface Interaction {
   source: ActiveSource
   points: ChartPoint[]
   setActive: (id: Id | null, source: ActiveSource) => void
-  registerPoints: (key: string, points: ChartPoint[]) => void
+  registerPoints: (key: string, points: readonly ChartPoint[]) => void
   unregisterPoints: (key: string) => void
 }
 
@@ -151,7 +151,7 @@ export function useInteraction({
 }: InteractionOptions): Interaction {
   const [innerId, setInnerId] = useState<Id | null>(null)
   const [source, setSource] = useState<ActiveSource>('pointer')
-  const [registry, setRegistry] = useState<Record<string, ChartPoint[]>>({})
+  const [registry, setRegistry] = useState<Record<string, readonly ChartPoint[]>>({})
   const controlled = controlledId !== undefined
   const activeId: Id | null = controlledId !== undefined ? controlledId : innerId
   const points = useMemo(() => uniquePoints(Object.values(registry).flat()), [registry])
@@ -177,7 +177,7 @@ export function useInteraction({
     )
   }, [])
 
-  const registerPoints = useCallback((key: string, next: ChartPoint[]) => {
+  const registerPoints = useCallback((key: string, next: readonly ChartPoint[]) => {
     setRegistry((prev) => (samePoints(prev[key], next) ? prev : { ...prev, [key]: next }))
   }, [])
 

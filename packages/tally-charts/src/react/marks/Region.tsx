@@ -2,7 +2,7 @@ import { categoryCenter, categoryStep } from '../../core/scale'
 import { type TimeInput, toTime } from '../../core/time'
 import type { Tone } from '../../core/types'
 import { DEV } from '../../core/warn'
-import { useChart } from '../context'
+import { useChartContext } from '../context'
 import { toneVar } from '../ui/util'
 
 export interface RegionProps {
@@ -23,7 +23,7 @@ export interface RegionProps {
  * category before it; on time it starts and ends exactly at its dates.
  */
 export function Region({ from, to, tone = 'accent' }: RegionProps) {
-  const ctx = useChart('Region')
+  const ctx = useChartContext('Region')
   const x = ctx.x
   if (x.kind === 'linear') {
     if (DEV) ctx.warn('region-scale', 'Region needs a point, band or time scale on <Chart x>.')

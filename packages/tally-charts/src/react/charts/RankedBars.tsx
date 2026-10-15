@@ -5,7 +5,7 @@ import { inferLinearDomain } from '../../core/scale'
 import type { Accessor, Fill, Id, PerItem, Tone } from '../../core/types'
 import { Chart } from '../Chart'
 import { useFormat } from '../ChartsProvider'
-import { type Margin, useChart } from '../context'
+import { type Margin, useChartContext } from '../context'
 import type { DataTableColumn, DataTableSpec } from '../DataTable'
 import { Bars } from '../marks/Bars'
 import { RowLabels, type RowLabelsProps } from '../marks/RowLabels'
@@ -85,7 +85,7 @@ const TEXT_GAP = 8
  * beside the value (and meta) text. The width is only known inside <Chart>.
  */
 function FittedLabels<D>({ reserve, maxWidth, ...props }: RowLabelsProps<D> & { reserve: number }) {
-  const ctx = useChart('RankedBars')
+  const ctx = useChartContext('RankedBars')
   const fit = Math.max(0, ctx.width - reserve)
   return (
     <RowLabels<D> {...props} maxWidth={maxWidth === undefined ? fit : Math.min(maxWidth, fit)} />
@@ -93,7 +93,7 @@ function FittedLabels<D>({ reserve, maxWidth, ...props }: RowLabelsProps<D> & { 
 }
 
 function SelectedRow({ rowKey }: { rowKey: string | null }) {
-  const ctx = useChart('RankedBars')
+  const ctx = useChartContext('RankedBars')
   if (rowKey === null || ctx.y.kind !== 'band') return null
   const start = ctx.y.scale(rowKey)
   if (start === undefined) return null

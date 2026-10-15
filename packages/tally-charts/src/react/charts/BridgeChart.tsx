@@ -7,7 +7,7 @@ import type { Id, Tone } from '../../core/types'
 import { createWarner, DEV } from '../../core/warn'
 import { Chart } from '../Chart'
 import { useFormat } from '../ChartsProvider'
-import { type Margin, useChart } from '../context'
+import { type Margin, useChartContext } from '../context'
 import type { DataTableSpec } from '../DataTable'
 import { Area } from '../marks/Area'
 import { Axis } from '../marks/Axis'
@@ -103,7 +103,7 @@ const CALLOUT_ROOM = 40
 const totalBaseline = (top: number, note: string) => top - (note ? NOTE_GAP + VALUE_GAP : VALUE_GAP)
 
 function ColumnTotals<S>({ rows, fmt }: { rows: readonly BridgeRow<S>[]; fmt: Formatter }) {
-  const ctx = useChart('BridgeChart')
+  const ctx = useChartContext('BridgeChart')
   if (ctx.x.kind !== 'band' || ctx.y.kind !== 'linear') return null
   const band = ctx.x.scale
   const linear = ctx.y.scale
@@ -159,7 +159,7 @@ function LastCallout<S>({
   rows: readonly BridgeRow<S>[]
   segments: TooltipSegment[]
 }) {
-  const ctx = useChart('BridgeChart')
+  const ctx = useChartContext('BridgeChart')
   if (ctx.x.kind !== 'band' || ctx.y.kind !== 'linear') return null
   const band = ctx.x.scale
   const linear = ctx.y.scale

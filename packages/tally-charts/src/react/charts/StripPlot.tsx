@@ -9,7 +9,7 @@ import type { Accessor, Id, Tone } from '../../core/types'
 import { createWarner, DEV, type Warn } from '../../core/warn'
 import { Chart } from '../Chart'
 import { useFormat } from '../ChartsProvider'
-import { type Margin, useChart } from '../context'
+import { type Margin, useChartContext } from '../context'
 import type { DataTableSpec } from '../DataTable'
 import { Axis, type AxisFormat } from '../marks/Axis'
 import { type DotItem, Dots } from '../marks/Dots'
@@ -83,7 +83,7 @@ function StripRows<D>(props: {
   fmt: Formatter
   warn: Warn
 }) {
-  const ctx = useChart('StripPlot')
+  const ctx = useChartContext('StripPlot')
   if (ctx.x.kind !== 'linear' || ctx.y.kind !== 'band') return null
   const x = ctx.x.scale
   const band = ctx.y.scale

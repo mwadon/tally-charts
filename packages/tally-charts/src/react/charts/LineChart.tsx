@@ -15,7 +15,7 @@ import type { Accessor, Tone } from '../../core/types'
 import { createWarner, DEV } from '../../core/warn'
 import { Chart } from '../Chart'
 import { useFormat, useLocale } from '../ChartsProvider'
-import { type Margin, useChart } from '../context'
+import { type Margin, useChartContext } from '../context'
 import type { DataTableColumn, DataTableSpec } from '../DataTable'
 import { Axis, type AxisFormat } from '../marks/Axis'
 import { Band } from '../marks/Band'
@@ -136,7 +136,7 @@ function LinePoints<D>(props: {
   fmt: Formatter
   radius: number
 }) {
-  const ctx = useChart('LineChart')
+  const ctx = useChartContext('LineChart')
   const linear = ctx.y.kind === 'linear' ? ctx.y.scale : undefined
   const xScale = ctx.x
   const xOf = (row: LineRow<D>) =>
@@ -181,7 +181,7 @@ function LinePoints<D>(props: {
         ]
       })
     : []
-  useRegisterPoints(ctx, points)
+  useRegisterPoints(points)
   // Half the smallest gap between neighbouring x values: categories are a step apart, dates
   // can be anything.
   let gap = categoryStep(xScale)

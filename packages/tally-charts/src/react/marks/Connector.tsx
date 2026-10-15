@@ -1,5 +1,5 @@
 import { DEV } from '../../core/warn'
-import { useChart } from '../context'
+import { useChartContext } from '../context'
 
 export interface ConnectorLink {
   /** Value on the chart's linear axis where the line runs. */
@@ -23,7 +23,7 @@ export interface ConnectorProps {
 
 /** Dotted step lines between bands, e.g. from one waterfall bar to the next. */
 export function Connector({ links, fromInset = 0, toInset = 0 }: ConnectorProps) {
-  const ctx = useChart('Connector')
+  const ctx = useChartContext('Connector')
   const bandOnY = ctx.y.kind === 'band'
   const band = bandOnY ? ctx.y : ctx.x
   const linear = bandOnY ? ctx.x : ctx.y

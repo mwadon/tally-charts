@@ -1,7 +1,6 @@
 import { render } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { Chart, type ChartProps } from '../Chart'
-import { useChart } from '../context'
 import { useRegisterPoints } from '../useRegisterPoints'
 import { Line, type LineProps } from './Line'
 
@@ -33,9 +32,7 @@ function renderLine(props: Partial<LineProps<Row>> = {}, chart: Partial<ChartPro
 
 // The chart only reports an active id that matches a registered point, as LineChart will.
 function Points() {
-  const ctx = useChart('Points')
   useRegisterPoints(
-    ctx,
     rows.map((r, index) => ({
       id: r.m,
       index,

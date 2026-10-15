@@ -3,7 +3,7 @@ import { toNumber } from '../../core/number'
 import { categoryCenter } from '../../core/scale'
 import { toTime } from '../../core/time'
 import { DEV } from '../../core/warn'
-import type { ChartContextValue } from '../context'
+import type { InternalChartContext } from '../context'
 
 /** Pixel positions for marks that draw values along x, such as `Line` and `Band`. */
 export interface SeriesScales {
@@ -24,7 +24,7 @@ export interface SeriesScales {
  * nothing. On a time scale, x values `toTime` rejects are skipped with one warning per chart.
  */
 export function seriesScales(
-  ctx: ChartContextValue,
+  ctx: InternalChartContext,
   mark: 'Line' | 'Band',
 ): SeriesScales | undefined {
   const { x, y } = ctx

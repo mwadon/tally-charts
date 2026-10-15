@@ -5,7 +5,7 @@ import { toNumber } from '../../core/number'
 import { toTime } from '../../core/time'
 import type { Accessor, Tone } from '../../core/types'
 import { DEV } from '../../core/warn'
-import { useChart } from '../context'
+import { useChartContext } from '../context'
 
 export interface AreaProps<D> {
   /** Defaults to <Chart data>. */
@@ -37,7 +37,7 @@ export function Area<D>({
   opacity = 0.22,
   between = false,
 }: AreaProps<D>) {
-  const ctx = useChart('Area')
+  const ctx = useChartContext('Area')
   const gradientId = `${ctx.chartId}-area-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`
   const xScale = ctx.x
   if ((xScale.kind !== 'band' && xScale.kind !== 'time') || ctx.y.kind !== 'linear') {

@@ -2,14 +2,11 @@ import { fireEvent, render } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import type { Id } from '../../core/types'
 import { Chart, type ChartProps } from '../Chart'
-import { useChart } from '../context'
 import { useRegisterPoints } from '../useRegisterPoints'
 import { NearestPointer, type NearestPointerProps } from './NearestPointer'
 
 function Points({ at, hit }: { at: [Id, number, number][]; hit?: [number, number][] }) {
-  const ctx = useChart('Points')
   useRegisterPoints(
-    ctx,
     at.map(([id, x, y], index) => ({
       id,
       index,

@@ -2,7 +2,7 @@ import { type ReactNode, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { placeTooltip } from '../../core/placement'
 import type { Id } from '../../core/types'
-import { useChart } from '../context'
+import { useChartContext } from '../context'
 import type { TooltipSegment } from '../types'
 import { TooltipPill } from '../ui/TooltipPill'
 import { useIsoLayoutEffect } from '../useIsoLayoutEffect'
@@ -48,7 +48,7 @@ export function Callout({
   clearance,
   placement = 'auto',
 }: CalloutProps) {
-  const ctx = useChart('Callout')
+  const ctx = useChartContext('Callout')
   const ref = useRef<HTMLDivElement>(null)
   const [size, setSize] = useState({ width: 0, height: 0 })
 

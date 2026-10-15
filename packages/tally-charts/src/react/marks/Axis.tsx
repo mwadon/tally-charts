@@ -15,7 +15,7 @@ import {
 } from '../../core/ticks'
 import type { TimeScale } from '../../core/time'
 import { useLocale } from '../ChartsProvider'
-import { type ChartContextValue, useChart } from '../context'
+import { type InternalChartContext, useChartContext } from '../context'
 
 export type AxisSide = 'bottom' | 'top' | 'left' | 'right'
 /** A tick value: a number on a value axis, the category on a band or point axis, a Date on a time axis. */
@@ -96,7 +96,7 @@ const FIXED_DECIMALS: ReadonlySet<FormatPreset> = new Set(['percent', 'pts'])
  * `digits` are kept. Date specs don't apply to numbers and fall back to 'number'.
  */
 function valueFormatter(
-  ctx: ChartContextValue,
+  ctx: InternalChartContext,
   format: AxisFormat | undefined,
   ticks: readonly Tick[],
 ): Formatter {
@@ -161,7 +161,7 @@ export function Axis({
   highlight,
   extent,
 }: AxisProps) {
-  const ctx = useChart('Axis')
+  const ctx = useChartContext('Axis')
   const horizontal = side === 'bottom' || side === 'top'
   const resolved = horizontal ? ctx.x : ctx.y
   const custom = typeof format === 'function' ? format : undefined

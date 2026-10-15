@@ -2,7 +2,7 @@ import { resolveAccessor, toFieldGetter } from '../../core/accessor'
 import { bandPath } from '../../core/line'
 import type { Accessor, Tone } from '../../core/types'
 import { DEV } from '../../core/warn'
-import { useChart } from '../context'
+import { useChartContext } from '../context'
 import { toneVar } from '../ui/util'
 import { seriesScales } from './series'
 
@@ -19,7 +19,7 @@ export interface BandProps<D> {
 
 /** A soft area between `low` and `high` at each category or date, e.g. a likely range. Gaps break it. */
 export function Band<D>({ data, x, low, high, tone = 'accent' }: BandProps<D>) {
-  const ctx = useChart('Band')
+  const ctx = useChartContext('Band')
   const scales = seriesScales(ctx, 'Band')
   if (!scales) return null
   const getX = toFieldGetter(x) ?? ctx.x.field

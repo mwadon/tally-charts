@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import type { Id, Tone } from '../../core/types'
-import { useChart } from '../context'
+import { useChartContext } from '../context'
 import type { ChartPoint, PointGroup, TooltipSegment } from '../types'
 import { useRegisterPoints } from '../useRegisterPoints'
 
@@ -35,7 +35,7 @@ const SOFT_MIX = 45
 
 /** Circles at given plot positions, with a ring on the active one and dimming for the rest. */
 export function Dots({ dots, radius, interactive = true }: DotsProps) {
-  const ctx = useChart('Dots')
+  const ctx = useChartContext('Dots')
   const r = Math.max(0, radius)
   const points = useMemo(
     () =>
@@ -55,7 +55,7 @@ export function Dots({ dots, radius, interactive = true }: DotsProps) {
       ),
     [dots, r],
   )
-  useRegisterPoints(ctx, interactive ? points : NO_POINTS)
+  useRegisterPoints(interactive ? points : NO_POINTS)
   const dimming = ctx.dimInactive && ctx.activeId !== null
   const active = interactive ? dots.find((d) => d.id === ctx.activeId) : undefined
   return (

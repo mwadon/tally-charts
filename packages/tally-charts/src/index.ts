@@ -1,6 +1,7 @@
 export type { BarAlign } from './core/bars'
 export type { DateFormatOptions, DateFormatSpec, DateFormatter } from './core/date'
 export type {
+  FormatOptions,
   FormatPreset,
   FormatPresetSpec,
   FormatSpec,
@@ -8,17 +9,21 @@ export type {
   Formatters,
 } from './core/format'
 export { createFormatter, fmt } from './core/format'
+export type { LinearScale } from './core/linear'
 export type {
+  BandScale,
   BandScaleSpec,
   LinearScaleSpec,
+  PointScale,
   PointScaleSpec,
+  ResolvedScale,
   ScaleSpec,
   TimeScaleSpec,
 } from './core/scale'
 export type { ThresholdBin, ThresholdLegendItem, Thresholds } from './core/thresholds'
 export { thresholds } from './core/thresholds'
 export type { TickSpec } from './core/ticks'
-export type { TimeInput, TimeZone } from './core/time'
+export type { TimeInput, TimeScale, TimeZone } from './core/time'
 export type { Accessor, Fill, Id, PerItem, SeqLevel, Tone } from './core/types'
 export { TONES } from './core/types'
 export type { ChartProps } from './react/Chart'

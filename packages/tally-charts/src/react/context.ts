@@ -1,6 +1,6 @@
 import { createContext, useContext } from 'react'
 import type { FormatOptions, FormatSpec, Formatter } from '../core/format'
-import type { FieldScale } from '../core/scale'
+import type { FieldScale, ResolvedScale } from '../core/scale'
 import type { Id } from '../core/types'
 import type { Warn } from '../core/warn'
 import type { ActiveSource, ChartPoint } from './types'
@@ -12,27 +12,26 @@ export interface Margin {
   left: number
 }
 
+/** What `useChart()` gives a custom mark: the chart's size, scales, formatter and active point. */
 export interface ChartContextValue {
-  chartId: string
   width: number
   height: number
+  /** Plot width: `width` minus the left and right margins. */
   innerWidth: number
+  /** Plot height: `height` minus the top and bottom margins. */
   innerHeight: number
   margin: Margin
   data: readonly unknown[]
-  x: FieldScale
-  y: FieldScale
+  x: ResolvedScale
+  y: ResolvedScale
+  /** A number formatter in the `ChartsProvider` locale. */
   format: (spec?: FormatSpec, options?: Pick<FormatOptions, 'signed'>) => Formatter
-  warn: Warn
   dimInactive: boolean
-  /** Default bar corner radius in px, from `--ch-radius`. */
-  radius: number
   activeId: Id | null
   activePoint: ChartPoint | null
-  points: ChartPoint[]
+  /** Every point the chart's marks registered, in order. */
+  points: readonly ChartPoint[]
   setActive: (id: Id | null, source: ActiveSource) => void
-  registerPoints: (key: string, points: ChartPoint[]) => void
-  unregisterPoints: (key: string) => void
   /** Calls the chart's `onSelect` with this point; does nothing without `onSelect`. */
   select: (point: ChartPoint) => void
   /** True when the chart has an `onSelect` handler. */
@@ -41,10 +40,28 @@ export interface ChartContextValue {
   overlay: HTMLDivElement | null
 }
 
-export const ChartContext = createContext<ChartContextValue | null>(null)
+/** Internal: the context the library's own marks read. Not part of the public API. */
+export interface InternalChartContext extends ChartContextValue {
+  chartId: string
+  x: FieldScale
+  y: FieldScale
+  warn: Warn
+  /** Default bar corner radius in px, from `--ch-radius`. */
+  radius: number
+  registerPoints: (key: string, points: readonly ChartPoint[]) => void
+  unregisterPoints: (key: string) => void
+}
 
-export function useChart(component = 'useChart'): ChartContextValue {
+export const ChartContext = createContext<InternalChartContext | null>(null)
+
+/** Internal: the full chart context; `component` names the caller in the error. */
+export function useChartContext(component: string): InternalChartContext {
   const ctx = useContext(ChartContext)
   if (!ctx) throw new Error(`[tally-charts] <${component}> must be rendered inside <Chart>.`)
   return ctx
+}
+
+/** The surrounding chart's size, scales and interaction state, for custom marks. */
+export function useChart(): ChartContextValue {
+  return useChartContext('useChart')
 }

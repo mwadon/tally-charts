@@ -7,7 +7,7 @@ import { packWaffle } from '../../core/waffle'
 import { createWarner, DEV, type Warn } from '../../core/warn'
 import { Chart } from '../Chart'
 import { useFormat } from '../ChartsProvider'
-import { type Margin, useChart } from '../context'
+import { type Margin, useChartContext } from '../context'
 import type { DataTableColumn, DataTableSpec } from '../DataTable'
 import { type DotItem, Dots } from '../marks/Dots'
 import { NearestPointer } from '../marks/NearestPointer'
@@ -72,7 +72,7 @@ function WaffleBody<D>(props: {
   fmt: Formatter
   warn: Warn
 }) {
-  const ctx = useChart('WaffleColumns')
+  const ctx = useChartContext('WaffleColumns')
   const band = ctx.x.kind === 'band' ? ctx.x.scale : undefined
   const counts = props.rows.map((r) => r.value / props.unit)
   const rowsFit = Math.floor(Math.max(0, ctx.innerHeight) / (2 * MIN_RADIUS + GAP))
@@ -127,7 +127,7 @@ function WaffleBody<D>(props: {
         ]
       })
     : []
-  useRegisterPoints(ctx, points)
+  useRegisterPoints(points)
   if (!band) return null
   return (
     <>
@@ -138,7 +138,7 @@ function WaffleBody<D>(props: {
 }
 
 function GroupLabels<D>({ rows }: { rows: readonly WaffleRow<D>[] }) {
-  const ctx = useChart('WaffleColumns')
+  const ctx = useChartContext('WaffleColumns')
   if (ctx.x.kind !== 'band') return null
   const band = ctx.x.scale
   const spans = new Map<string, { from: number; to: number; tone: Tone }>()

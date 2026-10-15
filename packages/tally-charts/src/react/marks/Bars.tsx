@@ -5,7 +5,7 @@ import type { FormatSpec } from '../../core/format'
 import type { Accessor, Fill, Id, PerItem, Tone } from '../../core/types'
 import { DEV } from '../../core/warn'
 import { paintFor } from '../../theme/patterns'
-import { useChart } from '../context'
+import { useChartContext } from '../context'
 import type { ChartPoint, TooltipSegment } from '../types'
 import { useRegisterPoints } from '../useRegisterPoints'
 
@@ -45,7 +45,7 @@ export interface BarsProps<D> {
 const NO_POINTS: ChartPoint[] = []
 
 export function Bars<D>(props: BarsProps<D>) {
-  const ctx = useChart('Bars')
+  const ctx = useChartContext('Bars')
   const data = (props.data ?? ctx.data) as readonly D[]
   const getX = useMemo(() => toFieldGetter(props.x) ?? ctx.x.field, [props.x, ctx.x.field])
   const getY = useMemo(() => toFieldGetter(props.y) ?? ctx.y.field, [props.y, ctx.y.field])
@@ -102,7 +102,7 @@ export function Bars<D>(props: BarsProps<D>) {
       }
     })
   }, [layout, label, tooltip, ariaLabel, format])
-  useRegisterPoints(ctx, interactive ? points : NO_POINTS)
+  useRegisterPoints(interactive ? points : NO_POINTS)
 
   const toneOf = resolvePerItem<D, Tone>(props.tone ?? 'accent')
   const fillOf = resolvePerItem<D, Fill>(props.fill ?? 'solid')

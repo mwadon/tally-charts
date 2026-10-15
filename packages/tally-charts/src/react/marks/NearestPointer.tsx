@@ -1,4 +1,4 @@
-import { useChart } from '../context'
+import { useChartContext } from '../context'
 import type { ChartPoint } from '../types'
 
 export interface NearestPointerProps {
@@ -16,7 +16,7 @@ interface PointerLike {
 
 /** One transparent layer over the plot that activates the registered point nearest the pointer. */
 export function NearestPointer({ radius = 24, axis = 'xy' }: NearestPointerProps) {
-  const ctx = useChart('NearestPointer')
+  const ctx = useChartContext('NearestPointer')
   const nearest = (event: PointerLike): ChartPoint | undefined => {
     const box = event.currentTarget.getBoundingClientRect()
     const px = event.clientX - box.left

@@ -12,7 +12,7 @@ import type { Id } from '../core/types'
 import { createWarner, type Warn } from '../core/warn'
 import { DEFAULT_HATCH, DEFAULT_RADIUS, readHatchGeometry, readRadius } from '../theme/patterns'
 import { useFormat } from './ChartsProvider'
-import { ChartContext, type ChartContextValue, type Margin } from './context'
+import { ChartContext, type InternalChartContext, type Margin } from './context'
 import { DataTable, type DataTableSpec } from './DataTable'
 import { navigate, useInteraction } from './interaction'
 import { PatternDefs } from './PatternDefs'
@@ -142,7 +142,7 @@ export function Chart<D>({
     if (onSelect) onSelect(point.id, point)
   }
 
-  const ctx: ChartContextValue = {
+  const ctx: InternalChartContext = {
     chartId,
     width: w,
     height: h,

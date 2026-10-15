@@ -2,7 +2,7 @@ import { resolveAccessor, resolvePerItem, toFieldGetter } from '../../core/acces
 import { truncateLabel } from '../../core/text'
 import type { Accessor, PerItem, Tone } from '../../core/types'
 import { DEV } from '../../core/warn'
-import { useChart } from '../context'
+import { useChartContext } from '../context'
 
 export interface RowLabelsProps<D> {
   /** Defaults to <Chart data>. */
@@ -36,7 +36,7 @@ export interface RowLabelsProps<D> {
 const LINE_GAP = 9
 
 export function RowLabels<D>(props: RowLabelsProps<D>) {
-  const ctx = useChart('RowLabels')
+  const ctx = useChartContext('RowLabels')
   const { side = 'left', position = 'middle', inset = 0, maxWidth, muted = false } = props
   const align = props.align ?? (side === 'left' ? 'start' : 'end')
   if (ctx.y.kind !== 'band') {
@@ -130,7 +130,7 @@ export interface RowDividersProps {
 
 /** Thin rules between rows, across the whole chart width. */
 export function RowDividers({ inset = 0 }: RowDividersProps) {
-  const ctx = useChart('RowDividers')
+  const ctx = useChartContext('RowDividers')
   if (ctx.y.kind !== 'band') {
     if (DEV) ctx.warn('row-dividers-scale', 'RowDividers need a band scale on <Chart y>.')
     return null

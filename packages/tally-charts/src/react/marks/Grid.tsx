@@ -1,6 +1,6 @@
 import { linearTicks, type TickSpec } from '../../core/ticks'
 import { DEV } from '../../core/warn'
-import { useChart } from '../context'
+import { useChartContext } from '../context'
 
 export interface GridProps {
   /** Same as the y axis `ticks`. Default 'all' (about 5). */
@@ -11,7 +11,7 @@ export interface GridProps {
 
 /** Horizontal lines across the plot at the y ticks. */
 export function Grid({ ticks = 'all', extent }: GridProps) {
-  const ctx = useChart('Grid')
+  const ctx = useChartContext('Grid')
   if (ctx.y.kind !== 'linear') {
     if (DEV) ctx.warn('grid-scale', 'Grid needs a linear scale on <Chart y>.')
     return null

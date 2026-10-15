@@ -1,6 +1,6 @@
 import { type TimeInput, toTime } from '../../core/time'
 import { DEV } from '../../core/warn'
-import { useChart } from '../context'
+import { useChartContext } from '../context'
 
 export interface TargetProps {
   /**
@@ -25,7 +25,7 @@ export function Target({
   variant = 'line',
   tickLength = 16,
 }: TargetProps) {
-  const ctx = useChart('Target')
+  const ctx = useChartContext('Target')
   const horizontal = y !== undefined
   const raw = horizontal ? y : x
   const resolved = horizontal ? ctx.y : ctx.x

@@ -11,7 +11,7 @@ import type { Accessor, Id, Tone } from '../../core/types'
 import { createWarner, DEV, type Warn } from '../../core/warn'
 import { Chart } from '../Chart'
 import { useFormat } from '../ChartsProvider'
-import { type Margin, useChart } from '../context'
+import { type Margin, useChartContext } from '../context'
 import type { DataTableColumn, DataTableSpec } from '../DataTable'
 import { Axis, type AxisFormat } from '../marks/Axis'
 import { type DotItem, Dots } from '../marks/Dots'
@@ -81,7 +81,7 @@ function HistogramDots<D>(props: {
   calloutId: Id | undefined
   warn: Warn
 }) {
-  const ctx = useChart('DotHistogram')
+  const ctx = useChartContext('DotHistogram')
   if (ctx.x.kind !== 'linear') return null
   const layout = binDots({
     values: props.rows.map((r) => r.value),

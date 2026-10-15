@@ -3,7 +3,7 @@ import { linePath } from '../../core/line'
 import { round2 } from '../../core/path'
 import type { Accessor, Tone } from '../../core/types'
 import { DEV } from '../../core/warn'
-import { useChart } from '../context'
+import { useChartContext } from '../context'
 import { seriesScales } from './series'
 
 export type LineDots = 'filled' | 'hollow' | 'none'
@@ -40,7 +40,7 @@ export function Line<D>({
   dots = 'filled',
   radius = 4,
 }: LineProps<D>) {
-  const ctx = useChart('Line')
+  const ctx = useChartContext('Line')
   const scales = seriesScales(ctx, 'Line')
   if (!scales) return null
   const getX = toFieldGetter(x) ?? ctx.x.field

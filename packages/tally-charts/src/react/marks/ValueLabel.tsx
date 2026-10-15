@@ -2,7 +2,7 @@ import { toFieldGetter } from '../../core/accessor'
 import { computeBars } from '../../core/bars'
 import type { FormatSpec } from '../../core/format'
 import type { Accessor } from '../../core/types'
-import { useChart } from '../context'
+import { useChartContext } from '../context'
 
 export interface ValueLabelProps<D> {
   /** Defaults to <Chart data>. */
@@ -19,7 +19,7 @@ export interface ValueLabelProps<D> {
 const LABEL_HEIGHT = 14
 
 export function ValueLabel<D>({ data, at = 'all', x, y, format, offset = 6 }: ValueLabelProps<D>) {
-  const ctx = useChart('ValueLabel')
+  const ctx = useChartContext('ValueLabel')
   const getX = toFieldGetter(x) ?? ctx.x.field
   const getY = toFieldGetter(y) ?? ctx.y.field
   if (!getX || !getY) return null
