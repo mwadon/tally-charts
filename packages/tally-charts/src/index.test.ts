@@ -54,30 +54,18 @@ describe('public entry points', () => {
     expect(main).toHaveProperty(name)
   })
 
-  it.each([
-    'createScale',
-    'linearScale',
-    'categoryTicks',
-    'thinTicks',
-    'computeBars',
-    'placeTooltip',
-    'createFormatters',
-    'createWarner',
-    'truncateLabel',
-    'runningTotals',
-    'areaPath',
-    'thresholds',
-    'binDots',
-    'stackStrip',
-    'medianOf',
-    'packWaffle',
-    'linePath',
-    'bandPath',
-    'categoryCenter',
-    'categoryStep',
-    'clampToRange',
-    'toTime',
-  ])('core exports %s', (name) => {
-    expect(core).toHaveProperty(name)
+  it('keeps tally-charts/core to formatting, thresholds, value parsing and types', () => {
+    expect(Object.keys(core).sort()).toEqual([
+      'DEFAULT_CURRENCY',
+      'DEFAULT_LOCALE',
+      'TONES',
+      'createFormatter',
+      'createFormatters',
+      'fmt',
+      'heatmapLevel',
+      'thresholds',
+      'toNumber',
+      'toTime',
+    ])
   })
 })

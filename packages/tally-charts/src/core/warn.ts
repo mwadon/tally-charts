@@ -10,9 +10,6 @@ export type Warn = (key: string, message: string) => void
  */
 export const DEV: boolean = process.env.NODE_ENV !== 'production'
 
-/** Alias of `DEV`, kept for the 0.1 public API. */
-export const isDev = DEV
-
 export function createWarner(): Warn {
   const seen = new Set<string>()
   return (key, message) => {

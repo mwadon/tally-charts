@@ -53,11 +53,13 @@ if (survivors.length === 0) {
   process.exit(1)
 }
 
-// Evaluate DEV in a context without `process`, like a browser running a dev bundle.
+// Evaluate DEV in a context without `process`, like a browser running a dev bundle. DEV is
+// internal; tsdown.config.ts keeps src/core/warn.ts verbatim in its own dist chunk.
 const devFlag = await bundle('development', {
   stdin: {
-    contents: "import { isDev } from './dist/core/index.js'\nglobalThis.__isDev = isDev",
+    contents: "import { DEV } from './src/core/warn.ts'\nglobalThis.__isDev = DEV",
     resolveDir: process.cwd(),
+    loader: 'ts',
   },
   format: 'iife',
 })
