@@ -46,23 +46,25 @@ The main spec's single "1.0" row is split in two:
 ### Declaration
 
 ```ts
-type TimeScaleSpec = {
+type TimeScaleSpec<D> = {
   type: 'time'
+  field?: Accessor<D, TimeInput> // which value is the date (required on LineChart's `x`)
   domain?: readonly [TimeInput, TimeInput]
-  nice?: boolean          // default true: round the domain out to tick interval boundaries
+  nice?: boolean          // default: true for an inferred domain, false for an explicit one
   zone?: 'utc' | 'local'  // default 'utc'
 }
 type TimeInput = Date | number | string // Date, epoch ms, or an ISO 8601 string
 ```
 
-`ScaleSpec` gains this variant. `<Chart x={{ type: 'time' }}>` and `<LineChart x={{ type: 'time' }}>` accept it. The y axis stays linear.
+`ScaleSpec` gains this variant. `<Chart x={{ type: 'time' }}>` and `<LineChart x={{ type: 'time', field: 'date' }}>` accept it (amended after 0.6a: a time spec on LineChart names its `field`). The y axis stays linear.
 
 ### Values
 
-- The `x` accessor may return `Date`, epoch ms or an ISO string. A shared `toTime(v): number | undefined` normalises them: `Date` → `getTime()`, finite number → itself, string → `Date.parse` (so a date-only ISO string is UTC midnight, matching the default zone). Anything else, or `NaN`, is `undefined`.
+- The `x` accessor may return `Date`, epoch ms or an ISO string. A shared `toTime(v): number | undefined` normalises them: `Date` → `getTime()`, finite number → itself, string → `Date.parse` (so a date-only ISO string is UTC midnight, matching the default zone). Anything else, `NaN`, or a value outside the JS Date range (|ms| > 8.64e15) is `undefined`.
 - Points with an undefined x are skipped with one dev warning per chart, the same way invalid numbers already are (main spec §7). No throws.
 - The domain is inferred as [min, max] of valid x values. A single distinct value is padded by one day on each side. With no valid values the domain is [now − 1 day, now], plus the dev warning.
-- A point's id is the ISO string of its x (`new Date(ms).toISOString()`), prefixed by the series id as today (`"series:iso"`).
+- A point's id is the ISO string of its x (`new Date(ms).toISOString()`). LineChart registers one point per x carrying every series, so there is no series prefix (amended after 0.6a). On LineChart, rows are sorted by date.
+- With an explicit `domain`, dates outside it are skipped (not drawn, not registered) with one dev warning per chart.
 
 ### Implementation (`packages/tally-charts/src/core/time.ts`)
 
@@ -82,7 +84,7 @@ interface TimeScale {
 }
 ```
 
-- New runtime dependency: `d3-time` (^3) and `@types/d3-time` as a devDependency. The main spec §3.1's dependency line becomes: `d3-scale` (band/point only), `d3-array`, `d3-time`, and `d3-shape` only. No `d3-time` type leaks into `.d.ts` (§3, API-1).
+- New runtime dependency: `d3-time` (^3) and `@types/d3-time` as a devDependency. The main spec §3.1's dependency line becomes: `d3-array` and `d3-time` only. (Amended after 0.6a: `d3-scale` was replaced by our own band/point scales.) No `d3-time` type leaks into `.d.ts` (§3, API-1).
 
 ### Formatting dates
 
@@ -172,7 +174,7 @@ The README gets a "Changes in 0.6" section listing every breaking rename above, 
 ### Heatmap semantics and navigation (A11Y-7, 15)
 
 - Column headers contain only the column name.
-- Column totals move into their own `role="row"`, which starts with a `rowheader` labelled by `totalLabel` (default "Total") and is still shown at the top.
+- Column totals move into their own `role="row"`, which starts with a `rowheader` labelled by `totalLabel` (default "Total") and is still shown at the top. The 0.6a part names follow the new structure: `heatmap-header-total` (a span inside the column header) is replaced by a `heatmap-total-row` part with `heatmap-total` cells; `surface.test.ts` and the README token/part table are updated in the same task.
 - The corner cell is labelled by a new optional `rowLabel?: string` (default: the row accessor key when it is a string, else "Row").
 - Grid navigation reaches total cells. Ctrl+Home/Ctrl+End go to the first and last cell. PageUp/PageDown move 5 rows.
 
@@ -190,7 +192,7 @@ Grid lines, tracks, hatch gaps, fade ends, dimmed inactive marks and bands carry
 
 - **Heatmap ramp (A11Y-9 + backlog):**
   - The `loss` sequential ramp moves from the current muted crimson to the hot pink of reference `05-leakage-heatmap.png`. The exact base is picked by sampling the reference, then adjusted only as far as the contrast rules below require.
-  - Dark themes: `--ch-seq-5` is the pure base, and `--ch-seq-ink-strong` is `var(--ch-surface)`.
+  - Dark themes: `--ch-seq-5` is the pure base, and the private `--_ch-seq-ink-strong` is `var(--ch-surface)` (private since API-9).
   - Light themes: levels 1–2 cells and swatches get a 1 px inset outline (`color-mix` of the base 45 % with the surface).
   - The top-value cell gets a soft glow (`box-shadow` in the base colour), off in forced colors and under `prefers-reduced-transparency` if supported.
 - **Contrast rules, enforced by unit tests on computed tokens, 6 tones × 2 themes × 5 levels:**
