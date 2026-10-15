@@ -1,13 +1,16 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import { useMemo, useState } from 'react'
 import {
+  Area,
   BarChart,
+  Dots,
   Legend,
   LineChart,
   Region,
   RunwayChart,
   Stat,
   type Tone,
+  useChart,
   useFormat,
 } from 'tally-charts'
 import { cell, domain, now, rows, runOuts, type UsageRow, windows } from './runway-data'
@@ -78,6 +81,29 @@ function burnUp(row: UsageRow): BurnPoint[] {
   return [...points.values()].sort((a, b) => a.at - b.at)
 }
 
+/** The runs-out moment on the burn-up: a loss dot at (runsOutAt, 100%). */
+function RunsOutDot({ at, label }: { at: number; label: string }) {
+  const { x, y } = useChart()
+  if (x.kind !== 'time' || y.kind !== 'linear') return null
+  return (
+    <Dots
+      radius={5}
+      interactive={false}
+      dots={[
+        {
+          key: 'runs-out',
+          id: 'runs-out',
+          datum: null,
+          cx: x.scale(at),
+          cy: y.scale(100),
+          tone: 'loss',
+          label,
+        },
+      ]}
+    />
+  )
+}
+
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 
 /** Percentage points used on each of the last seven days, varying around the row's pace. */
@@ -119,6 +145,7 @@ function Detail({ row }: { row: UsageRow }) {
   const windowDays = (reset - start) / DAY
   const allowed = Math.round((100 / windowDays) * 10) / 10
   const days = recentPace(row, allowed)
+  const burn = burnUp(row)
   const pct = (v: number) => `${Math.round(v * 100)}%`
   return (
     <section className="runway-detail" aria-label={`${row.label} detail`}>
@@ -141,7 +168,7 @@ function Detail({ row }: { row: UsageRow }) {
             ? `runs out ${dates.weekdayTime(runsOut)}`
             : `about ${pct(row.usedAtReset ?? 0)} at reset`
         }.`}
-        data={burnUp(row)}
+        data={burn}
         x={{ type: 'time', field: 'at', domain: [start, reset] }}
         xAxis="ends"
         xAxisFormat={{ month: 'short', day: 'numeric' }}
@@ -159,8 +186,13 @@ function Detail({ row }: { row: UsageRow }) {
         height={220}
         chartId={`burn-${row.id}`}
       >
+        {/* The used share so far, shaded; children draw over the lines, so the fade stays light. */}
+        <Area data={burn.filter((p) => p.used !== null)} x="at" y={(p) => p.used ?? 0} />
         {runsOut !== undefined ? (
-          <Region from={runsOut} to={reset} tone="loss" fill="hatch" />
+          <>
+            <Region from={runsOut} to={reset} tone="loss" fill="hatch" />
+            <RunsOutDot at={runsOut} label={`Runs out ${dates.weekdayTime(runsOut)}`} />
+          </>
         ) : null}
       </LineChart>
       <Legend
@@ -172,6 +204,7 @@ function Detail({ row }: { row: UsageRow }) {
           { label: 'Even pace', tone: 'neutral', dashed: true },
           ...(runsOut !== undefined
             ? [
+                { label: 'Runs out', tone: 'loss' as Tone, shape: 'dot' as const },
                 {
                   label: 'Locked until reset',
                   tone: 'loss' as Tone,

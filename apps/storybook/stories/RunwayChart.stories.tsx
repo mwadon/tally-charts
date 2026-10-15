@@ -20,8 +20,9 @@ function Runway({ width }: { width?: number }) {
         cell={cell}
         title="Usage runway"
         description="Three of four connected accounts run out before reset; Starter needs reconnecting."
-        selectedId={selected}
-        onSelect={setSelected}
+        // The stacked stories leave selection out, so the plain list variant is covered too.
+        selectedId={width ? undefined : selected}
+        onSelect={width ? undefined : setSelected}
         layout="auto"
       />
     </article>
