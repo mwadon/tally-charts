@@ -1347,6 +1347,17 @@
   text-align: end;
 }
 
+[data-ch-part="runway-rows"]:focus-visible {
+  outline: none;
+}
+
+[data-ch-part="runway-rows"]:focus-visible [data-ch-part="runway-row"][data-ch-focus="true"] {
+  outline: 2px solid transparent;
+  box-shadow:
+    0 0 0 2px var(--ch-surface),
+    0 0 0 4px var(--ch-accent);
+}
+
 @media (forced-colors: active) {
   :root,
   :root:not([data-ch-theme="light"]),

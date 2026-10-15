@@ -1,4 +1,4 @@
-import { render } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { RunwayChart, type RunwayChartProps, type RunwayRow } from './RunwayChart'
 
@@ -202,5 +202,145 @@ describe('<RunwayChart>', () => {
     ]) {
       expect(text).toContain(phrase)
     }
+  })
+
+  it('is a plain list without onSelect, with no tab stop', () => {
+    renderRunway()
+    const list = screen.getByRole('list', { name: 'Runway' })
+    expect(within(list).getAllByRole('listitem')).toHaveLength(3)
+    expect(list).not.toHaveAttribute('tabindex')
+  })
+
+  it('is a listbox with named options when selectable', () => {
+    renderRunway({ onSelect: vi.fn(), selectedId: 'team', description: 'Two run out' })
+    const box = screen.getByRole('listbox', { name: 'Runway' })
+    expect(box).toHaveAccessibleDescription('Two run out')
+    expect(box).toHaveAttribute('tabindex', '0')
+    const options = within(box).getAllByRole('option')
+    expect(options[0]).toHaveAccessibleName('Pro plan Runs out Fri 03:00 Resets Fri 11:00')
+    expect(options[1]).toHaveAttribute('aria-selected', 'true')
+    expect(options[2]).toHaveAccessibleName('Starter Reconnect to forecast')
+  })
+
+  it('moves with the arrow, Home, End and Page keys and selects with Enter and Space', () => {
+    const onSelect = vi.fn()
+    const onActiveChange = vi.fn()
+    renderRunway({ onSelect, onActiveChange })
+    const box = screen.getByRole('listbox')
+    act(() => box.focus())
+    const activeId = () => box.getAttribute('aria-activedescendant')
+    const optionIds = within(box)
+      .getAllByRole('option')
+      .map((o) => o.id)
+    expect(activeId()).toBe(optionIds[0])
+    fireEvent.keyDown(box, { key: 'ArrowDown' })
+    expect(activeId()).toBe(optionIds[1])
+    expect(onActiveChange).toHaveBeenLastCalledWith('team', expect.objectContaining({ id: 'team' }))
+    fireEvent.keyDown(box, { key: 'End' })
+    expect(activeId()).toBe(optionIds[2])
+    fireEvent.keyDown(box, { key: 'PageUp' })
+    expect(activeId()).toBe(optionIds[0])
+    fireEvent.keyDown(box, { key: 'PageDown' })
+    expect(activeId()).toBe(optionIds[2])
+    fireEvent.keyDown(box, { key: 'Home' })
+    fireEvent.keyDown(box, { key: 'Enter' })
+    expect(onSelect).toHaveBeenLastCalledWith('pro', expect.objectContaining({ id: 'pro' }))
+    fireEvent.keyDown(box, { key: 'ArrowDown' })
+    fireEvent.keyDown(box, { key: ' ' })
+    expect(onSelect).toHaveBeenLastCalledWith('team', expect.objectContaining({ id: 'team' }))
+  })
+
+  it('starts keyboard focus on the selected row', () => {
+    renderRunway({ onSelect: vi.fn(), selectedId: 'starter' })
+    const box = screen.getByRole('listbox')
+    act(() => box.focus())
+    expect(box.getAttribute('aria-activedescendant')).toBe(
+      within(box).getAllByRole('option')[2]?.id,
+    )
+  })
+
+  it('leaves modified keys to the browser', () => {
+    renderRunway({ onSelect: vi.fn() })
+    const box = screen.getByRole('listbox')
+    act(() => box.focus())
+    for (const init of [{ altKey: true }, { ctrlKey: true }, { metaKey: true }]) {
+      const event = new KeyboardEvent('keydown', {
+        key: 'ArrowDown',
+        bubbles: true,
+        cancelable: true,
+        ...init,
+      })
+      box.dispatchEvent(event)
+      expect(event.defaultPrevented).toBe(false)
+    }
+    expect(box.getAttribute('aria-activedescendant')).toBe(
+      within(box).getAllByRole('option')[0]?.id,
+    )
+  })
+
+  it('selects on click and activates on hover; Escape clears the active row', () => {
+    const onSelect = vi.fn()
+    const onActiveChange = vi.fn()
+    renderRunway({ onSelect, onActiveChange })
+    const options = screen.getAllByRole('option')
+    fireEvent.pointerEnter(options[1] as HTMLElement)
+    expect(options[1]).toHaveAttribute('data-ch-active', 'true')
+    fireEvent.click(options[1] as HTMLElement)
+    expect(onSelect).toHaveBeenCalledWith('team', expect.objectContaining({ id: 'team' }))
+    const box = screen.getByRole('listbox')
+    act(() => box.focus())
+    fireEvent.keyDown(box, { key: 'Escape' })
+    expect(onActiveChange).toHaveBeenLastCalledWith(null, null)
+  })
+
+  it('falls back to the first row when the focused row disappears', () => {
+    const { rerender } = renderRunway({ onSelect: vi.fn() })
+    const box = screen.getByRole('listbox')
+    act(() => box.focus())
+    fireEvent.keyDown(box, { key: 'End' })
+    rerender(
+      <RunwayChart
+        rows={rows.slice(0, 2)}
+        domain={domain}
+        now={now}
+        title="Runway"
+        onSelect={vi.fn()}
+      />,
+    )
+    const ids = within(screen.getByRole('listbox'))
+      .getAllByRole('option')
+      .map((o) => o.id)
+    expect(ids).toContain(screen.getByRole('listbox').getAttribute('aria-activedescendant'))
+  })
+
+  it('renders the data table with one row per entity', () => {
+    const { container } = renderRunway({
+      dataTable: { columns: { Name: 'Account' } },
+      rows: [{ ...(rows[0] as RunwayRow), sublabel: 'Side project' }, ...rows.slice(1)],
+    })
+    const table = container.querySelector('[data-ch-part="data-table"]') as HTMLTableElement
+    expect([...table.querySelectorAll('thead th')].map((th) => th.textContent)).toEqual([
+      'Account',
+      'Detail',
+      'Runs out',
+      'Resets',
+      'Projected at reset',
+      'Status',
+    ])
+    const first = [...(table.querySelectorAll('tbody tr')[0]?.children ?? [])].map(
+      (c) => c.textContent,
+    )
+    expect(first).toEqual([
+      'Pro plan',
+      'Side project',
+      'Fri 03:00',
+      'Fri 11:00',
+      '100%',
+      'Runs out Fri 03:00, Resets Fri 11:00',
+    ])
+    const starter = [...(table.querySelectorAll('tbody tr')[2]?.children ?? [])].map(
+      (c) => c.textContent,
+    )
+    expect(starter.at(-1)).toBe('Reconnect to forecast')
   })
 })

@@ -4,6 +4,7 @@ import { timeDay, unixDay } from 'd3-time'
 import {
   type CSSProperties,
   Fragment,
+  type KeyboardEvent,
   type ReactNode,
   useId,
   useMemo,
@@ -19,6 +20,7 @@ import {
   type RunwayDateFormats,
   type RunwayFacts,
   runwayCells,
+  runwayDate,
   runwayFacts,
   statusLines,
 } from '../../core/runway'
@@ -29,11 +31,12 @@ import type { Tone } from '../../core/types'
 import { createWarner, DEV } from '../../core/warn'
 import { DEFAULT_HATCH, patternId, readHatchGeometry } from '../../theme/patterns'
 import { useFormat } from '../ChartsProvider'
+import { DataTable } from '../DataTable'
 import { PatternDefs } from '../PatternDefs'
 import { cx } from '../ui/util'
 import { useIsoLayoutEffect } from '../useIsoLayoutEffect'
 import { useWidth } from '../useWidth'
-import type { DataTableOptions } from './shared'
+import { type DataTableOptions, withTableOptions } from './shared'
 
 export type { RunwayFacts } from '../../core/runway'
 
@@ -95,6 +98,7 @@ const STATUS_WIDTH = 176 // 11rem
 const COLUMN_GAP = 16
 const MIN_STRIP = 240
 const AXIS_HEIGHT = 40
+const PAGE = 5
 
 interface RowModel {
   row: RunwayRow
@@ -116,10 +120,13 @@ export function RunwayChart({
   labelWidth = 200,
   selectedId,
   onSelect,
+  activeId,
+  onActiveChange,
   status,
   legend = true,
   title,
   description,
+  dataTable,
   empty,
   className,
   style,
@@ -241,6 +248,81 @@ export function RunwayChart({
     })
   }, [valid, d0, d1, now, cellMs, rows, edges, levels, formats, status, warn])
 
+  const [innerActive, setInnerActive] = useState<string | null>(null)
+  const controlled = activeId !== undefined
+  const active = controlled ? activeId : innerActive
+  const activeRef = useRef(active)
+  activeRef.current = active
+  const activeProp = useRef(activeId)
+  activeProp.current = activeId
+  const [focusIndex, setFocusIndex] = useState<number | null>(null)
+  const [focused, setFocused] = useState(false)
+  const byId = useMemo(() => {
+    const map = new Map<string, number>()
+    model.forEach((m, i) => {
+      if (!map.has(m.row.id)) map.set(m.row.id, i)
+    })
+    return map
+  }, [model])
+  // A focus index past the end (rows removed) falls back to the first row.
+  const current = focusIndex !== null && focusIndex < model.length ? focusIndex : null
+  const selectable = onSelect !== undefined
+
+  const setActive = (next: string | null) => {
+    if (next === activeRef.current) return
+    activeRef.current = next
+    if (controlled) {
+      queueMicrotask(() => {
+        activeRef.current = activeProp.current ?? null
+      })
+    } else {
+      setInnerActive(next)
+    }
+    onActiveChange?.(next, next === null ? null : (model[byId.get(next) ?? -1]?.row ?? null))
+  }
+  const moveTo = (i: number) => {
+    const m = model[i]
+    if (!m) return
+    setFocusIndex(i)
+    setActive(m.row.id)
+    document.getElementById(`${baseId}-row-${i}`)?.scrollIntoView?.({ block: 'nearest' })
+  }
+  const onKeyDown = (event: KeyboardEvent<HTMLElement>) => {
+    if (event.altKey || event.ctrlKey || event.metaKey) return
+    const last = model.length - 1
+    const at = current ?? 0
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault()
+      const m = model[at]
+      if (m) onSelect?.(m.row.id, m.row)
+      return
+    }
+    if (event.key === 'Escape') {
+      if (activeRef.current !== null) {
+        event.preventDefault()
+        setActive(null)
+      }
+      return
+    }
+    const next =
+      event.key === 'ArrowDown'
+        ? Math.min(last, at + 1)
+        : event.key === 'ArrowUp'
+          ? Math.max(0, at - 1)
+          : event.key === 'Home'
+            ? 0
+            : event.key === 'End'
+              ? last
+              : event.key === 'PageDown'
+                ? Math.min(last, at + PAGE)
+                : event.key === 'PageUp'
+                  ? Math.max(0, at - PAGE)
+                  : null
+    if (next === null) return
+    event.preventDefault()
+    moveTo(next)
+  }
+
   const rootProps = {
     ref: rootRef,
     className: cx('ch-runway', className),
@@ -262,7 +344,27 @@ export function RunwayChart({
 
   const x = timeScale([d0, d1], [0, width], timeZone)
   const nowX = now >= d0 && now <= d1 ? x(now) : null
-  const selectable = onSelect !== undefined
+
+  const dateText = (d: Date | undefined) =>
+    d ? runwayDate(d.getTime(), now, d1, formats).text : ''
+  const table = withTableOptions<RowModel>(
+    {
+      caption: title,
+      columns: [
+        { header: 'Name', value: (m) => m.row.label },
+        { header: 'Detail', value: (m) => m.row.sublabel ?? '' },
+        { header: 'Runs out', value: (m) => dateText(m.facts.runsOutAt) },
+        { header: 'Resets', value: (m) => dateText(m.facts.resetAt) },
+        {
+          header: 'Projected at reset',
+          value: (m) =>
+            Number.isFinite(m.facts.usedAtReset) ? `${Math.round(m.facts.usedAtReset * 100)}%` : '',
+        },
+        { header: 'Status', value: (m) => m.statusText },
+      ],
+    },
+    dataTable,
+  )
 
   return (
     <div {...rootProps}>
@@ -285,15 +387,35 @@ export function RunwayChart({
         </div>
       </div>
       {/* biome-ignore lint/a11y/useAriaPropsSupportedByRole: aria-describedby is valid on list and listbox; the role is chosen at runtime */}
+      {/* biome-ignore lint/a11y/noStaticElementInteractions: the role is listbox when selectable, and a plain list otherwise has no handlers that matter */}
       <div
         className="ch-runway-rows"
         data-ch-part="runway-rows"
         role={selectable ? 'listbox' : 'list'}
         aria-labelledby={title ? titleId : undefined}
         aria-describedby={description ? descId : undefined}
+        tabIndex={selectable ? 0 : undefined}
+        aria-activedescendant={selectable && focused ? `${baseId}-row-${current ?? 0}` : undefined}
+        onKeyDown={selectable ? onKeyDown : undefined}
+        onFocus={() => {
+          if (!selectable) return
+          setFocused(true)
+          const start = current ?? (selectedId != null ? (byId.get(selectedId) ?? 0) : 0)
+          moveTo(start)
+        }}
+        onBlur={(event) => {
+          if (event.currentTarget.contains(event.relatedTarget)) return
+          setFocused(false)
+          setActive(null)
+        }}
+        onPointerLeave={() =>
+          setActive(focused && current !== null ? (model[current]?.row.id ?? null) : null)
+        }
       >
         {model.map((m, i) => (
           // biome-ignore lint/a11y/useAriaPropsSupportedByRole: aria-selected is set only when the role is option
+          // biome-ignore lint/a11y/noStaticElementInteractions: the role is option when click is handled; the keyboard path is the listbox's
+          // biome-ignore lint/a11y/useKeyWithClickEvents: keys are handled on the listbox via aria-activedescendant
           <div
             // biome-ignore lint/suspicious/noArrayIndexKey: duplicate row ids are allowed (and warned about), so the index disambiguates
             key={`${m.row.id}-${i}`}
@@ -305,6 +427,20 @@ export function RunwayChart({
             data-ch-part="runway-row"
             data-ch-muted={m.row.disconnected ? 'true' : undefined}
             data-ch-selectable={selectable ? 'true' : undefined}
+            data-ch-active={m.row.id === active ? 'true' : undefined}
+            data-ch-focus={selectable && focused && i === (current ?? 0) ? 'true' : undefined}
+            onPointerEnter={() => {
+              if (selectable) setFocusIndex(i)
+              setActive(m.row.id)
+            }}
+            onClick={
+              selectable
+                ? () => {
+                    setFocusIndex(i)
+                    onSelect?.(m.row.id, m.row)
+                  }
+                : undefined
+            }
           >
             <div className="ch-runway-label" data-ch-part="runway-label">
               {m.row.icon ? (
@@ -339,6 +475,9 @@ export function RunwayChart({
         ))}
       </div>
       {legend ? <RunwayLegend edges={edges} levels={levels} /> : null}
+      {dataTable && table ? (
+        <DataTable data={model} columns={table.columns} caption={table.caption} />
+      ) : null}
     </div>
   )
 }

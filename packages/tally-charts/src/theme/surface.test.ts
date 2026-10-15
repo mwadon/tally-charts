@@ -184,6 +184,7 @@ const STATES = [
   'dimmed',
   'direction',
   'fill',
+  'focus',
   'hollow',
   'layout',
   'level',
