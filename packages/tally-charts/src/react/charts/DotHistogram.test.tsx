@@ -188,7 +188,7 @@ describe('<DotHistogram>', () => {
       within(table)
         .getAllByRole('columnheader')
         .map((th) => th.textContent),
-    ).toEqual(['Item', 'margin', 'Group'])
+    ).toEqual(['Item', 'Margin', 'Group'])
     expect(within(table).getByText('#2')).toBeInTheDocument()
     expect(within(table).getAllByText('At risk')).toHaveLength(2)
   })

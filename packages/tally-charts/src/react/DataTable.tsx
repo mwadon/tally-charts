@@ -13,9 +13,19 @@ export interface DataTableProps<D> extends DataTableSpec<D> {
   data: readonly D[]
 }
 
+/** An empty cell: a dash, read as "no value". */
+const NO_VALUE = (
+  <>
+    <span aria-hidden="true">—</span>
+    <span className="ch-sr-only">no value</span>
+  </>
+)
+
 /**
- * The chart's data as a visually hidden table, for screen-reader users. The wrapper does the
- * hiding: a table ignores the 1px box and would keep its full height in the page flow.
+ * The chart's data as a visually hidden table, for screen-reader users. The first column holds
+ * the row headers (the x or category of each row), and an empty value reads "no value". The
+ * wrapper does the hiding: a table ignores the 1px box and would keep its full height in the
+ * page flow.
  */
 export function DataTable<D>({ data, columns, caption }: DataTableProps<D>) {
   return (
@@ -36,10 +46,19 @@ export function DataTable<D>({ data, columns, caption }: DataTableProps<D>) {
           {data.map((d, i) => (
             // biome-ignore lint/suspicious/noArrayIndexKey: rows mirror data order
             <tr key={i}>
-              {columns.map((column, c) => (
-                // biome-ignore lint/suspicious/noArrayIndexKey: columns are positional and never reorder
-                <td key={c}>{column.value(d, i)}</td>
-              ))}
+              {columns.map((column, c) => {
+                const text = column.value(d, i)
+                const content = text === '' ? NO_VALUE : text
+                return c === 0 ? (
+                  // biome-ignore lint/suspicious/noArrayIndexKey: columns are positional and never reorder
+                  <th key={c} scope="row">
+                    {content}
+                  </th>
+                ) : (
+                  // biome-ignore lint/suspicious/noArrayIndexKey: columns are positional and never reorder
+                  <td key={c}>{content}</td>
+                )
+              })}
             </tr>
           ))}
         </tbody>

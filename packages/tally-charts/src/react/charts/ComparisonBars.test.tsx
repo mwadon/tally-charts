@@ -154,7 +154,7 @@ describe('<ComparisonBars>', () => {
       within(table)
         .getAllByRole('columnheader')
         .map((th) => th.textContent),
-    ).toEqual(['name', 'estimate', 'actual', 'Difference'])
+    ).toEqual(['Name', 'Estimate', 'Actual', 'Difference'])
     expect(within(table).getByText('+$420')).toBeInTheDocument()
   })
 

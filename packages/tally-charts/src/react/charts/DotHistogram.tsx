@@ -23,10 +23,12 @@ import type { TooltipSegment } from '../types'
 import {
   type ChartPassThroughProps,
   type ChartTooltip,
+  type DataTableOptions,
   headerOf,
   toNumber,
   tooltipContent,
   userCallbacks,
+  withTableOptions,
 } from './shared'
 
 export interface DotHistogramProps<D> extends Omit<ChartPassThroughProps<D>, 'aspectRatio'> {
@@ -58,8 +60,11 @@ export interface DotHistogramProps<D> extends Omit<ChartPassThroughProps<D>, 'as
   maxRadius?: number
   /** Default 2. */
   minRadius?: number
-  /** Hidden data table for screen readers. Default true. */
-  dataTable?: boolean
+  /**
+   * Hidden data table for screen readers: `true`, `false`, or `{ caption, columns }` to set its
+   * caption and rename column headers. Default true.
+   */
+  dataTable?: boolean | DataTableOptions
   /**
    * Tooltip on hover and focus: `true` for the default pill, or a function that renders the
    * content for a point (`point.datum` is your row). Default true.
@@ -244,7 +249,7 @@ export function DotHistogram<D>({
       y={{ domain: [0, 1] }}
       margin={m}
       height={height ?? 220}
-      dataTable={table}
+      dataTable={withTableOptions(table, dataTable)}
     >
       {targetSpec ? <Target x={targetSpec.value} label={targetSpec.label} /> : null}
       <HistogramDots

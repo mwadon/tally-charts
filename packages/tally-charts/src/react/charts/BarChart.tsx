@@ -15,9 +15,11 @@ import { Tooltip } from '../overlays/Tooltip'
 import {
   type ChartPassThroughProps,
   type ChartTooltip,
+  type DataTableOptions,
   headerOf,
   toNumber,
   tooltipContent,
+  withTableOptions,
 } from './shared'
 
 export interface BarChartProps<D> extends ChartPassThroughProps<D> {
@@ -54,8 +56,11 @@ export interface BarChartProps<D> extends ChartPassThroughProps<D> {
   fill?: PerItem<D, Fill>
   /** Inner band padding, 0–1. Default 0.35. */
   padding?: number
-  /** Hidden data table for screen readers. Default true. */
-  dataTable?: boolean
+  /**
+   * Hidden data table for screen readers: `true`, `false`, or `{ caption, columns }` to set its
+   * caption and rename column headers. Default true.
+   */
+  dataTable?: boolean | DataTableOptions
   /**
    * Tooltip on hover and focus: `true` for the default pill, or a function that renders the
    * content for a point (`point.datum` is your row). Default true.
@@ -130,7 +135,7 @@ export function BarChart<D>({
       y={vertical ? linear : band}
       margin={m}
       height={height ?? autoHeight}
-      dataTable={table}
+      dataTable={withTableOptions(table, dataTable)}
     >
       {targetSpec ? (
         <Target

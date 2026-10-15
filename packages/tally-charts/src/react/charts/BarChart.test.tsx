@@ -86,7 +86,7 @@ describe('<BarChart>', () => {
       within(table)
         .getAllByRole('columnheader')
         .map((th) => th.textContent),
-    ).toEqual(['week', 'margin'])
+    ).toEqual(['Week', 'Margin'])
     expect(within(table).getByText('34.0%')).toBeInTheDocument()
     unmount()
     renderChart({ dataTable: false })
@@ -115,12 +115,12 @@ describe('<BarChart>', () => {
     expect(screen.getByText('No data')).toBeInTheDocument()
   })
 
-  it('skips a missing value without throwing and leaves its table cell blank', () => {
+  it('skips a missing value without throwing and reads its table cell as "no value"', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     const { container } = renderChart({ data: [...weeks, { week: 'W4', margin: null }] })
     expect(parts(container, 'bar')).toHaveLength(3)
     expect(warn).toHaveBeenCalledTimes(1)
     const cells = within(screen.getByRole('table')).getAllByRole('cell')
-    expect(cells.at(-1)?.textContent).toBe('')
+    expect(cells.at(-1)?.textContent).toBe('—no value')
   })
 })

@@ -3,6 +3,7 @@ export { toNumber } from '../../core/number'
 import type { ReactNode } from 'react'
 import type { Id } from '../../core/types'
 import type { ChartProps } from '../Chart'
+import type { DataTableSpec } from '../DataTable'
 import type { TooltipProps } from '../overlays/Tooltip'
 import type { ChartPoint } from '../types'
 
@@ -34,9 +35,45 @@ export type ChartPassThroughProps<D> = Pick<
   | 'children'
 >
 
-/** Data-table header: the field name for a string accessor, otherwise the fallback. */
+/** A high-level chart's `dataTable` as an object: the caption and readable column headers. */
+export interface DataTableOptions {
+  /** Caption of the hidden table. Default: the chart title. */
+  caption?: string
+  /**
+   * New column headers, keyed by the default header, e.g. `{ Week: 'Week ending' }`. Columns
+   * that are not listed keep their default header.
+   */
+  columns?: Partial<Record<string, string>>
+}
+
+/**
+ * Data-table header for a string accessor: the field name in sentence case ("grossMargin" and
+ * "gross_margin" read "Gross margin"). Function accessors get the fallback.
+ */
 export function headerOf(accessor: unknown, fallback: string): string {
-  return typeof accessor === 'string' ? accessor : fallback
+  if (typeof accessor !== 'string') return fallback
+  const words = accessor
+    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+    .replace(/[_-]+/g, ' ')
+    .trim()
+    .toLowerCase()
+  return words ? words.charAt(0).toUpperCase() + words.slice(1) : fallback
+}
+
+/** A chart's table with the caption and the header names from a `dataTable` object. */
+export function withTableOptions<R>(
+  table: DataTableSpec<R> | undefined,
+  options: boolean | DataTableOptions | undefined,
+): DataTableSpec<R> | undefined {
+  if (!table || typeof options !== 'object') return table
+  const headers = options.columns ?? {}
+  return {
+    caption: options.caption ?? table.caption,
+    columns: table.columns.map((column) => ({
+      ...column,
+      header: headers[column.header] ?? column.header,
+    })),
+  }
 }
 
 /** Rows that high-level charts build around the user's datum. */

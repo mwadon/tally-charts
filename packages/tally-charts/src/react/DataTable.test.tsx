@@ -33,4 +33,29 @@ describe('<DataTable>', () => {
     expect(within(table).getAllByRole('row')).toHaveLength(3)
     expect(within(table).getByText('34%')).toBeInTheDocument()
   })
+
+  it('heads each row with its first cell and reads empty values as "no value"', () => {
+    render(
+      <DataTable
+        data={[
+          { week: 'W1', margin: '30%' },
+          { week: 'W2', margin: '' },
+        ]}
+        columns={[
+          { header: 'Week', value: (d) => d.week },
+          { header: 'Margin', value: (d) => d.margin },
+        ]}
+      />,
+    )
+    const table = screen.getByRole('table')
+    expect(
+      within(table)
+        .getAllByRole('rowheader')
+        .map((th) => th.textContent),
+    ).toEqual(['W1', 'W2'])
+    expect(within(table).getAllByRole('rowheader')[0]).toHaveAttribute('scope', 'row')
+    const empty = within(table).getAllByRole('cell')[1]
+    expect(empty).toHaveTextContent('—no value')
+    expect(empty?.querySelector('[aria-hidden="true"]')).toHaveTextContent('—')
+  })
 })

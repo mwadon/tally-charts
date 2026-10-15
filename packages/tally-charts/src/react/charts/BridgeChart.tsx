@@ -19,8 +19,10 @@ import type { TooltipSegment } from '../types'
 import {
   type ChartPassThroughProps,
   type ChartTooltip,
+  type DataTableOptions,
   tooltipContent,
   userCallbacks,
+  withTableOptions,
 } from './shared'
 
 export interface BridgeStart {
@@ -58,8 +60,11 @@ export interface BridgeChartProps<S extends BridgeStep = BridgeStep>
   domain?: readonly [number, number]
   /** Inner band padding, 0–1. Default 0.45. */
   padding?: number
-  /** Hidden data table for screen readers. Default true. */
-  dataTable?: boolean
+  /**
+   * Hidden data table for screen readers: `true`, `false`, or `{ caption, columns }` to set its
+   * caption and rename column headers. Default true.
+   */
+  dataTable?: boolean | DataTableOptions
   /**
    * Tooltip on hover and focus: `true` for the default pill, or a function that renders the
    * content for a point (`point.datum` is your row). Default true.
@@ -323,7 +328,7 @@ export function BridgeChart<S extends BridgeStep = BridgeStep>({
       y={{ field: 'total', domain: resolvedDomain }}
       margin={m}
       height={height ?? 360}
-      dataTable={table}
+      dataTable={withTableOptions(table, dataTable)}
     >
       {highlightLast && lastRow ? <ColumnHighlight at={lastRow.key} /> : null}
       {area ? <Area<BridgeRow<S>> data={rows} x="key" y="total" between /> : null}

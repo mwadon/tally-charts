@@ -19,8 +19,10 @@ import type { TooltipSegment } from '../types'
 import {
   type ChartPassThroughProps,
   type ChartTooltip,
+  type DataTableOptions,
   tooltipContent,
   userCallbacks,
+  withTableOptions,
 } from './shared'
 
 export interface WaterfallStart {
@@ -86,8 +88,11 @@ export interface WaterfallChartProps<S extends WaterfallStep = WaterfallStep>
   axisFormat?: AxisFormat
   /** Dotted lines from each bar to the next. Default true. */
   connectors?: boolean
-  /** Hidden data table for screen readers. Default true. */
-  dataTable?: boolean
+  /**
+   * Hidden data table for screen readers: `true`, `false`, or `{ caption, columns }` to set its
+   * caption and rename column headers. Default true.
+   */
+  dataTable?: boolean | DataTableOptions
   /**
    * Tooltip on hover and focus: `true` for the default pill, or a function that renders the
    * content for a point (`point.datum` is your row). Default true.
@@ -303,7 +308,7 @@ export function WaterfallChart<S extends WaterfallStep = WaterfallStep>({
       y={{ type: 'band', field: 'key', padding: 0 }}
       margin={m}
       height={height ?? Math.max(1, rows.length) * rowHeight + m.top + m.bottom}
-      dataTable={table}
+      dataTable={withTableOptions(table, dataTable)}
     >
       {connectors ? <StepConnectors links={links} barSize={barSize} /> : null}
       <StepBars<S>

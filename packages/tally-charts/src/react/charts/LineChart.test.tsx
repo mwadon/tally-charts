@@ -230,13 +230,14 @@ describe('<LineChart>', () => {
       within(table)
         .getAllByRole('columnheader')
         .map((th) => th.textContent),
-    ).toEqual(['month', 'Actual', 'Current path', 'With your changes', 'Likely range'])
+    ).toEqual(['Month', 'Actual', 'Current path', 'With your changes', 'Likely range'])
     const aug = within(table).getAllByRole('row')[3] as HTMLElement
+    expect(within(aug).getByRole('rowheader')).toHaveTextContent('Aug')
     expect(
       within(aug)
         .getAllByRole('cell')
         .map((td) => td.textContent),
-    ).toEqual(['Aug', '', '35.0%', '36.0%', '34.0%–37.0%'])
+    ).toEqual(['—no value', '35.0%', '36.0%', '34.0%–37.0%'])
   })
 
   it('turns off the grid, the axes and the tooltip', () => {
@@ -409,7 +410,7 @@ describe('<LineChart> on a time axis', () => {
       within(table)
         .getAllByRole('row')
         .map((row) => row.firstElementChild?.textContent),
-    ).toEqual(['at', 'Jan 1, 2026', 'Jan 2, 2026', 'Jan 4, 2026'])
+    ).toEqual(['At', 'Jan 1, 2026', 'Jan 2, 2026', 'Jan 4, 2026'])
   })
 
   it('formats dates with xAxisFormat everywhere', () => {

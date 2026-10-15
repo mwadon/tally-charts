@@ -110,7 +110,7 @@ export interface BarChartProps<D> extends ChartPassThroughProps<D> {
     axisFormat?: AxisFormat;
     // (undocumented)
     data: readonly D[];
-    dataTable?: boolean;
+    dataTable?: boolean | DataTableOptions;
     domain?: readonly [number, number];
     fill?: PerItem<D, Fill>;
     format?: FormatSpec;
@@ -165,7 +165,7 @@ export function BridgeChart<S extends BridgeStep = BridgeStep>(input: BridgeChar
 export interface BridgeChartProps<S extends BridgeStep = BridgeStep> extends Omit<ChartPassThroughProps<S | BridgeStart>, 'aspectRatio'> {
     area?: boolean;
     callout?: readonly TooltipSegment[];
-    dataTable?: boolean;
+    dataTable?: boolean | DataTableOptions;
     domain?: readonly [number, number];
     format?: FormatSpec;
     highlightLast?: boolean;
@@ -336,7 +336,7 @@ export interface ComparisonBarsProps<D> extends Omit<ChartPassThroughProps<D>, '
     barSize?: number;
     // (undocumented)
     data: readonly D[];
-    dataTable?: boolean;
+    dataTable?: boolean | DataTableOptions;
     deltaWidth?: number;
     dividers?: boolean;
     domain?: readonly [number, number];
@@ -385,6 +385,12 @@ export interface DataTableColumn<D> {
     header: string;
     // (undocumented)
     value: (d: D, i: number) => string;
+}
+
+// @public
+export interface DataTableOptions {
+    caption?: string;
+    columns?: Partial<Record<string, string>>;
 }
 
 // @public (undocumented)
@@ -454,7 +460,7 @@ export interface DotHistogramProps<D> extends Omit<ChartPassThroughProps<D>, 'as
     calloutId?: Id;
     // (undocumented)
     data: readonly D[];
-    dataTable?: boolean;
+    dataTable?: boolean | DataTableOptions;
     domain?: readonly [number, number];
     format?: FormatSpec;
     id?: Accessor<D, Id>;
@@ -705,7 +711,7 @@ export interface LineChartProps<D> extends Omit<ChartPassThroughProps<D>, 'aspec
     band?: LineBand<D>;
     // (undocumented)
     data: readonly D[];
-    dataTable?: boolean;
+    dataTable?: boolean | DataTableOptions;
     domain?: readonly [number, number];
     forecastFrom?: TimeInput;
     format?: FormatSpec;
@@ -867,7 +873,7 @@ export interface RankedBarsProps<D> extends Omit<ChartPassThroughProps<D>, 'aspe
     barSize?: number;
     // (undocumented)
     data: readonly D[];
-    dataTable?: boolean;
+    dataTable?: boolean | DataTableOptions;
     domain?: readonly [number, number];
     fill?: PerItem<D, Fill>;
     format?: FormatSpec;
@@ -973,7 +979,7 @@ export interface StripPlotProps<D> extends Omit<ChartPassThroughProps<D>, 'aspec
     axisFormat?: AxisFormat;
     // (undocumented)
     data: readonly D[];
-    dataTable?: boolean;
+    dataTable?: boolean | DataTableOptions;
     domain?: readonly [number, number];
     format?: FormatSpec;
     id?: Accessor<D, Id>;
@@ -1155,7 +1161,7 @@ export interface WaffleColumnsProps<D> extends Omit<ChartPassThroughProps<D>, 'a
     callout?: boolean | ((d: D) => readonly TooltipSegment[]);
     // (undocumented)
     data: readonly D[];
-    dataTable?: boolean;
+    dataTable?: boolean | DataTableOptions;
     format?: FormatSpec;
     group?: Accessor<D, string>;
     groupTone?: (group: string, index: number, groups: readonly string[]) => Tone;
@@ -1178,7 +1184,7 @@ export interface WaterfallChartProps<S extends WaterfallStep = WaterfallStep> ex
     axisFormat?: AxisFormat;
     barSize?: number;
     connectors?: boolean;
-    dataTable?: boolean;
+    dataTable?: boolean | DataTableOptions;
     domain?: readonly [number, number];
     end?: WaterfallEnd;
     endTone?: Tone;

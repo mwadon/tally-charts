@@ -156,7 +156,7 @@ describe('<WaffleColumns>', () => {
       within(table)
         .getAllByRole('columnheader')
         .map((th) => th.textContent),
-    ).toEqual(['week', 'leaked', 'month'])
+    ).toEqual(['Week', 'Leaked', 'Month'])
   })
 
   it('keeps geometry finite at zero width', () => {

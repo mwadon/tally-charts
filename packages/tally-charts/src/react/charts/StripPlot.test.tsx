@@ -150,7 +150,7 @@ describe('<StripPlot>', () => {
       within(table)
         .getAllByRole('columnheader')
         .map((th) => th.textContent),
-    ).toEqual(['job', 'Estimated', 'Actual'])
+    ).toEqual(['Job', 'Estimated', 'Actual'])
     expect(within(table).getByText('8.2 h')).toBeInTheDocument()
   })
 

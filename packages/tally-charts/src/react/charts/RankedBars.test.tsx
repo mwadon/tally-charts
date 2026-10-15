@@ -195,10 +195,9 @@ describe('<RankedBars>', () => {
   it('renders a hidden data table in display order', () => {
     renderRanked()
     const table = screen.getByRole('table', { name: 'Leakage by cause' })
-    const cells = within(table)
-      .getAllByRole('cell')
-      .map((c) => c.textContent)
-    expect(cells.slice(0, 2)).toEqual(['Labor overruns', '$31.2K'])
+    const first = within(table).getAllByRole('row')[1] as HTMLElement
+    expect(within(first).getByRole('rowheader')).toHaveTextContent('Labor overruns')
+    expect(within(first).getByRole('cell')).toHaveTextContent('$31.2K')
   })
 
   it('reports the user datum to onSelect', () => {

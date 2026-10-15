@@ -20,10 +20,12 @@ import { toneVar } from '../ui/util'
 import {
   type ChartPassThroughProps,
   type ChartTooltip,
+  type DataTableOptions,
   headerOf,
   toNumber,
   tooltipContent,
   userCallbacks,
+  withTableOptions,
 } from './shared'
 
 export interface StripSeries<D> {
@@ -59,8 +61,11 @@ export interface StripPlotProps<D> extends Omit<ChartPassThroughProps<D>, 'aspec
   axis?: TickSpec | 'none'
   /** Axis label format. Default: `format`. */
   axisFormat?: AxisFormat
-  /** Hidden data table for screen readers. Default true. */
-  dataTable?: boolean
+  /**
+   * Hidden data table for screen readers: `true`, `false`, or `{ caption, columns }` to set its
+   * caption and rename column headers. Default true.
+   */
+  dataTable?: boolean | DataTableOptions
   /**
    * Tooltip on hover and focus: `true` for the default pill, or a function that renders the
    * content for a point (`point.datum` is your row). Default true.
@@ -270,7 +275,7 @@ export function StripPlot<D>({
       y={{ type: 'band', domain: series.map((s) => s.id), padding: 0 }}
       margin={m}
       height={height ?? Math.max(1, series.length) * rowHeight + m.top + m.bottom}
-      dataTable={table}
+      dataTable={withTableOptions(table, dataTable)}
     >
       <StripRows
         rows={rows}

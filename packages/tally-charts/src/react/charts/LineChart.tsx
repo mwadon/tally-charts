@@ -31,10 +31,12 @@ import { useRegisterPoints } from '../useRegisterPoints'
 import {
   type ChartPassThroughProps,
   type ChartTooltip,
+  type DataTableOptions,
   headerOf,
   toNumber,
   tooltipContent,
   userCallbacks,
+  withTableOptions,
 } from './shared'
 
 export type LineSeriesStyle = 'actual' | 'forecast' | 'scenario'
@@ -106,8 +108,11 @@ export interface LineChartProps<D> extends Omit<ChartPassThroughProps<D>, 'aspec
   grid?: boolean
   /** Dot radius in px. Default 4. */
   radius?: number
-  /** Hidden data table for screen readers. Default true. */
-  dataTable?: boolean
+  /**
+   * Hidden data table for screen readers: `true`, `false`, or `{ caption, columns }` to set its
+   * caption and rename column headers. Default true.
+   */
+  dataTable?: boolean | DataTableOptions
   /**
    * Tooltip on hover and focus: `true` for the default pill, or a function that renders the
    * content for a point (`point.datum` is your row). Default true.
@@ -387,7 +392,7 @@ export function LineChart<D>({
       y={{ domain: resolvedDomain }}
       margin={m}
       height={height ?? 280}
-      dataTable={table}
+      dataTable={withTableOptions(table, dataTable)}
     >
       {regionFrom !== undefined ? <Region from={regionFrom} /> : null}
       {grid ? <Grid ticks={yAxis === 'none' ? 'all' : yAxis} /> : null}

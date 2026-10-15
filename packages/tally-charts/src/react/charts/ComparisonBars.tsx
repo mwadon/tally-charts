@@ -15,10 +15,12 @@ import type { TooltipSegment } from '../types'
 import {
   type ChartPassThroughProps,
   type ChartTooltip,
+  type DataTableOptions,
   headerOf,
   toNumber,
   tooltipContent,
   userCallbacks,
+  withTableOptions,
 } from './shared'
 
 type ComparisonStatus = 'over' | 'under' | 'on-plan' | 'unknown'
@@ -62,8 +64,11 @@ export interface ComparisonBarsProps<D> extends Omit<ChartPassThroughProps<D>, '
   showValues?: boolean
   /** Thin rules between rows. Default true. */
   dividers?: boolean
-  /** Hidden data table for screen readers. Default true. */
-  dataTable?: boolean
+  /**
+   * Hidden data table for screen readers: `true`, `false`, or `{ caption, columns }` to set its
+   * caption and rename column headers. Default true.
+   */
+  dataTable?: boolean | DataTableOptions
   /**
    * Tooltip on hover and focus: `true` for the default pill, or a function that renders the
    * content for a point (`point.datum` is your row). Default true.
@@ -237,7 +242,7 @@ export function ComparisonBars<D>({
       y={{ type: 'band', field: 'key', padding: 0 }}
       margin={m}
       height={height ?? Math.max(1, rows.length) * rowHeight + m.top + m.bottom}
-      dataTable={table}
+      dataTable={withTableOptions(table, dataTable)}
     >
       {dividers ? <RowDividers /> : null}
       <Bars<ComparisonRow<D>>

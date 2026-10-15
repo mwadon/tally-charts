@@ -18,10 +18,12 @@ import { useRegisterPoints } from '../useRegisterPoints'
 import {
   type ChartPassThroughProps,
   type ChartTooltip,
+  type DataTableOptions,
   headerOf,
   toNumber,
   tooltipContent,
   userCallbacks,
+  withTableOptions,
 } from './shared'
 
 export interface WaffleColumnsProps<D> extends Omit<ChartPassThroughProps<D>, 'aspectRatio'> {
@@ -48,8 +50,11 @@ export interface WaffleColumnsProps<D> extends Omit<ChartPassThroughProps<D>, 'a
   format?: FormatSpec
   /** Inner band padding, 0–1. Default 0.3. */
   padding?: number
-  /** Hidden data table for screen readers. Default true. */
-  dataTable?: boolean
+  /**
+   * Hidden data table for screen readers: `true`, `false`, or `{ caption, columns }` to set its
+   * caption and rename column headers. Default true.
+   */
+  dataTable?: boolean | DataTableOptions
   /**
    * Tooltip on hover and focus: `true` for the default pill, or a function that renders the
    * content for a point (`point.datum` is your row). Default true.
@@ -289,7 +294,7 @@ export function WaffleColumns<D>({
       y={{ domain: [0, 1] }}
       margin={m}
       height={height ?? 200}
-      dataTable={table}
+      dataTable={withTableOptions(table, dataTable)}
     >
       <WaffleBody rows={rows} unit={dotValue} wide={across} fmt={fmt} warn={warn} />
       {group ? <GroupLabels rows={rows} /> : null}
