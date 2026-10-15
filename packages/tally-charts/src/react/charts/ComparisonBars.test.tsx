@@ -158,6 +158,69 @@ describe('<ComparisonBars>', () => {
     expect(within(table).getByText('+$420')).toBeInTheDocument()
   })
 
+  it('stacks the text over full-width bars when the bars would get less than 120px', () => {
+    // 400 − 240 − 220 leaves no room for the bars: 'auto' stacks.
+    const { container } = renderRows({ width: 400 })
+    // No label or value columns: the plot is the full width.
+    expect(container.querySelector('svg > g')).toHaveAttribute('transform', 'translate(0,0)')
+    expect(Number(planBars(container)[0]?.getAttribute('x'))).toBe(0)
+    // Rows grow by two text lines: 3 × (56 + 26 + 18).
+    expect(container.querySelector('svg')).toHaveAttribute('height', '300')
+    const labels = parts(container, '[data-ch-part="row-label"]')
+    const first = labels.find((t) => t.textContent === 'Labor')
+    const delta = labels.find((t) => t.textContent === '+$420')
+    // The label and the delta share the first line, at the left and right edges.
+    expect(first?.getAttribute('y')).toBe(delta?.getAttribute('y'))
+    expect(first).toHaveAttribute('x', '0')
+    expect(delta).toHaveAttribute('x', '400')
+    // The change sits under the delta, on the sublabel's line.
+    const change = parts(container, '[data-ch-part="row-sublabel"]').find(
+      (t) => t.textContent === '$640 → $1,060',
+    )
+    expect(change).toHaveAttribute('text-anchor', 'end')
+    expect(Number(change?.getAttribute('y'))).toBeGreaterThan(Number(first?.getAttribute('y')))
+    // The bars sit under the text, in the lower part of the row.
+    const bar = actualBars(container)[0] as Element
+    expect(Number(bar.getAttribute('y'))).toBeGreaterThan(Number(change?.getAttribute('y')))
+  })
+
+  it('cuts a long label in the stacked layout to the room the values leave', () => {
+    const long = [{ name: 'Permit and disposal fees', estimate: 210, actual: 160 }]
+    const { container } = renderRows({ data: long, sublabel: undefined, width: 200 })
+    const label = parts(container, '[data-ch-part="row-label"]')[0]
+    expect(label?.textContent).toMatch(/…$/)
+  })
+
+  it('stacks rows with one text line when there are no values and no sublabels', () => {
+    const { container } = renderRows({ width: 200, showValues: false, sublabel: undefined })
+    // 3 × (56 + 26): one line of text above the bars.
+    expect(container.querySelector('svg')).toHaveAttribute('height', '246')
+    expect(parts(container, '[data-ch-part="row-labels"][data-ch-side="right"]')).toHaveLength(0)
+    // With no values the label gets the whole line: "Subcontract" is not cut at 200px.
+    expect(parts(container, '[data-ch-part="row-label"]').map((t) => t.textContent)).toEqual([
+      'Labor',
+      'Subcontract',
+      'Permit',
+    ])
+    for (const bar of parts(container, '[data-ch-part="bar"]')) {
+      expect(Number.isFinite(Number(bar.getAttribute('y')))).toBe(true)
+    }
+  })
+
+  it('honours layout="columns" on a narrow chart and layout="stacked" on a wide one', () => {
+    const narrow = renderRows({ width: 400, layout: 'columns' })
+    expect(narrow.container.querySelector('svg > g')).toHaveAttribute(
+      'transform',
+      'translate(240,0)',
+    )
+    for (const bar of parts(narrow.container, '[data-ch-part="bar"]')) {
+      expect(Number.isFinite(Number(bar.getAttribute('width')))).toBe(true)
+    }
+    narrow.unmount()
+    const wide = renderRows({ width: 600, layout: 'stacked' })
+    expect(wide.container.querySelector('svg > g')).toHaveAttribute('transform', 'translate(0,0)')
+  })
+
   it('sizes the chart from the row count', () => {
     const { container } = renderRows()
     expect(container.querySelector('svg')).toHaveAttribute('height', '168')

@@ -65,6 +65,12 @@ export interface ChartProps<D> {
   children?: ReactNode
 }
 
+/** Internal: the margins and height a chart picks once it knows its width. */
+export interface ChartFit {
+  margin: Margin
+  height: number
+}
+
 const DEFAULT_MARGIN: Margin = { top: 20, right: 0, bottom: 28, left: 0 }
 const DEFAULT_HEIGHT = 240
 const EMPTY: readonly never[] = []
@@ -93,7 +99,10 @@ export function Chart<D>({
   style,
   chartId: chartIdProp,
   children,
+  ...internal
 }: ChartProps<D>) {
+  // Internal: ComparisonBars passes `layoutFor` (through FittedChart) to lay out by its width.
+  const { layoutFor } = internal as { layoutFor?: (width: number) => ChartFit }
   const rootRef = useRef<HTMLElement>(null)
   // Set by a pointer press on the plot, so the focus that follows a click doesn't act like Tab.
   const pressed = useRef(false)
@@ -101,8 +110,12 @@ export function Chart<D>({
   const chartId = `ch-${(chartIdProp ?? reactId).replace(/[^a-zA-Z0-9_-]/g, '')}`
   const measured = useWidth(rootRef, initialWidth, width === undefined)
   const w = Math.max(0, width ?? measured)
-  const h = Math.max(0, height ?? (aspectRatio ? Math.round(w / aspectRatio) : DEFAULT_HEIGHT))
-  const margin: Margin = { ...DEFAULT_MARGIN, ...marginProp }
+  const fitted = layoutFor?.(w)
+  const h = Math.max(
+    0,
+    fitted?.height ?? height ?? (aspectRatio ? Math.round(w / aspectRatio) : DEFAULT_HEIGHT),
+  )
+  const margin: Margin = fitted?.margin ?? { ...DEFAULT_MARGIN, ...marginProp }
   const innerWidth = Math.max(0, w - margin.left - margin.right)
   const innerHeight = Math.max(0, h - margin.top - margin.bottom)
   const rows: readonly D[] = data ?? EMPTY
@@ -320,3 +333,8 @@ export function Chart<D>({
     </figure>
   )
 }
+
+/** Internal: `<Chart>` that picks its margins and height from its measured width. */
+export const FittedChart = Chart as <D>(
+  props: ChartProps<D> & { layoutFor: (width: number) => ChartFit },
+) => ReturnType<typeof Chart>

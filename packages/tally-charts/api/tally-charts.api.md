@@ -347,6 +347,7 @@ export interface ComparisonBarsProps<D> extends Omit<ChartPassThroughProps<D>, '
     id?: Accessor<D, Id>;
     label: Accessor<D, string>;
     labelWidth?: number;
+    layout?: 'auto' | 'columns' | 'stacked';
     onPlanLabel?: string;
     plan: Accessor<D, number>;
     rowHeight?: number;
