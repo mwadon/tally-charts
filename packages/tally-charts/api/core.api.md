@@ -168,6 +168,41 @@ export type ResolvedScale = {
 };
 
 // @public (undocumented)
+export interface RunwayForecast {
+    elapsed: number;
+    lockedMs: number;
+    paceRatio: number;
+    projection: RunwayPoint[];
+    // (undocumented)
+    resetAt: Date;
+    runsOutAt?: Date;
+    usedAtReset: number;
+}
+
+// @public
+export function runwayForecast(input: RunwayForecastInput): RunwayForecast;
+
+// @public (undocumented)
+export interface RunwayForecastInput {
+    // (undocumented)
+    now: TimeInput;
+    pace?: number;
+    // (undocumented)
+    resetAt: TimeInput;
+    used: number;
+    // (undocumented)
+    windowStart: TimeInput;
+}
+
+// @public
+export interface RunwayPoint {
+    // (undocumented)
+    at: Date;
+    // (undocumented)
+    used: number;
+}
+
+// @public (undocumented)
 export type ScaleSpec<D> = LinearScaleSpec<D> | BandScaleSpec<D> | PointScaleSpec<D> | TimeScaleSpec<D>;
 
 // @public

@@ -908,6 +908,7 @@ export function Region(input: RegionProps): JSX.Element | null;
 
 // @public (undocumented)
 export interface RegionProps {
+    fill?: 'solid' | 'hatch';
     from: TimeInput;
     to?: TimeInput;
     tone?: Tone;
@@ -952,6 +953,117 @@ export interface RowLabelsProps<D> {
     text: Accessor<D, string>;
     tone?: PerItem<D, Tone | undefined>;
     y?: Accessor<D, string | number>;
+}
+
+// @public (undocumented)
+export function RunwayChart(input: RunwayChartProps): JSX.Element;
+
+// @public (undocumented)
+export interface RunwayChartProps {
+    // (undocumented)
+    activeId?: string | null;
+    breaks?: readonly number[];
+    cell?: string | number;
+    // (undocumented)
+    chartId?: string;
+    // (undocumented)
+    className?: string;
+    // (undocumented)
+    dataTable?: boolean | DataTableOptions;
+    // (undocumented)
+    description?: string;
+    domain: readonly [TimeInput, TimeInput];
+    // (undocumented)
+    empty?: ReactNode;
+    initialWidth?: number;
+    labelWidth?: number;
+    layout?: 'auto' | 'columns' | 'stacked';
+    legend?: boolean;
+    // (undocumented)
+    now: TimeInput;
+    // (undocumented)
+    onActiveChange?: (id: string | null, row: RunwayRow | null) => void;
+    // (undocumented)
+    onSelect?: (id: string, row: RunwayRow) => void;
+    // (undocumented)
+    rows: readonly RunwayRow[];
+    selectedId?: string | null;
+    status?: (row: RunwayRow, facts: RunwayFacts) => ReactNode;
+    // (undocumented)
+    style?: CSSProperties;
+    timeZone?: TimeZone;
+    // (undocumented)
+    title?: string;
+    tone?: Tone;
+}
+
+// @public
+export interface RunwayFacts {
+    // (undocumented)
+    forecast: boolean;
+    // (undocumented)
+    resetAt?: Date;
+    resetBeyond: boolean;
+    // (undocumented)
+    runsOutAt?: Date;
+    runsOutBeyond: boolean;
+    usedAtReset: number;
+}
+
+// @public (undocumented)
+export interface RunwayForecast {
+    elapsed: number;
+    lockedMs: number;
+    paceRatio: number;
+    projection: RunwayPoint[];
+    // (undocumented)
+    resetAt: Date;
+    runsOutAt?: Date;
+    usedAtReset: number;
+}
+
+// @public
+export function runwayForecast(input: RunwayForecastInput): RunwayForecast;
+
+// @public (undocumented)
+export interface RunwayForecastInput {
+    // (undocumented)
+    now: TimeInput;
+    pace?: number;
+    // (undocumented)
+    resetAt: TimeInput;
+    used: number;
+    // (undocumented)
+    windowStart: TimeInput;
+}
+
+// @public
+export interface RunwayPoint {
+    // (undocumented)
+    at: Date;
+    // (undocumented)
+    used: number;
+}
+
+// @public (undocumented)
+export interface RunwayRow {
+    disconnected?: boolean;
+    // (undocumented)
+    icon?: ReactNode;
+    // (undocumented)
+    id: string;
+    // (undocumented)
+    label: string;
+    projection?: readonly {
+        at: TimeInput;
+        used: number;
+    }[];
+    // (undocumented)
+    resetAt?: TimeInput;
+    // (undocumented)
+    runsOutAt?: TimeInput;
+    status?: ReactNode;
+    sublabel?: string;
 }
 
 // @public (undocumented)
