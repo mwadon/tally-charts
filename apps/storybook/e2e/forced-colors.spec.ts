@@ -73,6 +73,31 @@ for (const colorScheme of ['light', 'dark'] as const) {
       expect(ring.color).toBe(await systemColor(page, 'Highlight'))
     })
 
+    test(`runway cells keep a visible edge (${colorScheme})`, async ({ page }) => {
+      await openForced(page, 'charts-runwaychart--states-light', colorScheme)
+      const strokes = await page
+        .locator('#storybook-root [data-ch-part="runway-cell"]')
+        .evaluateAll((els) => els.map((el) => getComputedStyle(el).stroke))
+      expect(strokes.length).toBeGreaterThan(0)
+      for (const stroke of strokes) expect(stroke).not.toBe('none')
+    })
+
+    test(`a keyboard-focused runway row gets a Highlight ring (${colorScheme})`, async ({
+      page,
+    }) => {
+      await openForced(page, 'charts-runwaychart--states-light', colorScheme)
+      const rows = page.locator('#storybook-root [data-ch-part="runway-row"]')
+      await page.keyboard.press('Tab')
+      await page.keyboard.press('ArrowDown')
+      const ring = await rows.nth(1).evaluate((el) => {
+        const style = getComputedStyle(el)
+        return { style: style.outlineStyle, color: style.outlineColor }
+      })
+      expect(ring).toEqual({ style: 'solid', color: await systemColor(page, 'Highlight') })
+      // The selected row, not focused, keeps its dashed outline.
+      expect(await rows.nth(0).evaluate((el) => getComputedStyle(el).outlineStyle)).toBe('dashed')
+    })
+
     test('chart text follows the system text color and the widget keeps its ring', async ({
       page,
     }) => {

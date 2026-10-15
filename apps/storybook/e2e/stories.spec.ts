@@ -282,3 +282,14 @@ for (const theme of ['light', 'dark']) {
     }
   })
 }
+
+test('arrow keys and Enter select a runway row and update the detail panel', async ({ page }) => {
+  await open(page, 'reference-usage-runway--light')
+  const box = page.getByRole('listbox', { name: 'Usage runway' })
+  await box.focus()
+  await page.keyboard.press('ArrowDown')
+  await page.keyboard.press('ArrowDown')
+  await page.keyboard.press('Enter')
+  await expect(box.getByRole('option', { selected: true })).toHaveAccessibleName(/^Team seat Max /)
+  await expect(page.getByTestId('runway-detail-title')).toHaveText('Team seat Max')
+})

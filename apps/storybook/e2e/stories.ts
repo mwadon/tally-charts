@@ -41,6 +41,12 @@ export const STORIES = [
   'charts-time-axis--monthly-dark',
   'primitives-sequential--light',
   'primitives-sequential--dark',
+  'reference-usage-runway--light',
+  'reference-usage-runway--dark',
+  'charts-runwaychart--states-light',
+  'charts-runwaychart--states-dark',
+  'charts-runwaychart--stacked-light',
+  'charts-runwaychart--stacked-dark',
 ]
 
 // Stories whose reference layout needs more room than the default 800px viewport.
@@ -57,6 +63,8 @@ export const WIDE_STORIES: Record<string, { width: number; height: number }> = {
   'reference-margin-outlook--dark': { width: 1280, height: 640 },
   'reference-where-it-leaks--light': { width: 1280, height: 600 },
   'reference-where-it-leaks--dark': { width: 1280, height: 600 },
+  'reference-usage-runway--light': { width: 1280, height: 760 },
+  'reference-usage-runway--dark': { width: 1280, height: 760 },
 }
 
 // Stories without a theme of their own follow the toolbar global: axe checks them in both themes.
