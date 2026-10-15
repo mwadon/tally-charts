@@ -150,6 +150,34 @@ const PARTS = [
   'value-labels',
 ]
 
+/**
+ * `data-ch-*` state and variant attributes (besides `data-ch-part`): public like the parts, so
+ * renaming one is an API change.
+ */
+const STATES = [
+  'active',
+  'animate',
+  'dashed',
+  'dimmed',
+  'direction',
+  'fill',
+  'hollow',
+  'level',
+  'muted',
+  'placement',
+  'root',
+  'selectable',
+  'seq-tone',
+  'shape',
+  'side',
+  'size',
+  'soft',
+  'theme',
+  'tone',
+  'totals',
+  'variant',
+]
+
 /** Classes theme.css may still select: private plumbing, never documented. */
 const PRIVATE_CLASSES = [
   'ch-fillable',
@@ -189,6 +217,13 @@ describe('the public CSS surface', () => {
     expect(unique(parts)).toEqual(unique(PARTS))
   })
 
+  it('uses exactly the listed data-ch-* state attributes', () => {
+    const states = [css, ...code].flatMap((text) =>
+      [...text.matchAll(/data-ch-([a-z0-9]+(?:-[a-z0-9]+)*)/g)].map((m) => m[1] ?? ''),
+    )
+    expect(unique(states.filter((name) => name !== 'part'))).toEqual(unique(STATES))
+  })
+
   it('styles sub-parts through data-ch-part, not classes', () => {
     const classes = unique([...css.matchAll(/\.(ch-[a-z-]+)(?![\w-])/g)].map((m) => m[1] ?? ''))
     expect(classes.filter((c) => !PRIVATE_CLASSES.includes(c))).toEqual([])
@@ -199,6 +234,10 @@ describe('the public CSS surface', () => {
       expect(css).toContain(name)
     }
     expect(css).toContain('--_ch-seq-ink-strong')
-    expect(css).not.toMatch(/data-ch-dir=/)
+    // Neither the stylesheet nor a component uses the pre-0.6 private names.
+    for (const text of [css, ...code]) {
+      expect(text).not.toMatch(/--ch-(?:swatch-color|range-ref|heatmap-columns|seq-ink)/)
+      expect(text).not.toMatch(/data-ch-dir\b/)
+    }
   })
 })
