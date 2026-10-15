@@ -192,7 +192,7 @@ One SVG per row, height 32 px, `aria-hidden`. Cells have a 2 px gap (1 px when a
 2. the now line: dashed, `--ch-ink-muted`, through every row's strip at `now`
 3. the reset tick: 2 px `--ch-ink`, full strip height, at `resetAt`
 4. the runs-out dot: radius 5, `loss` fill with a surface-colored 2 px ring, at `runsOutAt`
-5. the "reset" label: right of the tick if it fits before the domain end, else omitted (the status says it anyway); never left, where it would sit on hatched cells; `--ch-ink-muted` text, 4.5:1 against the surface
+5. the "reset" label: right of the tick if it fits before the domain end, else omitted (the status says it anyway); never left, where it would sit on hatched cells; `--ch-ink-muted` text with a surface-coloured halo, 4.5:1 against the surface
 
 Hatch patterns come from `PatternDefs`, rendered once in a hidden SVG at the chart root with ids prefixed by the chart id (the chart is not inside `<Chart>`).
 
@@ -202,8 +202,8 @@ Only existing tokens. New rules go in `theme.css` before the forced-colors block
 
 - Levels: `tone` (default `neutral`) is always written as `data-ch-seq-tone`, which picks that tone's base and level shares.
 - Selected row: the same background as other charts' highlighted item; active (hover/focus) row: the hover background; focus ring on the focused row per the 0.6b focus rules.
-- Disconnected row: label, icon and strip at the muted opacity used for disabled text.
-- Forced colors: cell outlines `CanvasText`; levels by fill opacity steps of `CanvasText`; locked hatch stays visible in `CanvasText`; runs-out dot and selected row in `Highlight`; now line and reset tick `CanvasText`.
+- Disconnected row: label, icon and strip in the muted text colour, with no extra opacity (4.5:1).
+- Forced colors: cell outlines `CanvasText`; levels by fill opacity steps of `CanvasText`; locked hatch stays visible in `CanvasText`; runs-out dot `Highlight`; selected row a dashed `CanvasText` outline and keyboard focus a solid `Highlight` outline (Heatmap's convention); now line and reset tick `CanvasText`.
 
 ### 4.4 Legend
 
@@ -253,7 +253,7 @@ E2e (Playwright, existing specs extended with new stories): screenshots both the
 ## 8. Stories, docs, release
 
 - `Charts/RunwayChart`: every cell state, disconnected, runs-out beyond the domain, stacked layout, custom status, no `onSelect`.
-- `Reference/Usage runway`: the whole card — `RunwayChart` left; right a detail panel for the selected row: header, burn-up (`LineChart` with area, dotted even pace, dashed current pace, runs-out dot, `Region fill="hatch"`), three `Stat`s, "Recent pace" (`Bars` with per-item within/over tone and a `Target`), Forecast/Table toggle. Data from `runwayForecast`. **Account names and icons are fictional and generic** (no real product names or logos), since the repo becomes public.
+- `Reference/Usage runway`: the whole card — `RunwayChart` left; right a detail panel for the selected row: header, burn-up (`LineChart` with area, even pace as a neutral dashed line, dashed current pace, an area under used, runs-out dot, `Region fill="hatch"`), three `Stat`s, "Recent pace" (`Bars` with per-item within/over tone and a `Target`), Forecast/Table toggle. Data from `runwayForecast`. **Account names and icons are fictional and generic** (no real product names or logos), since the repo becomes public.
 - If composing the panel needs anything beyond §7, it is added additively in this cycle and called out in the plan.
 - Size-limit: new `RunwayChart` entry, 15 KB.
 - Docs: README section; `docs/a11y.md` entry (listbox model, where the detail lives); API report update; changeset `minor` (0.7.0).
