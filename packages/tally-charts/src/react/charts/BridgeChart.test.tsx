@@ -261,9 +261,9 @@ describe('<BridgeChart>', () => {
   it('announces totals and reports the step to onSelect', () => {
     const onSelect = vi.fn()
     const { container } = renderBridge({ onSelect })
-    const figure = screen.getByRole('figure', { name: 'Planned $1,260, kept $400' })
-    fireEvent.keyDown(figure, { key: 'ArrowRight' })
-    fireEvent.keyDown(figure, { key: 'ArrowRight' })
+    const chart = screen.getByRole('application', { name: 'Planned $1,260, kept $400' })
+    fireEvent.keyDown(chart, { key: 'ArrowRight' })
+    fireEvent.keyDown(chart, { key: 'ArrowRight' })
     expect(container.querySelector('[aria-live]')).toHaveTextContent(
       'After discount, $1,000, −$260 discount',
     )

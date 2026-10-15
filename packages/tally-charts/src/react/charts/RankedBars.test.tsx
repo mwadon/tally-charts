@@ -166,7 +166,7 @@ describe('<RankedBars>', () => {
     const name = 'A very long cause name that will not fit'
     const { container } = renderRanked({ data: [{ name, amount: 5 }], labelWidth: 100 })
     expect(names(container)[0]).toMatch(/…$/)
-    fireEvent.keyDown(screen.getByRole('figure'), { key: 'ArrowDown' })
+    fireEvent.keyDown(screen.getByRole('application'), { key: 'ArrowDown' })
     expect(container.querySelector('[aria-live]')?.textContent).toContain(name)
     expect(within(screen.getByRole('table')).getByText(name)).toBeInTheDocument()
   })

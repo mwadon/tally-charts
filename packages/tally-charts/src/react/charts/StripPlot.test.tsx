@@ -83,13 +83,13 @@ describe('<StripPlot>', () => {
 
   it('moves along a row and between rows', () => {
     const { container } = renderStrip()
-    const figure = screen.getByRole('figure', { name: 'Dallas installs' })
+    const chart = screen.getByRole('application', { name: 'Dallas installs' })
     const live = () => container.querySelector('[aria-live]')?.textContent
-    fireEvent.keyDown(figure, { key: 'ArrowRight' })
+    fireEvent.keyDown(chart, { key: 'ArrowRight' })
     expect(live()).toBe('Estimated, A, 6 h')
-    fireEvent.keyDown(figure, { key: 'ArrowRight' })
+    fireEvent.keyDown(chart, { key: 'ArrowRight' })
     expect(live()).toBe('Estimated, B, 6.1 h')
-    fireEvent.keyDown(figure, { key: 'ArrowDown' })
+    fireEvent.keyDown(chart, { key: 'ArrowDown' })
     expect(live()).toBe('Actual, A, 8 h')
   })
 
@@ -115,10 +115,10 @@ describe('<StripPlot>', () => {
   it('falls back to index ids on duplicate ids, keeping every dot reachable', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     const { container } = renderStrip({ id: (d) => (d.job === 'C' ? 'C' : 'A') })
-    const figure = screen.getByRole('figure', { name: 'Dallas installs' })
+    const chart = screen.getByRole('application', { name: 'Dallas installs' })
     const seen = new Set<string>()
     for (let i = 0; i < 3; i++) {
-      fireEvent.keyDown(figure, { key: 'ArrowRight' })
+      fireEvent.keyDown(chart, { key: 'ArrowRight' })
       seen.add(container.querySelector('[aria-live]')?.textContent ?? '')
     }
     expect(seen.size).toBe(3)

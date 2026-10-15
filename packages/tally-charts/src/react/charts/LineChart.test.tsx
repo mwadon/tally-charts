@@ -141,12 +141,12 @@ describe('<LineChart>', () => {
 
   it('announces every series at an x for the keyboard', () => {
     const { container } = renderLines()
-    const figure = screen.getByRole('figure', { name: 'Margin outlook' })
-    fireEvent.keyDown(figure, { key: 'End' })
+    const chart = screen.getByRole('application', { name: 'Margin outlook' })
+    fireEvent.keyDown(chart, { key: 'End' })
     expect(live(container)).toBe('Sep, 36.0% on the current path, 38.0% with changes')
-    fireEvent.keyDown(figure, { key: 'Home' })
+    fireEvent.keyDown(chart, { key: 'Home' })
     expect(live(container)).toBe('Jun, 34.0% Actual')
-    fireEvent.keyDown(figure, { key: 'ArrowRight' })
+    fireEvent.keyDown(chart, { key: 'ArrowRight' })
     expect(live(container)).toBe('Jul, 32.0% Actual')
   })
 
@@ -165,9 +165,9 @@ describe('<LineChart>', () => {
   it('selects with Enter and reports the original row', () => {
     const onSelect = vi.fn()
     renderLines({ onSelect })
-    const figure = screen.getByRole('figure', { name: 'Margin outlook' })
-    fireEvent.keyDown(figure, { key: 'Home' })
-    fireEvent.keyDown(figure, { key: 'Enter' })
+    const chart = screen.getByRole('application', { name: 'Margin outlook' })
+    fireEvent.keyDown(chart, { key: 'Home' })
+    fireEvent.keyDown(chart, { key: 'Enter' })
     expect(onSelect).toHaveBeenCalledWith('Jun', expect.objectContaining({ datum: months[0] }))
   })
 
@@ -280,7 +280,7 @@ describe('<LineChart>', () => {
     const dots = parts(container, 'line-dot')
     expect(dots).toHaveLength(1)
     expect(dots[0]).toHaveAttribute('cx', '200')
-    fireEvent.keyDown(screen.getByRole('figure', { name: 'Margin outlook' }), { key: 'Home' })
+    fireEvent.keyDown(screen.getByRole('application', { name: 'Margin outlook' }), { key: 'Home' })
     expect(live(container)).toBe('Jun, 34.0% Actual')
   })
 
@@ -403,7 +403,7 @@ describe('<LineChart> on a time axis', () => {
     expect(parts(container, 'dot-ring').map((r) => r.getAttribute('cx'))).toEqual(['300'])
     unmount()
     const again = renderTimeLines()
-    fireEvent.keyDown(screen.getByRole('figure', { name: 'Readings' }), { key: 'End' })
+    fireEvent.keyDown(screen.getByRole('application', { name: 'Readings' }), { key: 'End' })
     expect(live(again.container)).toBe('Jan 4, 2026, 35.0% Plan')
     const table = screen.getByRole('table', { name: 'Readings' })
     expect(
@@ -445,16 +445,16 @@ describe('<LineChart> on a time axis', () => {
     const { container } = renderTimeLines({
       data: [readings[2] as Reading, readings[0] as Reading, readings[1] as Reading],
     })
-    const figure = screen.getByRole('figure', { name: 'Readings' })
-    fireEvent.keyDown(figure, { key: 'Home' })
+    const chart = screen.getByRole('application', { name: 'Readings' })
+    fireEvent.keyDown(chart, { key: 'Home' })
     expect(live(container)).toBe('Jan 1, 2026, 34.0% Actual')
-    fireEvent.keyDown(figure, { key: 'ArrowRight' })
+    fireEvent.keyDown(chart, { key: 'ArrowRight' })
     expect(live(container)).toBe('Jan 2, 2026, 32.0% Actual')
-    fireEvent.keyDown(figure, { key: 'ArrowRight' })
+    fireEvent.keyDown(chart, { key: 'ArrowRight' })
     expect(live(container)).toBe('Jan 4, 2026, 35.0% Plan')
-    fireEvent.keyDown(figure, { key: 'ArrowLeft' })
+    fireEvent.keyDown(chart, { key: 'ArrowLeft' })
     expect(live(container)).toBe('Jan 2, 2026, 32.0% Actual')
-    fireEvent.keyDown(figure, { key: 'ArrowLeft' })
+    fireEvent.keyDown(chart, { key: 'ArrowLeft' })
     expect(live(container)).toBe('Jan 1, 2026, 34.0% Actual')
   })
 
@@ -474,10 +474,10 @@ describe('<LineChart> on a time axis', () => {
       )
       expect(xs.every((x) => x >= 0 && x <= 400)).toBe(true)
     }
-    const figure = screen.getByRole('figure', { name: 'Readings' })
-    fireEvent.keyDown(figure, { key: 'Home' })
+    const chart = screen.getByRole('application', { name: 'Readings' })
+    fireEvent.keyDown(chart, { key: 'Home' })
     expect(live(container)).toBe('Jan 2, 2026, 32.0% Actual')
-    fireEvent.keyDown(figure, { key: 'End' })
+    fireEvent.keyDown(chart, { key: 'End' })
     expect(live(container)).toBe('Jan 4, 2026, 35.0% Plan')
     expect(warn).toHaveBeenCalledTimes(1)
     expect(warn.mock.calls[0]?.[0]).toContain('skipped a date outside the x domain')

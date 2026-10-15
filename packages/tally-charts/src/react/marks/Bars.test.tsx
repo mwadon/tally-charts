@@ -232,13 +232,13 @@ describe('<Bars>', () => {
 
   it('registers readable points for the keyboard', () => {
     const { container } = renderBars({ format: 'percent' })
-    fireEvent.keyDown(screen.getByRole('figure'), { key: 'ArrowRight' })
+    fireEvent.keyDown(screen.getByRole('application'), { key: 'ArrowRight' })
     expect(container.querySelector('[aria-live]')).toHaveTextContent('W1, 10.0%')
   })
 
   it('uses a label accessor for announcements', () => {
     const { container } = renderBars({ label: (d) => `Week of ${d.week}` })
-    fireEvent.keyDown(screen.getByRole('figure'), { key: 'End' })
+    fireEvent.keyDown(screen.getByRole('application'), { key: 'End' })
     expect(container.querySelector('[aria-live]')).toHaveTextContent('Week of W2, 20')
   })
 
@@ -267,13 +267,19 @@ describe('<Bars>', () => {
     const onActiveChange = vi.fn()
     const { container } = renderBars({ interactive: false }, { onActiveChange })
     expect(hits(container)).toHaveLength(0)
-    fireEvent.keyDown(container.querySelector('figure') as Element, { key: 'ArrowRight' })
+    // No points, so no keyboard widget: the plot is not focusable and ignores keys.
+    expect(container.querySelector('[role="application"]')).toBeNull()
+    fireEvent.keyDown(container.querySelector('[data-ch-part="plot"]') as Element, {
+      key: 'ArrowRight',
+    })
     expect(onActiveChange).not.toHaveBeenCalled()
   })
 
   it('announces ariaLabel text', () => {
     const { container } = renderBars({ ariaLabel: (d) => `Week ${d.week}` })
-    fireEvent.keyDown(container.querySelector('figure') as Element, { key: 'ArrowRight' })
+    fireEvent.keyDown(container.querySelector('[role="application"]') as Element, {
+      key: 'ArrowRight',
+    })
     expect(container.querySelector('[aria-live]')).toHaveTextContent('Week W1')
   })
 

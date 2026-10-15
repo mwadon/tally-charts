@@ -56,7 +56,7 @@ describe('<Chart>', () => {
     expect(ctx?.radius).toBe(3)
   })
 
-  it('renders a named, described figure that is one tab stop', () => {
+  it('renders a named, described figure with one tab stop inside: the chart widget', () => {
     render(
       <Chart
         data={weeks}
@@ -64,12 +64,55 @@ describe('<Chart>', () => {
         title="Margin by week"
         description="Under target for 12 weeks."
       >
+        <PointsProbe ids={[1, 2]} />
+      </Chart>,
+    )
+    // (Named `fig`, not `figure`: Step 4's sed rewrites `const figure = …` lines.)
+    const fig = screen.getByRole('figure', { name: 'Margin by week' })
+    expect(fig).toHaveAccessibleDescription('Under target for 12 weeks.')
+    expect(fig).not.toHaveAttribute('tabindex')
+    const chart = within(fig).getByRole('application', { name: 'Margin by week' })
+    expect(chart).toHaveAttribute('aria-roledescription', 'chart')
+    expect(chart).toHaveAttribute('tabindex', '0')
+    expect(chart).toHaveAccessibleDescription(
+      'Under target for 12 weeks. Use arrow keys to move between points, Home and End for first and last, Escape to clear.',
+    )
+    // The data table and the live region stay outside the widget, where browse mode reads them.
+    expect(chart.querySelector('[aria-live]')).toBeNull()
+  })
+
+  it('adds Enter to the hint with onSelect, takes a custom hint, and drops an empty one', () => {
+    const { rerender } = render(
+      <Chart width={400} title="Probe" onSelect={() => {}}>
+        <PointsProbe ids={[1]} />
+      </Chart>,
+    )
+    expect(screen.getByRole('application')).toHaveAccessibleDescription(
+      'Use arrow keys to move between points, Home and End for first and last, Escape to clear. Press Enter to select.',
+    )
+    rerender(
+      <Chart width={400} title="Probe" keyboardHint="Flèches pour se déplacer.">
+        <PointsProbe ids={[1]} />
+      </Chart>,
+    )
+    expect(screen.getByRole('application')).toHaveAccessibleDescription('Flèches pour se déplacer.')
+    rerender(
+      <Chart width={400} title="Probe" keyboardHint="">
+        <PointsProbe ids={[1]} />
+      </Chart>,
+    )
+    expect(screen.getByRole('application')).not.toHaveAttribute('aria-describedby')
+  })
+
+  it('is not focusable while no mark registers points', () => {
+    const { container } = render(
+      <Chart data={weeks} width={400} title="Lines only">
         {null}
       </Chart>,
     )
-    const figure = screen.getByRole('figure', { name: 'Margin by week' })
-    expect(figure).toHaveAccessibleDescription('Under target for 12 weeks.')
-    expect(figure).toHaveAttribute('tabindex', '0')
+    expect(screen.queryByRole('application')).toBeNull()
+    expect(container.querySelector('[tabindex]')).toBeNull()
+    expect(container.querySelector('[data-ch-part="plot"] svg')).not.toBeNull()
   })
 
   it('sizes the svg from width and height, or from aspectRatio', () => {
@@ -114,7 +157,7 @@ describe('<Chart>', () => {
     )
     expect(screen.getByText('Nothing yet')).toBeInTheDocument()
     expect(container.querySelector('svg')).toBeNull()
-    expect(screen.getByRole('figure')).not.toHaveAttribute('tabindex')
+    expect(container.querySelector('[tabindex]')).toBeNull()
     expect(warn).not.toHaveBeenCalled()
   })
 
@@ -164,7 +207,7 @@ describe('<Chart>', () => {
         <PointsProbe ids={['a', 'b']} />
       </Chart>,
     )
-    fireEvent.keyDown(screen.getByRole('figure', { name: 'Probe' }), { key: 'End' })
+    fireEvent.keyDown(screen.getByRole('application', { name: 'Probe' }), { key: 'End' })
     expect(onActiveChange).toHaveBeenLastCalledWith(
       'b',
       expect.objectContaining({ label: 'Week b' }),
@@ -230,14 +273,14 @@ describe('<Chart>', () => {
         <PointsProbe ids={[1, 2, 3]} />
       </Chart>,
     )
-    const figure = screen.getByRole('figure')
+    const chart = screen.getByRole('application')
     const live = container.querySelector('[aria-live]')
-    fireEvent.keyDown(figure, { key: 'ArrowRight' })
+    fireEvent.keyDown(chart, { key: 'ArrowRight' })
     expect(onActiveChange).toHaveBeenLastCalledWith(1, expect.objectContaining({ label: 'Week 1' }))
     expect(live).toHaveTextContent('Week 1')
-    fireEvent.keyDown(figure, { key: 'End' })
+    fireEvent.keyDown(chart, { key: 'End' })
     expect(live).toHaveTextContent('Week 3')
-    fireEvent.keyDown(figure, { key: 'Escape' })
+    fireEvent.keyDown(chart, { key: 'Escape' })
     expect(onActiveChange).toHaveBeenLastCalledWith(null, null)
     expect(live?.textContent).toBe('')
   })
@@ -249,9 +292,9 @@ describe('<Chart>', () => {
         <PointsProbe ids={['a', 'b']} />
       </Chart>,
     )
-    const figure = screen.getByRole('figure')
-    fireEvent.keyDown(figure, { key: 'ArrowRight' })
-    fireEvent.keyDown(figure, { key: 'Enter' })
+    const chart = screen.getByRole('application')
+    fireEvent.keyDown(chart, { key: 'ArrowRight' })
+    fireEvent.keyDown(chart, { key: 'Enter' })
     expect(onSelect).toHaveBeenCalledWith('a', expect.objectContaining({ id: 'a' }))
   })
 
@@ -299,10 +342,10 @@ describe('<Chart>', () => {
         <PointsProbe ids={['a', 'b']} />
       </Chart>,
     )
-    const figure = screen.getByRole('figure')
-    fireEvent.keyDown(figure, { key: 'ArrowRight' })
-    fireEvent.keyDown(figure, { key: 'ArrowRight' })
-    fireEvent.keyDown(figure, { key: 'ArrowRight' })
+    const chart = screen.getByRole('application')
+    fireEvent.keyDown(chart, { key: 'ArrowRight' })
+    fireEvent.keyDown(chart, { key: 'ArrowRight' })
+    fireEvent.keyDown(chart, { key: 'ArrowRight' })
     expect(onActiveChange.mock.calls.map((call) => call[0])).toEqual(['a', 'b'])
   })
 

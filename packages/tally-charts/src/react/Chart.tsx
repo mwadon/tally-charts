@@ -39,6 +39,12 @@ export interface ChartProps<D> {
   description?: string
   /** Visually hidden table of the data for screen readers. High-level charts set it by default. */
   dataTable?: DataTableSpec<D>
+  /**
+   * Instructions read with the chart when it takes keyboard focus. Default: "Use arrow keys to
+   * move between points, Home and End for first and last, Escape to clear.", plus " Press Enter
+   * to select." with `onSelect`. Set it to translate the text; `""` turns it off.
+   */
+  keyboardHint?: string
   activeId?: Id | null
   /** Called with the new active id, and its point; `point.datum` is the row from `data`. */
   onActiveChange?: (id: Id | null, point: ChartPoint<D> | null) => void
@@ -75,6 +81,7 @@ export function Chart<D>({
   title,
   description,
   dataTable,
+  keyboardHint,
   activeId,
   onActiveChange,
   onSelect,
@@ -182,6 +189,17 @@ export function Chart<D>({
       : ''
   const titleId = `${chartId}-title`
   const descId = `${chartId}-desc`
+  const hintId = `${chartId}-hint`
+  // Only a chart whose marks registered points takes focus: the arrow keys need something to
+  // move to. The first render (and the server's) has none yet, so the attributes arrive after
+  // mount and hydration still matches.
+  const interactive = interaction.points.length > 0
+  const hint =
+    keyboardHint ??
+    `Use arrow keys to move between points, Home and End for first and last, Escape to clear.${
+      onSelect ? ' Press Enter to select.' : ''
+    }`
+  const describedBy = [description ? descId : '', hint ? hintId : ''].filter(Boolean).join(' ')
 
   // While measuring, CSS keeps the box at the right height before the real width is known.
   // `minHeight: 0` stops the not-yet-resized svg from stretching the box (an aspect-ratio box
@@ -201,12 +219,7 @@ export function Chart<D>({
       style={{ ...sizeStyle, ...style }}
       aria-labelledby={title ? titleId : undefined}
       aria-describedby={description ? descId : undefined}
-      tabIndex={isEmpty ? undefined : 0}
-      onKeyDown={isEmpty ? undefined : onKeyDown}
       onPointerLeave={() => interaction.setActive(null, 'pointer')}
-      onBlur={() => {
-        if (interaction.source === 'keyboard') interaction.setActive(null, 'keyboard')
-      }}
     >
       {title ? (
         <span hidden id={titleId} className="ch-sr-only">
@@ -218,23 +231,48 @@ export function Chart<D>({
           {description}
         </span>
       ) : null}
+      {interactive && hint ? (
+        <span hidden id={hintId} className="ch-sr-only">
+          {hint}
+        </span>
+      ) : null}
       {isEmpty ? (
         <div data-ch-part="empty" className="ch-empty">
           {empty ?? 'No data'}
         </div>
       ) : (
         <ChartContext.Provider value={ctx}>
-          <svg width={w} height={h} aria-hidden="true" focusable="false" className="ch-svg">
-            <PatternDefs chartId={chartId} geometry={hatch} />
-            <g transform={`translate(${margin.left},${margin.top})`}>{children}</g>
-          </svg>
+          {/* The focusable widget. A figure is not one, so screen readers in browse mode would
+              keep the arrow keys; role="application" hands them to the chart. The data table
+              stays outside, where browse mode can read it. */}
           <div
-            ref={setOverlay}
-            data-ch-part="overlay"
-            aria-hidden="true"
-            className="ch-overlay"
-            style={{ left: margin.left, top: margin.top, width: innerWidth, height: innerHeight }}
-          />
+            data-ch-part="plot"
+            {...(interactive
+              ? {
+                  role: 'application',
+                  'aria-roledescription': 'chart',
+                  'aria-labelledby': title ? titleId : undefined,
+                  'aria-describedby': describedBy || undefined,
+                  tabIndex: 0,
+                  onKeyDown,
+                  onBlur: () => {
+                    if (interaction.source === 'keyboard') interaction.setActive(null, 'keyboard')
+                  },
+                }
+              : null)}
+          >
+            <svg width={w} height={h} aria-hidden="true" focusable="false" className="ch-svg">
+              <PatternDefs chartId={chartId} geometry={hatch} />
+              <g transform={`translate(${margin.left},${margin.top})`}>{children}</g>
+            </svg>
+            <div
+              ref={setOverlay}
+              data-ch-part="overlay"
+              aria-hidden="true"
+              className="ch-overlay"
+              style={{ left: margin.left, top: margin.top, width: innerWidth, height: innerHeight }}
+            />
+          </div>
         </ChartContext.Provider>
       )}
       {!isEmpty && dataTable ? (

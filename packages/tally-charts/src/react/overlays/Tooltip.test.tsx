@@ -53,7 +53,7 @@ describe('<Tooltip>', () => {
 
   it('shows the tooltip for keyboard focus too', () => {
     const { container } = render(<Example />)
-    fireEvent.keyDown(screen.getByRole('figure'), { key: 'ArrowRight' })
+    fireEvent.keyDown(screen.getByRole('application'), { key: 'ArrowRight' })
     expect(tooltip(container)).toHaveTextContent('W1')
   })
 

@@ -142,10 +142,15 @@
   color: var(--ch-ink);
   font-variant-numeric: var(--ch-font-numeric);
   border-radius: 6px;
+}
+
+/* The plot takes keyboard focus. Its ring is an outline, which forced-colors mode keeps. */
+[data-ch-part="plot"] {
+  border-radius: 6px;
   outline: none;
 }
 
-[data-ch-root]:focus-visible {
+[data-ch-part="plot"]:focus-visible {
   outline: 2px solid var(--ch-accent);
   outline-offset: 4px;
 }

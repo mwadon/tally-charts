@@ -81,8 +81,8 @@ describe('<WaffleColumns>', () => {
 
   it('moves column to column with the keyboard', () => {
     const { container } = renderWaffle()
-    const figure = screen.getByRole('figure', { name: 'Profit leaked' })
-    for (let i = 0; i < 3; i++) fireEvent.keyDown(figure, { key: 'ArrowRight' })
+    const chart = screen.getByRole('application', { name: 'Profit leaked' })
+    for (let i = 0; i < 3; i++) fireEvent.keyDown(chart, { key: 'ArrowRight' })
     expect(container.querySelector('[aria-live]')?.textContent).toBe('Sep 7, 24')
   })
 
@@ -111,10 +111,10 @@ describe('<WaffleColumns>', () => {
   it('falls back to index ids on duplicate ids, keeping every column reachable', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     const { container } = renderWaffle({ id: 'month' })
-    const figure = screen.getByRole('figure', { name: 'Profit leaked' })
+    const chart = screen.getByRole('application', { name: 'Profit leaked' })
     const seen = new Set<string>()
     for (let i = 0; i < 4; i++) {
-      fireEvent.keyDown(figure, { key: 'ArrowRight' })
+      fireEvent.keyDown(chart, { key: 'ArrowRight' })
       seen.add(container.querySelector('[aria-live]')?.textContent ?? '')
     }
     expect([...seen]).toEqual(['Aug 3, 8', 'Aug 10, 12', 'Sep 7, 24', 'Sep 14, 10'])

@@ -169,9 +169,9 @@ describe('<WaterfallChart>', () => {
       onSelect,
       steps: [{ label: 'A', value: -20, id: 'labor' }, ...steps.slice(1)],
     })
-    const figure = screen.getByRole('figure', { name: 'Why it is under target' })
-    fireEvent.keyDown(figure, { key: 'ArrowDown' })
-    fireEvent.keyDown(figure, { key: 'ArrowDown' })
+    const chart = screen.getByRole('application', { name: 'Why it is under target' })
+    fireEvent.keyDown(chart, { key: 'ArrowDown' })
+    fireEvent.keyDown(chart, { key: 'ArrowDown' })
     expect(container.querySelector('[aria-live]')).toHaveTextContent('A, −20, running total 80')
     fireEvent.click(parts(container, '[data-ch-part="bar-hit"]')[2] as Element)
     expect(onSelect).toHaveBeenCalledWith(1, expect.objectContaining({ datum: steps[1] }))

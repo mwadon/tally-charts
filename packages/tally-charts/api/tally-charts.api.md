@@ -244,7 +244,7 @@ export interface ChartContextValue {
 }
 
 // @public
-export type ChartPassThroughProps<D> = Pick<ChartProps<D>, 'width' | 'initialWidth' | 'height' | 'aspectRatio' | 'margin' | 'title' | 'description' | 'activeId' | 'onActiveChange' | 'onSelect' | 'animate' | 'dimInactive' | 'empty' | 'className' | 'style' | 'chartId' | 'children'>;
+export type ChartPassThroughProps<D> = Pick<ChartProps<D>, 'width' | 'initialWidth' | 'height' | 'aspectRatio' | 'margin' | 'title' | 'description' | 'keyboardHint' | 'activeId' | 'onActiveChange' | 'onSelect' | 'animate' | 'dimInactive' | 'empty' | 'className' | 'style' | 'chartId' | 'children'>;
 
 // @public
 export interface ChartPoint<D = unknown> {
@@ -287,6 +287,7 @@ export interface ChartProps<D> {
     empty?: ReactNode;
     height?: number;
     initialWidth?: number;
+    keyboardHint?: string;
     // (undocumented)
     margin?: Partial<Margin>;
     onActiveChange?: (id: Id | null, point: ChartPoint<D> | null) => void;

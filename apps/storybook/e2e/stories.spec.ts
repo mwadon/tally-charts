@@ -82,7 +82,7 @@ for (const id of STORIES) {
 test('keyboard focus shows the tooltip and announces the point', async ({ page }) => {
   await open(page, 'reference-last-12-weeks--light')
   const chart = page.locator('[data-ch-root]')
-  await chart.focus()
+  await chart.getByRole('application').focus()
   await page.keyboard.press('End')
   await expect(page.locator('[data-ch-part="tooltip"]')).toContainText('Sep 21')
   await expect(chart.locator('[aria-live]')).toHaveText('Sep 21, 34.0%')
@@ -126,7 +126,7 @@ test('clicking a drill row moves the selection', async ({ page }) => {
 test('arrow keys and Enter select a drill row', async ({ page }) => {
   await open(page, 'reference-drill-columns--light')
   const causes = page.getByRole('figure', { name: 'Leakage by cause' })
-  await causes.focus()
+  await causes.getByRole('application').focus()
   await page.keyboard.press('ArrowDown')
   await page.keyboard.press('ArrowDown')
   await page.keyboard.press('Enter')
@@ -136,7 +136,7 @@ test('arrow keys and Enter select a drill row', async ({ page }) => {
 test('comparison rows announce plan, actual and difference', async ({ page }) => {
   await open(page, 'reference-estimate-vs-actual--light')
   const chart = page.getByRole('figure', { name: 'Estimate vs actual by cost line' })
-  await chart.focus()
+  await chart.getByRole('application').focus()
   await page.keyboard.press('ArrowDown')
   await expect(chart.locator('[aria-live]')).toHaveText('Labor, plan $640, actual $1,060, +$420')
 })
@@ -144,7 +144,7 @@ test('comparison rows announce plan, actual and difference', async ({ page }) =>
 test('the waterfall announces running totals', async ({ page }) => {
   await open(page, 'reference-why-it-is-under-target--light')
   const chart = page.getByRole('figure', { name: 'Why margin is under target' })
-  await chart.focus()
+  await chart.getByRole('application').focus()
   await page.keyboard.press('ArrowDown')
   await page.keyboard.press('ArrowDown')
   await expect(chart.locator('[aria-live]')).toHaveText(
@@ -166,7 +166,7 @@ test('the dot histogram walks bins with the arrow keys', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 600 })
   await open(page, 'reference-jobs-by-margin--light')
   const chart = page.getByRole('figure', { name: 'Jobs by margin this week' })
-  await chart.focus()
+  await chart.getByRole('application').focus()
   await page.keyboard.press('ArrowRight')
   await expect(chart.locator('[aria-live]')).toHaveText('#5600, 3.1%')
   await page.keyboard.press('ArrowRight')
@@ -214,7 +214,7 @@ test('the line chart snaps to the nearest month and lists every series', async (
 test('the line chart announces every series at a month', async ({ page }) => {
   await open(page, 'reference-margin-outlook--light')
   const chart = page.getByRole('figure', { name: 'Margin outlook' })
-  await chart.focus()
+  await chart.getByRole('application').focus()
   await page.keyboard.press('End')
   await expect(chart.locator('[aria-live]')).toHaveText(
     'Dec, 36.0% on the current path, 37.6% with changes',
@@ -236,7 +236,7 @@ test('a time axis labels dates and the keyboard announces them', async ({ page }
   await open(page, 'charts-time-axis--hourly-light')
   const chart = page.getByRole('figure', { name: 'Line load today' })
   await expect(chart.locator('[data-ch-part="axis-label"]').last()).toHaveText('Mar 3')
-  await chart.focus()
+  await chart.getByRole('application').focus()
   await page.keyboard.press('End')
   await expect(chart.locator('[aria-live]')).toHaveText('Mar 2, 11:00 PM, 43.0% Line load today')
   await expect(page.locator('[data-ch-part="tooltip"]')).toContainText('Mar 2, 11:00 PM')
@@ -248,7 +248,7 @@ test('a monthly time axis shows years and announces months', async ({ page }) =>
   await expect(
     chart.locator('[data-ch-part="axis-label"]').filter({ hasText: /^20\d\d$/ }),
   ).toHaveCount(6)
-  await chart.focus()
+  await chart.getByRole('application').focus()
   await page.keyboard.press('Home')
   await expect(chart.locator('[aria-live]')).toHaveText('Jan 2021, 365 Revenue over five years')
 })

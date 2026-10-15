@@ -103,10 +103,10 @@ describe('<BarChart>', () => {
   it('selects with the keyboard', () => {
     const onSelect = vi.fn()
     renderChart({ onSelect })
-    const figure = screen.getByRole('figure', { name: 'Margin by week' })
-    expect(figure).toHaveAttribute('tabindex', '0')
-    fireEvent.keyDown(figure, { key: 'ArrowRight' })
-    fireEvent.keyDown(figure, { key: 'Enter' })
+    const chart = screen.getByRole('application', { name: 'Margin by week' })
+    expect(chart).toHaveAttribute('tabindex', '0')
+    fireEvent.keyDown(chart, { key: 'ArrowRight' })
+    fireEvent.keyDown(chart, { key: 'Enter' })
     expect(onSelect).toHaveBeenCalledWith(0, expect.objectContaining({ id: 0 }))
   })
 

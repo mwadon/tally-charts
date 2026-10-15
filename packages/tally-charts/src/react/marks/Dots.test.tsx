@@ -41,13 +41,18 @@ describe('<Dots>', () => {
 
   it('registers a point per dot for the keyboard', () => {
     const { container } = renderDots()
-    fireEvent.keyDown(container.querySelector('figure') as Element, { key: 'ArrowRight' })
+    fireEvent.keyDown(container.querySelector('[role="application"]') as Element, {
+      key: 'ArrowRight',
+    })
     expect(container.querySelector('[aria-live]')).toHaveTextContent('Job A')
   })
 
   it('registers nothing when not interactive', () => {
     const { container } = renderDots({}, false)
-    fireEvent.keyDown(container.querySelector('figure') as Element, { key: 'ArrowRight' })
+    expect(container.querySelector('[role="application"]')).toBeNull()
+    fireEvent.keyDown(container.querySelector('[data-ch-part="plot"]') as Element, {
+      key: 'ArrowRight',
+    })
     expect(container.querySelector('[aria-live]')?.textContent).toBe('')
     expect(container.querySelector('[data-ch-part="dot-ring"]')).toBeNull()
   })

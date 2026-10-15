@@ -118,6 +118,7 @@ const PARTS = [
   'pill-label',
   'pill-segment',
   'pill-value',
+  'plot',
   'pointer-layer',
   'range-dot',
   'range-gap',

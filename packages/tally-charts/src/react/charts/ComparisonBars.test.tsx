@@ -99,14 +99,14 @@ describe('<ComparisonBars>', () => {
   it('visits each row once with the arrow keys', () => {
     const onActiveChange = vi.fn()
     renderRows({ onActiveChange })
-    const figure = screen.getByRole('figure', { name: 'Estimate vs actual' })
-    for (let i = 0; i < 4; i++) fireEvent.keyDown(figure, { key: 'ArrowDown' })
+    const chart = screen.getByRole('application', { name: 'Estimate vs actual' })
+    for (let i = 0; i < 4; i++) fireEvent.keyDown(chart, { key: 'ArrowDown' })
     expect(onActiveChange.mock.calls.map((call) => call[0])).toEqual([0, 1, 2])
   })
 
   it('announces plan, actual and difference', () => {
     const { container } = renderRows()
-    fireEvent.keyDown(screen.getByRole('figure'), { key: 'ArrowDown' })
+    fireEvent.keyDown(screen.getByRole('application'), { key: 'ArrowDown' })
     expect(container.querySelector('[aria-live]')).toHaveTextContent(
       'Labor, plan $640, actual $1,060, +$420',
     )
@@ -127,7 +127,7 @@ describe('<ComparisonBars>', () => {
     const { container } = renderRows({ onSelect, onActiveChange })
     fireEvent.click(parts(container, '[data-ch-part="bar-hit"]')[2] as Element)
     expect(onSelect.mock.calls[0]?.[1].datum).toBe(lines[2])
-    fireEvent.keyDown(screen.getByRole('figure'), { key: 'ArrowDown' })
+    fireEvent.keyDown(screen.getByRole('application'), { key: 'ArrowDown' })
     expect(onActiveChange.mock.calls[0]?.[1].datum).toBe(lines[0])
   })
 

@@ -23,6 +23,7 @@ export type ChartPassThroughProps<D> = Pick<
   | 'margin'
   | 'title'
   | 'description'
+  | 'keyboardHint'
   | 'activeId'
   | 'onActiveChange'
   | 'onSelect'

@@ -129,13 +129,13 @@ describe('<DotHistogram>', () => {
 
   it('moves across bins and up stacks with the arrow keys', () => {
     const { container } = renderHistogram()
-    const figure = screen.getByRole('figure', { name: 'Jobs by margin' })
+    const chart = screen.getByRole('application', { name: 'Jobs by margin' })
     const live = () => container.querySelector('[aria-live]')?.textContent
-    fireEvent.keyDown(figure, { key: 'ArrowRight' })
+    fireEvent.keyDown(chart, { key: 'ArrowRight' })
     expect(live()).toBe('#1, 3.0%')
-    fireEvent.keyDown(figure, { key: 'ArrowRight' })
+    fireEvent.keyDown(chart, { key: 'ArrowRight' })
     expect(live()).toBe('#2, 12.3%')
-    fireEvent.keyDown(figure, { key: 'ArrowUp' })
+    fireEvent.keyDown(chart, { key: 'ArrowUp' })
     expect(live()).toBe('#3, 12.8%')
   })
 
@@ -170,10 +170,10 @@ describe('<DotHistogram>', () => {
       ],
       label: (_d, i) => `job ${i}`,
     })
-    const figure = screen.getByRole('figure', { name: 'Jobs by margin' })
+    const chart = screen.getByRole('application', { name: 'Jobs by margin' })
     const seen = new Set<string>()
     for (let i = 0; i < 3; i++) {
-      fireEvent.keyDown(figure, { key: 'ArrowRight' })
+      fireEvent.keyDown(chart, { key: 'ArrowRight' })
       seen.add(container.querySelector('[aria-live]')?.textContent ?? '')
     }
     expect([...seen]).toEqual(['job 0, 3.0%', 'job 1, 20.0%', 'job 2, 40.0%'])
