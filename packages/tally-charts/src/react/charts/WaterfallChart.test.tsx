@@ -46,7 +46,7 @@ describe('<WaterfallChart>', () => {
     expect(num(a, 'x')).toBeCloseTo(px(80))
     expect(num(a, 'width')).toBeCloseTo(px(100) - px(80))
     expect(a).toHaveAttribute('data-ch-tone', 'loss')
-    expect(a).toHaveAttribute('data-ch-dir', 'left')
+    expect(a).toHaveAttribute('data-ch-direction', 'left')
     expect(num(c, 'x')).toBeCloseTo(px(70))
     expect(num(c, 'width')).toBeCloseTo(px(75) - px(70))
     expect(c).toHaveAttribute('data-ch-tone', 'gain')

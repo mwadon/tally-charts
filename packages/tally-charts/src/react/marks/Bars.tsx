@@ -145,7 +145,7 @@ export function Bars<D>(props: BarsProps<D>) {
               data-ch-part="bar"
               data-ch-tone={tone}
               data-ch-fill={fill}
-              data-ch-dir={bar.dir}
+              data-ch-direction={bar.dir}
               data-ch-active={active ? 'true' : undefined}
               data-ch-dimmed={dimming && !active ? 'true' : undefined}
               x={bar.x}

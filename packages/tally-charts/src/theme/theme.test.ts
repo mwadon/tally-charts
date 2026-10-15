@@ -14,7 +14,7 @@ function declarations(selector: RegExp): Map<string, string> {
   const flat = (v: string) =>
     v.replace(/\s+/g, ' ').replace(/\( /g, '(').replace(/ \)/g, ')').trim()
   return new Map(
-    [...body.matchAll(/(--ch-[\w-]+):\s*([^;]+);/g)].map((m) => [m[1] ?? '', flat(m[2] ?? '')]),
+    [...body.matchAll(/(--_?ch-[\w-]+):\s*([^;]+);/g)].map((m) => [m[1] ?? '', flat(m[2] ?? '')]),
   )
 }
 
@@ -45,7 +45,9 @@ const THEMES = {
   light: declarations(/:root,\s*\[data-ch-theme="light"\]/),
   dark: declarations(/\n\[data-ch-theme="dark"\]/),
 }
-const SEQ = declarations(/\[data-ch-root\],\s*\.ch-legend,\s*\.ch-heatmap/)
+const SEQ = declarations(
+  /\[data-ch-root\],\s*\[data-ch-part="legend"\],\s*\[data-ch-part="heatmap"\]/,
+)
 const LEVELS = [1, 2, 3, 4, 5] as const
 
 /** Share of the base and the color it mixes into, for one level under one tone. */
@@ -118,9 +120,9 @@ describe('theme.css', () => {
   })
 
   it('paints medians and their labels in the inked tone mix, like tinted text', () => {
-    const mix = 'color-mix(in srgb, var(--ch-swatch-color) var(--ch-tone-text-mix), var(--ch-ink))'
+    const mix = 'color-mix(in srgb, var(--_ch-swatch-color) var(--ch-tone-text-mix), var(--ch-ink))'
     expect(css).toMatch(
-      /\[data-ch-part="median"\] \{[^}]*stroke: color-mix\(in srgb, var\(--ch-swatch-color\) var\(--ch-tone-text-mix\), var\(--ch-ink\)\)/,
+      /\[data-ch-part="median"\] \{[^}]*stroke: color-mix\(in srgb, var\(--_ch-swatch-color\) var\(--ch-tone-text-mix\), var\(--ch-ink\)\)/,
     )
     expect(css).toMatch(/\[data-ch-part="median-label"\] \{[^}]*fill: color-mix/)
     expect(css).toContain(mix)
@@ -135,18 +137,22 @@ describe('theme.css', () => {
       `color-mix(in srgb, ${base} var(--ch-seq-mix-4, 65%), var(--ch-surface))`,
     )
     expect(SEQ.get('--ch-seq-5')).toBe(`color-mix(in srgb, ${base} var(--ch-seq-mix-5, 75%), #000)`)
-    expect(SEQ.get('--ch-seq-ink-strong')).toBe('#fff')
+    expect(SEQ.get('--_ch-seq-ink-strong')).toBe('#fff')
     // A default base or default shares would stop an ancestor's values from reaching the levels.
     expect(css).not.toMatch(/--ch-seq-base:/)
-    expect(css).not.toMatch(/(:root|\.ch-heatmap|\.ch-legend)[^{]*\{[^}]*--ch-seq-mix-\d:/)
+    expect(css).not.toMatch(
+      /(:root|\[data-ch-part="heatmap"\]|\[data-ch-part="legend"\])[^{]*\{[^}]*--ch-seq-mix-\d:/,
+    )
   })
 
   it('puts white text only on the darkest heatmap level', () => {
     expect(css).toMatch(
-      /\.ch-heatmap-cell\[data-ch-level="5"\] \{[^}]*color: var\(--ch-seq-ink-strong\)/,
+      /\[data-ch-part="heatmap-cell"\]\[data-ch-level="5"\] \{[^}]*color: var\(--_ch-seq-ink-strong\)/,
     )
-    expect(css).toMatch(/\.ch-heatmap-cell \{[^}]*color: var\(--ch-ink\)/)
-    expect(css).toMatch(/@media \(prefers-reduced-motion: reduce\) \{[^}]*\.ch-heatmap \*/)
+    expect(css).toMatch(/\[data-ch-part="heatmap-cell"\] \{[^}]*color: var\(--ch-ink\)/)
+    expect(css).toMatch(
+      /@media \(prefers-reduced-motion: reduce\) \{[^}]*\[data-ch-part="heatmap"\] \*/,
+    )
   })
 
   it('declares the same dark tokens for the system preference and the forced theme', () => {
@@ -165,8 +171,8 @@ describe('theme.css', () => {
         share,
         into === '#000' ? [0, 0, 0] : hex(tokens.get('--ch-surface')),
       )
-      // Levels 1–4 inherit the cell's --ch-ink; level 5 switches to --ch-seq-ink-strong.
-      const text = level === 5 ? hex(SEQ.get('--ch-seq-ink-strong')) : hex(tokens.get('--ch-ink'))
+      // Levels 1–4 inherit the cell's --ch-ink; level 5 switches to --_ch-seq-ink-strong.
+      const text = level === 5 ? hex(SEQ.get('--_ch-seq-ink-strong')) : hex(tokens.get('--ch-ink'))
       expect(contrast(background, text)).toBeGreaterThanOrEqual(4.5)
     },
   )

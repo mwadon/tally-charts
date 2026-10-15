@@ -61,7 +61,7 @@ describe('<Legend>', () => {
     const swatch = screen.getAllByRole('listitem')[1]?.querySelector('.ch-swatch') as HTMLElement
     expect(swatch).toHaveAttribute('data-ch-level', '5')
     expect(swatch).not.toHaveAttribute('data-ch-tone')
-    expect(swatch.style.getPropertyValue('--ch-swatch-color')).toBe('var(--ch-seq-5)')
+    expect(swatch.style.getPropertyValue('--_ch-swatch-color')).toBe('var(--ch-seq-5)')
   })
 
   it('falls back to the neutral tone', () => {

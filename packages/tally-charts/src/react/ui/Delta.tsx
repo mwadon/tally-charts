@@ -40,11 +40,13 @@ export function Delta({ value, format, good = 'up', tone, signed = false, classN
       data-ch-direction={direction}
       style={toneVar(resolved)}
     >
-      <span aria-hidden="true" className="ch-delta-arrow ch-tone-text">
+      <span aria-hidden="true" className="ch-delta-arrow ch-tone-text" data-ch-part="delta-arrow">
         {ARROWS[direction]}
       </span>
       <span className="ch-sr-only">{WORDS[direction]} </span>
-      <span className="ch-delta-value">{text}</span>
+      <span className="ch-delta-value" data-ch-part="delta-value">
+        {text}
+      </span>
     </span>
   )
 }

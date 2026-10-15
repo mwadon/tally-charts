@@ -58,6 +58,7 @@ export function Meter({
       {/* biome-ignore lint/a11y/useSemanticElements: a styled track with children, not a native <meter> */}
       <div
         className="ch-meter-track"
+        data-ch-part="meter-track"
         role="meter"
         aria-label={label}
         aria-valuemin={min}
@@ -67,6 +68,7 @@ export function Meter({
       >
         <div
           className="ch-meter-fill ch-fillable"
+          data-ch-part="meter-fill"
           data-ch-tone={tone}
           data-ch-fill={fill}
           style={{ width: `${p}%` }}
@@ -76,11 +78,12 @@ export function Meter({
         ) : null}
       </div>
       {showMin || showTarget ? (
-        <div className="ch-meter-labels" aria-hidden="true">
+        <div className="ch-meter-labels" data-ch-part="meter-labels" aria-hidden="true">
           {showMin ? <span>{minLabel ?? fmt(min)}</span> : null}
           {showTarget ? (
             <span
               className="ch-meter-target-label"
+              data-ch-part="meter-target-label"
               style={{ left: `${t}%`, transform: `translateX(-${t}%)` }}
             >
               {targetLabel ?? `Target ${fmt(target)}`}

@@ -238,7 +238,7 @@ describe('<BridgeChart>', () => {
       steps: [{ label: 'Loss', value: -150 }],
     })
     const [, below] = remaining(container)
-    expect(below).toHaveAttribute('data-ch-dir', 'down')
+    expect(below).toHaveAttribute('data-ch-direction', 'down')
     const [cap] = caps(container)
     expect(num(cap, 'height')).toBeGreaterThan(num(below, 'height'))
     for (const rect of parts(container, 'rect')) {

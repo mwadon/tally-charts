@@ -336,10 +336,11 @@ export function Heatmap<D>({
       <div
         role="grid"
         className="ch-heatmap-grid"
+        data-ch-part="heatmap-grid"
         data-ch-totals={totals ? 'true' : undefined}
         aria-labelledby={title ? titleId : undefined}
         aria-describedby={description ? descId : undefined}
-        style={{ '--ch-heatmap-columns': model.columns.length } as CSSProperties}
+        style={{ '--_ch-heatmap-columns': model.columns.length } as CSSProperties}
         onPointerLeave={(event) => {
           // Keyboard focus keeps its cell active; the pointer only clears what it activated.
           const focused = event.currentTarget.contains(document.activeElement)
@@ -349,25 +350,36 @@ export function Heatmap<D>({
           if (!event.currentTarget.contains(event.relatedTarget)) setActive(null)
         }}
       >
-        <div role="row" className="ch-heatmap-row">
-          <div role="columnheader" className="ch-heatmap-corner" />
+        <div role="row" className="ch-heatmap-row" data-ch-part="heatmap-row">
+          <div role="columnheader" className="ch-heatmap-corner" data-ch-part="heatmap-corner" />
           {model.columns.map((name, j) => (
-            <div key={name} role="columnheader" className="ch-heatmap-header">
+            <div
+              key={name}
+              role="columnheader"
+              className="ch-heatmap-header"
+              data-ch-part="heatmap-header"
+            >
               <span>{name}</span>
               {totals ? (
-                <span className="ch-heatmap-header-total">{valueText(model.columnTotals[j])}</span>
+                <span className="ch-heatmap-header-total" data-ch-part="heatmap-header-total">
+                  {valueText(model.columnTotals[j])}
+                </span>
               ) : null}
             </div>
           ))}
           {totals ? (
-            <div role="columnheader" className="ch-heatmap-header ch-heatmap-total-header">
+            <div
+              role="columnheader"
+              className="ch-heatmap-header ch-heatmap-total-header"
+              data-ch-part="heatmap-total-header"
+            >
               {totalLabel}
             </div>
           ) : null}
         </div>
         {model.cells.map((rowCells, r) => (
-          <div key={model.rows[r]} role="row" className="ch-heatmap-row">
-            <div role="rowheader" className="ch-heatmap-rowheader">
+          <div key={model.rows[r]} role="row" className="ch-heatmap-row" data-ch-part="heatmap-row">
+            <div role="rowheader" className="ch-heatmap-rowheader" data-ch-part="heatmap-rowheader">
               {model.rows[r]}
             </div>
             {rowCells.map((cell, c) => (
@@ -396,7 +408,7 @@ export function Heatmap<D>({
               </div>
             ))}
             {totals ? (
-              <div role="gridcell" className="ch-heatmap-total">
+              <div role="gridcell" className="ch-heatmap-total" data-ch-part="heatmap-total">
                 {valueText(model.rowTotals[r])}
               </div>
             ) : null}

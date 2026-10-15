@@ -41,6 +41,22 @@ const weeks = [
 Theme with CSS custom properties (`--ch-accent`, `--ch-loss`, `--ch-hatch-gap`, …). Dark mode
 follows `prefers-color-scheme` unless an ancestor sets `data-ch-theme="light"` or `"dark"`.
 
+## Styling
+
+The public CSS surface is the `--ch-*` tokens below, `data-ch-part` on every element, and the
+`data-ch-*` state and variant attributes (`data-ch-tone`, `data-ch-fill`, `data-ch-active`,
+`data-ch-dimmed`, `data-ch-direction`, …). Class names (`ch-*`) and `--_ch-*` variables are
+private and can change in any release: select `[data-ch-part="…"]` instead.
+
+| Group | Tokens |
+|---|---|
+| Roles | `--ch-accent`, `--ch-accent-soft`, `--ch-loss`, `--ch-warn`, `--ch-gain`, `--ch-neutral` |
+| Text and surfaces | `--ch-ink`, `--ch-ink-muted`, `--ch-grid`, `--ch-surface`, `--ch-tooltip-bg`, `--ch-tooltip-ink`, `--ch-tooltip-shadow` |
+| Hatching | `--ch-hatch-angle` (degrees, unitless), `--ch-hatch-width`, `--ch-hatch-gap` (px, unitless), `--ch-hatch-tint` (stripe background opacity, 0–1) |
+| Sequential | `--ch-seq-base` (default `--ch-loss`) and `--ch-seq-mix-1` … `--ch-seq-mix-5` (each level's share of the base). `--ch-seq-1` … `--ch-seq-5` are computed from them on every chart, legend and heatmap: read them, but steer them with the base and the mixes, since overriding them has no effect |
+| Heatmap | `--ch-heatmap-cell-height` (default 44px) |
+| Misc | `--ch-font-numeric`, `--ch-radius` (px), `--ch-duration`, `--ch-ease`, `--ch-dim-opacity`, `--ch-tone-text-mix` |
+
 ## High-level charts
 
 Each one is a thin composition of `<Chart>` and the building blocks, renders a hidden data table

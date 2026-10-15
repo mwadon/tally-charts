@@ -93,7 +93,7 @@ describe('<RankedBars>', () => {
     })
     const [big, small] = parts(container, '[data-ch-part="bar"]')
     expect(Number(big?.getAttribute('width'))).toBeGreaterThan(Number(small?.getAttribute('width')))
-    expect(big).toHaveAttribute('data-ch-dir', 'right')
+    expect(big).toHaveAttribute('data-ch-direction', 'right')
     expect([...(values(container) ?? [])].map((t) => t.textContent)).toEqual(['−$260', '−$100'])
     expect(values(container)?.[0]).toHaveAttribute('data-ch-tone', 'loss')
   })

@@ -34,18 +34,21 @@ export function DotCount({
     <span className={cx('ch-dot-count', className)} data-ch-part="dot-count" style={toneVar(tone)}>
       <span
         className="ch-dot-grid"
+        data-ch-part="dot-count-dots"
         aria-hidden="true"
         style={{ gridTemplateColumns: `repeat(${columns}, 8px)` }}
       >
         {Array.from({ length: drawn }, (_, i) => (
           // biome-ignore lint/suspicious/noArrayIndexKey: dots are identical and positional
-          <span key={i} className="ch-dot" />
+          <span key={i} className="ch-dot" data-ch-part="dot-count-dot" />
         ))}
       </span>
       {label === null ? (
         <span className="ch-sr-only">{text}</span>
       ) : (
-        <span className="ch-dot-count-label">{label ?? text}</span>
+        <span className="ch-dot-count-label" data-ch-part="dot-count-label">
+          {label ?? text}
+        </span>
       )}
     </span>
   )

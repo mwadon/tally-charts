@@ -62,7 +62,7 @@ export function RangeMeter({
       : `${label}: ${fmt(value)}`
   const style = {
     ...toneVar(tone),
-    '--ch-range-ref-color': `var(--ch-${referenceTone})`,
+    '--_ch-range-ref': `var(--ch-${referenceTone})`,
   } as CSSProperties
   return (
     <div
@@ -72,31 +72,40 @@ export function RangeMeter({
       aria-label={name}
       style={style}
     >
-      <div className="ch-range-labels" aria-hidden="true">
+      <div className="ch-range-labels" data-ch-part="range-labels" aria-hidden="true">
         {hasValue ? (
-          <span className="ch-range-value-label ch-tone-text" style={at(pv)}>
+          <span
+            className="ch-range-value-label ch-tone-text"
+            data-ch-part="range-value-label"
+            style={at(pv)}
+          >
             {valueLabel ?? fmt(value)}
           </span>
         ) : null}
         {hasReference ? (
-          <span className="ch-range-ref-label" style={at(pr)}>
+          <span className="ch-range-ref-label" data-ch-part="range-reference-label" style={at(pr)}>
             {referenceLabel ?? fmt(reference)}
           </span>
         ) : null}
       </div>
-      <div className="ch-range-track" aria-hidden="true">
+      <div className="ch-range-track" data-ch-part="range-track" aria-hidden="true">
         {hasValue && hasReference ? (
           <span
             className="ch-range-gap ch-fillable"
+            data-ch-part="range-gap"
             data-ch-fill="hatch"
             style={{ left: `${lo}%`, width: `${hi - lo}%` }}
           />
         ) : null}
-        {hasValue ? <span className="ch-range-dot" style={{ left: `${pv}%` }} /> : null}
-        {hasReference ? <span className="ch-range-ring" style={{ left: `${pr}%` }} /> : null}
+        {hasValue ? (
+          <span className="ch-range-dot" data-ch-part="range-dot" style={{ left: `${pv}%` }} />
+        ) : null}
+        {hasReference ? (
+          <span className="ch-range-ring" data-ch-part="range-ring" style={{ left: `${pr}%` }} />
+        ) : null}
       </div>
       {showScale ? (
-        <div className="ch-range-scale" aria-hidden="true">
+        <div className="ch-range-scale" data-ch-part="range-scale" aria-hidden="true">
           <span>{fmt(min)}</span>
           <span>{fmt(max)}</span>
         </div>

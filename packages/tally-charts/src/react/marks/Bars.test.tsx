@@ -105,10 +105,10 @@ describe('<Bars>', () => {
       },
     )
     const [a, b] = bars(container)
-    expect(a).toHaveAttribute('data-ch-dir', 'down')
+    expect(a).toHaveAttribute('data-ch-direction', 'down')
     expect(a).toHaveAttribute('y', '60')
     expect(a).toHaveAttribute('height', '60')
-    expect(b).toHaveAttribute('data-ch-dir', 'up')
+    expect(b).toHaveAttribute('data-ch-direction', 'up')
     expect(b).toHaveAttribute('y', '0')
   })
 
@@ -139,7 +139,7 @@ describe('<Bars>', () => {
       },
     )
     const [a] = bars(container)
-    expect(a).toHaveAttribute('data-ch-dir', 'right')
+    expect(a).toHaveAttribute('data-ch-direction', 'right')
     expect(a).toHaveAttribute('width', '100')
     expect(a).toHaveAttribute('height', '50')
   })

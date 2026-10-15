@@ -70,7 +70,7 @@ describe('<StripPlot>', () => {
     // Drawn later, so the dashes stay visible through a stack of same-tone dots.
     expect(lastDot.compareDocumentPosition(median) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
     const group = median.parentElement as HTMLElement
-    expect(group.style.getPropertyValue('--ch-swatch-color')).toBe('var(--ch-accent-soft)')
+    expect(group.style.getPropertyValue('--_ch-swatch-color')).toBe('var(--ch-accent-soft)')
   })
 
   it('labels the rows on the left', () => {

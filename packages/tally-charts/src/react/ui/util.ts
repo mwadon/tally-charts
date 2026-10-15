@@ -11,7 +11,7 @@ export function cx(base: string, extra?: string): string {
   return extra ? `${base} ${extra}` : base
 }
 
-/** Points `--ch-swatch-color` at a tone, so CSS can paint fills and tinted text with it. */
+/** Points the private `--_ch-swatch-color` at a tone, so CSS can paint fills and tinted text with it. */
 export function toneVar(tone: Tone): CSSProperties {
-  return { '--ch-swatch-color': `var(--ch-${tone})` } as CSSProperties
+  return { '--_ch-swatch-color': `var(--ch-${tone})` } as CSSProperties
 }

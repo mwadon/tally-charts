@@ -16,6 +16,6 @@ describe('ui utils', () => {
   it('joins class names and builds the swatch variable', () => {
     expect(cx('ch-a')).toBe('ch-a')
     expect(cx('ch-a', 'mine')).toBe('ch-a mine')
-    expect(toneVar('loss')).toEqual({ '--ch-swatch-color': 'var(--ch-loss)' })
+    expect(toneVar('loss')).toEqual({ '--_ch-swatch-color': 'var(--ch-loss)' })
   })
 })

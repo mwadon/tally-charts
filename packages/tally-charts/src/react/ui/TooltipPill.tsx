@@ -15,16 +15,21 @@ export function TooltipPill({ segments, className }: TooltipPillProps) {
           // biome-ignore lint/suspicious/noArrayIndexKey: segments are positional and never reorder
           key={i}
           className="ch-pill-seg"
+          data-ch-part="pill-segment"
           data-ch-tone={segment.tone}
           style={
             segment.tone
-              ? ({ '--ch-swatch-color': `var(--ch-${segment.tone})` } as CSSProperties)
+              ? ({ '--_ch-swatch-color': `var(--ch-${segment.tone})` } as CSSProperties)
               : undefined
           }
         >
-          <span className="ch-pill-value">{segment.value}</span>
+          <span className="ch-pill-value" data-ch-part="pill-value">
+            {segment.value}
+          </span>
           {segment.label !== undefined && segment.label !== null ? (
-            <span className="ch-pill-label">{segment.label}</span>
+            <span className="ch-pill-label" data-ch-part="pill-label">
+              {segment.label}
+            </span>
           ) : null}
         </span>
       ))}

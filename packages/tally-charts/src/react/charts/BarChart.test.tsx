@@ -56,9 +56,9 @@ describe('<BarChart>', () => {
 
   it('lays bars out horizontally with category labels on the left', () => {
     const { container } = renderChart({ orientation: 'horizontal' })
-    expect(parts(container, 'bar').every((b) => b.getAttribute('data-ch-dir') === 'right')).toBe(
-      true,
-    )
+    expect(
+      parts(container, 'bar').every((b) => b.getAttribute('data-ch-direction') === 'right'),
+    ).toBe(true)
     expect(container.querySelector('[data-ch-part="axis"]')).toHaveAttribute('data-ch-side', 'left')
     // 3 rows × 32px + 8px top + 8px bottom.
     expect(container.querySelector('svg')).toHaveAttribute('height', '112')

@@ -58,12 +58,19 @@ export function InlineBar({
       {hasValue ? (
         <span
           className="ch-inline-bar-fill ch-fillable"
+          data-ch-part="inline-bar-fill"
           data-ch-tone={tone}
           data-ch-fill={fill}
           style={{ width: `${p}%` }}
         />
       ) : null}
-      {t !== undefined ? <span className="ch-inline-bar-target" style={{ left: `${t}%` }} /> : null}
+      {t !== undefined ? (
+        <span
+          className="ch-inline-bar-target"
+          data-ch-part="inline-bar-target"
+          style={{ left: `${t}%` }}
+        />
+      ) : null}
     </span>
   )
 }

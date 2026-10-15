@@ -38,18 +38,27 @@ export function Stat({
     typeof value === 'number' ? (Number.isFinite(value) ? create(format)(value) : '–') : value
   return (
     <div className={cx('ch-stat', className)} data-ch-part="stat" data-ch-size={size}>
-      {label ? <div className="ch-stat-label">{label}</div> : null}
+      {label ? (
+        <div className="ch-stat-label" data-ch-part="stat-label">
+          {label}
+        </div>
+      ) : null}
       <div
         className={tone ? 'ch-stat-value ch-tone-text' : 'ch-stat-value'}
+        data-ch-part="stat-value"
         data-ch-tone={tone}
         style={tone ? toneVar(tone) : undefined}
       >
         {text}
       </div>
       {delta || caption ? (
-        <div className="ch-stat-meta">
+        <div className="ch-stat-meta" data-ch-part="stat-meta">
           {delta}
-          {caption ? <span className="ch-stat-caption">{caption}</span> : null}
+          {caption ? (
+            <span className="ch-stat-caption" data-ch-part="stat-caption">
+              {caption}
+            </span>
+          ) : null}
         </div>
       ) : null}
     </div>
