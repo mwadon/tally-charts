@@ -68,6 +68,10 @@ variables are private and can change in any release: select `[data-ch-part="…"
 
 - Light only: where the effective theme is dark (`data-ch-theme="dark"` or a dark system
   preference) the tokens are the normal dark ones.
+- Forced colors (Windows high contrast) win: the tokens stay system colors.
+- Limit: a `data-ch-theme="dark"` element nested inside a light one, with a bare palette element
+  below it, gets vivid colors in a dark region. Put the attribute on `<html>` or on the themed
+  element itself to avoid it.
 - Everything else is unchanged, and your own `--ch-*` overrides on a descendant still win.
 - Accessibility: these three colors are below 3:1 against the light surface (warn 2.0:1, gain
   2.9:1, neutral 2.4:1), so marks in these tones are harder to see than by default; see

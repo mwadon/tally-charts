@@ -1374,19 +1374,21 @@
    - the palette with no data-ch-theme on it or above it: the system theme decides, light only.
    A dark theme is never selected, so dark keeps the dark tokens. (A theme nested between a
    palette and a plain palette element below it is not distinguished.) */
-:where([data-ch-palette="vivid"])[data-ch-theme="light"],
-:where([data-ch-palette="vivid"]) [data-ch-theme="light"],
-[data-ch-theme="light"] :where([data-ch-palette="vivid"]:not([data-ch-theme])) {
-  --ch-warn: #f1a23b;
-  --ch-gain: #23a866;
-  --ch-neutral: #a3a3ab;
-}
-
-@media not (prefers-color-scheme: dark) {
-  [data-ch-palette="vivid"]:where(:not([data-ch-theme], [data-ch-theme] *)) {
+@media not (forced-colors: active) {
+  :where([data-ch-palette="vivid"])[data-ch-theme="light"],
+  :where([data-ch-palette="vivid"]) [data-ch-theme="light"],
+  [data-ch-theme="light"] :where([data-ch-palette="vivid"]:not([data-ch-theme])) {
     --ch-warn: #f1a23b;
     --ch-gain: #23a866;
     --ch-neutral: #a3a3ab;
+  }
+
+  @media not (prefers-color-scheme: dark) {
+    [data-ch-palette="vivid"]:where(:not([data-ch-theme], [data-ch-theme] *)) {
+      --ch-warn: #f1a23b;
+      --ch-gain: #23a866;
+      --ch-neutral: #a3a3ab;
+    }
   }
 }
 

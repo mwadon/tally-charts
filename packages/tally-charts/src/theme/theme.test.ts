@@ -538,6 +538,16 @@ describe('theme.css', () => {
       expect(palette).toMatch(/@media not \(prefers-color-scheme: dark\)/)
     })
 
+    it('steps aside under forced colors, which map tokens only on :root and theme elements', () => {
+      expect(palette).toMatch(/@media not \(forced-colors: active\) \{/)
+      // Every vivid rule sits inside that guard.
+      const guard = palette.indexOf('@media not (forced-colors: active)')
+      expect(guard).toBeLessThan(palette.indexOf('--ch-warn'))
+      const bare = palette.replace(/\/\*[\s\S]*?\*\//g, '').trim()
+      expect(bare.startsWith('@media not (forced-colors: active) {')).toBe(true)
+      expect(bare.endsWith('}')).toBe(true)
+    })
+
     it('never selects a dark theme', () => {
       expect(palette).not.toContain('data-ch-theme="dark"')
     })

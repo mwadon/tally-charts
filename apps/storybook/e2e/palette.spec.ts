@@ -123,18 +123,25 @@ test.describe('data-ch-palette="vivid"', () => {
     expect(await read('data-ch-palette="vivid"')).toEqual(await read(''))
   })
 
-  test('forced colors still map the tokens onto system colors', async ({ page }) => {
+  test('forced colors still map the tokens onto system colors, wherever the palette sits', async ({
+    page,
+  }) => {
     await page.emulateMedia({ forcedColors: 'active', colorScheme: 'light' })
     await open(page, 'charts-barchart--horizontal')
-    const warn = await page.evaluate(() => {
-      document.body.insertAdjacentHTML(
-        'beforeend',
-        '<div data-ch-palette="vivid" data-ch-theme="light"><i id="t"></i></div>',
-      )
-      const el = document.getElementById('t') as Element
-      return getComputedStyle(el).getPropertyValue('--ch-warn').trim()
-    })
-    expect(warn).toBe('CanvasText')
+    const placements = [
+      '<div data-ch-palette="vivid" data-ch-theme="light"><i></i></div>',
+      `<div ${V}><i></i></div>`,
+      `<div data-ch-theme="light"><div ${V}><i></i></div></div>`,
+      `<div ${V}><div data-ch-theme="light"><i></i></div></div>`,
+    ]
+    const warns = await page.evaluate((placements) => {
+      return placements.map((markup) => {
+        document.body.insertAdjacentHTML('beforeend', markup)
+        const el = document.body.lastElementChild?.querySelector('i') as Element
+        return getComputedStyle(el).getPropertyValue('--ch-warn').trim()
+      })
+    }, placements)
+    expect(warns).toEqual(placements.map(() => 'CanvasText'))
   })
 
   test('the Vivid story puts the palette on the canvas and renders the vivid tokens', async ({
