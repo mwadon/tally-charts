@@ -190,6 +190,7 @@ const STATES = [
   'level',
   'marker',
   'muted',
+  'palette',
   'peak',
   'placement',
   'root',

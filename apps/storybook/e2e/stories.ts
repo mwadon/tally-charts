@@ -10,6 +10,7 @@ export const STORIES = [
   'charts-barchart--light',
   'charts-barchart--dark',
   'charts-barchart--horizontal',
+  'charts-barchart--vivid',
   'reference-estimate-vs-actual--light',
   'reference-estimate-vs-actual--dark',
   'reference-result--light',

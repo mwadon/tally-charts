@@ -8,15 +8,31 @@ const preview: Preview = {
       description: 'Color theme',
       toolbar: { title: 'Theme', icon: 'mirror', items: ['light', 'dark'], dynamicTitle: true },
     },
+    palette: {
+      description: 'Color palette',
+      toolbar: {
+        title: 'Palette',
+        icon: 'paintbrush',
+        items: ['default', 'vivid'],
+        dynamicTitle: true,
+      },
+    },
   },
-  initialGlobals: { theme: 'light' },
+  initialGlobals: { theme: 'light', palette: 'default' },
   parameters: { layout: 'fullscreen' },
   decorators: [
-    (Story, { globals, parameters }) => (
-      <div className="sb-canvas" data-ch-theme={parameters.theme ?? globals.theme}>
-        <Story />
-      </div>
-    ),
+    (Story, { globals, parameters }) => {
+      const palette = parameters.palette ?? globals.palette
+      return (
+        <div
+          className="sb-canvas"
+          data-ch-theme={parameters.theme ?? globals.theme}
+          data-ch-palette={palette === 'vivid' ? 'vivid' : undefined}
+        >
+          <Story />
+        </div>
+      )
+    },
   ],
 }
 

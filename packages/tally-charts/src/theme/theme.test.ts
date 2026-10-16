@@ -115,11 +115,14 @@ const inked = (theme: keyof typeof THEMES, tone: string) =>
 /** The forced-colors block, and the stylesheet before it (the themes). */
 const FORCED_AT = css.indexOf('@media (forced-colors: active)')
 const themed = css.slice(0, FORCED_AT)
+/** The three theme blocks, before the vivid palette that restyles three of their tokens. */
+const PALETTE_AT = css.indexOf('/* ---------- Palette: vivid')
+const themeBlocks = themed.slice(0, PALETTE_AT)
 const forced = css.slice(FORCED_AT)
 
 describe('theme.css', () => {
   it.each(TONES)('defines --ch-%s for light, system dark and forced dark', (tone) => {
-    expect(themed.match(new RegExp(`--ch-${tone}:`, 'g')) ?? []).toHaveLength(3)
+    expect(themeBlocks.match(new RegExp(`--ch-${tone}:`, 'g')) ?? []).toHaveLength(3)
   })
 
   it.each([
@@ -130,7 +133,7 @@ describe('theme.css', () => {
     '--ch-tooltip-bg:',
     '--ch-tooltip-ink:',
   ])('defines %s in all three theme blocks', (token) => {
-    expect(themed.split(token).length - 1).toBe(3)
+    expect(themeBlocks.split(token).length - 1).toBe(3)
   })
 
   it('maps the color tokens onto system colors in forced-colors mode', () => {
@@ -494,6 +497,50 @@ describe('theme.css', () => {
     expect(THEMES.light.get('--ch-warn')).toBe('#be802f')
     expect(THEMES.light.get('--ch-gain')).toBe('#22a363')
     expect(THEMES.light.get('--ch-neutral')).toBe('#8e8e95')
+  })
+
+  describe('data-ch-palette="vivid"', () => {
+    const palette = themed.slice(PALETTE_AT)
+    const rules = [...palette.matchAll(/([^{}]+)\{([^{}]*)\}/g)].map((m) => ({
+      selector: (m[1] ?? '')
+        .replace(/\/\*[\s\S]*?\*\//g, '')
+        .replace(/\s+/g, ' ')
+        .trim(),
+      body: m[2] ?? '',
+    }))
+
+    it('sits between the theme blocks and the forced-colors block', () => {
+      expect(PALETTE_AT).toBeGreaterThan(css.indexOf('[data-ch-theme="dark"] {'))
+      expect(PALETTE_AT).toBeLessThan(FORCED_AT)
+      expect(rules.length).toBeGreaterThan(0)
+    })
+
+    it('restores the pre-0.6b warn, gain and neutral and nothing else', () => {
+      for (const { body } of rules) {
+        const props = Object.fromEntries(
+          [...body.matchAll(/(--[\w-]+):\s*([^;]+);/g)].map((m) => [m[1], m[2]]),
+        )
+        expect(props).toEqual({
+          '--ch-warn': '#f1a23b',
+          '--ch-gain': '#23a866',
+          '--ch-neutral': '#a3a3ab',
+        })
+      }
+    })
+
+    it('covers a light theme on, under and above the palette, and the system theme', () => {
+      const selectors = rules.map((r) => r.selector).join(' | ')
+      expect(selectors).toContain(':where([data-ch-palette="vivid"])[data-ch-theme="light"]')
+      expect(selectors).toContain(':where([data-ch-palette="vivid"]) [data-ch-theme="light"]')
+      expect(selectors).toContain('[data-ch-theme="light"] :where([data-ch-palette="vivid"]')
+      expect(selectors).toMatch(/:not\(\[data-ch-theme\], \[data-ch-theme\] \*\)/)
+      // The system rule is for light only: a dark system keeps the dark tokens.
+      expect(palette).toMatch(/@media not \(prefers-color-scheme: dark\)/)
+    })
+
+    it('never selects a dark theme', () => {
+      expect(palette).not.toContain('data-ch-theme="dark"')
+    })
   })
 
   it('declares the same dark tokens for the system preference and the forced theme', () => {

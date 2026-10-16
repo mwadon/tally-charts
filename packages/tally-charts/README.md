@@ -57,6 +57,22 @@ variables are private and can change in any release: select `[data-ch-part="…"
 | Heatmap | `--ch-heatmap-cell-height` (default 44px), `--ch-heatmap-min-cell` (default 56px: the narrowest a column gets before the grid scrolls sideways) |
 | Misc | `--ch-font-numeric`, `--ch-radius` (px), `--ch-duration`, `--ch-ease`, `--ch-dim-opacity`, `--ch-tone-text-mix` |
 
+### Palettes
+
+`data-ch-palette="vivid"` restores the brighter pre-0.6b light colors of three tokens:
+`--ch-warn: #f1a23b`, `--ch-gain: #23a866` and `--ch-neutral: #a3a3ab`.
+
+```html
+<html data-ch-palette="vivid"> <!-- or any ancestor of a chart, or the element with data-ch-theme -->
+```
+
+- Light only: where the effective theme is dark (`data-ch-theme="dark"` or a dark system
+  preference) the tokens are the normal dark ones.
+- Everything else is unchanged, and your own `--ch-*` overrides on a descendant still win.
+- Accessibility: these three colors are below 3:1 against the light surface (warn 2.0:1, gain
+  2.9:1, neutral 2.4:1), so marks in these tones are harder to see than by default; see
+  `docs/a11y.md`.
+
 ## High-level charts
 
 Each one is a thin composition of `<Chart>` and the building blocks, renders a hidden data table

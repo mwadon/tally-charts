@@ -1365,6 +1365,31 @@
     0 0 0 4px var(--ch-accent);
 }
 
+/* ---------- Palette: vivid (opt-in, light only) ---------- */
+/* data-ch-palette="vivid" restores the brighter pre-0.6b warn, gain and neutral wherever the
+   effective theme is light. A theme block re-declares every token on its own element, so the
+   palette must be matched against the theme in each position:
+   - palette and light theme on one element, or the palette above a light theme;
+   - the palette (without a theme of its own) below a light theme;
+   - the palette with no data-ch-theme on it or above it: the system theme decides, light only.
+   A dark theme is never selected, so dark keeps the dark tokens. (A theme nested between a
+   palette and a plain palette element below it is not distinguished.) */
+:where([data-ch-palette="vivid"])[data-ch-theme="light"],
+:where([data-ch-palette="vivid"]) [data-ch-theme="light"],
+[data-ch-theme="light"] :where([data-ch-palette="vivid"]:not([data-ch-theme])) {
+  --ch-warn: #f1a23b;
+  --ch-gain: #23a866;
+  --ch-neutral: #a3a3ab;
+}
+
+@media not (prefers-color-scheme: dark) {
+  [data-ch-palette="vivid"]:where(:not([data-ch-theme], [data-ch-theme] *)) {
+    --ch-warn: #f1a23b;
+    --ch-gain: #23a866;
+    --ch-neutral: #a3a3ab;
+  }
+}
+
 /* ---------- Forced colors (Windows high contrast) ---------- */
 /* The tokens map onto the system palette, so SVG marks and text (which forced colors leave
    alone) follow the user's colors: marks in CanvasText, the accent in Highlight, soft and

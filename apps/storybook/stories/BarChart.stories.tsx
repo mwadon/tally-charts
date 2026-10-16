@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
-import { BarChart } from 'tally-charts'
+import { BarChart, type BarChartProps } from 'tally-charts'
 
 // The "Last 12 weeks" card from docs/reference/01-gross-margin-waterfall.png, as one component.
 const weeks = [
@@ -17,7 +17,15 @@ const weeks = [
   { week: 'Sep 21', margin: 34.0 },
 ]
 
-function TwelveWeeks({ orientation = 'vertical' }: { orientation?: 'vertical' | 'horizontal' }) {
+type Week = (typeof weeks)[number]
+
+function TwelveWeeks({
+  orientation = 'vertical',
+  tone,
+}: {
+  orientation?: 'vertical' | 'horizontal'
+  tone?: BarChartProps<Week>['tone']
+}) {
   return (
     <article className="card">
       <header className="card-header">
@@ -29,6 +37,7 @@ function TwelveWeeks({ orientation = 'vertical' }: { orientation?: 'vertical' | 
         x="week"
         y="margin"
         orientation={orientation}
+        tone={tone}
         domain={[26, 40]}
         target={{ value: 38, label: 'Target 38%' }}
         height={orientation === 'vertical' ? 260 : undefined}
@@ -49,3 +58,11 @@ type Story = StoryObj<typeof meta>
 export const Light: Story = { parameters: { theme: 'light' } }
 export const Dark: Story = { parameters: { theme: 'dark' } }
 export const Horizontal: Story = { args: { orientation: 'horizontal' } }
+
+// Opt-in `data-ch-palette="vivid"`: the pre-0.6b warn, gain and neutral, on a light surface.
+export const Vivid: Story = {
+  args: {
+    tone: (d: Week) => (d.margin >= 37 ? 'gain' : d.margin < 34 ? 'warn' : 'neutral'),
+  },
+  parameters: { theme: 'light', palette: 'vivid' },
+}
