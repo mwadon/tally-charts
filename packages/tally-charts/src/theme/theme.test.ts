@@ -121,6 +121,20 @@ const themeBlocks = themed.slice(0, PALETTE_AT)
 const forced = css.slice(FORCED_AT)
 
 describe('theme.css', () => {
+  it('keeps theme-dependent colours out of the theme-independent :root block', () => {
+    // A var(--ch-ink) there resolves once on :root, so a nested data-ch-theme would inherit the wrong colour.
+    const block = css.match(/Theme-independent tokens -+ \*\/\s*:root\s*\{([^}]*)\}/)?.[1] ?? ''
+    expect(block).toContain('--ch-share-gap')
+    expect(block).not.toMatch(
+      /var\(--ch-(ink|ink-muted|surface|grid|accent|accent-soft|warn|neutral|gain|loss)\b/,
+    )
+  })
+
+  it('resolves the ZoneMeter marker colour on the marker, so it follows the nearest theme', () => {
+    const rule = css.match(/\[data-ch-part="zone-meter-marker"\] \{([^}]*)\}/)?.[1] ?? ''
+    expect(rule).toMatch(/background: var\(--ch-zone-marker, var\(--ch-ink\)\)/)
+  })
+
   it.each(TONES)('defines --ch-%s for light, system dark and forced dark', (tone) => {
     expect(themeBlocks.match(new RegExp(`--ch-${tone}:`, 'g')) ?? []).toHaveLength(3)
   })

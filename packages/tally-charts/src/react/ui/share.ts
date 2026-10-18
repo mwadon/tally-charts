@@ -70,7 +70,14 @@ export function shareLayout(
   })
   const sum = values.reduce((s, v) => s + v, 0)
   let whole = sum
-  if (total !== undefined && Number.isFinite(total)) {
+  if (total !== undefined && !Number.isFinite(total)) {
+    if (DEV) {
+      warn(
+        `share-total-nan:${total}`,
+        `ShareBar total ${total} is not a finite number; the sum is used.`,
+      )
+    }
+  } else if (total !== undefined) {
     if (total >= sum) whole = total
     else if (DEV) {
       warn(

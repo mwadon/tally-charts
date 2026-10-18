@@ -154,7 +154,6 @@
   /* Distance between stripes in px. Unitless: read by JS too. */
   --ch-hatch-gap: 6;
   --ch-share-gap: 2px;
-  --ch-zone-marker: var(--ch-ink);
   --ch-font-numeric: tabular-nums;
   /* Default bar corner radius. Read by JS as px: write it unitless or as `Npx`, never em/rem/%. */
   --ch-radius: 3px;
@@ -746,7 +745,11 @@
   [data-ch-part="share-segment"],
   [data-ch-part="share-swatch"]
 ),
-[data-ch-tone="accent-soft"]:is([data-ch-part="share-segment"], [data-ch-part="share-swatch"]),
+[data-ch-tone="accent-soft"]:is(
+  [data-ch-part="share-segment"],
+  [data-ch-part="share-swatch"],
+  [data-ch-part="zone-meter-zone"]
+),
 [data-ch-part="legend-swatch"][data-ch-tone="accent-soft"]:not([data-ch-shape="line"]) {
   box-shadow: inset 0 0 0 1px
     color-mix(in srgb, var(--_ch-swatch-color) var(--ch-tone-text-mix), var(--ch-ink));
@@ -965,7 +968,7 @@
   width: 3px;
   margin-left: -1.5px;
   border-radius: 2px;
-  background: var(--ch-zone-marker);
+  background: var(--ch-zone-marker, var(--ch-ink));
   box-shadow: 0 0 0 2px var(--ch-surface);
 }
 

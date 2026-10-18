@@ -15,10 +15,10 @@ describe('<ShareBar>', () => {
     const group = screen.getByRole('group', { name: 'Where visitors come from' })
     const rows = within(group).getAllByRole('listitem')
     expect(rows.map((r) => r.textContent)).toEqual([
-      'Internal links2,711 · 46%',
-      'Search1,968 · 34%',
-      'Direct1,101 · 19%',
-      'Social43 · 1%',
+      'Internal links 2,711 · 46%',
+      'Search 1,968 · 34%',
+      'Direct 1,101 · 19%',
+      'Social 43 · 1%',
     ])
     expect(container.querySelector('[data-ch-part="share-bar"]')).toHaveAttribute(
       'aria-hidden',
@@ -87,5 +87,20 @@ describe('<ShareBar>', () => {
     expect(container.querySelectorAll('[data-ch-part="share-segment"]')).toHaveLength(0)
     expect(screen.getAllByRole('listitem')).toHaveLength(2)
     expect(container.innerHTML).not.toContain('NaN')
+  })
+
+  it('reads each row with spaces once the decorative dot is removed', () => {
+    render(<ShareBar label="s" segments={sources} />)
+    const row = screen.getAllByRole('listitem')[0] as HTMLElement
+    const clone = row.cloneNode(true) as HTMLElement
+    for (const n of clone.querySelectorAll('[aria-hidden]')) n.remove()
+    const text = (clone.textContent ?? '').replace(/\s+/g, ' ')
+    expect(text.trim()).toBe('Internal links 2,711 46%')
+    expect(row.querySelector('[data-ch-part="share-value"]')?.textContent).toBe('2,711 · 46%')
+  })
+
+  it('names a legend-less bar with no segments just by its label', () => {
+    render(<ShareBar label="Sources" segments={[]} legend={false} />)
+    expect(screen.getByRole('img')).toHaveAccessibleName('Sources')
   })
 })

@@ -42,9 +42,11 @@ export function ShareBar({
         ? { 'aria-hidden': true }
         : {
             role: 'img',
-            'aria-label': `${label}: ${parts
-              .map((p) => `${p.label} ${p.percentText} (${fmt(p.value)})`)
-              .join(', ')}`,
+            'aria-label': parts.length
+              ? `${label}: ${parts
+                  .map((p) => `${p.label} ${p.percentText} (${fmt(p.value)})`)
+                  .join(', ')}`
+              : label,
           })}
     >
       {parts.map((p) =>
@@ -84,7 +86,7 @@ export function ShareBar({
             />
             <span className="ch-share-label" data-ch-part="share-label">
               {p.label}
-            </span>
+            </span>{' '}
             <span className="ch-share-value" data-ch-part="share-value">
               {legendValue === 'percent' ? (
                 p.percentText
@@ -92,9 +94,7 @@ export function ShareBar({
                 fmt(p.value)
               ) : (
                 <>
-                  {fmt(p.value)}
-                  <span aria-hidden="true"> · </span>
-                  {p.percentText}
+                  {fmt(p.value)} <span aria-hidden="true">·</span> {p.percentText}
                 </>
               )}
             </span>

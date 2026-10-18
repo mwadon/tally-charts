@@ -74,4 +74,13 @@ describe('shareLayout', () => {
       expect.stringContaining('ShareBar has 7 segments'),
     ])
   })
+
+  it('warns when the total is not a finite number and uses the sum', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const { total } = shareLayout([{ label: 'a', value: 3 }], Number.POSITIVE_INFINITY)
+    expect(total).toBe(3)
+    expect(String(warn.mock.calls[0]?.[0])).toContain(
+      'ShareBar total Infinity is not a finite number; the sum is used.',
+    )
+  })
 })
