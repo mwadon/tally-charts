@@ -4,7 +4,9 @@ import { createWarner, DEV } from '../../core/warn'
 export interface ShareSegment {
   /** React key. Default: the index. */
   id?: Id
+  /** Name in the list and the accessible text. */
   label: string
+  /** Amount; negative or non-numbers count as 0. */
   value: number
   /** Default: by position, `accent`, `accent-soft`, `warn`, `neutral`, `gain`, repeating. */
   tone?: Tone
@@ -13,10 +15,15 @@ export interface ShareSegment {
 }
 
 export interface SharePart {
+  /** The segment's `id`, or its index. */
   key: Id
+  /** The segment's label. */
   label: string
+  /** The segment's value, with invalid input as 0. */
   value: number
+  /** The segment's tone, or the default for its position. */
   tone: Tone
+  /** The segment's fill, or 'solid'. */
   fill: Fill
   /** Share of the whole in percent, unrounded, for widths. */
   share: number
@@ -46,6 +53,7 @@ function largestRemainder(shares: readonly number[]): number[] {
   return floors
 }
 
+/** Turns segments into drawable parts: widths, whole percents and default tones. */
 export function shareLayout(
   segments: readonly ShareSegment[],
   total?: number,
@@ -74,7 +82,7 @@ export function shareLayout(
   if (DEV && segments.length > 6) {
     warn(
       `share-count:${segments.length}`,
-      `ShareBar has ${segments.length} segments; tones repeat after 6, so neighbours may look alike.`,
+      `ShareBar has ${segments.length} segments; tones repeat after 5, so neighbours may look alike.`,
     )
   }
   const shares = values.map((v) => (whole > 0 ? (v / whole) * 100 : 0))
