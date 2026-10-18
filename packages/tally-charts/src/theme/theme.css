@@ -917,6 +917,62 @@
   white-space: nowrap;
 }
 
+[data-ch-part="zone-meter"] {
+  display: grid;
+  gap: 10px;
+  font-variant-numeric: var(--ch-font-numeric);
+}
+
+[data-ch-part="zone-meter-track"] {
+  position: relative;
+  height: 8px;
+}
+
+[data-ch-part="zone-meter-zone"] {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  box-sizing: border-box;
+  background: var(--_ch-swatch-color);
+}
+
+/* The gap is a surface-colored edge, so zone edges stay exactly on their breaks. */
+[data-ch-part="zone-meter-zone"] + [data-ch-part="zone-meter-zone"] {
+  border-left: var(--ch-share-gap) solid var(--ch-surface);
+}
+
+[data-ch-part="zone-meter-zone"]:first-child {
+  border-radius: 999px 0 0 999px;
+}
+
+[data-ch-part="zone-meter-zone"]:nth-last-child(1 of [data-ch-part="zone-meter-zone"]) {
+  border-radius: 0 999px 999px 0;
+}
+
+[data-ch-part="zone-meter-marker"] {
+  position: absolute;
+  top: -5px;
+  bottom: -5px;
+  width: 3px;
+  margin-left: -1.5px;
+  border-radius: 2px;
+  background: var(--ch-zone-marker);
+  box-shadow: 0 0 0 2px var(--ch-surface);
+}
+
+[data-ch-part="zone-meter-labels"] {
+  position: relative;
+  height: 16px;
+  color: var(--ch-ink-muted);
+  font-size: 13px;
+}
+
+[data-ch-part="zone-meter-label"] {
+  position: absolute;
+  top: 0;
+  white-space: nowrap;
+}
+
 [data-ch-part="range-meter"] {
   display: grid;
   gap: 6px;
@@ -1496,8 +1552,15 @@
   [data-ch-part="range-gap"],
   [data-ch-part="share-segment"],
   [data-ch-part="share-swatch"],
+  [data-ch-part="zone-meter-zone"],
   [data-ch-part="dot-count-dot"] {
     forced-color-adjust: none;
+  }
+
+  [data-ch-part="zone-meter-marker"] {
+    forced-color-adjust: none;
+    background: Highlight;
+    box-shadow: 0 0 0 2px Canvas;
   }
 
   /* Tracks and pills lose their only edge, a background or a shadow: draw one. */
