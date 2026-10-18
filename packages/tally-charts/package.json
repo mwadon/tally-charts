@@ -3,6 +3,25 @@
   "version": "0.0.0",
   "description": "Opinionated React charts for narrative business dashboards.",
   "license": "MIT",
+  "author": "Mateusz Wadoń",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mwadon/tally-charts.git",
+    "directory": "packages/tally-charts"
+  },
+  "homepage": "https://github.com/mwadon/tally-charts#readme",
+  "bugs": "https://github.com/mwadon/tally-charts/issues",
+  "keywords": [
+    "react",
+    "charts",
+    "dashboard",
+    "data-visualization",
+    "svg",
+    "accessibility"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
   "type": "module",
   "sideEffects": [
     "*.css"
@@ -30,6 +49,7 @@
     "size": "size-limit",
     "check:dev-strip": "node scripts/check-dev-strip.mjs",
     "api:check": "api-extractor run --config api-extractor.json && api-extractor run --config api-extractor.core.json",
+    "prepublishOnly": "pnpm build && pnpm test && pnpm api:check && pnpm size && pnpm check:dev-strip",
     "api:update": "api-extractor run --local --config api-extractor.json && api-extractor run --local --config api-extractor.core.json"
   },
   "dependencies": {
