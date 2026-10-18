@@ -22,7 +22,9 @@ cannot be composed:
 | A track of good / needs work / poor zones with a value marker | LCP, CLS, INP cards | **New:** `ZoneMeter` (§3) |
 
 Both are small HTML pieces next to `Meter`, `RangeMeter` and `InlineBar` in `src/react/ui/`: no
-`<Chart>`, no SVG, no hooks beyond `useFormat`, safe in Server Components.
+`<Chart>`, no SVG, no hooks beyond `useFormat`. Like every component they come from the
+`'use client'` entry, so a Server Component file can render them as long as `format` is a preset,
+not a function.
 
 Rejected: SVG high-level charts on `<Chart>` (3–4 KB each, client-only, overkill for one bar);
 extending `Meter` with `segments` / `zones` (mutually exclusive props, a second meaning for a
@@ -101,11 +103,11 @@ interface ShareBarProps {
   forced colors, where every tone becomes the same system color. The bar has rounded ends; the
   empty remainder (when `total` exceeds the sum) is the faint track.
 - A segment with a value above 0 is at least 3px wide, so a 1 % part stays visible; the extra
-  width comes out of the widest segment. A segment of 0 is not drawn but is listed.
+  width (and the gaps) come out of the other segments in proportion (CSS flex shrink). A segment of 0 is not drawn but is listed.
 - Percentages use the largest remainder method, so the listed percentages add up to exactly 100
   (or to the rounded share of `total` the segments cover). Whole percents; a part above 0 that
   rounds to 0 shows "<1%".
-- Default tones, for segments without `tone`, in order: `accent`, `accent-soft`, `warn`,
+- Default tones, for segments without `tone`, by the segment's position: `accent`, `accent-soft`, `warn`,
   `neutral`, `gain`, then repeating. Never `loss`: pink means loss in this library and is only
   ever chosen explicitly.
 - List rows: a dot swatch in the segment's tone and fill (the `Legend` swatch styles), the label,
@@ -120,7 +122,7 @@ interface ShareBarProps {
 ### Accessibility
 
 - With the list: the bar is `aria-hidden`; the list is a `<ul>` whose rows read
-  "Internal links, 2711, 46%". The wrapper is a `role="group"` named by `label`.
+  "Internal links 2711 46%" (the middle dot is `aria-hidden`). The wrapper is a `role="group"` named by `label`.
 - Without the list: the bar is `role="img"` with `aria-label`
   "Where visitors come from: Internal links 46% (2711), Search 34% (1968), …".
 
@@ -175,8 +177,9 @@ interface ZoneMeterProps {
   with a halo of the surface color.
 - A value outside `min`–`max` is pinned to the nearer end. A missing value (`NaN`, `null`,
   non-number) draws no marker.
-- Tick labels sit under min, each break inside the range, and max; the first is left-aligned and
-  the last right-aligned, the rest centred on their break.
+- Tick labels sit under min, each break inside the range, and max; each is shifted by its own position
+  (`translateX(-p%)`, as `Meter` does), so the first is left-aligned, the last right-aligned and
+  none leaves the track at 320px.
 
 ### Dev warnings
 
@@ -216,8 +219,8 @@ only, under `data-ch-palette="vivid"`:
 - Page header, "Succeeded" pill, Mobile/Desktop toggle and buttons: plain HTML in the story.
 - Score distribution: `Stat` (73/100) and a "Needs improvement" pill; a `<Chart>` with a band
   scale of buckets 0–90 and `Bars`, `hatch` below 70 and `solid` `warn` from 70; `ValueLabel` for
-  the peak count; `Callout` "threshold 70"; the dashed vertical threshold rule as a small custom
-  mark in the story via `useChart()` (README "Custom marks"). Good / Needs work / Poor tiles:
+  the peak count; the dashed vertical threshold rule and its "threshold 70" label as a small
+  custom mark in the story via `useChart()` (README "Custom marks"). Good / Needs work / Poor tiles:
   `Legend` with `count`.
 - Below threshold: `RankedBars` with `track`, per-row tone, `limit` and an "other" row.
 - LCP, CLS, INP cards: `ZoneMeter` + `Stat`, status text from the same `thresholds()`.
