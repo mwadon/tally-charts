@@ -303,3 +303,249 @@ body {
     border-left: 0;
   }
 }
+
+/* Reference/Performance */
+.perf {
+  max-width: 1216px;
+  display: grid;
+  gap: 16px;
+}
+
+.perf-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.perf-title {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 600;
+}
+
+.perf-sub {
+  margin: 6px 0 0;
+  /* On the canvas (darker than a card), plain muted ink falls just under 4.5:1. */
+  color: color-mix(in srgb, var(--ch-ink-muted) 70%, var(--ch-ink));
+  font-size: 15px;
+}
+
+.perf-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.perf-button {
+  padding: 8px 16px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--ch-surface);
+  box-shadow: 0 0 0 1px var(--ch-grid);
+  color: var(--ch-ink);
+  font: inherit;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.perf-button-primary {
+  background: var(--ch-ink);
+  color: var(--ch-surface);
+}
+
+.perf-button:focus-visible {
+  outline: 2px solid var(--ch-accent);
+  outline-offset: 2px;
+}
+
+.perf-pill {
+  display: inline-block;
+  padding: 2px 12px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.perf-pill-dark {
+  background: var(--ch-ink);
+  color: var(--ch-surface);
+}
+
+.perf-pill-warn {
+  background: color-mix(in srgb, var(--ch-warn) 22%, var(--ch-surface));
+  color: var(--ch-ink);
+}
+
+.perf-top {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  gap: 16px;
+}
+
+.perf-vitals {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.perf-card {
+  max-width: none;
+  padding: 24px;
+  border-radius: 20px;
+}
+
+.perf-card-title {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.perf-dist {
+  display: grid;
+  grid-template-columns: 180px minmax(0, 1fr);
+  gap: 24px;
+}
+
+.perf-average {
+  display: grid;
+  align-content: start;
+  justify-items: start;
+  gap: 12px;
+  padding-top: 8px;
+}
+
+/* The caption sits beside the value, like "73 /100". */
+.perf [data-ch-part="stat"]:has([data-ch-part="stat-meta"]) {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: baseline;
+  column-gap: 8px;
+}
+
+.perf [data-ch-part="stat-label"] {
+  grid-column: 1 / -1;
+}
+
+.perf [data-ch-part="stat-meta"] {
+  margin: 0;
+}
+
+.perf-chart {
+  min-width: 0;
+}
+
+.perf-tiles {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.perf-tiles [data-ch-part="legend-item"] {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--ch-surface) 94%, var(--ch-ink));
+}
+
+.perf-tiles [data-ch-part="legend-count"] {
+  margin-left: auto;
+  color: var(--ch-ink);
+}
+
+.perf-threshold line {
+  stroke: var(--ch-warn);
+  stroke-dasharray: 3 3;
+}
+
+.perf-threshold text {
+  fill: var(--ch-ink);
+  font-size: 13px;
+  paint-order: stroke;
+  stroke: var(--ch-surface);
+  stroke-width: 4px;
+}
+
+.perf-below-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.perf-below-head .perf-big {
+  margin-left: auto;
+}
+
+.perf-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--ch-loss) 16%, var(--ch-surface));
+  color: var(--ch-loss);
+}
+
+.perf-below-head .perf-big[data-ch-part="stat"] [data-ch-part="stat-value"] {
+  font-size: 36px;
+}
+
+.perf-below-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.perf-below-actions .perf-button:first-child {
+  flex: 1;
+}
+
+.perf-vital {
+  display: grid;
+  gap: 20px;
+}
+
+.perf-vital-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.perf-vital-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 16px;
+  font-weight: 400;
+}
+
+.perf-vital-title b {
+  font-weight: 500;
+}
+
+.perf-tick {
+  width: 3px;
+  height: 16px;
+  border-radius: 2px;
+  background: var(--_ch-swatch-color);
+}
+
+.perf-status {
+  font-size: 15px;
+  font-weight: 500;
+}
+
+@media (max-width: 900px) {
+  .perf-top,
+  .perf-vitals,
+  .perf-dist {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

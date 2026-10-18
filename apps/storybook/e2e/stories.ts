@@ -44,6 +44,8 @@ export const STORIES = [
   'primitives-sequential--dark',
   'reference-usage-runway--light',
   'reference-usage-runway--dark',
+  'reference-performance--light',
+  'reference-performance--dark',
   'charts-runwaychart--states-light',
   'charts-runwaychart--states-dark',
   'charts-runwaychart--stacked-light',
@@ -66,6 +68,8 @@ export const WIDE_STORIES: Record<string, { width: number; height: number }> = {
   'reference-where-it-leaks--dark': { width: 1280, height: 600 },
   'reference-usage-runway--light': { width: 1280, height: 760 },
   'reference-usage-runway--dark': { width: 1280, height: 760 },
+  'reference-performance--light': { width: 1280, height: 760 },
+  'reference-performance--dark': { width: 1280, height: 760 },
 }
 
 // Stories without a theme of their own follow the toolbar global: axe checks them in both themes.
