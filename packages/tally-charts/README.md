@@ -3,7 +3,7 @@
 Opinionated React charts for narrative business dashboards: hatched means plan or reference,
 solid means actual, pink means loss, and targets are first-class.
 
-> Status: 0.6. The public API is frozen for 1.0: see "Changes in 0.6" below.
+> Status: 0.8. The public API is frozen for 1.0: see "Changes in 0.6" below.
 
 ```bash
 npm i tally-charts
@@ -240,7 +240,7 @@ get wider than the chart, wrapping instead.
 `ShareBar` shows the parts of a whole: one bar split by `value / total`, in the given order, and a
 list of the parts ("2,711 · 46%"; `legendValue` is `'both'`, `'value'` or `'percent'`, and
 `legend={false}` keeps only the bar). A `total` larger than the sum leaves the rest as empty track.
-Percents add up to 100, a part under 1% reads "<1%" and stays visible as a 3px sliver. Segments
+Percents add up to 100, a part that rounds to 0% reads "<1%" and stays visible as a 3px sliver. Segments
 without a `tone` take `accent`, `accent-soft`, `warn`, `neutral`, `gain` in turn, never `loss`
 (pink is only ever chosen explicitly).
 
@@ -372,8 +372,8 @@ Chart components are client components: the main entry `tally-charts` starts wit
 so you can render `<Chart>` from a Server Component file. In server code, import from
 `tally-charts/core`, which has no React and is server-safe: the formatters (`fmt`,
 `createFormatter`, `createFormatters`), `thresholds`, `heatmapLevel`, `runwayForecast`, `toNumber`,
-`toTime` and the shared types. Function props (`fill`, `tone`, function `format`, `tooltip`)
-can't cross the server/client boundary, so pass them from a client component.
+`toTime` and the shared types. Function props (`fill`, `tone`, function `format`, `tooltip`,
+`zones`, a `thresholds()` result) can't cross the server/client boundary, so pass them from a client component.
 
 ## Accessibility
 

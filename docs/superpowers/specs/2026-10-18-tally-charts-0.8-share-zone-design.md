@@ -24,7 +24,8 @@ cannot be composed:
 Both are small HTML pieces next to `Meter`, `RangeMeter` and `InlineBar` in `src/react/ui/`: no
 `<Chart>`, no SVG, no hooks beyond `useFormat`. Like every component they come from the
 `'use client'` entry, so a Server Component file can render them as long as `format` is a preset,
-not a function.
+not a function. `zones` (a `thresholds()` result, which holds functions) must also come from a
+client component.
 
 Rejected: SVG high-level charts on `<Chart>` (3–4 KB each, client-only, overkill for one bar);
 extending `Meter` with `segments` / `zones` (mutually exclusive props, a second meaning for a
@@ -86,7 +87,7 @@ interface ShareBarProps {
   total?: number
   /** The list of parts under the bar. Default true. */
   legend?: boolean
-  /** What each list row shows on the right. Default 'both' ("2711 · 46%"). */
+  /** What each list row shows on the right. Default 'both' ("2,711 · 46%"). */
   legendValue?: 'both' | 'value' | 'percent'
   /** Default 'number'. */
   format?: FormatSpec
@@ -122,9 +123,9 @@ interface ShareBarProps {
 ### Accessibility
 
 - With the list: the bar is `aria-hidden`; the list is a `<ul>` whose rows read
-  "Internal links 2711 46%" (the middle dot is `aria-hidden`). The wrapper is a `role="group"` named by `label`.
+  "Internal links 2,711 46%" (the middle dot is `aria-hidden`). The wrapper is a `role="group"` named by `label`.
 - Without the list: the bar is `role="img"` with `aria-label`
-  "Where visitors come from: Internal links 46% (2711), Search 34% (1968), …".
+  "Where visitors come from: Internal links 46% (2,711), Search 34% (1,968), …".
 
 Out of scope: hover, tooltips, selection, sorting, tile layouts (compose `legend={false}` with
 `Stat`).
@@ -190,7 +191,7 @@ interface ZoneMeterProps {
 
 - `role="meter"` with `aria-label`, `aria-valuemin`, `aria-valuemax`, `aria-valuenow` (clamped).
 - `aria-valuetext` is the formatted value and the zone's label: "4.1 s, Poor"; above max,
-  "6.4 s, above 6 s, Poor"; missing, "No data".
+  "6.4 s, above 6.0 s, Poor"; missing, "No data".
 - Tick labels are `aria-hidden`.
 - Forced colors: the gaps separate the zones; the marker uses `Highlight`.
 
