@@ -451,7 +451,7 @@ describe('theme.css', () => {
 
   it('insets an outline on hatched swatches, meter and inline bar fills and range gaps', () => {
     expect(css).toMatch(
-      /\[data-ch-fill="hatch"\]:is\(\s*\[data-ch-part="legend-swatch"\],\s*\[data-ch-part="meter-fill"\],\s*\[data-ch-part="inline-bar-fill"\],\s*\[data-ch-part="range-gap"\]\s*\),[^{]*\{\s*box-shadow: inset 0 0 0 1px\s+color-mix/,
+      /\[data-ch-fill="hatch"\]:is\(\s*\[data-ch-part="legend-swatch"\],\s*\[data-ch-part="meter-fill"\],\s*\[data-ch-part="inline-bar-fill"\],\s*\[data-ch-part="range-gap"\],\s*\[data-ch-part="share-segment"\],\s*\[data-ch-part="share-swatch"\]\s*\),[^{]*\{\s*box-shadow: inset 0 0 0 1px\s+color-mix/,
     )
   })
 

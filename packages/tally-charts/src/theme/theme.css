@@ -153,6 +153,8 @@
   --ch-hatch-width: 1.5px;
   /* Distance between stripes in px. Unitless: read by JS too. */
   --ch-hatch-gap: 6;
+  --ch-share-gap: 2px;
+  --ch-zone-marker: var(--ch-ink);
   --ch-font-numeric: tabular-nums;
   /* Default bar corner radius. Read by JS as px: write it unitless or as `Npx`, never em/rem/%. */
   --ch-radius: 3px;
@@ -740,7 +742,9 @@
   [data-ch-part="legend-swatch"],
   [data-ch-part="meter-fill"],
   [data-ch-part="inline-bar-fill"],
-  [data-ch-part="range-gap"]
+  [data-ch-part="range-gap"],
+  [data-ch-part="share-segment"],
+  [data-ch-part="share-swatch"]
 ),
 [data-ch-part="legend-swatch"][data-ch-tone="accent-soft"]:not([data-ch-shape="line"]) {
   box-shadow: inset 0 0 0 1px
@@ -853,6 +857,63 @@
 [data-ch-part="meter-target-label"] {
   position: absolute;
   top: 0;
+  white-space: nowrap;
+}
+
+[data-ch-part="share"] {
+  display: grid;
+  gap: 14px;
+  font-variant-numeric: var(--ch-font-numeric);
+}
+
+[data-ch-part="share-bar"] {
+  display: flex;
+  gap: var(--ch-share-gap);
+  height: 10px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ch-grid) 55%, transparent);
+}
+
+[data-ch-part="share-segment"] {
+  flex-grow: 0;
+  flex-shrink: 1;
+  min-width: 3px;
+}
+
+[data-ch-part="share-list"] {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+[data-ch-part="share-row"] {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--ch-ink);
+  font-size: 15px;
+}
+
+[data-ch-part="share-swatch"] {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+[data-ch-part="share-label"] {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+[data-ch-part="share-value"] {
+  color: var(--ch-ink-muted);
   white-space: nowrap;
 }
 
@@ -1433,6 +1494,8 @@
   [data-ch-part="inline-bar-fill"],
   [data-ch-part="range-dot"],
   [data-ch-part="range-gap"],
+  [data-ch-part="share-segment"],
+  [data-ch-part="share-swatch"],
   [data-ch-part="dot-count-dot"] {
     forced-color-adjust: none;
   }
@@ -1440,6 +1503,7 @@
   /* Tracks and pills lose their only edge, a background or a shadow: draw one. */
   [data-ch-part="meter-track"],
   [data-ch-part="inline-bar"],
+  [data-ch-part="share-bar"],
   [data-ch-part="tooltip-pill"],
   [data-ch-part="delta"] {
     border: 1px solid CanvasText;
