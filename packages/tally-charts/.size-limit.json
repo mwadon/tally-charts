@@ -96,9 +96,9 @@
   {
     "name": "Small UI pieces",
     "path": "dist/index.js",
-    "import": "{ Stat, Delta, Meter, RangeMeter, InlineBar, DotCount }",
+    "import": "{ Stat, Delta, Meter, RangeMeter, InlineBar, DotCount, ShareBar, ZoneMeter }",
     "ignore": ["react", "react-dom"],
-    "limit": "4 KB",
+    "limit": "5 KB",
     "gzip": true
   },
   {

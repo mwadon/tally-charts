@@ -32,6 +32,8 @@ describe('public entry points', () => {
     'RangeMeter',
     'InlineBar',
     'DotCount',
+    'ShareBar',
+    'ZoneMeter',
     'WaterfallChart',
     'BridgeChart',
     'Connector',

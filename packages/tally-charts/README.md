@@ -237,6 +237,52 @@ only part of a padded linear scale. Callouts live in the HTML overlay: they appe
 are hidden from screen readers (put the same facts in the title, description or data), and never
 get wider than the chart, wrapping instead.
 
+`ShareBar` shows the parts of a whole: one bar split by `value / total`, in the given order, and a
+list of the parts ("2,711 · 46%"; `legendValue` is `'both'`, `'value'` or `'percent'`, and
+`legend={false}` keeps only the bar). A `total` larger than the sum leaves the rest as empty track.
+Percents add up to 100, a part under 1% reads "<1%" and stays visible as a 3px sliver. Segments
+without a `tone` take `accent`, `accent-soft`, `warn`, `neutral`, `gain` in turn, never `loss`
+(pink is only ever chosen explicitly).
+
+```tsx
+<ShareBar
+  label="Where visitors come from"
+  segments={[
+    { label: 'Internal links', value: 2711, tone: 'gain' },
+    { label: 'Search', value: 1968, tone: 'accent' },
+    { label: 'Direct', value: 1101, tone: 'warn' },
+    { label: 'Social', value: 43, tone: 'neutral', fill: 'hatch' },
+  ]}
+/>
+
+<ShareBar
+  label="Pages by review state"
+  total={800}
+  segments={[
+    { label: 'Reviewed in the last 90 days', value: 62 },
+    { label: 'Stale, untouched 90+ days', value: 738, tone: 'loss' },
+  ]}
+/>
+```
+
+`ZoneMeter` puts a value against the zones of a `thresholds()` result, on a linear track from `min`
+to `max` with a marker and the breaks labelled underneath. `maxLabel` and `minLabel` replace the end
+labels ("6 s+"), and a value outside the range is pinned to the end. The value text a screen reader
+hears is the value and its zone, such as "4.1 s, Poor".
+
+```tsx
+const lcpZones = thresholds([2.5, 4], ['gain', 'warn', 'loss'], ['Good', 'Needs improvement', 'Poor'])
+
+<ZoneMeter
+  label="Largest Contentful Paint"
+  value={4.1}
+  zones={lcpZones}
+  max={6}
+  maxLabel="6 s+"
+  format={(v) => `${v.toFixed(1)} s`}
+/>
+```
+
 Thresholds drive tones and legend counts:
 
 ```tsx
@@ -342,6 +388,10 @@ and the pointer can rest on it. Text keeps 4.5:1 and marks 3:1 in both themes, f
 totals thin out, row labels are cut with an ellipsis, ComparisonBars stacks and Heatmap scrolls.
 `docs/a11y.md` in the repository has the keyboard model, what screen readers hear per chart, the
 decorative elements and a manual checklist.
+
+## Changes in 0.8
+
+Added `ShareBar` and `ZoneMeter`. Nothing changed or removed.
 
 ## Changes in 0.6
 

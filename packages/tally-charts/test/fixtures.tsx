@@ -16,6 +16,7 @@ import {
   RankedBars,
   RunwayChart,
   runwayForecast,
+  ShareBar,
   Stat,
   StripPlot,
   Target,
@@ -24,6 +25,7 @@ import {
   ValueLabel,
   WaffleColumns,
   WaterfallChart,
+  ZoneMeter,
 } from '../src'
 
 export const weeks = [
@@ -113,6 +115,23 @@ export function SmallPieces() {
       <RangeMeter value={12.3} reference={36} max={40} format="percent" label="Margin" />
       <InlineBar value={12.3} max={40} target={38} label="Margin" />
       <DotCount count={29} label="29 jobs" />
+      <ShareBar
+        label="Visitors"
+        segments={[
+          { label: 'Search', value: 3 },
+          { label: 'Direct', value: 1 },
+        ]}
+      />
+      <ZoneMeter
+        label="LCP"
+        value={4.1}
+        max={6}
+        zones={thresholds(
+          [2.5, 4],
+          ['gain', 'warn', 'loss'],
+          ['Good', 'Needs improvement', 'Poor'],
+        )}
+      />
     </div>
   )
 }

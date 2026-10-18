@@ -1047,6 +1047,31 @@ export type ScaleSpec<D> = LinearScaleSpec<D> | BandScaleSpec<D> | PointScaleSpe
 export type SeqLevel = 1 | 2 | 3 | 4 | 5;
 
 // @public
+export function ShareBar(input: ShareBarProps): JSX.Element;
+
+// @public (undocumented)
+export interface ShareBarProps {
+    // (undocumented)
+    className?: string;
+    format?: FormatSpec;
+    label: string;
+    legend?: boolean;
+    legendValue?: 'both' | 'value' | 'percent';
+    // (undocumented)
+    segments: readonly ShareSegment[];
+    total?: number;
+}
+
+// @public (undocumented)
+export interface ShareSegment {
+    fill?: Fill;
+    id?: Id;
+    label: string;
+    tone?: Tone;
+    value: number;
+}
+
+// @public
 export function Stat(input: StatProps): JSX.Element;
 
 // @public (undocumented)
@@ -1320,6 +1345,23 @@ export interface WaterfallTotal {
     label: string;
     // (undocumented)
     value: number;
+}
+
+// @public
+export function ZoneMeter(input: ZoneMeterProps): JSX.Element;
+
+// @public (undocumented)
+export interface ZoneMeterProps {
+    className?: string;
+    format?: FormatSpec;
+    label: string;
+    max: number;
+    maxLabel?: ReactNode | null;
+    min?: number;
+    minLabel?: ReactNode | null;
+    ticks?: boolean;
+    value: number;
+    zones: Thresholds;
 }
 
 // (No @packageDocumentation comment for this package)

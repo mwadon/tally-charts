@@ -88,6 +88,8 @@ describe('server rendering', () => {
     expect(comparison.match(/data-ch-part="bar"/g)).toHaveLength(8)
     expect(renderToString(<DrillColumn />)).toContain('data-ch-part="row-highlight"')
     expect(renderToString(<SmallPieces />)).toContain('role="meter"')
+    expect(renderToString(<SmallPieces />)).toContain('data-ch-part="share-segment"')
+    expect(renderToString(<SmallPieces />)).toContain('aria-valuetext="4.1, Poor"')
   })
 
   it('renders the 0.4 dot charts without a DOM, deterministically', () => {
