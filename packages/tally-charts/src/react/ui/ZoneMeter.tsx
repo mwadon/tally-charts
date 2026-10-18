@@ -31,6 +31,9 @@ export interface ZoneMeterProps {
 
 const warn = createWarner()
 
+/** Percent for a style value: 4 decimals, no float noise. */
+const pct = (n: number) => `${Math.round(n * 1e4) / 1e4}%`
+
 /** A value against good / needs work / poor zones: zones from `thresholds()`, a marker at the value. */
 export function ZoneMeter({
   value,
@@ -99,14 +102,14 @@ export function ZoneMeter({
       >
         {drawn.map(({ bin, from, to }) => (
           <div
-            key={bin.label}
+            key={bin.min}
             className="ch-zone-meter-zone"
             data-ch-part="zone-meter-zone"
             data-ch-tone={bin.tone}
             style={{
               ...toneVar(bin.tone),
-              left: `${toPercent(from, min, max)}%`,
-              width: `${toPercent(to, min, max) - toPercent(from, min, max)}%`,
+              left: pct(toPercent(from, min, max)),
+              width: pct(toPercent(to, min, max) - toPercent(from, min, max)),
             }}
           />
         ))}
@@ -114,7 +117,7 @@ export function ZoneMeter({
           <div
             className="ch-zone-meter-marker"
             data-ch-part="zone-meter-marker"
-            style={{ left: `${toPercent(clamped, min, max)}%` }}
+            style={{ left: pct(toPercent(clamped, min, max)) }}
           />
         ) : null}
       </div>
@@ -125,7 +128,7 @@ export function ZoneMeter({
               key={l.key}
               className="ch-zone-meter-label"
               data-ch-part="zone-meter-label"
-              style={{ left: `${l.at}%`, transform: `translateX(-${l.at}%)` }}
+              style={{ left: pct(l.at), transform: `translateX(-${pct(l.at)})` }}
             >
               {l.text}
             </span>

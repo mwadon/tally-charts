@@ -949,6 +949,11 @@
   border-radius: 0 999px 999px 0;
 }
 
+/* A single drawn zone (every other break is out of range) is rounded at both ends. */
+[data-ch-part="zone-meter-zone"]:first-child:nth-last-child(1 of [data-ch-part="zone-meter-zone"]) {
+  border-radius: 999px;
+}
+
 [data-ch-part="zone-meter-marker"] {
   position: absolute;
   top: -5px;

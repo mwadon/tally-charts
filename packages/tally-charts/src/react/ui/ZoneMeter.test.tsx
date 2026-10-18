@@ -27,15 +27,20 @@ describe('<ZoneMeter>', () => {
     const { container } = render(<ZoneMeter label="LCP" value={1} zones={lcp} max={6} />)
     const zones = [...container.querySelectorAll('[data-ch-part="zone-meter-zone"]')]
     expect(zones.map((z) => z.getAttribute('data-ch-tone'))).toEqual(['gain', 'warn', 'loss'])
-    expect(zones[0]).toHaveStyle({ left: '0%', width: `${(2.5 / 6) * 100}%` })
-    expect(zones[1]).toHaveStyle({ left: `${(2.5 / 6) * 100}%` })
-    // The width is a difference of percentages (24.999999999999986), so compare it numerically.
-    expect(Number.parseFloat((zones[1] as HTMLElement).style.width)).toBeCloseTo((1.5 / 6) * 100, 8)
-    expect(zones[2]).toHaveStyle({ left: `${(4 / 6) * 100}%` })
-    expect(Number.parseFloat((zones[2] as HTMLElement).style.width)).toBeCloseTo((2 / 6) * 100, 8)
+    expect(zones[0]).toHaveStyle({ left: '0%', width: '41.6667%' })
+    expect(zones[1]).toHaveStyle({ left: '41.6667%', width: '25%' })
+    expect(zones[2]).toHaveStyle({ left: '66.6667%', width: '33.3333%' })
     expect(container.querySelector('[data-ch-part="zone-meter-marker"]')).toHaveStyle({
-      left: `${(1 / 6) * 100}%`,
+      left: '16.6667%',
     })
+  })
+
+  it('draws one zone when every break is outside the range', () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const { container } = render(<ZoneMeter label="LCP" value={1} zones={lcp} min={5} max={6} />)
+    const zones = container.querySelectorAll('[data-ch-part="zone-meter-zone"]')
+    expect(zones).toHaveLength(1)
+    expect(zones[0]).toHaveStyle({ left: '0%', width: '100%' })
   })
 
   it('pins out-of-range values to the end and says so', () => {
