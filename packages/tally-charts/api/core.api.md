@@ -234,7 +234,7 @@ export interface ThresholdOptions {
 export interface Thresholds {
     // (undocumented)
     bins: readonly ThresholdBin[];
-    inclusive: ThresholdInclusive;
+    inclusive?: ThresholdInclusive;
     indexOf(value: unknown): number;
     legend(values: readonly unknown[]): readonly ThresholdLegendItem[];
     // (undocumented)

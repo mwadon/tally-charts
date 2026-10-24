@@ -38,7 +38,9 @@ export function NearestPointer({ radius = 24, axis = 'xy' }: NearestPointerProps
     // biome-ignore lint/a11y/noStaticElementInteractions: pointer-only hit layer; keyboard access lives on the focusable figure
     <rect
       data-ch-part="pointer-layer"
-      data-ch-selectable={ctx.selectable ? 'true' : undefined}
+      data-ch-selectable={
+        ctx.selectable && ctx.activePoint?.selectable !== false ? 'true' : undefined
+      }
       x={0}
       y={0}
       width={ctx.innerWidth}

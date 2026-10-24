@@ -103,7 +103,7 @@ export function Bars<D>(props: BarsProps<D>) {
         segments: segments
           ? segments(datum, bar.index)
           : [{ value: name }, { value: format(bar.value) }],
-        ...(selectableOf(datum, bar.index, data) ? {} : { selectable: false }),
+        ...(selectableOf(datum, bar.index, data) !== false ? {} : { selectable: false }),
       }
     })
   }, [layout, label, segments, ariaLabel, format, selectable, data])

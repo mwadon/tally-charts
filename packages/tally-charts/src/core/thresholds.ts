@@ -15,9 +15,9 @@ export interface ThresholdOptions {
 export interface ThresholdBin {
   label: string
   tone: Tone
-  /** Lower bound, inclusive unless the spec is upper-inclusive; -Infinity for the first bin. */
+  /** Lower bound; -Infinity for the first bin. A bin is `[min, max)`, or `(min, max]` with `inclusive: 'upper'`. */
   min: number
-  /** Upper bound, exclusive unless the spec is upper-inclusive; Infinity for the last bin. */
+  /** Upper bound; Infinity for the last bin. */
   max: number
 }
 
@@ -29,8 +29,11 @@ export interface ThresholdLegendItem {
 
 export interface Thresholds {
   bins: readonly ThresholdBin[]
-  /** The edge that holds a value on a break. With `bins`, plain data a Server Component can pass. */
-  inclusive: ThresholdInclusive
+  /**
+   * The edge that holds a value on a break; `thresholds()` always sets it, and missing means
+   * 'lower'. With `bins`, plain data a Server Component can pass.
+   */
+  inclusive?: ThresholdInclusive
   /** Bin index for a value, or -1 when it is missing or not a number. */
   indexOf(value: unknown): number
   toneOf(value: unknown): Tone | undefined
@@ -49,9 +52,10 @@ export function binIndex(
 }
 
 /**
- * Threshold categories: values below `breaks[0]` are bin 0, values at or above the last break
- * are the last bin (with `inclusive: 'upper'`: up to and including `breaks[0]`, and above the
- * last break). A malformed spec is a programmer error and throws.
+ * Threshold categories. By default bins are `[min, max)`: values below `breaks[0]` are bin 0 and
+ * values at or above the last break are the last bin. With `inclusive: 'upper'` bins are
+ * `(min, max]`: bin 0 runs up to and including `breaks[0]`, the last bin is above the last break.
+ * A malformed spec is a programmer error and throws.
  */
 export function thresholds(
   breaks: readonly number[],
