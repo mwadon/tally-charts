@@ -172,3 +172,24 @@ Przygotowałem bramkę F10 do decyzji maintainera. Gate zostaje OTWARTY, a akcep
 - Result i DrillColumns dostają jawne `fill="hatch"` zamiast regeneracji baseline'ów: referencje `03-estimate-vs-actual.png` i `06-drilldown-strip-plot.png` pokazują słupki kreskowane, więc wygląd stories się nie zmienia. PNG darwin i linux bez zmian, procedura docker niepotrzebna. Performance miało już `fill="solid"`.
 - README: punkt `RankedBars` podaje domyślny `solid` i `fill="hatch"`; przykład drill columns ma `fill="hatch"`. Strona migracji (F23) to osobny task.
 **Weryfikacja:** `pnpm test` (1040), lint, typecheck, build, `api:check` (raport bez zmian, bo zawiera tylko sygnatury), `size`, `check:dev-strip` i `pnpm test:e2e` (303, bez `--update-snapshots`) przechodzą. `git status` bez zmienionych PNG.
+
+## ✔ T05 RankedBars: domyślny fill 'solid' (F1) (2026-10-24)
+Domyślny fill w RankedBars to teraz 'solid' (kod `fill ?? 'solid'` i TSDoc "Default 'solid'. Use 'hatch' for a plan or reference look."). Result.stories i DrillColumns.stories dostały jawne fill="hatch" z komentarzem o referencjach 03 i 06, więc wygląd i baseline'y PNG się nie zmieniły. README: punkt RankedBars opisuje domyślny solid i fill="hatch", a przykład drill columns ma fill="hatch". Dodany changeset major .changeset/ranked-bars-solid-fill.md z notatką migracyjną i fragmentami Before/After. PROGRESS.md ma sekcję decyzji T05. Bramki przechodzą: format, lint (te same 4 ostrzeżenia i 1 info co wcześniej), typecheck, test (1040), build, api:check (api.md bez zmian), size, check:dev-strip, test:e2e (303, port 6007 wolny, bez --update-snapshots). git status nie pokazuje zmienionych PNG.
+**Decyzje i pułapki:**
+- Bars nadaje data-ch-fill tylko elementowi [data-ch-part=bar]; track ma osobny data-ch-part=bar-track, więc selektor słupków jest jednoznaczny.
+- api-extractor wypisuje tylko sygnatury bez TSDoc, więc zmiana samej wartości domyślnej i komentarza nie zmienia api.md.
+- Na macOS (BSD sed) sed -i z wieloma poleceniami zawodzi; do edycji używaj narzędzia Edit.
+- pnpm format przeformatowuje nowe testy (zawijanie długich linii), więc uruchamiaj go przed finalnym lintem.
+**Otwarte kwestie:**
+- Strona migracji (F23) jeszcze nie istnieje (osobny task); powinna zawierać notatkę 'RankedBars: pass fill="hatch" to keep the old look'.
+- pnpm lint nadal zgłasza 4 ostrzeżenia i 1 info (m.in. noImportantStyles w theme.css), istniejące przed T05.
+**Kryteria:**
+- W `RankedBars.test.tsx` jest nowy test: `<RankedBars>` bez `fill` renderuje 3 słupki i każdy ma `data-ch-fill="solid"`. `pnpm test` przechodzi.
+- W `RankedBars.test.tsx` jest nowy test: przy `fill="hatch"` każdy słupek ma `data-ch-fill="hatch"`.
+- `RankedBars.tsx`: TSDoc propa `fill` brzmi `Default 'solid'.`, a domyślna wartość w kodzie to `fill ?? 'solid'`.
+- Po `pnpm build` przechodzi `pnpm --filter tally-charts api:check`, a `packages/tally-charts/api/tally-charts.api.md` jest aktualny (bez zmian albo zaktualizowany przez `api:update` i dołączony).
+- Istnieje `.changeset/*.md` z `'tally-charts': major`, który zawiera zdanie „RankedBars: pass `fill="hatch"` to keep the old look” oraz fragmenty kodu przed i po.
+- `Result.stories.tsx` i `DrillColumns.stories.tsx` przekazują jawnie `fill="hatch"`, zgodnie z referencjami 03 i 06. Żadne inne stories z RankedBars nie zostają bez `fill` (Performance ma `fill="solid"`).
+- `pnpm test:e2e` (port 6007 wolny) przechodzi bez aktualizacji snapshotów, a `git status` nie pokazuje zmienionych ani nowych PNG w `apps/storybook/e2e/__screenshots__/{darwin,linux}`.
+- Przechodzą `pnpm lint`, `pnpm typecheck`, `pnpm size` i `pnpm --filter tally-charts check:dev-strip`.
+- README (punkt `RankedBars`) podaje domyślny `solid` i `fill="hatch"` jako opcję, a PROGRESS.md zapisuje decyzję o jawnym `fill="hatch"` w stories zamiast regeneracji baseline'ów.
