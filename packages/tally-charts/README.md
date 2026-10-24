@@ -41,6 +41,17 @@ const weeks = [
 Theme with CSS custom properties (`--ch-accent`, `--ch-loss`, `--ch-hatch-gap`, …). Dark mode
 follows `prefers-color-scheme` unless an ancestor sets `data-ch-theme="light"` or `"dark"`.
 
+An app whose dark mode is a class (`.dark`, as with Tailwind and shadcn) has to set the attribute
+too; the class alone doesn't reach the tokens. With next-themes, write both:
+
+```tsx
+<ThemeProvider attribute={['class', 'data-ch-theme']}>{children}</ThemeProvider>
+```
+
+With your own provider, set `document.documentElement.dataset.chTheme = resolvedTheme` wherever it
+toggles the class, and render the same `data-ch-theme` on `<html>` on the server so the first
+paint is in the right theme.
+
 ## Styling
 
 The public CSS surface is the `--ch-*` tokens below, `data-ch-part` on every part you might
@@ -110,7 +121,7 @@ import { BarChart, ComparisonBars, RankedBars } from 'tally-charts'
 - `RankedBars`: label, bar on a faint track, value; sorted by size; `layout="stacked"` for drill
   columns. Bars show magnitudes, so negative "lost" amounts extend right and keep their sign in
   the text. Selection uses `selectedId` + `onSelect`; ids are the original data index unless you
-  pass `id`.
+  pass `id`. `selectable={(d) => d.key !== 'other'}` leaves a row out of `onSelect`.
 - `WaterfallChart`: horizontal steps from a start value to a calculated end, with dotted
   connectors. Start is hatched neutral, steps are `loss`/`gain`, the end is solid accent. The
   domain leaves out zero by default, like a 34%–38% gap chart; the scale then runs a little past
@@ -270,8 +281,12 @@ to `max` with a marker and the breaks labelled underneath. `maxLabel` and `minLa
 labels ("6 s+"), and a value outside the range is pinned to the end. The value text a screen reader
 hears is the value and its zone, such as "4.1 s, Poor".
 
+A value on a break goes in the zone above it. For tiers that include their upper edge, as Core Web
+Vitals do (an LCP of 2.5 s is Good), pass `{ inclusive: 'upper' }` to `thresholds()`.
+
 ```tsx
-const lcpZones = thresholds([2.5, 4], ['gain', 'warn', 'loss'], ['Good', 'Needs improvement', 'Poor'])
+const lcpZones = thresholds([2.5, 4], ['gain', 'warn', 'loss'], ['Good', 'Needs improvement', 'Poor'],
+  { inclusive: 'upper' })
 
 <ZoneMeter
   label="Largest Contentful Paint"
@@ -372,8 +387,10 @@ Chart components are client components: the main entry `tally-charts` starts wit
 so you can render `<Chart>` from a Server Component file. In server code, import from
 `tally-charts/core`, which has no React and is server-safe: the formatters (`fmt`,
 `createFormatter`, `createFormatters`), `thresholds`, `heatmapLevel`, `runwayForecast`, `toNumber`,
-`toTime` and the shared types. Function props (`fill`, `tone`, function `format`, `tooltip`,
-`zones`, a `thresholds()` result) can't cross the server/client boundary, so pass them from a client component.
+`toTime` and the shared types. Function props (`fill`, `tone`, function `format`, `tooltip`, a
+`thresholds()` result) can't cross the server/client boundary, so pass them from a client component.
+ZoneMeter's `zones` also takes the plain part of a `thresholds()` result:
+`zones={{ bins: lcp.bins, inclusive: lcp.inclusive }}` works from a Server Component.
 
 ## Accessibility
 
@@ -388,6 +405,11 @@ and the pointer can rest on it. Text keeps 4.5:1 and marks 3:1 in both themes, f
 totals thin out, row labels are cut with an ellipsis, ComparisonBars stacks and Heatmap scrolls.
 `docs/a11y.md` in the repository has the keyboard model, what screen readers hear per chart, the
 decorative elements and a manual checklist.
+
+## Changes in 0.9
+
+Added `thresholds(…, { inclusive: 'upper' })`, plain `{ bins, inclusive }` zones on `ZoneMeter`,
+and `selectable` on `RankedBars`, `Bars` and `ChartPoint`. Nothing changed or removed.
 
 ## Changes in 0.8
 

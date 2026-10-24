@@ -71,6 +71,23 @@ describe('<RankedBars>', () => {
     expect(onSelect).toHaveBeenCalledWith(1, expect.objectContaining({ id: 1 }))
   })
 
+  it('skips onSelect for rows that are not selectable', () => {
+    const onSelect = vi.fn()
+    const { container } = renderRanked({ onSelect, selectable: (d) => d.name !== 'Labor overruns' })
+    const hits = parts(container, '[data-ch-part="bar-hit"]')
+    // Rows shown: Labor overruns (not selectable), Material variance, Callbacks.
+    expect(hits.map((h) => h.getAttribute('data-ch-selectable'))).toEqual([null, 'true', 'true'])
+    fireEvent.click(hits[0] as Element)
+    expect(onSelect).not.toHaveBeenCalled()
+    const chart = screen.getByRole('application', { name: 'Leakage by cause' })
+    fireEvent.keyDown(chart, { key: 'ArrowDown' })
+    fireEvent.keyDown(chart, { key: 'Enter' })
+    expect(onSelect).not.toHaveBeenCalled()
+    fireEvent.keyDown(chart, { key: 'ArrowDown' })
+    fireEvent.keyDown(chart, { key: ' ' })
+    expect(onSelect).toHaveBeenCalledWith(2, expect.objectContaining({ id: 2 }))
+  })
+
   it('highlights the selected row in the selected tone', () => {
     const { container } = renderRanked({ selectedId: 2 })
     expect(parts(container, '[data-ch-part="row-highlight"]')).toHaveLength(1)

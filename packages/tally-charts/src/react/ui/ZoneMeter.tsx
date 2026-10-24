@@ -1,16 +1,22 @@
 import type { ReactNode } from 'react'
 import type { FormatSpec } from '../../core/format'
 import { toNumber } from '../../core/number'
-import type { Thresholds } from '../../core/thresholds'
+import { binIndex, type ThresholdInclusive, type Thresholds } from '../../core/thresholds'
 import { createWarner, DEV } from '../../core/warn'
 import { useFormat } from '../ChartsProvider'
 import { cx, toneVar, toPercent } from './util'
 
+/**
+ * The zones of a `ZoneMeter`: a `thresholds()` result, or its plain `{ bins, inclusive }`, which a
+ * Server Component can pass to a client component.
+ */
+export type ZoneMeterZones = Pick<Thresholds, 'bins'> & { inclusive?: ThresholdInclusive }
+
 export interface ZoneMeterProps {
   /** The measured value. A value outside the range is pinned to its end; a missing one draws no marker. */
   value: number
-  /** A `thresholds()` result: the breaks, tones and labels of the zones. */
-  zones: Thresholds
+  /** A `thresholds()` result, or its `{ bins, inclusive }`: the breaks, tones and labels of the zones. */
+  zones: ZoneMeterZones
   /** Default 0. */
   min?: number
   /** The end of the range; must be greater than `min`. */
@@ -69,7 +75,8 @@ export function ZoneMeter({
   const v = toNumber(value)
   const finite = Number.isFinite(v)
   const clamped = finite ? Math.min(max, Math.max(min, v)) : min
-  const zone = finite ? zones.bins[zones.indexOf(v)]?.label : undefined
+  const edges = zones.bins.slice(1).map((b) => b.min)
+  const zone = finite ? zones.bins[binIndex(v, edges, zones.inclusive)]?.label : undefined
   const valueText = !finite
     ? 'No data'
     : [fmt(v), v > max ? `above ${fmt(max)}` : v < min ? `below ${fmt(min)}` : undefined, zone]
@@ -78,10 +85,7 @@ export function ZoneMeter({
   const drawn = zones.bins
     .map((bin) => ({ bin, from: Math.max(min, bin.min), to: Math.min(max, bin.max) }))
     .filter((z) => z.to > z.from)
-  const breaks = zones.bins
-    .slice(1)
-    .map((b) => b.min)
-    .filter((b) => b > min && b < max)
+  const breaks = edges.filter((b) => b > min && b < max)
   const labels: { key: string; at: number; text: ReactNode }[] = [
     ...(minLabel === null ? [] : [{ key: 'min', at: 0, text: minLabel ?? fmt(min) }]),
     ...breaks.map((b) => ({ key: `b${b}`, at: toPercent(b, min, max), text: fmt(b) })),

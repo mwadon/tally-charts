@@ -22,7 +22,13 @@ export type {
   ScaleSpec,
   TimeScaleSpec,
 } from './scale'
-export type { ThresholdBin, ThresholdLegendItem, Thresholds } from './thresholds'
+export type {
+  ThresholdBin,
+  ThresholdInclusive,
+  ThresholdLegendItem,
+  ThresholdOptions,
+  Thresholds,
+} from './thresholds'
 export { heatmapLevel, thresholds } from './thresholds'
 export type { TimeInput, TimeScale, TimeZone } from './time'
 export { toTime } from './time'

@@ -41,6 +41,8 @@ export interface ChartPoint<D = unknown> {
   segments: readonly TooltipSegment[]
   /** Stack or row membership; arrow keys move within and across groups when set. */
   group?: PointGroup
+  /** False: the chart's `onSelect` skips this point (click, Enter and Space). Default true. */
+  selectable?: boolean
 }
 
 export type ActiveSource = 'pointer' | 'keyboard'

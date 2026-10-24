@@ -35,6 +35,17 @@ describe('thresholds', () => {
     ])
   })
 
+  it('puts a value on a break in the bin below with inclusive upper', () => {
+    const th = thresholds([2.5, 4], ['gain', 'warn', 'loss'], ['Good', 'Needs work', 'Poor'], {
+      inclusive: 'upper',
+    })
+    expect(th.inclusive).toBe('upper')
+    expect([2.4, 2.5, 2.51, 4, 4.01].map((v) => th.indexOf(v))).toEqual([0, 0, 1, 1, 2])
+    expect(th.toneOf(2.5)).toBe('gain')
+    expect(th.legend([2.5, 4, 5]).map((l) => l.count)).toEqual([1, 1, 1])
+    expect(margin().inclusive).toBe('lower')
+  })
+
   it('throws on a malformed spec', () => {
     expect(() => thresholds([10], ['loss'], ['A'])).toThrow(/one more tone/)
     expect(() => thresholds([10], ['loss', 'gain'], ['A'])).toThrow(/one more tone/)

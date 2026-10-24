@@ -180,12 +180,12 @@ export function Chart<D>({
     const point = interaction.activePoint
     if ((event.key === 'Enter' || event.key === ' ') && onSelect && point) {
       event.preventDefault()
-      onSelect(point.id, point as ChartPoint<D>)
+      if (point.selectable !== false) onSelect(point.id, point as ChartPoint<D>)
     }
   }
 
   const select = (point: ChartPoint) => {
-    if (onSelect) onSelect(point.id, point as ChartPoint<D>)
+    if (onSelect && point.selectable !== false) onSelect(point.id, point as ChartPoint<D>)
   }
 
   const ctx: InternalChartContext = {

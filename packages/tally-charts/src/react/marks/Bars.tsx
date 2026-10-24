@@ -41,6 +41,8 @@ export interface BarsProps<D> {
   interactive?: boolean
   /** Draw a faint track behind each bar across the whole value range. Default false. */
   track?: boolean
+  /** False for bars the chart's `onSelect` skips (no pointer cursor either). Default true. */
+  selectable?: PerItem<D, boolean>
 }
 
 const NO_POINTS: ChartPoint[] = []
@@ -84,9 +86,10 @@ export function Bars<D>(props: BarsProps<D>) {
   )
 
   const format = useMemo(() => createFormat(props.format), [createFormat, props.format])
-  const { label, segments, ariaLabel } = props
+  const { label, segments, ariaLabel, selectable } = props
   const points: ChartPoint[] = useMemo(() => {
     const getLabel = label ? resolveAccessor(label) : undefined
+    const selectableOf = resolvePerItem<D, boolean>(selectable ?? true)
     return layout.bars.map((bar) => {
       const datum = bar.datum as D
       const name = getLabel ? getLabel(datum, bar.index) : bar.category
@@ -100,9 +103,10 @@ export function Bars<D>(props: BarsProps<D>) {
         segments: segments
           ? segments(datum, bar.index)
           : [{ value: name }, { value: format(bar.value) }],
+        ...(selectableOf(datum, bar.index, data) ? {} : { selectable: false }),
       }
     })
-  }, [layout, label, segments, ariaLabel, format])
+  }, [layout, label, segments, ariaLabel, format, selectable, data])
   useRegisterPoints(interactive ? points : NO_POINTS)
 
   const toneOf = resolvePerItem<D, Tone>(props.tone ?? 'accent')
@@ -162,7 +166,9 @@ export function Bars<D>(props: BarsProps<D>) {
               // biome-ignore lint/a11y/noStaticElementInteractions: pointer-only hit area; keyboard selection lives on the focusable figure
               <rect
                 data-ch-part="bar-hit"
-                data-ch-selectable={ctx.selectable ? 'true' : undefined}
+                data-ch-selectable={
+                  ctx.selectable && point?.selectable !== false ? 'true' : undefined
+                }
                 fill="transparent"
                 {...hit}
                 onPointerEnter={() => ctx.setActive(bar.id, 'pointer')}

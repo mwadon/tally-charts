@@ -45,6 +45,11 @@ export interface RankedBarsProps<D> extends Omit<ChartPassThroughProps<D>, 'aspe
   fill?: PerItem<D, Fill>
   /** The highlighted row. Hover and focus stay separate (`activeId`). */
   selectedId?: Id | null
+  /**
+   * False for rows `onSelect` skips, e.g. an "Other" row that can't be a filter. They still take
+   * hover, focus and the tooltip. Default true.
+   */
+  selectable?: PerItem<D, boolean>
   /** Tone of the selected row's bar and value. Default 'loss'. */
   selectedTone?: Tone
   /** Default 40 (inline) or 52 (stacked). */
@@ -84,6 +89,7 @@ interface RankedRow<D> {
   tone: Tone
   fill: Fill
   selected: boolean
+  selectable: boolean
 }
 
 /** Horizontal padding inside each row, in px. */
@@ -138,6 +144,7 @@ export function RankedBars<D>({
   tone,
   fill,
   selectedId,
+  selectable,
   selectedTone = 'loss',
   rowHeight,
   barSize,
@@ -168,6 +175,7 @@ export function RankedBars<D>({
     const getMeta = meta ? resolveAccessor(meta) : undefined
     const toneOf = resolvePerItem<D, Tone>(tone ?? 'neutral')
     const fillOf = resolvePerItem<D, Fill>(fill ?? 'hatch')
+    const selectableOf = resolvePerItem<D, boolean>(selectable ?? true)
     const all = data.map((d, i): RankedRow<D> => {
       const v = toNumber(getValue(d, i))
       const rowId = getId ? getId(d, i) : i
@@ -185,6 +193,7 @@ export function RankedBars<D>({
         tone: selected ? selectedTone : toneOf(d, i, data),
         fill: fillOf(d, i, data),
         selected,
+        selectable: selectableOf(d, i, data) !== false,
       }
     })
     if (sort !== 'none') {
@@ -198,7 +207,21 @@ export function RankedBars<D>({
       })
     }
     return limit === undefined ? all : all.slice(0, Math.max(0, limit))
-  }, [data, label, value, id, meta, tone, fill, selectedId, selectedTone, sort, limit, fmt])
+  }, [
+    data,
+    label,
+    value,
+    id,
+    meta,
+    tone,
+    fill,
+    selectable,
+    selectedId,
+    selectedTone,
+    sort,
+    limit,
+    fmt,
+  ])
 
   const resolvedDomain = domain ?? inferLinearDomain(rows.map((r) => r.magnitude))
   const metaSpace = meta ? metaWidth : 0
@@ -243,6 +266,7 @@ export function RankedBars<D>({
         label="label"
         tone={(r) => r.tone}
         fill={(r) => r.fill}
+        selectable={selectable ? (r) => r.selectable : undefined}
         size={size}
         align={stacked ? 'end' : 'center'}
         offset={stacked ? -STACK_BAR_PAD : undefined}

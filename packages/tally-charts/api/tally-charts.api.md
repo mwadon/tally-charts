@@ -150,6 +150,7 @@ export interface BarsProps<D> {
     offset?: number;
     radius?: number;
     segments?: (d: D, i: number) => readonly TooltipSegment[];
+    selectable?: PerItem<D, boolean>;
     size?: number;
     // (undocumented)
     tone?: PerItem<D, Tone>;
@@ -260,6 +261,7 @@ export interface ChartPoint<D = unknown> {
     label: string;
     // (undocumented)
     segments: readonly TooltipSegment[];
+    selectable?: boolean;
     series?: string;
     // (undocumented)
     x: number;
@@ -892,6 +894,7 @@ export interface RankedBarsProps<D> extends Omit<ChartPassThroughProps<D>, 'aspe
     meta?: Accessor<D, string>;
     metaWidth?: number;
     rowHeight?: number;
+    selectable?: PerItem<D, boolean>;
     selectedId?: Id | null;
     selectedTone?: Tone;
     sort?: 'desc' | 'asc' | 'none';
@@ -1145,6 +1148,9 @@ export interface ThresholdBin {
     tone: Tone;
 }
 
+// @public
+export type ThresholdInclusive = 'lower' | 'upper';
+
 // @public (undocumented)
 export interface ThresholdLegendItem {
     // (undocumented)
@@ -1156,9 +1162,15 @@ export interface ThresholdLegendItem {
 }
 
 // @public (undocumented)
+export interface ThresholdOptions {
+    inclusive?: ThresholdInclusive;
+}
+
+// @public (undocumented)
 export interface Thresholds {
     // (undocumented)
     bins: readonly ThresholdBin[];
+    inclusive: ThresholdInclusive;
     indexOf(value: unknown): number;
     legend(values: readonly unknown[]): readonly ThresholdLegendItem[];
     // (undocumented)
@@ -1166,7 +1178,7 @@ export interface Thresholds {
 }
 
 // @public
-export function thresholds(breaks: readonly number[], tones: readonly Tone[], labels: readonly string[]): Thresholds;
+export function thresholds(breaks: readonly number[], tones: readonly Tone[], labels: readonly string[], options?: ThresholdOptions): Thresholds;
 
 // @public (undocumented)
 export type TickSpec = 'all' | 'ends' | number;
@@ -1361,8 +1373,13 @@ export interface ZoneMeterProps {
     minLabel?: ReactNode | null;
     ticks?: boolean;
     value: number;
-    zones: Thresholds;
+    zones: ZoneMeterZones;
 }
+
+// @public
+export type ZoneMeterZones = Pick<Thresholds, 'bins'> & {
+    inclusive?: ThresholdInclusive;
+};
 
 // (No @packageDocumentation comment for this package)
 

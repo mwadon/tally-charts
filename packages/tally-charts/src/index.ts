@@ -23,7 +23,13 @@ export type {
   ScaleSpec,
   TimeScaleSpec,
 } from './core/scale'
-export type { ThresholdBin, ThresholdLegendItem, Thresholds } from './core/thresholds'
+export type {
+  ThresholdBin,
+  ThresholdInclusive,
+  ThresholdLegendItem,
+  ThresholdOptions,
+  Thresholds,
+} from './core/thresholds'
 export { heatmapLevel, thresholds } from './core/thresholds'
 export type { TickSpec } from './core/ticks'
 export type { TimeInput, TimeScale, TimeZone } from './core/time'
@@ -132,6 +138,6 @@ export type { StatProps } from './react/ui/Stat'
 export { Stat } from './react/ui/Stat'
 export type { TooltipPillProps } from './react/ui/TooltipPill'
 export { TooltipPill } from './react/ui/TooltipPill'
-export type { ZoneMeterProps } from './react/ui/ZoneMeter'
+export type { ZoneMeterProps, ZoneMeterZones } from './react/ui/ZoneMeter'
 export { ZoneMeter } from './react/ui/ZoneMeter'
 export { useRegisterPoints } from './react/useRegisterPoints'

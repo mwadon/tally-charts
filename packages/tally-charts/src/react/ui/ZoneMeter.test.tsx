@@ -23,6 +23,26 @@ describe('<ZoneMeter>', () => {
     expect(screen.getByRole('meter')).toHaveAttribute('aria-valuetext', '2.5 s, Needs improvement')
   })
 
+  it('takes plain bins and follows an upper-inclusive spec', () => {
+    const upper = thresholds(
+      [2.5, 4],
+      ['gain', 'warn', 'loss'],
+      ['Good', 'Needs improvement', 'Poor'],
+      {
+        inclusive: 'upper',
+      },
+    )
+    // A plain object, as a Server Component would pass it.
+    const zones = { bins: upper.bins, inclusive: upper.inclusive }
+    render(<ZoneMeter label="LCP" value={2.5} zones={zones} max={6} format={seconds} />)
+    expect(screen.getByRole('meter')).toHaveAttribute('aria-valuetext', '2.5 s, Good')
+    render(<ZoneMeter label="CLS" value={4} zones={{ bins: lcp.bins }} max={6} format={seconds} />)
+    expect(screen.getByRole('meter', { name: 'CLS' })).toHaveAttribute(
+      'aria-valuetext',
+      '4.0 s, Poor',
+    )
+  })
+
   it('draws linear zones clipped to the range, in their tones', () => {
     const { container } = render(<ZoneMeter label="LCP" value={1} zones={lcp} max={6} />)
     const zones = [...container.querySelectorAll('[data-ch-part="zone-meter-zone"]')]

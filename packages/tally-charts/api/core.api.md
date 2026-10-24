@@ -212,6 +212,9 @@ export interface ThresholdBin {
     tone: Tone;
 }
 
+// @public
+export type ThresholdInclusive = 'lower' | 'upper';
+
 // @public (undocumented)
 export interface ThresholdLegendItem {
     // (undocumented)
@@ -223,9 +226,15 @@ export interface ThresholdLegendItem {
 }
 
 // @public (undocumented)
+export interface ThresholdOptions {
+    inclusive?: ThresholdInclusive;
+}
+
+// @public (undocumented)
 export interface Thresholds {
     // (undocumented)
     bins: readonly ThresholdBin[];
+    inclusive: ThresholdInclusive;
     indexOf(value: unknown): number;
     legend(values: readonly unknown[]): readonly ThresholdLegendItem[];
     // (undocumented)
@@ -233,7 +242,7 @@ export interface Thresholds {
 }
 
 // @public
-export function thresholds(breaks: readonly number[], tones: readonly Tone[], labels: readonly string[]): Thresholds;
+export function thresholds(breaks: readonly number[], tones: readonly Tone[], labels: readonly string[], options?: ThresholdOptions): Thresholds;
 
 // @public
 export type TimeInput = Date | number | string;
