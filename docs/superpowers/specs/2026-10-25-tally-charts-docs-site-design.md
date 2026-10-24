@@ -26,7 +26,7 @@ Pages are flat: every page lives at `/docs/<slug>` (D-7); the hierarchy exists o
 | **Building blocks** | Composition → `composition`; Small pieces → `small-pieces`; Hooks and providers → `hooks-and-providers` |
 | **Reference** | Stability → `stability`; Migration to 1.0 → `migration-1-0` |
 
-That is 29 pages plus the home page, every slug from F15. The data lives in
+That is 25 pages plus the home page, every slug from F15. The data lives in
 `apps/docs/app/_content/navigation.ts` (a placeholder for the CMS navigation of F11).
 
 Header (same on every page): wordmark, version badge, links (Docs on the home page, GitHub, npm), a

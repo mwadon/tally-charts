@@ -58,6 +58,15 @@ test('the sidebar has the five groups and the ToC links jump to the h2 anchors',
   await expect(page.getByRole('heading', { level: 2, name: 'Props' })).toBeInViewport()
 })
 
+test('the Menu button is hidden at 1280 px and visible at 375 px', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 900 })
+  await page.goto('/docs/line-chart')
+  await expect(page.getByRole('button', { name: 'Menu' })).toBeHidden()
+
+  await page.setViewportSize({ width: 375, height: 812 })
+  await expect(page.getByRole('button', { name: 'Menu' })).toBeVisible()
+})
+
 test('at 375 px the menu button opens and closes the navigation panel', async ({ page }) => {
   await page.setViewportSize({ width: 375, height: 812 })
   await page.goto('/docs/line-chart')
