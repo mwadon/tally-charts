@@ -48,6 +48,9 @@ test('the sidebar has the five groups and the ToC links jump to the h2 anchors',
     'Building blocks',
     'Reference',
   ])
+  for (const name of ['Start', 'Guides', 'Charts', 'Building blocks', 'Reference']) {
+    await expect(nav.getByRole('region', { name })).toHaveCount(1)
+  }
   await expect(nav.getByRole('link', { name: 'LineChart' })).toHaveAttribute('aria-current', 'page')
 
   await page

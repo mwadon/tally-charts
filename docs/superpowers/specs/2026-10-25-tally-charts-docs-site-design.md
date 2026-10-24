@@ -322,3 +322,41 @@ node docs/superpowers/specs/assets/docs-site/contrast.mjs   # prints the markdow
 
 The scripts take Playwright from `apps/docs` (no `package.json` of their own) and use `BASE_URL`
 (default `http://127.0.0.1:3100`).
+
+## 13. Review and approval (gate F10)
+
+Status of this document stays "proposal" until the maintainer fills in the result below. M5 (look and
+routing of the docs site) does not start before that, except F12 and F13 (SPEC D-12).
+
+To look at the placeholder locally: `pnpm build && pnpm --filter docs build && pnpm --filter docs start`
+(port 3100 must be free: `lsof -i :3100`), then open `http://127.0.0.1:3100/` and
+`http://127.0.0.1:3100/docs/line-chart?theme=dark` (also `?theme=light`).
+
+Checklist for the maintainer:
+
+- [ ] §1 Information architecture: groups Start, Guides, Charts, Building blocks, Reference and all slugs; disabled entries for pages that do not exist yet.
+- [ ] §2 Home page: order of sections.
+- [ ] §3 Docs page layout at ≥ 900 px: header, sidebar, content, table of contents.
+- [ ] §4 Mobile layout at 375 px: Menu button and panel, no horizontal scroll.
+- [ ] §5 Typography: system stack and scale.
+- [ ] §6 Colors: role → `--ch-*` token table, link and focus colors.
+- [ ] §7 The hatched motif.
+- [ ] §8 Code block.
+- [ ] §9 ChartExample (Preview / Code).
+- [ ] §10 Focus and contrast table (all pairs ≥ 4.5:1 for text, ≥ 3:1 for borders and focus).
+- [ ] §11 Decisions 1–12.
+- [ ] Screenshots (all 8):
+  - [ ] [home-1280-light.png](assets/docs-site/home-1280-light.png)
+  - [ ] [home-1280-dark.png](assets/docs-site/home-1280-dark.png)
+  - [ ] [home-375-light.png](assets/docs-site/home-375-light.png)
+  - [ ] [home-375-dark.png](assets/docs-site/home-375-dark.png)
+  - [ ] [line-chart-1280-light.png](assets/docs-site/line-chart-1280-light.png)
+  - [ ] [line-chart-1280-dark.png](assets/docs-site/line-chart-1280-dark.png)
+  - [ ] [line-chart-375-light.png](assets/docs-site/line-chart-375-light.png)
+  - [ ] [line-chart-375-dark.png](assets/docs-site/line-chart-375-dark.png)
+
+Result (filled in by the maintainer only):
+
+- Decision: —
+- Date: —
+- Notes: —
