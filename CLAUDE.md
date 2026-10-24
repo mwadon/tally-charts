@@ -21,6 +21,8 @@ Opis produktu i zakres: SPEC.md. Stan prac i decyzje: PROGRESS.md.
   - `pnpm --filter docs test` (vitest)
   - `pnpm --filter docs test:e2e` (Playwright na `next start`, port 3100): wymaga też `pnpm --filter docs build` i wolnego portu (`lsof -i :3100`), bo lokalnie użyje istniejącego serwera
   - `pnpm --filter docs typecheck` nie wymaga `dist` (używa `tsconfig.typecheck.json` z `paths` do `src`); `next-env.d.ts` generuje `next typegen`
+- skrypty designu docs (`docs/superpowers/specs/assets/docs-site/`, poza lintem, Playwright z `apps/docs`): przy działającym `pnpm --filter docs start` (po obu buildach) `node …/shots.mjs` zapisuje 8 PNG, a `node …/contrast.mjs` liczy kontrast computed kolorów strony (exit 1 przy parze poniżej progu). Po zmianie wyglądu strony uruchom oba i wklej tabelę do dokumentu designu.
+- Strony docs wymuszają motyw przez `?theme=light|dark` (`data-ch-theme` na `<html>`); style tylko z tokenów `--ch-*` (`apps/docs/app/globals.css`, aliasy `--docs-*`). Czystego `--ch-accent` nie używaj jako koloru tekstu (4.49:1 na #fafafa).
 - Komendy `pnpm --filter docs check:content` i `check:treeshake` zostaną dopisane, gdy powstaną.
 - Przed `pnpm test:e2e` sprawdź, że nic nie słucha na porcie 6007 (`lsof -i :6007`), bo lokalnie Playwright użyje istniejącego serwera.
 

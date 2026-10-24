@@ -1,19 +1,33 @@
 import { expect, test } from '@playwright/test'
+import { tabTo, themeSuite } from './support'
 
-test('home page renders the heading and a tally-charts chart without errors', async ({ page }) => {
-  const errors: string[] = []
-  page.on('console', (msg) => {
-    if (msg.type() === 'error') errors.push(msg.text())
-  })
-  page.on('pageerror', (err) => errors.push(err.message))
+themeSuite({
+  name: 'home',
+  path: '/',
+  h1: 'Opinionated React charts for narrative business dashboards.',
+  chart: 'Margin by week, last 6 weeks',
+})
 
-  const response = await page.goto('/')
-  expect(response?.status()).toBe(200)
+test('the wordmark is a text link to / and Tab reaches it with a visible outline', async ({
+  page,
+}) => {
+  await page.goto('/')
+  const wordmark = page.getByRole('banner').getByRole('link', { name: 'tally-charts' })
+  await expect(wordmark).toHaveAttribute('href', '/')
+  expect(await page.locator('img').count()).toBe(0)
 
-  await expect(page.getByRole('heading', { level: 1, name: 'tally-charts' })).toBeVisible()
-  const chart = page.getByRole('application', { name: 'Margin by week, last 6 weeks' })
-  await expect(chart).toBeVisible()
-  await expect(chart.locator('svg')).toBeVisible()
+  const outline = await tabTo(page, '.wordmark')
+  expect(outline.style).toBe('solid')
+  expect(outline.width).toBeGreaterThan(0)
+})
 
-  expect(errors).toEqual([])
+test('the home page lists the sections in the F16 order', async ({ page }) => {
+  await page.goto('/')
+  await expect(page.getByRole('heading', { level: 2 })).toHaveText([
+    'A visual language that reads at a glance',
+    'Nine reference dashboards',
+    'Install',
+    'Built for real dashboards',
+    'Keep going',
+  ])
 })

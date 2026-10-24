@@ -104,3 +104,13 @@ Dodałem aplikację `apps/docs` (Next 16.4.3 App Router, React 19.3.0, `tally-ch
 - Istniejące bramki dalej przechodzą: `pnpm test`, `pnpm build`, `pnpm test:e2e` (storybook), `pnpm --filter tally-charts api:check`, `pnpm size`. Brak zmian w `packages/tally-charts`, więc changeset nie jest potrzebny.
 - CLAUDE.md, sekcja Komendy, zawiera `pnpm --filter docs dev`, `pnpm --filter docs test`, `pnpm --filter docs test:e2e` i `pnpm --filter docs build`, z adnotacją, że wymagają wcześniejszego `pnpm build` (a e2e także `pnpm --filter docs build` i wolnego portu 3100). Notka o przyszłych komendach dotyczy już tylko `check:content` i `check:treeshake`.
 - Po buildach i testach `git status` nie pokazuje artefaktów (`.next/`, `next-env.d.ts` jeśli nie commitowany, `test-results/`), a ponowny `next build` nie modyfikuje zacommitowanego `apps/docs/tsconfig.json`.
+
+## T03 Design strony dokumentacji (F10) — decyzje
+- Dokument: `docs/superpowers/specs/2026-10-25-tally-charts-docs-site-design.md` (IA z F15, layouty, typografia, kolory, kreskowanie, bloki kodu, ChartExample, focus i kontrast, decyzje). 8 PNG w `docs/superpowers/specs/assets/docs-site/`, skrypty `shots.mjs` i `contrast.mjs` (Playwright z `apps/docs`, bez własnego package.json; poza lintem jak `assets`).
+- Placeholder w `apps/docs`: `/` i `/docs/line-chart`, treść statyczna w TSX, bez CMS i `CMS_*`. Linki do nieistniejących stron to wyłączony tekst (`aria-disabled`), nie 404. Nawigacja w `app/_content/navigation.ts`.
+- Kolory wyłącznie z tokenów `--ch-*` (surface, tooltip-bg, grid, ink, ink-muted); linki to 70% accent + ink z podkreśleniem (czysty accent to 4.49:1 na #fafafa), focus to czysty `--ch-accent` 2px (≥4.49:1 na obu tłach). Tabela kontrastu z computed kolorów przechodzi (≥4.5 tekst, ≥3 obramowania i focus).
+- Motyw: `prefers-color-scheme` plus `?theme=light|dark` (inline script w `<head>`, `suppressHydrationWarning`). Przełącznik w headerze jest tylko wizualny (disabled); pełny przełącznik z localStorage to F11.
+- Testy: vitest (strona główna, LineChart, ChartExample, kontrast tokenów z theme.css) i e2e (light/dark × forced/system, 375 px bez scrolla, focus, toggle, nawigacja mobilna). Bez baseline'ów wizualnych (D3).
+- `vitest.setup.ts` robi `cleanup` RTL po każdym teście (globals są wyłączone).
+- Pułapka: na porcie 3100 został stary `next start` (PID z poprzedniej sesji); zatrzymany przed pracą. `lsof -i :3100` przed e2e.
+- **Gate [MAINTAINER] F10 (akceptacja designu) pozostaje OTWARTY.** Nie oznaczać jako zaakceptowanego, dopóki maintainer nie zatwierdzi dokumentu i zrzutów.
