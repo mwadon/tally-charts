@@ -63,6 +63,31 @@ describe('<RankedBars>', () => {
     expect(parts(container, '[data-ch-part="bar-track"]')).toHaveLength(3)
   })
 
+  it('draws solid bars by default', () => {
+    const { container } = renderRanked()
+    const bars = parts(container, '[data-ch-part="bar"]')
+    expect(bars).toHaveLength(3)
+    for (const bar of bars) expect(bar).toHaveAttribute('data-ch-fill', 'solid')
+  })
+
+  it('draws hatched bars with fill hatch', () => {
+    const { container } = renderRanked({ fill: 'hatch' })
+    const bars = parts(container, '[data-ch-part="bar"]')
+    expect(bars).toHaveLength(3)
+    for (const bar of bars) expect(bar).toHaveAttribute('data-ch-fill', 'hatch')
+  })
+
+  it('takes fill per row', () => {
+    const { container } = renderRanked({
+      fill: (d) => (d.name === 'Callbacks' ? 'hatch' : 'solid'),
+    })
+    const fills = parts(container, '[data-ch-part="bar"]').map((b) =>
+      b.getAttribute('data-ch-fill'),
+    )
+    // Rows shown: Labor overruns, Material variance, Callbacks.
+    expect(fills).toEqual(['solid', 'solid', 'hatch'])
+  })
+
   it('keeps original indexes as ids after sorting', () => {
     const onSelect = vi.fn()
     const { container } = renderRanked({ onSelect })

@@ -50,6 +50,8 @@ function Column(props: {
         meta={props.rows.some((r) => r.jobs) ? 'jobs' : undefined}
         format="currency-compact"
         layout="stacked"
+        // The reference (06-drilldown-strip-plot.png) hatches these bars.
+        fill="hatch"
         selectedId={props.selected}
         onSelect={(id) => props.onSelect(id)}
         title={`Leakage by ${props.title.toLowerCase()}`}
