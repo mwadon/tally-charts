@@ -60,6 +60,8 @@ function Result() {
         value="amount"
         format="currency"
         tone="loss"
+        // The reference (03-estimate-vs-actual.png) hatches these bars.
+        fill="hatch"
         title="Where the $860 went"
         description="Discount and labor overrun each cost $260."
       />

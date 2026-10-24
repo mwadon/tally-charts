@@ -41,7 +41,7 @@ export interface RankedBarsProps<D> extends Omit<ChartPassThroughProps<D>, 'aspe
   domain?: readonly [number, number]
   /** Default 'neutral'. A non-neutral tone also colors the value text. */
   tone?: PerItem<D, Tone>
-  /** Default 'hatch'. */
+  /** Default 'solid'. Use 'hatch' for a plan or reference look. */
   fill?: PerItem<D, Fill>
   /** The highlighted row. Hover and focus stay separate (`activeId`). */
   selectedId?: Id | null
@@ -174,7 +174,7 @@ export function RankedBars<D>({
     const getId = id ? resolveAccessor(id) : undefined
     const getMeta = meta ? resolveAccessor(meta) : undefined
     const toneOf = resolvePerItem<D, Tone>(tone ?? 'neutral')
-    const fillOf = resolvePerItem<D, Fill>(fill ?? 'hatch')
+    const fillOf = resolvePerItem<D, Fill>(fill ?? 'solid')
     const selectableOf = resolvePerItem<D, boolean>(selectable ?? true)
     const all = data.map((d, i): RankedRow<D> => {
       const v = toNumber(getValue(d, i))

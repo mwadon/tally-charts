@@ -165,3 +165,10 @@ Przygotowałem bramkę F10 do decyzji maintainera. Gate zostaje OTWARTY, a akcep
 - `pnpm --filter docs test` przechodzi z nowym testem: nawigacja „Documentation” zawiera 5 regionów z dostępnymi nazwami Start, Guides, Charts, Building blocks, Reference.
 - Po `pnpm build` i `pnpm --filter docs build` przechodzą `pnpm --filter docs typecheck`, `pnpm --filter docs test:e2e` (port 3100 wolny), `pnpm typecheck` i `pnpm lint` (bez nowych błędów).
 - `git status` pokazuje zmiany wyłącznie w PROGRESS.md, dokumencie designu, `apps/docs/app/_components/side-nav.tsx` (ewentualnie `app/_content/navigation.ts`) i testach docs. Bez zmian w `packages/tally-charts` i bez zmian w 8 PNG.
+
+## T05 RankedBars: domyślny fill 'solid' (F1)
+**Decyzje:**
+- Domyślny `fill` w `RankedBars` to teraz `'solid'` (kod i TSDoc). Zmiana łamiąca, więc changeset `major` (`.changeset/ranked-bars-solid-fill.md`) z notatką migracyjną i fragmentami „Before”/„After”.
+- Result i DrillColumns dostają jawne `fill="hatch"` zamiast regeneracji baseline'ów: referencje `03-estimate-vs-actual.png` i `06-drilldown-strip-plot.png` pokazują słupki kreskowane, więc wygląd stories się nie zmienia. PNG darwin i linux bez zmian, procedura docker niepotrzebna. Performance miało już `fill="solid"`.
+- README: punkt `RankedBars` podaje domyślny `solid` i `fill="hatch"`; przykład drill columns ma `fill="hatch"`. Strona migracji (F23) to osobny task.
+**Weryfikacja:** `pnpm test` (1040), lint, typecheck, build, `api:check` (raport bez zmian, bo zawiera tylko sygnatury), `size`, `check:dev-strip` i `pnpm test:e2e` (303, bez `--update-snapshots`) przechodzą. `git status` bez zmienionych PNG.

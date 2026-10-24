@@ -106,7 +106,7 @@ import { BarChart, ComparisonBars, RankedBars } from 'tally-charts'
 <ComparisonBars data={costs} label="name" sublabel="note" plan="estimate" actual="actual" format="currency" />
 
 <RankedBars data={causes} label="name" value="amount" format="currency-compact"
-  layout="stacked" selectedId={selected} onSelect={(id) => setSelected(id)} />
+  layout="stacked" fill="hatch" selectedId={selected} onSelect={(id) => setSelected(id)} />
 ```
 
 - `BarChart`: history `hatch-fade`, last bar `solid`, optional target and value label;
@@ -119,7 +119,8 @@ import { BarChart, ComparisonBars, RankedBars } from 'tally-charts'
   so on a server-rendered page a narrow screen first renders columns at the 640px default and stacks
   after hydration: pass `initialWidth` or an explicit `layout` to avoid the jump.
 - `RankedBars`: label, bar on a faint track, value; sorted by size; `layout="stacked"` for drill
-  columns. Bars show magnitudes, so negative "lost" amounts extend right and keep their sign in
+  columns. Bars are `solid` by default (an actual value); `fill="hatch"` hatches them for a plan or
+  reference look. Bars show magnitudes, so negative "lost" amounts extend right and keep their sign in
   the text. Selection uses `selectedId` + `onSelect`; ids are the original data index unless you
   pass `id`. `selectable={(d) => d.key !== 'other'}` leaves a row out of `onSelect`.
 - `WaterfallChart`: horizontal steps from a start value to a calculated end, with dotted
