@@ -146,3 +146,22 @@ Naprawiono uwagi z review. (1) globals.css: w @media (min-width: 900px) przycisk
 - Reguła (SPEC D-12): do akceptacji M5 nie startuje, z wyjątkiem F12 i F13.
 **Decyzje:**
 - Sesja jest nieinteraktywna, a maintainer nie przekazał decyzji, więc tylko przygotowano bramkę do jednoznacznej decyzji.
+
+## ✔ T04 [MAINTAINER] Akceptacja designu strony dokumentacji (bramka M5) (2026-10-24)
+Przygotowałem bramkę F10 do decyzji maintainera. Gate zostaje OTWARTY, a akceptacji ani jej daty nie wpisałem. (1) `side-nav.tsx`: id nagłówka grupy to slug etykiety (helper `groupHeadingId`, np. `nav-building-blocks`), więc `aria-labelledby` wskazuje istniejący element, a wszystkie 5 regionów ma nazwy. Wygląd bez zmian, PNG nietknięte. (2) Dokument designu ma sekcję „13. Review and approval (gate F10)”: lista kontrolna §1–§11 i 8 PNG, komendy do obejrzenia placeholdera (w tym `?theme=dark`) oraz puste pola Decision/Date/Notes. Status w linii 3 bez zmian („proposal, waiting…”). (3) PROGRESS.md ma sekcję „T04 Bramka F10: oczekuje na maintainera”, z jawnym „Gate OTWARTY, akceptacja niezapisana”. Zawiera link do dokumentu i sekcji 13, listę 8 PNG, format linii zamykającej „F10 zaakceptowany: <maintainer>, RRRR-MM-DD” albo listę uwag, miejsce na uwagi i regułę D-12 (M5 nie startuje, z wyjątkiem F12 i F13). Bramki: `pnpm build`, `docs build`, `docs typecheck`, `docs test` (28/28), `docs test:e2e` (20/20, port 3100 był wolny) i `pnpm typecheck` przechodzą. `pnpm lint` kończy się bez błędów, po `pnpm format` zostały te same 4 ostrzeżenia i 1 info co przed zmianą. Nie ruszałem `packages/tally-charts`, więc bez changesetu. `git status` pokazuje tylko PROGRESS.md, dokument designu, `side-nav.tsx`, `page.test.tsx` i `line-chart.spec.ts`.
+**Decyzje i pułapki:**
+- `aria-labelledby` przyjmuje listę id oddzielonych spacjami, więc id budowane z etykiet trzeba zamieniać na slug. Test sprawdza to przez `getByRole('region', { name })`.
+- Po `pnpm format` sprawdź `git status`. Biome przeformatował ten sam plik, który zmieniałem, i zmiany nie wyszły poza zakres taska.
+- Bramka [MAINTAINER] w sesji nieinteraktywnej: przygotuj dokument i checklistę, zostaw puste pola decyzji i nie wpisuj akceptacji.
+**Otwarte kwestie:**
+- Gate F10 jest OTWARTY: maintainer musi dopisać w PROGRESS.md linię „F10 zaakceptowany: <maintainer>, RRRR-MM-DD” albo listę uwag. Orkiestrator nie powinien oznaczać T04 ✔ przed tym.
+- `pnpm lint` zgłasza 4 ostrzeżenia i 1 info (m.in. `noImportantStyles` w theme.css). Nie pochodzą z T04 i ich nie ruszałem.
+- W sekcji 11 dokumentu designu (decyzja 1) jest literówka „glökki dependency”. To nie zakres T04, nie poprawiałem jej.
+- PROGRESS.md: Oba kryteria z backlogu (akceptacja maintainera z datą oraz uwagi do designu) są z założenia niespełnione, bo zależą od decyzji człowieka. Bramka F10 zostaje otwarta. Zakres pracy agenta jest wykonany poprawnie, ale sam task T04 nie jest zamknięty.
+**Kryteria:**
+- PROGRESS.md ma sekcję T04, która jawnie stwierdza, że gate F10 jest OTWARTY i akceptacja nie jest zapisana. Sekcja zawiera link do dokumentu designu i listę 8 PNG oraz instrukcję zamknięcia bramki: format linii „F10 zaakceptowany: <maintainer>, RRRR-MM-DD” albo listę uwag i miejsce, do którego trafiają uwagi. Zawiera też regułę, że M5 nie startuje przed akceptacją, z wyjątkiem F12 i F13. Agent nie wpisuje żadnej akceptacji ani daty akceptacji.
+- Dokument designu ma sekcję „Review and approval (gate F10)” z listą kontrolną obejmującą §1–§11 i wszystkie 8 PNG, komendami do lokalnego obejrzenia placeholdera (z `?theme=dark`) oraz pustymi polami Decision/Date/Notes. Status w nagłówku dalej brzmi „proposal, waiting for the maintainer's approval (gate F10)”.
+- W `side-nav.tsx` id nagłówków grup nie zawierają spacji (np. `nav-building-blocks`), a każde `aria-labelledby` sekcji wskazuje istniejący element.
+- `pnpm --filter docs test` przechodzi z nowym testem: nawigacja „Documentation” zawiera 5 regionów z dostępnymi nazwami Start, Guides, Charts, Building blocks, Reference.
+- Po `pnpm build` i `pnpm --filter docs build` przechodzą `pnpm --filter docs typecheck`, `pnpm --filter docs test:e2e` (port 3100 wolny), `pnpm typecheck` i `pnpm lint` (bez nowych błędów).
+- `git status` pokazuje zmiany wyłącznie w PROGRESS.md, dokumencie designu, `apps/docs/app/_components/side-nav.tsx` (ewentualnie `app/_content/navigation.ts`) i testach docs. Bez zmian w `packages/tally-charts` i bez zmian w 8 PNG.
