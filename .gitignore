@@ -10,3 +10,5 @@ playwright-report/
 packages/tally-charts/temp/
 
 .crew/
+.next/
+next-env.d.ts
