@@ -15,7 +15,13 @@ Opis produktu i zakres: SPEC.md. Stan prac i decyzje: PROGRESS.md.
   - `pnpm --filter tally-charts api:check` (po `pnpm build`; przy zamierzonej zmianie API `api:update` i commit pliku z `packages/tally-charts/api`)
   - `pnpm size`
   - `pnpm --filter tally-charts check:dev-strip`
-- Komendy docs (`pnpm --filter docs dev|test|test:e2e|build|check:content`) i `check:treeshake` zostaną dopisane, gdy powstaną.
+- docs (`apps/docs`, Next.js): runtime rozwiązuje `tally-charts` do `dist`, więc wszystko poniżej wymaga wcześniejszego `pnpm build`.
+  - `pnpm --filter docs dev` (port 3000), `pnpm --filter docs start` (`next start`, port 3100)
+  - `pnpm --filter docs build` (`next build`)
+  - `pnpm --filter docs test` (vitest)
+  - `pnpm --filter docs test:e2e` (Playwright na `next start`, port 3100): wymaga też `pnpm --filter docs build` i wolnego portu (`lsof -i :3100`), bo lokalnie użyje istniejącego serwera
+  - `pnpm --filter docs typecheck` nie wymaga `dist` (używa `tsconfig.typecheck.json` z `paths` do `src`); `next-env.d.ts` generuje `next typegen`
+- Komendy `pnpm --filter docs check:content` i `check:treeshake` zostaną dopisane, gdy powstaną.
 - Przed `pnpm test:e2e` sprawdź, że nic nie słucha na porcie 6007 (`lsof -i :6007`), bo lokalnie Playwright użyje istniejącego serwera.
 
 ## Konwencje

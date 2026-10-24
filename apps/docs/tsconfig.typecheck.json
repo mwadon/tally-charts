@@ -1,0 +1,9 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "paths": {
+      "tally-charts": ["../../packages/tally-charts/src/index.ts"],
+      "tally-charts/core": ["../../packages/tally-charts/src/core/index.ts"]
+    }
+  }
+}
