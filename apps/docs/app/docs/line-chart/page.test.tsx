@@ -47,6 +47,24 @@ test('the sidebar lists the five groups and marks the current page', () => {
   expect(within(nav).getByText('Theming').getAttribute('aria-disabled')).toBe('true')
 })
 
+test('every sidebar group is a named region whose label id has no spaces', () => {
+  renderPage()
+
+  const nav = screen.getByRole('navigation', { name: 'Documentation' })
+  const regions = within(nav).getAllByRole('region')
+  expect(regions).toHaveLength(5)
+  for (const region of regions) {
+    const id = region.getAttribute('aria-labelledby') ?? ''
+    expect(id).toMatch(/^[^\s]+$/)
+    expect(nav.querySelector(`[id="${id}"]`), id).not.toBeNull()
+  }
+  // The accessible names come from the group headings.
+  for (const name of ['Start', 'Guides', 'Charts', 'Building blocks', 'Reference']) {
+    expect(within(nav).getByRole('region', { name })).toBeTruthy()
+  }
+  expect(regions.map((r) => r.getAttribute('aria-labelledby'))).toContain('nav-building-blocks')
+})
+
 test('the table of contents links to the h2 anchors of the page', () => {
   const { container } = renderPage()
 

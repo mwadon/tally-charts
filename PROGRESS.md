@@ -136,3 +136,13 @@ Naprawiono uwagi z review. (1) globals.css: w @media (min-width: 900px) przycisk
 - Dokument designu zawiera tabelę kontrastu wygenerowaną skryptem z computed kolorów strony. Każda para tekst/tło (ink, ink-muted, linki, tekst i składnia w blokach kodu, aktywna pozycja nawigacji) na `--ch-surface` i `--ch-tooltip-bg` w light i dark ma ≥ 4.5:1, a focus i obramowania kontrolek ≥ 3:1. Linki nie używają czystego `--ch-accent` na #fafafa (≈4.4:1).
 - Przechodzą `pnpm typecheck`, `pnpm lint`, `pnpm test` i `pnpm --filter docs typecheck`. Brak zmian w `packages/tally-charts` (więc bez changesetu), a `git status` nie pokazuje `.next/`, `test-results/` ani `next-env.d.ts`.
 - PROGRESS.md odnotowuje decyzje T03 i to, że gate [MAINTAINER] akceptacji designu F10 pozostaje otwarty.
+
+## T04 Bramka F10: oczekuje na maintainera
+**Gate OTWARTY, akceptacja niezapisana.** Agent nie wpisuje akceptacji ani jej daty. T04 nie jest ✔, dopóki w tym pliku nie pojawi się linia akceptacji wpisana przez maintainera.
+- Dokument designu: `docs/superpowers/specs/2026-10-25-tally-charts-docs-site-design.md`, sekcja „13. Review and approval (gate F10)” (lista kontrolna §1–§11, komendy do obejrzenia placeholdera, pola Decision/Date/Notes). Status w nagłówku dokumentu to dalej „proposal, waiting for the maintainer's approval (gate F10)”.
+- 8 PNG w `docs/superpowers/specs/assets/docs-site/`: `home-1280-light.png`, `home-1280-dark.png`, `home-375-light.png`, `home-375-dark.png`, `line-chart-1280-light.png`, `line-chart-1280-dark.png`, `line-chart-375-light.png`, `line-chart-375-dark.png`. Bez zmian względem T03.
+- Jedyna zmiana placeholdera w T04: `apps/docs/app/_components/side-nav.tsx`. Id nagłówka grupy to teraz slug etykiety (`nav-building-blocks`), więc `aria-labelledby` wskazuje istniejący element, a każdy z 5 regionów nawigacji ma nazwę. Bez zmian wizualnych. Test: `app/docs/line-chart/page.test.tsx`, asercja nazw regionów także w `e2e/line-chart.spec.ts`.
+- Jak zamknąć bramkę: maintainer dopisuje tu linię w formacie `F10 zaakceptowany: <maintainer>, RRRR-MM-DD` (np. „F10 zaakceptowany: Mateusz Wadoń, RRRR-MM-DD” z prawdziwą datą) albo listę uwag. Uwagi trafiają do dokumentu designu i placeholdera (nowy task) albo jako decyzje do tego pliku. Wynik dobrze odnotować też w polach Decision/Date/Notes w sekcji 13 dokumentu.
+- Reguła (SPEC D-12): do akceptacji M5 nie startuje, z wyjątkiem F12 i F13.
+**Decyzje:**
+- Sesja jest nieinteraktywna, a maintainer nie przekazał decyzji, więc tylko przygotowano bramkę do jednoznacznej decyzji.
