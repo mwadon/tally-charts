@@ -8,3 +8,5 @@ playwright-report/
 .remember/
 .superpowers/
 packages/tally-charts/temp/
+
+.crew/
