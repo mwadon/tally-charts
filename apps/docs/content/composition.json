@@ -129,7 +129,7 @@
       "id": "n15",
       "type": "prose",
       "props": {
-        "markdown": "`tone` is one value per `Bars`, so the totals, the gains and the losses are three layers over the same scales. The layers are filtered at module level and passed as `data`, which keeps every prop serializable."
+        "markdown": "`tone` takes a function per bar, so one `Bars` layer holds the totals, the gains and the losses. `ariaLabel` and `segments` report the change of each step instead of its end value, so the keyboard and screen readers walk the bridge left to right and hear \"Costs, -30\". Functions in props make this a client file."
       }
     },
     {

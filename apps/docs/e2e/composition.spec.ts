@@ -29,3 +29,26 @@ test('/docs/composition shows all four examples and a props table for Chart and 
   await expect(page.locator('[data-ch-root]')).toHaveCount(4)
   await expect(page.getByRole('region', { name: /^Props of / })).toHaveCount(19)
 })
+
+test('the bridge is announced in x order, with the change of each step', async ({ page }) => {
+  await page.goto('/docs/composition')
+  const chart = page.getByRole('application', { name: 'Profit bridge from Q2 to Q3' })
+  const live = page.locator('[data-ch-root]').filter({ has: chart }).locator('[aria-live="polite"]')
+  await chart.focus()
+  await page.keyboard.press('Home')
+
+  const announced: string[] = []
+  for (let i = 0; i < 6; i++) {
+    if (i > 0) await page.keyboard.press('ArrowRight')
+    await expect(live).toContainText(`${i + 1} of 6`)
+    announced.push((await live.textContent()) ?? '')
+  }
+  expect(announced.map((text) => text.replace(/^\d of 6,\s*/, ''))).toEqual([
+    'Q2, 120',
+    'Volume, +30',
+    'Price, +20',
+    'Costs, -30',
+    'Returns, -12',
+    'Q3, 128',
+  ])
+})

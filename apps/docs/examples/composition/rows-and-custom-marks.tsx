@@ -8,6 +8,7 @@ import {
   RowDividers,
   RowLabels,
   Tooltip,
+  TooltipPill,
   useChart,
 } from 'tally-charts'
 import type { ExampleMeta } from '../types'
@@ -81,7 +82,15 @@ export default function RowsAndCustomMarks() {
         <Tooltip
           content={(point) => {
             const row = point.datum as TeamRow
-            return `${row.team}: ${row.actual} h logged, ${row.plan} h planned`
+            return (
+              <TooltipPill
+                segments={[
+                  { value: row.team },
+                  { value: `${row.actual} h` },
+                  { value: `plan ${row.plan} h` },
+                ]}
+              />
+            )
           }}
         />
       </Chart>

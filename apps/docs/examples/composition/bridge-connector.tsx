@@ -1,10 +1,12 @@
+'use client'
+
 import { Axis, Bars, Chart, Connector, ValueLabel } from 'tally-charts'
 import type { ExampleMeta } from '../types'
 
 export const meta = {
   id: 'composition/bridge-connector',
   title: 'Profit bridge from Q2 to Q3',
-  rscSafe: true,
+  rscSafe: false,
 } satisfies ExampleMeta
 
 // Each step floats between `base` and `top`: Bars reads the end from `y` and the start from `from`.
@@ -17,10 +19,18 @@ const steps = [
   { step: 'Q3', base: 0, top: 128, kind: 'total' },
 ]
 
-// `tone` is one value per Bars, so each tone gets its own layer over the same chart scales.
-const ofKind = (kind: string) => steps.filter((s) => s.kind === kind)
+type Step = (typeof steps)[number]
 
-// Props stay serializable: `from` is a field name and every tone is a literal, no functions.
+// `tone` takes a function per bar, so one layer holds the whole bridge. One layer also keeps the
+// bars registered in x order, which is the order the keyboard and screen readers walk them in.
+const toneOf = (s: Step) => (s.kind === 'gain' ? 'gain' : s.kind === 'loss' ? 'loss' : 'accent')
+
+// A floating bar's value is its end (`top`), so say the change in the announcement and tooltip.
+const change = (s: Step) =>
+  s.kind === 'total' ? `${s.top}` : s.kind === 'gain' ? `+${s.top - s.base}` : `-${s.top - s.base}`
+
+// The functions in `tone`, `ariaLabel` and `segments` cannot cross the server boundary, so this
+// file starts with 'use client'.
 export default function BridgeConnector() {
   return (
     <Chart
@@ -41,9 +51,15 @@ export default function BridgeConnector() {
           { at: 128, from: 'Returns', to: 'Q3' },
         ]}
       />
-      <Bars data={ofKind('total')} x="step" y="top" from="base" id="step" />
-      <Bars data={ofKind('gain')} x="step" y="top" from="base" id="step" tone="gain" />
-      <Bars data={ofKind('loss')} x="step" y="top" from="base" id="step" tone="loss" />
+      <Bars
+        x="step"
+        y="top"
+        from="base"
+        id="step"
+        tone={toneOf}
+        ariaLabel={(s) => `${s.step}, ${change(s)}`}
+        segments={(s) => [{ value: s.step }, { value: change(s) }]}
+      />
       <ValueLabel at="first" />
       <ValueLabel at="last" />
       <Axis side="bottom" />
