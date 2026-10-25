@@ -2013,3 +2013,25 @@ Dodano `apps/docs/vercel.json` (framework `nextjs`, `pnpm install --frozen-lockf
 - D2: `SITE_URL` w Preview = URL produkcyjny. Preview i tak ma noindex (brak `APP_ENV=production`), a canonical/OG nie wskazują wtedy na `localhost:3100`. Bez obsługi `VERCEL_URL`, żeby nie zmieniać kodu.
 - D3: osobne wartości `REVALIDATE_SECRET` i `PREVIEW_SECRET` dla Production i Preview.
 - D4: domena `https://tally-charts.vercel.app` z 3 changesetów (`ranked-bars-solid-fill`, `required-chart-name`, `line-breaks-on-invalid-date`) nadal wymaga weryfikacji przez maintainera; §11 krok 6 opisuje poprawkę, gdy jest inna.
+
+## ✔ T33.3 Konfiguracja hostingu Vercel: vercel.json i docs/releasing.md §Docs (2026-10-25)
+Dodałem `apps/docs/vercel.json`: framework nextjs, install `pnpm install --frozen-lockfile`, build `pnpm --filter tally-charts build && pnpm --filter docs build`, bez env i sekretów. W `docs/releasing.md` jest nowa sekcja `## 11. Docs on Vercel [MAINTAINER]`: import repo, Root Directory `apps/docs` z plikami spoza root, Node 24.x, build z vercel.json, tabela zmiennych Production/Preview, zakaz `CMS_ADMIN_API_KEY` na Vercel, preview deploys, webhook `/api/revalidate` (Bearer lub `x-revalidate-secret`) z weryfikacją curl i zmianą widoczną w ≤ 60 s, podgląd `/preview?slug=` oraz weryfikacja domeny `https://tally-charts.vercel.app` wraz z poprawką, gdy jest inna. Dodałem `apps/docs/vercel-config.test.ts`. PROGRESS.md ma sekcję T33.3 z decyzjami D1–D4, a CLAUDE.md jedną linię o vercel.json i §11. Kod biblioteki i aplikacji bez zmian. `pnpm --filter docs test` (664 testy), `pnpm lint`, `pnpm test:scripts` i `pnpm --filter docs typecheck` kończą się kodem 0, a `git diff -- packages` jest pusty. Changesetu nie dodawałem, bo packages się nie zmienia.
+**Decyzje i pułapki:**
+- Tabela markdown w liście numerowanym ma wcięcie, więc test czytający wiersze musi robić trim() przed sprawdzeniem startsWith('|'). Pierwsza wersja testu przez to nie znajdowała żadnych wierszy.
+- Vercel czyta vercel.json z Root Directory, więc plik leży w apps/docs, a build monorepo wymaga włączenia „Include files outside the root directory in the Build Step”.
+- Sekcja „## 11. Docs on Vercel” jest wycinana w teście do następnego `\n## `. Nowa sekcja za nią kończy zakres §11 automatycznie, ale zmiana nagłówka §11 zepsuje test.
+**Otwarte kwestie:**
+- Domena https://tally-charts.vercel.app z 3 changesetów (ranked-bars-solid-fill, required-chart-name, line-breaks-on-invalid-date) wymaga weryfikacji przez maintainera po utworzeniu projektu Vercel; releasing.md §11 krok 6 opisuje poprawkę.
+- Konfiguracja Vercel (import repo, zmienne, webhook w glökki) nie była sprawdzana na żywym projekcie: to kroki ręczne maintainera.
+- Kod nie obsługuje VERCEL_URL, więc SITE_URL na Preview ustawiono na URL produkcyjny (D2); jeśli canonical na preview ma wskazywać preview, trzeba zmienić lib/metadata.ts.
+- docs/releasing.md: Krok 5 podaje, że 'an unknown slug' daje 400. app/preview/route.ts zwraca 400 tylko dla sluga niezgodnego ze slugPattern. Poprawny, ale nieistniejący slug (np. 'foo') włącza draft mode i przekierowuje na /docs/foo, gdzie dostaje 404.
+- docs/releasing.md: Repo ma packageManager pnpm@12.4.2. Vercel domyślnie wybiera wersję pnpm na podstawie lockfileVersion (9.0), a packageManager czyta tylko przy ENABLE_EXPERIMENTAL_COREPACK=1. Sekcja tego nie wspomina, więc instalacja na Vercel może iść inną wersją pnpm niż CI (pnpm/action-setup). Ryzyko nie zostało zweryfikowane na żywym projekcie.
+**Kryteria:**
+- apps/docs/vercel.json istnieje i jest poprawnym JSON-em z framework "nextjs", installCommand "pnpm install --frozen-lockfile" i buildCommand "pnpm --filter tally-charts build && pnpm --filter docs build"; nie ma kluczy env/build ani żadnych wartości zmiennych czy sekretów
+- docs/releasing.md ma sekcję "## 11. Docs on Vercel [MAINTAINER]". Opisuje import repo, Root Directory apps/docs, włączone pliki spoza root i Node 24.x, a build bierze z vercel.json
+- Sekcja ma tabelę Production/Preview z CMS_BASE_URL, CMS_TENANT, CMS_API_KEY, NEXT_PUBLIC_CMS_TENANT, REVALIDATE_SECRET, PREVIEW_SECRET, SITE_URL i APP_ENV (=production tylko w Production) oraz wyraźny zakaz CMS_ADMIN_API_KEY na Vercel
+- Sekcja opisuje preview deploys dla PR (noindex bez APP_ENV) i webhook glökki → POST /api/revalidate z Authorization: Bearer albo x-revalidate-secret. Ma ręczną weryfikację curl (200 {"revalidated":true} z sekretem, 401 bez), sprawdzenie zmiany w ≤ 60 s i URL podglądu /preview?slug=
+- Sekcja każe porównać domenę projektu z https://tally-charts.vercel.app z 3 changesetów i opisuje poprawkę, gdy domena jest inna (changesety, SITE_URL, redeploy)
+- apps/docs/vercel-config.test.ts sprawdza parsowanie vercel.json, kolejność tally-charts przed docs w buildCommand, brak env, i to, że każda zmienna z tabeli sekcji 11 ma linię NAME= w .env.example; `pnpm --filter docs test` przechodzi
+- `pnpm lint` i `pnpm test:scripts` kończą się kodem 0; `git diff -- packages` jest pusty
+- PROGRESS.md ma sekcję T33.3 z decyzjami: Root Directory apps/docs (i dlaczego vercel.json tam), SITE_URL na Preview = URL produkcyjny, domena do weryfikacji
