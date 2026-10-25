@@ -748,3 +748,37 @@ Tabele propsów na stronie mają pochodzić z TSDoc i typów publicznego API. `p
 **Testy:** `packages/tally-charts/src/api-model.test.ts` (11: normalizacja usuwa `fileUrlPath` rekurencyjnie i jest deterministyczna, `check` wykrywa różnicę i brak pliku, `update` zapisuje i jest idempotentny, CLI zwraca 1 z komunikatem `api:update`). `apps/docs/scripts/gen-api.test.ts` (20, w tym parametr destrukturyzowany i opisy w jednej linii: RankedBars.fill, LineChart (data, band, title/aria-labelledby, brak aspectRatio i propsa `{`), createFormatter, hook i package, zbiór symboli == funkcje obu modeli, kształt pól, `parseDefault`, brak ponownego zapisu, brak modelu → `api:update`, rozbieżność modelu i src → `symbol: problem`).
 **Bramki:** `pnpm build`, `api:check` (OK), `git diff packages/tally-charts/api/*.api.md` tylko dwie linie `(undocumented)`, `pnpm test` (lib 83 plików, 1152 testów), `pnpm typecheck` także po `rm -rf packages/tally-charts/dist apps/docs/api.generated.json` (OK, plik odtworzony przez `gen`), `pnpm lint` (0 błędów, 4 ostrzeżenia, 1 info jak w bazie), `pnpm --filter docs test` (70), `pnpm --filter docs build`, `pnpm size`, `check:treeshake`, `check:dts`, `check:dev-strip`, `pnpm check:workflows` (wszystkie OK). `gen` ~1 s.
 **Ręcznie:** zmiana opisu propa w aliasie bez `api:update` nie psuje `api:check`. Zmiana TSDoc `createFormatter` bez `api:update` daje „api model is stale, run pnpm --filter tally-charts api:update” (exit 1). Nowa eksportowana funkcja w `core/index.ts` bez `api:update`: `api:check` failuje już na raporcie `.api.md` (przed sprawdzeniem modelu), a `gen` kończy się „expNew: exported from src/core/index.ts but not in core.api.json, run pnpm --filter tally-charts api:update”. Pliki wróciły do stanu wyjściowego.
+
+## ✔ T19 Generator modelu API api.generated.json z docModel API Extractora (F13) (2026-10-25)
+Naprawiłem oba problemy z review w `apps/docs/scripts/gen-api.mjs`.
+
+- **major:** parametr destrukturyzowany (`createDateFormatter`, d.ts nazywa go `input`) bierze teraz nazwę i opis z tagu `@param` na tej samej pozycji. W `api.generated.json` jest więc `options` z opisem zaczynającym się od `` `locale` ``. `@param` bez pasującego parametru przerywa `gen` błędem `symbol: @param X matches no parameter`.
+- **minor:** opisy propsów i symboli są zwinięte do jednej linii (`oneLine`), tak jak opisy parametrów.
+
+W PROGRESS.md zaktualizowałem D7 i liczby testów.
+
+Bramki uruchomione po poprawce:
+- `pnpm --filter docs test`: 70 testów OK.
+- `pnpm lint`: 0 błędów (po `pnpm format` na nowym teście).
+- `pnpm typecheck`: OK.
+- `pnpm --filter docs build`: OK.
+- `api:check`: OK.
+
+Pozostałych bramek nie powtarzałem, bo zmiana dotyczy tylko `apps/docs`: `pnpm build` biblioteki, `pnpm test`, `pnpm size`, `check:treeshake`, `check:dts` i `check:dev-strip`.
+**Decyzje i pułapki:**
+- API Extractor nazywa destrukturyzowany parametr `input`, więc opis i nazwę parametru z TSDoc trzeba dopasować pozycyjnie do n-tego tagu @param.
+- Po `pnpm format` biome przepisuje nowe testy. Uruchom go przed `pnpm lint`.
+**Otwarte kwestie:**
+- Brak testu na błąd „@param X matches no parameter”: w repo nie ma funkcji z osieroconym @param, a test wymagałby syntetycznego src.
+- packages/tally-charts/src/api-extractor.test.ts: Istniejący test uruchamia produkcyjny api-extractor.json na fixture'ach i przekierowuje tylko apiReport. Odkąd docModel jest włączony, każdy `pnpm test` nadpisuje prawdziwe `packages/tally-charts/temp/api/tally-charts.api.json` modelem fixture'a (po teście plik ma 6.8 kB i zawiera tylko `Function:f` i `Interface:Shown`). Samodzielne `node scripts/api-model.mjs check` zgłasza wtedy fałszywy stale, a `api-model.mjs update` bez wcześniejszego api-extractora zapisałby do repo model fixture'a. api:check i api:update nie są dotknięte, bo najpierw uruchamiają extractor. Test ma też efekt uboczny poza tmp, który przy równoległym uruchomieniu z api:check może dać wyścig.
+- apps/docs/scripts/gen-api.mjs: Nie ma testu na nową ścieżkę błędu `symbol: @param X matches no parameter`, co implementer sam przyznaje. Dopasowanie destrukturyzowanego parametru po pozycji (`tags[index]`) jest kruche: gdy wcześniejszy parametr nie ma @param, parametr pattern dostaje cudzy tag albo żadnego, a wtedy zostaje nazwa `input` z d.ts.
+**Kryteria:**
+- `packages/tally-charts/api-extractor.json` i `api-extractor.core.json` mają `docModel.enabled: true` z osobnymi `apiJsonFilePath` w `temp/api/`. W repo są commitowane `packages/tally-charts/api/tally-charts.api.json` i `core.api.json` (bez pól `fileUrlPath`).
+- Po `pnpm build` przechodzi `pnpm --filter tally-charts api:check`, a `git diff --exit-code packages/tally-charts/api/*.api.md` jest pusty (raporty bez zmian).
+- `api:check` failuje komunikatem zawierającym `api:update`, gdy commitowany `.api.json` różni się od wygenerowanego (test w `src/api-model.test.ts`). `api:update` odświeża oba pliki.
+- `pnpm --filter docs gen` zapisuje `apps/docs/api.generated.json` (w .gitignore) z `symbols[name] = { name, kind: component|function|hook, package, packages, description, props|params }`, gdzie każdy prop/param ma `name, type, required, default, description`. Zbiór symboli równa się zbiorowi Function z obu `.api.json`.
+- `apps/docs/scripts/gen-api.test.ts` przechodzi w `pnpm --filter docs test` i sprawdza: RankedBars.fill (type `PerItem<D, Fill>`, required false, default `'solid'`, opis z TSDoc); LineChart (data required, `readonly D[]`, opis `band`, brak `aspectRatio`, title/aria-labelledby nie wymagane, brak fałszywego propsa `{ data, … }`); createFormatter (params spec `FormatSpec` default `'number'` z opisem @param, options default `{}`, packages obu entry pointów); kind `hook` dla useFormat; przypadki parsera domyślnych wartości z prozy; brak ponownego zapisu przy niezmienionej treści.
+- Generator czyta wyłącznie pliki repo (bez fetch i bez nowych zależności) i nie wymaga `dist`: `pnpm typecheck` przechodzi po usunięciu `packages/tally-charts/dist` i `apps/docs/api.generated.json` (kolejność joba `check` w CI). Przechodzą też `pnpm --filter docs test` i `pnpm --filter docs build`.
+- `createFormatter` ma TSDoc (podsumowanie, @param spec, @param options, @returns). Jest changeset `patch` dla `tally-charts`.
+- Przechodzą `pnpm lint` (z wykluczeniem `api/*.api.json` w biome), `pnpm test`, `pnpm size`, `check:treeshake`, `check:dts` i `check:dev-strip`.
+- CLAUDE.md opisuje, że `gen` tworzy też `api.generated.json`, a `api:check`/`api:update` obejmują `.api.json`. PROGRESS.md ma sekcję T19 z decyzjami D1–D8 i wynikami bramek.
