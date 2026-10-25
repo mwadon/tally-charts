@@ -1,9 +1,12 @@
+import pkg from '../../../../packages/tally-charts/package.json'
+
+// Server-only module (SiteHeader and pages): package.json must not reach the client bundle.
 export const SITE = {
   name: 'tally-charts',
-  version: 'v0.9',
+  version: `v${pkg.version}`,
   github: 'https://github.com/mwadon/tally-charts',
   npm: 'https://www.npmjs.com/package/tally-charts',
   hero: 'Opinionated React charts for narrative business dashboards.',
 } as const
 
-export const docHref = (slug: string) => `/docs/${slug}`
+export { docHref } from './doc-href'

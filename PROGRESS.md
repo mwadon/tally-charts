@@ -962,3 +962,19 @@ Sprawdzone: vitest w `apps/docs` (262 testy) przechodzi, `pnpm --filter docs typ
 - Istniejące e2e przechodzą: `home.spec.ts` bez zmian. W `line-chart.spec.ts` zmieniony jest wyłącznie locator regionu źródła (na nazwę bloku CodeBlock `revenue-forecast.tsx`). Asercje h1, wykresu, 5 grup sidebara, aria-current, ToC → `#props` i menu 375 px zostają.
 - Przechodzą: `pnpm build`, `pnpm --filter docs typecheck`, `pnpm typecheck`, `pnpm lint` (0 błędów), `pnpm --filter docs test`, `pnpm --filter docs build`, `pnpm --filter docs test:e2e` (bez env CMS, bez sieci). `packages/tally-charts` bez zmian, więc bez changesetu.
 - PROGRESS.md ma sekcję T22 z decyzjami D1–D7 (nawigacja z navigation.json + `available`, format fixtur, wybór źródła, home bez bloków F16, nagłówek sekretu i fail-closed, robots/sitemap, render strony docs) i otwartymi kwestiami (/preview, editor, motyw, wersja w nagłówku zostają dla dalszego F11). CLAUDE.md ma krótką notę o źródle treści i `.env.example`. Komentarz nad jobem `docs` w ci.yml mówi, że CI używa fixtur.
+
+## T23.1 Header z wersją z package.json, przełącznik motywu bez mrugania i layout przy 320 px (F11)
+**Decyzje:**
+- **D1. Wersja.** `SITE.version` to `` `v${pkg.version}` `` z `import pkg from '../../../../packages/tally-charts/package.json'` w `app/_content/navigation.ts` (działa bez `resolveJsonModule` w tsconfig, `tsc` nie zgłosił błędu). Moduł jest serwerowy: `docHref` przeniesiony do `app/_content/doc-href.ts` (navigation.ts go re-eksportuje), bo `side-nav.tsx` jest klientowy i inaczej wciągnąłby package.json do bundla klienta. Literału `v0.9` nie ma już w `app` ani `lib`.
+- **D2. Przełącznik.** Natywny `<select aria-label="Theme" class="theme-select">` (System, Light, Dark) w `app/_components/theme-switch.tsx`. Stary disabled `.theme-toggle` i style `.icon-button` usunięte.
+- **D3. Logika** w `lib/theme.ts`: `THEME_STORAGE_KEY = 'tally-docs-theme'`, `applyTheme`, `readStoredTheme`, `THEME_SCRIPT`. Kolejność: `?theme=light|dark` (nic nie zapisuje) > localStorage > system (brak atrybutu). Nieznane wartości są ignorowane w query i w storage; wyjątek storage jest połykany.
+- **D4. Stan selecta:** SSR `system`, po mount odczyt `data-ch-theme` z `<html>` (ustawionego przez skrypt z `<head>`), więc bez mismatchu hydracji. Wybór zmienia atrybut od razu; `?theme=` nie nadpisuje zapisanego wyboru, ale select pokazuje wartość z query.
+- **D5. 320 px.** Przełącznik i Menu zostają. Poniżej 400 px z headera znikają GitHub i npm (`.header-external`), bo wordmark + wersja ukryta + select + Menu muszą zmieścić się w 288 px (przy 320 px menu-button kończył na 347 px). Na home GitHub i npm są w hero i stopce; na stronach docs bez stopki ich w headerze poniżej 400 px nie ma (zostają przy ≥ 400 px). Wordmark ma `white-space: nowrap`.
+
+**Testy:** `lib/theme.test.ts` (skrypt w jsdom: query wygrywa i nic nie zapisuje, nieznane query i storage, brak obu, wyjątek storage; `applyTheme`, `readStoredTheme`), `theme-switch.test.tsx`, `site-header.test.tsx`, `app/_content/navigation.test.ts` (porównanie z package.json). E2E: `theme.spec.ts` (Tab + outline, reload z zablokowanym `_next/static` JS, MutationObserver na pierwszym `<body>`, przejście na inną stronę, System po reloadzie, `?theme=light` przy zapisanym dark), a w `support.ts` test przewijania poziomego dla 320 i 375 px na `documentElement` i `body`.
+
+**contrast.mjs:** dodane próbki przełącznika (tekst i border), tabela w dokumencie designu odświeżona (exit 0). Selektory próbek `Body text`, `Lede` i znaczniki składni były nieaktualne po T22 (`.prose`, kolory Shiki zamiast `data-tok`), więc `contrast.mjs` w ogóle padał; poprawione (`Syntax: number`/`tag` to teraz `constant`/`punctuation`).
+
+**Otwarte kwestie:**
+- `Small note` w `contrast.mjs` (`.small`) jest tylko w bloku PaletteSwatches, którego nie ma na `/docs/line-chart`, więc wiersz to n/a.
+- Poniżej 400 px strony docs nie mają linków GitHub/npm (poza headerem są tylko na home).

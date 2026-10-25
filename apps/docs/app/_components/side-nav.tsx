@@ -2,7 +2,7 @@
 
 import { usePathname } from 'next/navigation'
 import type { NavigationGroup } from '../../lib/content'
-import { docHref } from '../_content/navigation'
+import { docHref } from '../_content/doc-href'
 
 /** Heading id for a group: `nav-` plus the label as a slug (no spaces, `aria-labelledby` takes id lists). */
 function groupHeadingId(label: string) {
