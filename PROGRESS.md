@@ -1938,3 +1938,21 @@ Zmiany zostają w drzewie roboczym, bez commitów.
 - e2e/migration-1-0.spec.ts: status 200, h1 'Migration to 1.0', link w nav 'Documentation' z href /docs/migration-1-0 i aria-current='page', 0 elementów .nav-soon w sidebarze, widoczne headingi level 2 /^Breaking changes/ i /^Additive changes/, co najmniej jeden przykład „po” widoczny jako role application o nazwie z jego title (z svg)
 - pnpm build, pnpm --filter docs test, pnpm --filter docs typecheck, pnpm lint, pnpm --filter docs build i pnpm --filter docs test:e2e (port 3100 wolny, bez --update-snapshots) kończą się kodem 0. `git diff --stat -- packages apps/storybook apps/docs/e2e/__screenshots__` jest pusty
 - PROGRESS.md ma sekcję T31.2 z decyzjami: URL https://tally-charts.vercel.app w changesetach jako założenie dla F17, „przed” tylko jako code-block, etykiety Before/After przez filename i prose bez zmiany schematów bloków. CLAUDE.md nie twierdzi już, że migration-1-0 jest niedostępny
+
+## ✔ T33.1 E2e całej strony docs: 200, axe WCAG 2.2, linki wewnętrzne; krok gen w CI (2026-10-25)
+
+**Zrobione:**
+- `@axe-core/playwright` 4.13.0 (przypięta, ta sama wersja co w storybooku) jako devDependency apps/docs; w `pnpm-lock.yaml` zmienił się tylko importer `apps/docs`.
+- `apps/docs/e2e/site.spec.ts`: lista stron to `/` + wszystkie sluggi z `content/navigation.json` (czytane `readFileSync`, bez literałów slugów; sanity: więcej niż 1 strona, bez duplikatów). Dla każdej strony w light i dark (`?theme=` + `colorScheme`): status 200, `data-ch-theme`, pusty `collectErrors` i `AxeBuilder` z tagami wcag2a, wcag2aa, wcag21a, wcag21aa, wcag22aa (bez best-practice). 26 stron × 2 motywy + sanity + test linków = 54 testy.
+- Test linków: przechodzi wszystkie strony, zbiera wewnętrzne `a[href]`, każda unikalna ścieżka (bez # i ?query) przechodzi `page.request.get` ze statusem 200 (fail wypisuje `ścieżka (status) ← strony źródłowe`), a każde `#id` jest sprawdzane przez `getElementById` na stronie docelowej. Linki zewnętrzne pominięte.
+- `ci.yml`, job `docs`: `pnpm --filter docs gen` po `pnpm build`, przed `typecheck`.
+- `CLAUDE.md` opisuje `site.spec.ts`.
+
+**Znalezione i poprawione naruszenia:** brak. Wszystkie 52 kombinacje strona × motyw dały 0 naruszeń axe, puste logi konsoli i status 200; wszystkie wewnętrzne linki zwracają 200, a kotwice `#id` istnieją. Sprawdzono, że axe faktycznie analizuje stronę (30 reguł w `passes`, a sztucznie popsuty kontrast nagłówka daje `color-contrast`). Zmiany wyglądu nie było, więc baseline'y `e2e/__screenshots__` bez zmian.
+
+**Wykluczenia axe:** brak (żadnego `.exclude()`).
+
+**Decyzje i pułapki:**
+- Tagi axe dokładnie jak w kryterium (bez `best-practice`, w odróżnieniu od storybooka); motyw wymuszony przez `?theme=` razem z `colorScheme` (tryb system pokrywa `themeSuite`).
+- Axe zgłasza w `incomplete` `color-contrast` (elementy, których nie umie ocenić automatycznie, np. tekst na SVG/gradiencie); to nie jest naruszenie i nie jest sprawdzane przez test. Kontrast liczy osobno `contrast.mjs` z docs designu.
+- `sed -i` z wzorcem `^      - run: pnpm build$` pasuje też do joba `check` w ci.yml; po takiej edycji sprawdź `git diff .github`.

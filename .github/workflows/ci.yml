@@ -119,6 +119,7 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
+      - run: pnpm --filter docs gen
       - run: pnpm --filter docs typecheck
       - run: pnpm lint
       - run: pnpm --filter docs test
