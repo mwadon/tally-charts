@@ -1,5 +1,5 @@
 import { render, screen, within } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { ShareBar } from './ShareBar'
 
 const sources = [
@@ -8,6 +8,10 @@ const sources = [
   { label: 'Direct', value: 1101, tone: 'warn' as const },
   { label: 'Social', value: 43, tone: 'neutral' as const, fill: 'hatch' as const },
 ]
+
+afterEach(() => vi.restoreAllMocks())
+
+const NOT_FINITE = [Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.NaN]
 
 describe('<ShareBar>', () => {
   it('lists every part with value and percent, and hides the bar from screen readers', () => {
@@ -102,5 +106,40 @@ describe('<ShareBar>', () => {
   it('names a legend-less bar with no segments just by its label', () => {
     render(<ShareBar label="Sources" segments={[]} legend={false} />)
     expect(screen.getByRole('img')).toHaveAccessibleName('Sources')
+  })
+
+  it.each(NOT_FINITE)('shows No data for %s, with no segments and one warning', (v) => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const { container } = render(
+      <ShareBar label={`List ${v}`} segments={[{ label: 'a', value: v }]} />,
+    )
+    expect(container.querySelectorAll('[data-ch-part="share-segment"]')).toHaveLength(0)
+    expect(screen.getByText('No data')).toBeInTheDocument()
+    expect(screen.queryAllByRole('listitem')).toHaveLength(0)
+    expect(screen.getByRole('group')).toHaveAccessibleName(`List ${v}`)
+    expect(warn).toHaveBeenCalledTimes(1)
+    expect(String(warn.mock.calls[0]?.[0])).toContain('not finite')
+  })
+
+  it.each(NOT_FINITE)('names a legend-less bar "label: No data" for %s', (v) => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    render(<ShareBar label={`Bare ${v}`} legend={false} segments={[{ label: 'bare', value: v }]} />)
+    expect(screen.getByRole('img')).toHaveAccessibleName(`Bare ${v}: No data`)
+    expect(warn).toHaveBeenCalledTimes(1)
+  })
+
+  it('keeps drawing the valid segments next to a non-finite one', () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const { container } = render(
+      <ShareBar
+        label="Mixed"
+        segments={[
+          { label: 'ok', value: 5 },
+          { label: 'bad', value: Number.POSITIVE_INFINITY },
+        ]}
+      />,
+    )
+    expect(container.querySelectorAll('[data-ch-part="share-segment"]')).toHaveLength(1)
+    expect(screen.queryByText('No data')).toBeNull()
   })
 })

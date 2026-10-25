@@ -6,7 +6,7 @@ export interface ShareSegment {
   id?: Id
   /** Name in the list and the accessible text. */
   label: string
-  /** Amount; negative or non-numbers count as 0. */
+  /** Amount; negative, non-finite or non-numbers count as 0. With no valid value at all, the bar shows "No data". */
   value: number
   /** Default: by position, `accent`, `accent-soft`, `warn`, `neutral`, `gain`, repeating. */
   tone?: Tone
@@ -57,14 +57,23 @@ function largestRemainder(shares: readonly number[]): number[] {
 export function shareLayout(
   segments: readonly ShareSegment[],
   total?: number,
-): { parts: SharePart[]; total: number } {
+): { parts: SharePart[]; total: number; empty: boolean } {
+  let valid = 0
   const values = segments.map((s) => {
     const ok = Number.isFinite(s.value) && s.value >= 0
-    if (!ok && DEV) {
-      warn(
-        `share-value:${s.label}`,
-        `ShareBar segment "${s.label}" has a value that is negative or not a number; it counts as 0.`,
-      )
+    if (ok) valid += 1
+    else if (DEV) {
+      if (typeof s.value === 'number' && !Number.isFinite(s.value)) {
+        warn(
+          `share-finite:${s.label}:${s.value}`,
+          `ShareBar segment "${s.label}" has a value of ${s.value}, which is not finite; it counts as 0.`,
+        )
+      } else {
+        warn(
+          `share-value:${s.label}`,
+          `ShareBar segment "${s.label}" has a value that is negative or not a number; it counts as 0.`,
+        )
+      }
     }
     return ok ? s.value : 0
   })
@@ -108,5 +117,5 @@ export function shareLayout(
       percentText: percent === 0 && value > 0 ? '<1%' : `${percent}%`,
     }
   })
-  return { parts, total: whole }
+  return { parts, total: whole, empty: segments.length > 0 && valid === 0 }
 }

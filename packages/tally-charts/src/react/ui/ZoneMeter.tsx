@@ -13,7 +13,7 @@ import { cx, toneVar, toPercent } from './util'
 export type ZoneMeterZones = Pick<Thresholds, 'bins'> & { inclusive?: ThresholdInclusive }
 
 export interface ZoneMeterProps {
-  /** The measured value. A value outside the range is pinned to its end; a missing one draws no marker. */
+  /** The measured value. A value outside the range is pinned to its end; a missing or non-finite one shows "No data" and draws no marker. */
   value: number
   /** A `thresholds()` result, or its `{ bins, inclusive }`: the breaks, tones and labels of the zones. */
   zones: ZoneMeterZones
@@ -55,20 +55,25 @@ export function ZoneMeter({
 }: ZoneMeterProps) {
   const { create } = useFormat()
   const fmt = create(format)
-  if (DEV) {
-    if (!(max > min)) {
-      warn(
-        `zone-range:${label}:${min}:${max}`,
-        `ZoneMeter "${label}": max (${max}) must be greater than min (${min}).`,
-      )
-    } else {
-      for (const bin of zones.bins.slice(1)) {
-        if (bin.min <= min || bin.min >= max) {
-          warn(
-            `zone-break:${label}:${bin.min}`,
-            `ZoneMeter "${label}": break ${bin.min} is outside ${min}–${max}; its zone is not drawn.`,
-          )
-        }
+  if (DEV && typeof value === 'number' && !Number.isFinite(value)) {
+    warn(
+      `zone-value:${label}:${value}`,
+      `ZoneMeter "${label}": value ${value} is not finite; it shows No data.`,
+    )
+  }
+  if (DEV && !(max > min)) {
+    warn(
+      `zone-range:${label}:${min}:${max}`,
+      `ZoneMeter "${label}": max (${max}) must be greater than min (${min}).`,
+    )
+  }
+  if (DEV && max > min) {
+    for (const bin of zones.bins.slice(1)) {
+      if (bin.min <= min || bin.min >= max) {
+        warn(
+          `zone-break:${label}:${bin.min}`,
+          `ZoneMeter "${label}": break ${bin.min} is outside ${min}–${max}; its zone is not drawn.`,
+        )
       }
     }
   }
@@ -112,7 +117,6 @@ export function ZoneMeter({
             data-ch-tone={bin.tone}
             style={{
               ...toneVar(bin.tone),
-              left: pct(toPercent(from, min, max)),
               width: pct(toPercent(to, min, max) - toPercent(from, min, max)),
             }}
           />

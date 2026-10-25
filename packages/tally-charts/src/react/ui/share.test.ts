@@ -69,10 +69,40 @@ describe('shareLayout', () => {
     const messages = warn.mock.calls.map((c) => String(c[0]))
     expect(messages).toEqual([
       expect.stringContaining('ShareBar segment "a" has a value that is negative or not a number'),
-      expect.stringContaining('ShareBar segment "b" has a value that is negative or not a number'),
+      expect.stringContaining('ShareBar segment "b" has a value of NaN, which is not finite'),
       expect.stringContaining('ShareBar total 2 is smaller than the sum of its segments (5)'),
       expect.stringContaining('ShareBar has 7 segments'),
     ])
+  })
+
+  it.each([Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.NaN])(
+    'treats %s as no data, counts it as 0 and warns once',
+    (v) => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+      const { parts, empty } = shareLayout([{ label: `v${v}`, value: v }])
+      expect(empty).toBe(true)
+      expect(parts[0]?.value).toBe(0)
+      expect(warn).toHaveBeenCalledTimes(1)
+      expect(String(warn.mock.calls[0]?.[0])).toContain('not finite')
+    },
+  )
+
+  it('is empty only when no segment has a valid value', () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
+    expect(
+      shareLayout([
+        { label: 'e1', value: 5 },
+        { label: 'e2', value: Infinity },
+      ]).empty,
+    ).toBe(false)
+    expect(shareLayout([{ label: 'e3', value: 0 }]).empty).toBe(false)
+    expect(
+      shareLayout([
+        { label: 'e4', value: -1 },
+        { label: 'e5', value: Infinity },
+      ]).empty,
+    ).toBe(true)
+    expect(shareLayout([]).empty).toBe(false)
   })
 
   it('warns when the total is not a finite number and uses the sum', () => {

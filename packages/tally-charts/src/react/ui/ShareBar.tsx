@@ -33,7 +33,7 @@ export function ShareBar({
 }: ShareBarProps) {
   const { create } = useFormat()
   const fmt = create(format)
-  const { parts } = shareLayout(segments, total)
+  const { parts, empty } = shareLayout(segments, total)
   const bar = (
     <div
       className="ch-share-bar"
@@ -42,15 +42,17 @@ export function ShareBar({
         ? { 'aria-hidden': true }
         : {
             role: 'img',
-            'aria-label': parts.length
-              ? `${label}: ${parts
-                  .map((p) => `${p.label} ${p.percentText} (${fmt(p.value)})`)
-                  .join(', ')}`
-              : label,
+            'aria-label': empty
+              ? `${label}: No data`
+              : parts.length
+                ? `${label}: ${parts
+                    .map((p) => `${p.label} ${p.percentText} (${fmt(p.value)})`)
+                    .join(', ')}`
+                : label,
           })}
     >
       {parts.map((p) =>
-        p.value > 0 ? (
+        !empty && p.value > 0 ? (
           <div
             key={p.key}
             className="ch-share-segment ch-fillable"
@@ -74,33 +76,39 @@ export function ShareBar({
     // biome-ignore lint/a11y/useSemanticElements: a named group of a bar and its list, not a fieldset
     <div className={cx('ch-share', className)} data-ch-part="share" role="group" aria-label={label}>
       {bar}
-      <ul className="ch-share-list" data-ch-part="share-list">
-        {parts.map((p) => (
-          <li key={p.key} className="ch-share-row" data-ch-part="share-row">
-            <span
-              className="ch-share-swatch ch-fillable"
-              data-ch-part="share-swatch"
-              data-ch-tone={p.tone}
-              data-ch-fill={p.fill}
-              style={toneVar(p.tone)}
-            />
-            <span className="ch-share-label" data-ch-part="share-label">
-              {p.label}
-            </span>{' '}
-            <span className="ch-share-value" data-ch-part="share-value">
-              {legendValue === 'percent' ? (
-                p.percentText
-              ) : legendValue === 'value' ? (
-                fmt(p.value)
-              ) : (
-                <>
-                  {fmt(p.value)} <span aria-hidden="true">·</span> {p.percentText}
-                </>
-              )}
-            </span>
-          </li>
-        ))}
-      </ul>
+      {empty ? (
+        <p className="ch-share-empty" data-ch-part="share-empty">
+          No data
+        </p>
+      ) : (
+        <ul className="ch-share-list" data-ch-part="share-list">
+          {parts.map((p) => (
+            <li key={p.key} className="ch-share-row" data-ch-part="share-row">
+              <span
+                className="ch-share-swatch ch-fillable"
+                data-ch-part="share-swatch"
+                data-ch-tone={p.tone}
+                data-ch-fill={p.fill}
+                style={toneVar(p.tone)}
+              />
+              <span className="ch-share-label" data-ch-part="share-label">
+                {p.label}
+              </span>{' '}
+              <span className="ch-share-value" data-ch-part="share-value">
+                {legendValue === 'percent' ? (
+                  p.percentText
+                ) : legendValue === 'value' ? (
+                  fmt(p.value)
+                ) : (
+                  <>
+                    {fmt(p.value)} <span aria-hidden="true">·</span> {p.percentText}
+                  </>
+                )}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   )
 }

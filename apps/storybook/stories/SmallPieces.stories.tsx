@@ -89,6 +89,47 @@ function SmallPieces() {
   )
 }
 
+// Narrow container with a 0.1% share and zone, and end labels as wide as the meter allows. Not in
+// STORIES: e2e/small-pieces.spec.ts measures it instead of comparing a screenshot.
+function EdgeCasesStory() {
+  return (
+    <div className="card piece-grid" style={{ width: 320 }}>
+      <div data-testid="rare-share">
+        <ShareBar
+          label="Rare share"
+          segments={[
+            { label: 'Common', value: 999, tone: 'accent' },
+            { label: 'Rare', value: 1, tone: 'warn' },
+          ]}
+        />
+      </div>
+      <div data-testid="rare-zone">
+        <ZoneMeter
+          label="Rare zone"
+          value={300}
+          zones={thresholds([1, 500], [...zoneTones], zoneLabels)}
+          max={1000}
+          ticks={false}
+        />
+      </div>
+      <div data-testid="long-labels">
+        <ZoneMeter
+          label="Response time"
+          value={350}
+          zones={inpZones}
+          max={1000}
+          minLabel="0 ms (fast)"
+          maxLabel="1000 ms or more"
+        />
+      </div>
+      <div data-testid="no-data">
+        <ShareBar label="No share data" segments={[{ label: 'Unknown', value: Number.NaN }]} />
+        <ZoneMeter label="No zone data" value={Number.NaN} zones={inpZones} max={1000} />
+      </div>
+    </div>
+  )
+}
+
 const meta = {
   title: 'Primitives/Small pieces',
   component: SmallPieces,
@@ -98,3 +139,5 @@ export default meta
 type Story = StoryObj<typeof meta>
 
 export const Default: Story = {}
+
+export const EdgeCases: Story = { render: () => <EdgeCasesStory /> }
