@@ -250,14 +250,12 @@ export function RunwayChart({
     if (DEV && cut)
       warn('runway-cells', 'RunwayChart shows at most 200 cells; use a longer `cell`.')
     const seen = new Set<string>()
-    return rows.map((row) => {
-      if (DEV && seen.has(row.id)) {
-        warn(
-          'runway-id',
-          `RunwayChart has a duplicate row id "${row.id}"; the first one is selected.`,
-        )
+    const duplicates = new Set<string>()
+    const built = rows.map((row) => {
+      if (DEV) {
+        if (seen.has(row.id)) duplicates.add(row.id)
+        seen.add(row.id)
       }
-      seen.add(row.id)
       const times = normalizeRow(row, warn)
       const facts = runwayFacts(times, d1)
       const lines = statusLines(facts, !!row.disconnected, now, d1, formats)
@@ -288,6 +286,13 @@ export function RunwayChart({
               : lines.join(', '),
       }
     })
+    if (DEV && duplicates.size > 0) {
+      warn(
+        'runway-id',
+        `RunwayChart has duplicate row ids: ${[...duplicates].map((id) => `"${id}"`).join(', ')}. Only the first row with each id can be active or selected.`,
+      )
+    }
+    return built
   }, [valid, d0, d1, now, cellMs, rows, edges, levels, formats, status, warn])
 
   const [innerActive, setInnerActive] = useState<string | null>(null)
@@ -301,6 +306,8 @@ export function RunwayChart({
   const [focused, setFocused] = useState(false)
   // The row a pointer pressed: the focus that follows starts there and does not scroll.
   const pressed = useRef<string | null>(null)
+  // The last id handed to `onActiveChange`: a controlled `activeId` that differs came from outside.
+  const emitted = useRef<string | null>(null)
   const byId = useMemo(() => {
     const map = new Map<string, number>()
     model.forEach((m, i) => {
@@ -312,9 +319,18 @@ export function RunwayChart({
   const current = focusId !== null ? (byId.get(focusId) ?? null) : null
   const selectable = onSelect !== undefined
 
+  // A controlled `activeId` set from outside moves the cursor too; an echo of our own hover does not.
+  useIsoLayoutEffect(() => {
+    if (controlled && activeId != null && byId.has(activeId) && activeId !== emitted.current) {
+      setFocusId(activeId)
+    }
+    emitted.current = activeId ?? null
+  }, [controlled, activeId, byId])
+
   const setActive = (next: string | null) => {
     if (next === activeRef.current) return
     activeRef.current = next
+    emitted.current = next
     if (controlled) {
       queueMicrotask(() => {
         activeRef.current = activeProp.current ?? null
@@ -324,6 +340,11 @@ export function RunwayChart({
     }
     onActiveChange?.(next, next === null ? null : (model[byId.get(next) ?? -1]?.row ?? null))
   }
+  // Hover ends: the active row falls back to the keyboard cursor while focused, else to none.
+  const leave = () =>
+    setActive(focused && current !== null ? (model[current]?.row.id ?? null) : null)
+  // With duplicate ids only the first row counts as active or selected.
+  const first = (id: string, i: number) => byId.get(id) === i
   const moveTo = (i: number) => {
     const m = model[i]
     if (!m) return
@@ -455,6 +476,7 @@ export function RunwayChart({
           const from = pressed.current
           pressed.current = null
           if (from !== null) {
+            setFocusId(from)
             setActive(from)
             return
           }
@@ -466,9 +488,18 @@ export function RunwayChart({
           setFocused(false)
           setActive(null)
         }}
-        onPointerLeave={() =>
-          setActive(focused && current !== null ? (model[current]?.row.id ?? null) : null)
-        }
+        onPointerLeave={(event) => {
+          // A touch tap ends with pointerleave before the focus it causes: keep the pressed row.
+          if (event.pointerType !== 'touch') pressed.current = null
+          leave()
+        }}
+        onPointerUp={(event) => {
+          if (event.pointerType === 'touch') leave()
+        }}
+        onPointerCancel={(event) => {
+          pressed.current = null
+          if (event.pointerType === 'touch') leave()
+        }}
       >
         {model.map((m, i) => (
           // biome-ignore lint/a11y/useAriaPropsSupportedByRole: aria-selected is set only when the role is option
@@ -479,22 +510,22 @@ export function RunwayChart({
             key={`${m.row.id}-${i}`}
             id={`${baseId}-row-${i}`}
             role={selectable ? 'option' : 'listitem'}
-            aria-selected={selectable ? m.row.id === selectedId : undefined}
+            aria-selected={selectable ? m.row.id === selectedId && first(m.row.id, i) : undefined}
             aria-labelledby={selectable ? `${baseId}-name-${i} ${baseId}-status-${i}` : undefined}
             className="ch-runway-row"
             data-ch-part="runway-row"
             data-ch-muted={m.row.disconnected ? 'true' : undefined}
             data-ch-selectable={selectable ? 'true' : undefined}
-            data-ch-selected={m.row.id === selectedId ? 'true' : undefined}
-            data-ch-active={m.row.id === active ? 'true' : undefined}
+            data-ch-selected={m.row.id === selectedId && first(m.row.id, i) ? 'true' : undefined}
+            data-ch-active={m.row.id === active && first(m.row.id, i) ? 'true' : undefined}
             data-ch-focus={selectable && focused && i === (current ?? 0) ? 'true' : undefined}
             // Hover highlights only; the keyboard cursor moves on press, before focus lands.
             onPointerEnter={() => setActive(m.row.id)}
             onPointerDown={
               selectable
                 ? () => {
-                    if (!focused) pressed.current = m.row.id
-                    setFocusId(m.row.id)
+                    if (focused) setFocusId(m.row.id)
+                    else pressed.current = m.row.id
                   }
                 : undefined
             }

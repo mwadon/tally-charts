@@ -230,7 +230,7 @@ describe('<RunwayChart>', () => {
       'RunwayChart `cell`',
       'RunwayChart shows at most 200 cells',
       'RunwayChart `breaks`',
-      'RunwayChart has a duplicate row id',
+      'RunwayChart has duplicate row ids',
       'RunwayChart has no `title`',
     ]) {
       expect(text).toContain(phrase)
@@ -497,6 +497,119 @@ describe('<RunwayChart>', () => {
     act(() => box.focus())
     expect(box.getAttribute('aria-activedescendant')).toBe(options[1]?.id)
     expect(scroll).toHaveBeenCalledTimes(1)
+  })
+
+  it.each([
+    ['pointercancel', (box: HTMLElement) => fireEvent.pointerCancel(box)],
+    ['pointerleave', (box: HTMLElement) => fireEvent.pointerLeave(box)],
+  ])('forgets a pressed row on %s, so the next focus starts on the selected row', (_, end) => {
+    renderRunway({ onSelect: vi.fn(), selectedId: 'starter' })
+    const box = screen.getByRole('listbox')
+    const options = within(box).getAllByRole('option')
+    fireEvent.pointerDown(options[1] as HTMLElement)
+    end(box)
+    act(() => box.focus())
+    expect(box.getAttribute('aria-activedescendant')).toBe(options[2]?.id)
+    expect(options[1]).not.toHaveAttribute('data-ch-active')
+    expect(options[2]).toHaveAttribute('data-ch-active', 'true')
+  })
+
+  it('keeps the pressed row through the pointerleave that ends a touch tap', () => {
+    renderRunway({ onSelect: vi.fn(), selectedId: 'starter' })
+    const box = screen.getByRole('listbox')
+    const options = within(box).getAllByRole('option')
+    fireEvent.pointerDown(options[1] as HTMLElement, { pointerType: 'touch' })
+    fireEvent.pointerUp(options[1] as HTMLElement, { pointerType: 'touch' })
+    fireEvent.pointerLeave(box, { pointerType: 'touch' })
+    act(() => box.focus())
+    expect(box.getAttribute('aria-activedescendant')).toBe(options[1]?.id)
+  })
+
+  it('moves the cursor with a controlled activeId set from outside', () => {
+    const props = { onSelect: vi.fn(), selectedId: 'starter' }
+    const view = (activeId: string) => (
+      <RunwayChart
+        rows={rows}
+        domain={domain}
+        now={now}
+        title="Runway"
+        {...props}
+        activeId={activeId}
+      />
+    )
+    const { rerender } = render(view('pro'))
+    const box = screen.getByRole('listbox')
+    const options = within(box).getAllByRole('option')
+    act(() => box.focus())
+    expect(box.getAttribute('aria-activedescendant')).toBe(options[0]?.id)
+    rerender(view('starter'))
+    expect(box.getAttribute('aria-activedescendant')).toBe(options[2]?.id)
+    expect(options[2]).toHaveAttribute('data-ch-focus', 'true')
+    expect(options[2]).toHaveAttribute('data-ch-active', 'true')
+    expect(options[0]).not.toHaveAttribute('data-ch-focus')
+  })
+
+  it('starts the next focus on a controlled activeId that changed while unfocused', () => {
+    const props = { onSelect: vi.fn(), selectedId: 'starter' }
+    const view = (activeId: string) => (
+      <RunwayChart
+        rows={rows}
+        domain={domain}
+        now={now}
+        title="Runway"
+        {...props}
+        activeId={activeId}
+      />
+    )
+    const { rerender } = render(view('pro'))
+    rerender(view('team'))
+    const box = screen.getByRole('listbox')
+    const options = within(box).getAllByRole('option')
+    expect(options[1]).toHaveAttribute('data-ch-active', 'true')
+    act(() => box.focus())
+    expect(box.getAttribute('aria-activedescendant')).toBe(options[1]?.id)
+  })
+
+  it('warns once with every duplicate id and marks only the first such row', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const dup = [
+      { id: 'pro', label: 'Pro A' },
+      { id: 'pro', label: 'Pro B' },
+      { id: 'team', label: 'Team A' },
+      { id: 'team', label: 'Team B' },
+    ]
+    renderRunway({ rows: dup, onSelect: vi.fn(), activeId: 'pro', selectedId: 'team' })
+    const messages = warn.mock.calls.map(([m]) => String(m)).filter((m) => m.includes('duplicate'))
+    expect(messages).toHaveLength(1)
+    expect(messages[0]).toContain('"pro"')
+    expect(messages[0]).toContain('"team"')
+    const options = screen.getAllByRole('option')
+    expect(options.filter((o) => o.hasAttribute('data-ch-active'))).toEqual([options[0]])
+    expect(options.filter((o) => o.hasAttribute('data-ch-selected'))).toEqual([options[2]])
+    expect(options.filter((o) => o.getAttribute('aria-selected') === 'true')).toEqual([options[2]])
+  })
+
+  it.each([
+    ['pointerUp', fireEvent.pointerUp],
+    ['pointerCancel', fireEvent.pointerCancel],
+  ])('clears hover on touch %s', (_, end) => {
+    const onActiveChange = vi.fn()
+    renderRunway({ onSelect: vi.fn(), onActiveChange })
+    const box = screen.getByRole('listbox')
+    const options = within(box).getAllByRole('option')
+    fireEvent.pointerEnter(options[1] as HTMLElement)
+    expect(options[1]).toHaveAttribute('data-ch-active', 'true')
+    end(options[1] as HTMLElement, { pointerType: 'touch' })
+    expect(options[1]).not.toHaveAttribute('data-ch-active')
+    expect(onActiveChange).toHaveBeenLastCalledWith(null, null)
+  })
+
+  it('keeps hover on mouse pointerUp', () => {
+    renderRunway({ onSelect: vi.fn() })
+    const options = screen.getAllByRole('option')
+    fireEvent.pointerEnter(options[1] as HTMLElement)
+    fireEvent.pointerUp(options[1] as HTMLElement, { pointerType: 'mouse' })
+    expect(options[1]).toHaveAttribute('data-ch-active', 'true')
   })
 
   it('keeps the keyboard cursor on its row when the rows are reordered', () => {
