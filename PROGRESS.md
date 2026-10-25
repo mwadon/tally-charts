@@ -2147,3 +2147,29 @@ Dodano `pnpm --filter docs lighthouse` (`apps/docs/scripts/lighthouse.mjs`). Mie
 - PROGRESS.md ma sekcję T34.3 z decyzją o zmiennych (bez pomijania audytów, z uzasadnieniem) i tabelą z lokalnego pomiaru: `/` i `/docs/line-chart` z Performance ≥ 90, Accessibility 100, SEO ≥ 95 oraz LCP, TBT i CLS, z datą, wersją Lighthouse i platformą
 - Jeśli poprawki zmieniły wygląd `/` lub `/docs/line-chart`, baseline'y home-visual i line-chart-visual są odświeżone na darwin i linux (komenda docker z ci.yml); w przeciwnym razie w diffie nie ma PNG
 - `pnpm --filter docs test:e2e`, `pnpm --filter docs test`, `pnpm lint` i `pnpm --filter docs typecheck` kończą się kodem 0
+
+## ⛔ T35 [MAINTAINER] Tenant glökki, klucze, seed i webhook — ZABLOKOWANY
+Gate OTWARTY, potwierdzenie niezapisane. Agent nie ma dostępu do glökki ani do kluczy, więc nie założył tenanta, nie uruchomił seeda i nie skonfigurował webhooka. Gotowa jest część agentowa: `docs/releasing.md` §10 ma krok 0 (tenant i klucze), poprawioną liczbę stron (26, ok. 3 minut publikacji), drugi `--dry-run` i odnośnik do §11 w sprawie webhooka. Kod, fiksturki, CLAUDE.md i sekrety bez zmian, bez changesetu.
+
+**Stan zastany** (2026-10-25, komendy tylko do odczytu):
+- `env | grep CMS_` nic nie zwraca (brak `CMS_BASE_URL`, `CMS_TENANT`, `CMS_API_KEY`, `CMS_ADMIN_API_KEY`), więc nie uruchamiałem `seed --dry-run` ani `check:content` przeciw CMS.
+- W `apps/docs` jest tylko `.env.example` (żadnego `.env*` z wartościami).
+- Fiksturek: 26 (`ls apps/docs/content/*.json` bez `navigation.json`).
+- URL-a z Vercel nie ma, bo T36 jest otwarty.
+
+**Checklista dla maintainera** (szczegóły: `docs/releasing.md` §10 i §11):
+1. Utwórz w glökki tenant o slugu `tally-charts` i dwa klucze (Settings → API Keys):
+   - delivery ze scope'em `delivery:read` → `CMS_API_KEY` (strona, Vercel, `check:content`),
+   - admin ze scope'ami `mcp:connect`, `admin:pages:read`, `admin:pages:write`, `admin:pages:publish` → `CMS_ADMIN_API_KEY` (tylko Twoja maszyna, nie Vercel ani CI).
+   - `CMS_TENANT` i `NEXT_PUBLIC_CMS_TENANT` = `tally-charts`.
+2. Otwórz dowolną stronę w edytorze wizualnym glökki, żeby zsynchronizować rejestr bloków (bez tego `add_block` i `publish_page` zwracają `REGISTRY_NOT_SYNCED` / `BLOCK_TYPE_NOT_FOUND`).
+3. `export CMS_BASE_URL=… CMS_ADMIN_API_KEY=…`, potem `pnpm --filter docs seed --dry-run` (plan: 26 create).
+4. `pnpm --filter docs seed` (ok. 3 minuty przez limit 10 publikacji na minutę).
+5. Drugi przebieg `pnpm --filter docs seed --dry-run`: oczekiwane `seed: 0 create, 0 update, 26 skip`.
+6. `pnpm build && CMS_BASE_URL=… CMS_TENANT=tally-charts CMS_API_KEY=… pnpm --filter docs check:content`: oczekiwany exit 0, raport `cms:` bez błędów i `API coverage: 52/52`.
+7. Po T36 (gdy znany jest URL), według `docs/releasing.md` §11 kroki 4–5: webhook publikacji na `POST https://<domain>/api/revalidate` z `REVALIDATE_SECRET`; `curl -i -X POST https://<domain>/api/revalidate -H "Authorization: Bearer $REVALIDATE_SECRET"` daje 200, a bez nagłówka 401; zmiana tekstu opublikowana w glökki jest widoczna na produkcji w ≤ 60 s.
+
+**Linia zamykająca** (wpisuje maintainer pod tą sekcją; format):
+`T35 potwierdzony: <maintainer>, RRRR-MM-DD, tenant tally-charts, seed: 0 create 0 update 26 skip, check:content cms OK, webhook: <URL>|czeka na T36`
+
+**Reguła:** ✔ dopiero po wpisaniu tej linii przez maintainera. „webhook: czeka na T36” jest dopuszczalne tylko wtedy, gdy T36 jest otwarty. Agent nie wpisuje tej linii.
