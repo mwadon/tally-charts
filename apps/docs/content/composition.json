@@ -1,0 +1,345 @@
+{
+  "versionId": "fixture-composition-v1",
+  "version": 1,
+  "locale": "en",
+  "publishedAt": "2026-10-25T00:00:00.000Z",
+  "codeInjection": {},
+  "layout": {
+    "key": "default",
+    "header": null,
+    "footer": null
+  },
+  "pageId": "fixture-composition",
+  "title": "Composition",
+  "slug": "composition",
+  "seo": {
+    "metaTitle": "Composition · tally-charts",
+    "metaDescription": "Build your own chart from Chart and its 18 building blocks: bars, lines, areas, axes, annotations, connectors, rows and tables."
+  },
+  "componentTree": [
+    {
+      "id": "n1",
+      "type": "prose",
+      "props": {
+        "markdown": "Every chart in `tally-charts` is a `Chart` with marks inside it. `BarChart`, `LineChart` and the rest are ready-made arrangements of the same 18 building blocks, so when none of them fits, you arrange the blocks yourself."
+      }
+    },
+    {
+      "id": "n2",
+      "type": "prose",
+      "props": {
+        "markdown": "`Chart` owns the data, the `x` and `y` scales, the size, the keyboard and pointer handling and the accessible name. The building blocks are its children: each one reads the scales from context and draws one thing, or adds one behavior. Order is paint order, so what comes first sits at the back."
+      }
+    },
+    {
+      "id": "n3",
+      "type": "heading",
+      "props": {
+        "text": "Bars, axes and annotations",
+        "level": "2",
+        "anchor": "bars-and-axes"
+      }
+    },
+    {
+      "id": "n4",
+      "type": "prose",
+      "props": {
+        "markdown": "Start with a band scale on `x` and a linear scale on `y`. `Grid` and `Axis` frame the plot, `Bars` draws the data, and `ValueLabel`, `Target`, `ColumnHighlight` and `Callout` say what to look at. `Tooltip` shows the hovered or focused bar."
+      }
+    },
+    {
+      "id": "n5",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "composition/bars-and-axes",
+        "defaultView": "preview"
+      }
+    },
+    {
+      "id": "n6",
+      "type": "prose",
+      "props": {
+        "markdown": "`ColumnHighlight` and `Target` come before `Bars` so they sit behind it. `Callout` pins a pill to a point by `id`, so `Bars` is given `id=\"week\"` and the callout points at `\"W5\"`. All the props here are strings, numbers and plain objects, which is why this example also renders in a Server Component."
+      }
+    },
+    {
+      "id": "n7",
+      "type": "heading",
+      "props": {
+        "text": "Lines, areas and ranges",
+        "level": "2",
+        "anchor": "line-area-band"
+      }
+    },
+    {
+      "id": "n8",
+      "type": "prose",
+      "props": {
+        "markdown": "A point scale puts categories on a line. `Band` fills a range between a low and a high field, `Area` fades down from the line, and `Line` draws the path. `Region` shades a span of the x axis, here the forecast months. `NearestPointer` finds the point closest to the pointer, which is how a line chart gets its hover."
+      }
+    },
+    {
+      "id": "n9",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "composition/line-area-band",
+        "defaultView": "preview"
+      }
+    },
+    {
+      "id": "n10",
+      "type": "prose",
+      "props": {
+        "markdown": "`Line` draws a path but does not register points, so on its own nothing can be hovered or reached with the arrow keys. `Dots` registers one point per dot, and `NearestPointer axis=\"x\"` picks the column under the pointer. The dots need pixel positions, which is what the next section is about."
+      }
+    },
+    {
+      "id": "n11",
+      "type": "callout",
+      "props": {
+        "tone": "tip",
+        "markdown": "**Custom marks read the scales with `useChart()`.** It returns the resolved `x` and `y` scales and the chart size. Narrow on `x.kind` and `y.kind` (`linear`, `band`, `point` or `time`) before calling `scale`. A hook cannot run in a Server Component, so a file that defines such a mark starts with `'use client'`; so does a file that passes functions as props, like `DataTable` column readers or `Tooltip` `content`."
+      }
+    },
+    {
+      "id": "n12",
+      "type": "heading",
+      "props": {
+        "text": "Bridges and connectors",
+        "level": "2",
+        "anchor": "bridge-connector"
+      }
+    },
+    {
+      "id": "n13",
+      "type": "prose",
+      "props": {
+        "markdown": "`Bars` takes a `from` field: each bar then runs from `from` to its value instead of from zero, which makes floating steps. `Connector` draws the thin lines between neighbouring bars at the height where one step ends and the next begins."
+      }
+    },
+    {
+      "id": "n14",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "composition/bridge-connector",
+        "defaultView": "preview"
+      }
+    },
+    {
+      "id": "n15",
+      "type": "prose",
+      "props": {
+        "markdown": "`tone` is one value per `Bars`, so the totals, the gains and the losses are three layers over the same scales. The layers are filtered at module level and passed as `data`, which keeps every prop serializable."
+      }
+    },
+    {
+      "id": "n16",
+      "type": "heading",
+      "props": {
+        "text": "Rows, custom marks and tables",
+        "level": "2",
+        "anchor": "rows-and-custom-marks"
+      }
+    },
+    {
+      "id": "n17",
+      "type": "prose",
+      "props": {
+        "markdown": "Swap the axes and a band scale on `y` gives rows. `RowLabels` writes a name and an optional second line in the margin, `RowDividers` rules between the rows, and a small component of your own marks the plan on each row with `Dots` (the grey dots)."
+      }
+    },
+    {
+      "id": "n18",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "composition/rows-and-custom-marks",
+        "defaultView": "preview"
+      }
+    },
+    {
+      "id": "n19",
+      "type": "prose",
+      "props": {
+        "markdown": "`DataTable` is the visually hidden table that gives screen-reader users the same numbers. A chart renders one from its `dataTable` prop; use the component directly when you build the table yourself. See [Getting started](/docs/getting-started) for why every chart needs a name, and [LineChart](/docs/line-chart) for what the ready-made line chart arranges for you."
+      }
+    },
+    {
+      "id": "n20",
+      "type": "heading",
+      "props": {
+        "text": "Props",
+        "level": "2",
+        "anchor": "props"
+      }
+    },
+    {
+      "id": "n21",
+      "type": "heading",
+      "props": {
+        "text": "Chart",
+        "level": "3",
+        "anchor": "chart"
+      }
+    },
+    {
+      "id": "n22",
+      "type": "props-table",
+      "props": {
+        "symbol": "Chart"
+      }
+    },
+    {
+      "id": "n23",
+      "type": "heading",
+      "props": {
+        "text": "Marks",
+        "level": "3",
+        "anchor": "marks"
+      }
+    },
+    {
+      "id": "n24",
+      "type": "props-table",
+      "props": {
+        "symbol": "Bars"
+      }
+    },
+    {
+      "id": "n25",
+      "type": "props-table",
+      "props": {
+        "symbol": "Line"
+      }
+    },
+    {
+      "id": "n26",
+      "type": "props-table",
+      "props": {
+        "symbol": "Area"
+      }
+    },
+    {
+      "id": "n27",
+      "type": "props-table",
+      "props": {
+        "symbol": "Dots"
+      }
+    },
+    {
+      "id": "n28",
+      "type": "props-table",
+      "props": {
+        "symbol": "Band"
+      }
+    },
+    {
+      "id": "n29",
+      "type": "props-table",
+      "props": {
+        "symbol": "Region"
+      }
+    },
+    {
+      "id": "n30",
+      "type": "props-table",
+      "props": {
+        "symbol": "Target"
+      }
+    },
+    {
+      "id": "n31",
+      "type": "props-table",
+      "props": {
+        "symbol": "ColumnHighlight"
+      }
+    },
+    {
+      "id": "n32",
+      "type": "props-table",
+      "props": {
+        "symbol": "Connector"
+      }
+    },
+    {
+      "id": "n33",
+      "type": "props-table",
+      "props": {
+        "symbol": "ValueLabel"
+      }
+    },
+    {
+      "id": "n34",
+      "type": "heading",
+      "props": {
+        "text": "Axes and rows",
+        "level": "3",
+        "anchor": "axes-and-rows"
+      }
+    },
+    {
+      "id": "n35",
+      "type": "props-table",
+      "props": {
+        "symbol": "Axis"
+      }
+    },
+    {
+      "id": "n36",
+      "type": "props-table",
+      "props": {
+        "symbol": "Grid"
+      }
+    },
+    {
+      "id": "n37",
+      "type": "props-table",
+      "props": {
+        "symbol": "RowLabels"
+      }
+    },
+    {
+      "id": "n38",
+      "type": "props-table",
+      "props": {
+        "symbol": "RowDividers"
+      }
+    },
+    {
+      "id": "n39",
+      "type": "heading",
+      "props": {
+        "text": "Interaction and overlays",
+        "level": "3",
+        "anchor": "interaction"
+      }
+    },
+    {
+      "id": "n40",
+      "type": "props-table",
+      "props": {
+        "symbol": "Tooltip"
+      }
+    },
+    {
+      "id": "n41",
+      "type": "props-table",
+      "props": {
+        "symbol": "NearestPointer"
+      }
+    },
+    {
+      "id": "n42",
+      "type": "props-table",
+      "props": {
+        "symbol": "Callout"
+      }
+    },
+    {
+      "id": "n43",
+      "type": "props-table",
+      "props": {
+        "symbol": "DataTable"
+      }
+    }
+  ]
+}

@@ -307,7 +307,7 @@ describe('the CLI', () => {
         env: { ...process.env, CMS_BASE_URL: '', ...env },
       })
       expect(result.status).toBe(1)
-      expect(result.stderr).toContain('API coverage: Area (component) has no PropsTable')
+      expect(result.stderr).toContain('API coverage: BridgeChart (component) has no PropsTable')
     },
     60_000,
   )
