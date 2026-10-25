@@ -37,17 +37,20 @@ jobs:
           node-version: 24
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      # v2, not v1: @changesets/cli 3 moves the consumed changesets to .changeset/pre/ in pre mode
+      # and the reader bundled in v1 fails on that directory (scripts/release/changeset-flow.test.mjs).
+      # No `publish` input: publishing is the `publish` job. Tags and releases are made there too.
       - id: changesets
-        uses: changesets/action@v1
+        uses: changesets/action@v2
         with:
-          version: pnpm changeset version
-          title: Version Packages
-          commit: 'chore: version packages'
-          createGithubReleases: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          version-script: pnpm changeset version
+          pr-title: Version Packages
+          commit-message: 'chore: version packages'
+          create-github-releases: false
+          push-git-tags: false
       - id: plan
-        if: steps.changesets.outputs.hasChangesets == 'false'
+        if: steps.changesets.outputs.has-changesets == 'false'
         run: |
           V=$(node -p "require('./packages/tally-charts/package.json').version")
           echo "version=$V" >> "$GITHUB_OUTPUT"
@@ -121,6 +124,21 @@ jobs:
         env:
           NPM_CONFIG_PROVENANCE: 'true'
           PNPM_CONFIG_PROVENANCE: 'true'
+      # `pnpm publish` does the OIDC exchange itself (not the npm CLI), so do not trust the env flags:
+      # fail when the published version carries no provenance attestation. The registry can lag.
+      - name: Check provenance
+        run: |
+          for i in 1 2 3 4 5 6; do
+            att=$(npm view "tally-charts@$VERSION" dist.attestations.url 2>/dev/null || true)
+            if [ -n "$att" ]; then
+              echo "provenance attestation: $att"
+              exit 0
+            fi
+            echo "no attestation yet (attempt $i), waiting"
+            sleep 10
+          done
+          echo "::error::tally-charts@$VERSION has no provenance attestation"
+          exit 1
       # Idempotent: a re-run after a partial failure skips what already exists. The
       # tally-charts@x.y.z tags that changesets creates locally are not pushed.
       - name: Tag

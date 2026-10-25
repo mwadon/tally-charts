@@ -56,15 +56,20 @@ Commit the generated `.changeset/*.md` file with the PR. Changes outside `packag
 ## 3. The Version PR
 
 When a push to `main` leaves pending changesets, the `version` job runs `pnpm changeset version`
-through `changesets/action` and opens, or force-updates, the PR **Version Packages** on the
-`changeset-release/main` branch. It bumps `packages/tally-charts/package.json`, writes
-`CHANGELOG.md` and updates `.changeset/pre.json` while in pre mode. Check that the version and the
-changelog read well. Edit the changesets on `main` (not in this PR) if the notes need work: the
+through `changesets/action@v2` and opens, or force-updates, the PR **Version Packages** on the
+`changeset-release/main` branch. It bumps `packages/tally-charts/package.json` and writes
+`CHANGELOG.md`. In pre mode the consumed changesets are moved from `.changeset/` to
+`.changeset/pre/` (`@changesets/cli` 3), so they stay available for the final `1.0.0` changelog.
+Check that the version and the changelog read well. Edit the changesets on `main` (not in this PR) if the notes need work: the
 next push regenerates the PR.
 
 A PR opened with `GITHUB_TOKEN` does not trigger other workflows, so **CI doesn't run on the
 Version PR by itself**. Close and reopen it, or push an empty commit to `changeset-release/main`,
 to get the `ci.yml` checks. (The release re-runs them anyway in `verify`.)
+
+The action must stay on v2: v1 bundles an older changeset reader that fails on `.changeset/pre/`
+once the first `rc` Version PR is merged. `scripts/release/changeset-flow.test.mjs` runs the real
+CLI on a throwaway workspace (`rc.0`, then `pre exit` and `1.0.0`) to pin this layout.
 
 ## 4. Merge and approve
 
@@ -109,10 +114,18 @@ Install a release candidate with `npm i tally-charts@rc` (or an exact version).
 
 When the last release candidate is good:
 
-1. In a PR run `pnpm changeset pre exit` and commit the change to `.changeset/pre.json`.
-2. Merge it. The `version` job sees the exit and opens the Version PR with `1.0.0` (the
-   changesets accumulated during pre mode are folded into it).
+1. Review `.changeset/pre/*.md`: after the exit they are the changelog entries of `1.0.0`. Delete
+   the ones that should not appear. Then run `pnpm changeset pre exit` in a PR; it sets
+   `"mode": "exit"` in `.changeset/pre.json`. Merge it.
+2. That push has changesets again (the files in `.changeset/pre/` count once pre mode is left), so
+   the `version` job opens the Version PR with `1.0.0`. Merging it deletes `.changeset/pre.json`,
+   empties `.changeset/pre/` and writes the `1.0.0` section of `CHANGELOG.md`.
 3. Merge that PR and approve `npm-publish` as above. `1.0.0` goes to `latest`.
+
+The CLI side of this (`pre exit`, then `changeset version` gives `1.0.0`, `pre.json` removed) is
+covered by `changeset-flow.test.mjs`. How `changesets/action@v2` treats the `exit` state has not
+been run live: if the Version PR doesn't appear after step 1, run `pnpm changeset version` locally
+on a branch and open the PR by hand (still merge it, never publish locally).
 
 To keep releasing candidates after a stable release, run `pnpm changeset pre enter rc` again.
 
@@ -129,6 +142,9 @@ Never publish from a laptop and never add a token. Fix the cause and re-run.
   on npmjs.com (owner `mwadon`, repo `tally-charts`, workflow `release.yml`, environment
   `npm-publish`), that the job has `id-token: write` and that npm is ≥ 11.5.1 (the job checks it).
   Re-run the job after fixing it.
+- **Check provenance failed**: the version is on npm without an attestation. Check that the job
+  has `id-token: write` and that the trusted publisher matches (section 9). A re-run skips the
+  publish and repeats the check; if it can't be fixed, deprecate that version and ship a new patch.
 - **Version already published**: `changeset publish` skips versions that exist on npm ("No
   unpublished projects to publish"), so a re-run after a success only does the tag and release
   steps. If the published version is wrong, don't unpublish; ship a new patch.
@@ -136,6 +152,11 @@ Never publish from a laptop and never add a token. Fix the cause and re-run.
   job: publishing is skipped when the version exists, the missing tag and release are created.
 
 ## 8. Verify provenance
+
+Publishing is done by `pnpm publish` (pnpm 12, called by `changeset publish`), which does the OIDC
+exchange itself; the npm ≥ 11.5.1 check in the job guards the toolchain, not pnpm. So the `publish` job
+has a **Check provenance** step right after publishing that fails when `npm view tally-charts@<version>
+dist.attestations.url` is empty. Check by hand:
 
 ```sh
 npm view tally-charts@<version> --json | grep -A3 attestations
