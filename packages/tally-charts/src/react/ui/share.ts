@@ -36,7 +36,7 @@ export interface SharePart {
 /** Never 'loss': pink means loss and is only chosen explicitly. */
 export const SHARE_TONES: readonly Tone[] = ['accent', 'accent-soft', 'warn', 'neutral', 'gain']
 
-const warn = createWarner()
+const warn = /* @__PURE__ */ createWarner()
 
 /** Whole percents that add up to round(sum of shares), by the largest remainder method. */
 function largestRemainder(shares: readonly number[]): number[] {

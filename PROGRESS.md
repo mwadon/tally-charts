@@ -511,3 +511,44 @@ Dodałem story `primitives-small-pieces--nested-dark` (jasna strona, ciemna kart
 - PROGRESS.md ma sekcję „Backlog 1.0.x” z checklistą wszystkich pozostałych pozycji kubełka G z `docs/superpowers/specs/2026-10-25-tally-charts-1.0-candidates.md`. Pozycji e2e computed-style tam nie ma, bo zrobił ją T13.
 - `contrastOf` jest wyeksportowana z `e2e/stories.ts` i używana w `stories.spec.ts` bez zmiany zachowania.
 - `pnpm lint`, `pnpm typecheck` i `pnpm test:e2e` (po `pnpm build`, przy wolnym porcie 6007) przechodzą. Po e2e `git status` nie pokazuje nowych baseline'ów PNG.
+
+## T14 Packaging: check:treeshake, sideEffects/PURE i budżet LineChart (F8)
+**Decyzje:**
+- D1. `packages/tally-charts/scripts/treeshake.mjs` (+ `treeshake.d.mts`): `bundledModules(code, map)` dekoduje VLQ `mappings` mapy bundla i bierze tylko źródła z co najmniej jednym segmentem (`map.sources` listuje cały dist, także dla `{ Stat }`). Rzuca „no src modules mapped”, gdy żadne źródło nie jest pod `src/`. `definingModules` znajduje moduł definiujący eksport przez `export { X } from` w `src/index.ts`. `expectedModules` to klucze `metafile.inputs` esbuilda dla tych modułów plus `pkg:<nazwa>`. `findLeaks` bundluje fixture `export { … } from 'tally-charts'` (self-reference działa w esbuild 0.28, nie trzeba linku w workspace) z `minify`, `NODE_ENV=production`, `external` react i sourcemapą, i zwraca `leaks` (poza grafem), `forbidden` (reguły) i `problems` (z metafile'a: plik poza dist, pakiet spoza `dependencies`, `.css`).
+- D2. `scripts/check-treeshake.mjs` czyta wpisy z `.size-limit.js`, dla każdego liczy fixture, drukuje `wpis: N modułów, OK/FAIL`, exit 1 przy wycieku. Dodałem 15. fixture „Stat (extra)” (sam `{ Stat }`), bo wpis „Small UI pieces” zasłania, co wciąga Stat. Wpisy size-limit to 14, wszystkie OK.
+- D3. Reguła forbid dla LineChart to nie `react/ui/**` z planu: LineChart legalnie używa `TooltipPill.tsx` i `util.ts`, więc reguła dawała fałszywy FAIL. Zabroniłem RunwayChart.tsx, core/runway.ts, small pieces (Stat, Delta, Meter, RangeMeter, InlineBar, DotCount, ShareBar, ZoneMeter) i ui/share.ts. Pozostałe reguły jak w planie (core ∌ react/**, Stat i „Small UI pieces” ∌ Chart.tsx, marks, charts, context.ts). Każdy wykres z react/charts dostaje automatycznie zakaz pozostałych modułów react/charts/*.
+- D4. Stałe arytmetyczne: wybrałem literały z komentarzem (`DEFAULT_CELL = 216e5 // 6 h`, `SIX_DAYS = 5184e5 // 6 d`, `UNIT = { m: 6e4, h: 36e5, d: 864e5 }`), bo to najprostsze i bez kosztu w runtime. W `core/time.ts` (`YEAR`, tabela interwałów) nic nie zmieniałem: check tego nie wskazał, bo `timeScale` ich używa w każdym bundlu z osią czasu. `memo()` RunwayStrip ma `/* @__PURE__ */` i nie trafia do bundli innych wpisów (check OK). Pozostałych top-levelowych wywołań (`new Set`, JSX `NO_VALUE`) nie ruszałem, bo check ich nie wskazał.
+- D5. Plan zakładał `/* #__NO_SIDE_EFFECTS__ */` na `createWarner` jako alternatywę. Nie użyłem: adnotacje `@__PURE__` na wywołaniach wystarczyły.
+- D6. Konfiguracja size-limit przeniesiona z `.size-limit.json` do `packages/tally-charts/.size-limit.js` (ESM, te same 14 wpisów i nazwy). Powód: JSON nie przyjmuje komentarzy ani nieznanych kluczy, a ma pierwszeństwo w searchPlaces. „`.size-limit.json`” w SPEC oznacza odtąd `.size-limit.js`. Zaktualizowane: `docs/stability.md`, CLAUDE.md.
+- D7. Limit LineChart: 13.2 KB → 14 KB (D-11), z komentarzem w `.size-limit.js`. Pomiar jest uczciwy w sensie D-11: check:treeshake przechodzi dla LineChart (39 modułów, tylko jego graf). Zapas: 14000 − 13193 = 807 B dla poprawek F6.
+- D8. CI: krok `pnpm --filter tally-charts check:treeshake` w jobie `check` po `check:dev-strip`. `prepublishOnly` bez zmian (poza zakresem). Changeset `patch`: `.changeset/treeshake-pure.md`.
+
+**Wynik checku przed naprawami** (stary dist, exit 1, 14 z 15 fixture FAIL; core OK):
+- `{ LineChart }`: wyciek `core/runway.ts`, `react/ui/ZoneMeter.tsx`, `react/ui/share.ts` (42 moduły).
+- `{ Stat }`: wyciek `core/runway.ts`, `core/warn.ts`, `react/context.ts`, `ZoneMeter.tsx`, `share.ts`; `Chart.tsx` nie wchodzi.
+- „Small UI pieces”: `core/runway.ts`, `react/context.ts`. Heatmap: runway.ts, context.ts, ZoneMeter.tsx, share.ts. RunwayChart: context.ts, ZoneMeter.tsx, share.ts. Pozostałe wykresy: runway.ts, ZoneMeter.tsx, share.ts.
+- Po samych `/* @__PURE__ */` na `createWarner()` i `createContext()` zostawał jeszcze `core/runway.ts` (stałe `MINUTE`, `UNIT`, `DEFAULT_CELL`, `SIX_DAYS` z mnożeniem po identyfikatorze). Po zamianie na literały: 15/15 OK.
+
+**Rozmiary size-limit (gzip, B)**, przed → po napraw (ten sam pomiar `pnpm exec size-limit --json`):
+| wpis | przed | po |
+|---|---|---|
+| tally-charts/core | 1611 | 1611 |
+| Chart + Bars + Axis + Target + Tooltip | 11482 | 11482 |
+| BarChart | 12399 | 12399 |
+| ComparisonBars | 11743 | 11743 |
+| RankedBars | 11354 | 11354 |
+| WaterfallChart | 13193 | 13193 |
+| BridgeChart | 13875 | 13875 |
+| DotHistogram | 12547 | 12547 |
+| StripPlot | 12344 | 12344 |
+| WaffleColumns | 10665 | 10665 |
+| **LineChart** | **13193** | **13193** (limit 13200 → 14000) |
+| Heatmap | 4046 | 4041 |
+| Small UI pieces | 4035 | 4031 |
+| RunwayChart | 8636 | 8630 |
+
+**Ważne odstępstwo od założeń planu:** size-limit 14 (`@size-limit/preset-small-lib`) mierzy rolldownem, nie esbuildem. Rolldown już wcześniej odrzucał martwy kod z Runway/ZoneMeter/share, więc rozmiar LineChart się nie zmienił (13193 B przed i po). Wycieki widział dopiero esbuild (a także Rollup/webpack, które nie mają takiej analizy). Poprawki PURE i literały zmniejszają więc bundle użytkowników na esbuildzie, ale nie liczby w `pnpm size`. Decyzja 14 KB opiera się na tym, że check na esbuildzie (surowszym) przechodzi dla LineChart, a nie na spadku rozmiaru. Zestawu modułów w bundlu rolldowna nie sprawdzałem osobno.
+
+**Testy:** `src/treeshake-check.test.ts` (12 testów, środowisko node, bez dist biblioteki): mini-biblioteka `test/treeshake/` bundlowana esbuildem do katalogu tmp z sourcemapą: czysty przebieg, wyciek `heavy.ts` przy nieoznaczonym wywołaniu i brak wycieku po `/* @__PURE__ */` (`heavy-pure.ts`), FAIL z nazwą modułu przy regule forbid, glob `**`, błąd „no src modules mapped” bez sourcemapy, plik spoza dist, nieznany eksport oraz `bundledModules` na ręcznej mapie (VLQ z ujemną deltą, segment bez źródła, źródło niezmapowane, pakiet z node_modules).
+**Pułapki:** `git stash` jest zablokowany dla agenta. `pnpm -s` nie istnieje w tym pnpm. Na macOS `os.tmpdir()` leży za symlinkiem, więc w teście trzeba `fs.realpathSync`, inaczej relatywne ścieżki sourcemap nie wychodzą.
+**Bramki:** format, lint (tylko 4 wcześniejsze ostrzeżenia CSS), typecheck, test (1119), build, `check:treeshake` (15/15 OK), `pnpm size`, `api:check` (bez zmian w `api/`), `check:dev-strip`.

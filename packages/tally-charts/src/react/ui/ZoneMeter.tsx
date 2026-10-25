@@ -35,7 +35,7 @@ export interface ZoneMeterProps {
   className?: string
 }
 
-const warn = createWarner()
+const warn = /* @__PURE__ */ createWarner()
 
 /** Percent for a style value: 4 decimals, no float noise. */
 const pct = (n: number) => `${Math.round(n * 1e4) / 1e4}%`

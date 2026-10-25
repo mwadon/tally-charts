@@ -52,7 +52,7 @@ export interface InternalChartContext extends ChartContextValue {
   unregisterPoints: (key: string) => void
 }
 
-export const ChartContext = createContext<InternalChartContext | null>(null)
+export const ChartContext = /* @__PURE__ */ createContext<InternalChartContext | null>(null)
 
 /** Internal: the full chart context; `component` names the caller in the error. */
 export function useChartContext(component: string): InternalChartContext {

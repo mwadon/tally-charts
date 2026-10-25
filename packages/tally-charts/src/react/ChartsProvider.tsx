@@ -21,7 +21,7 @@ interface LocaleContextValue {
   currency: string
 }
 
-const LocaleContext = createContext<LocaleContextValue>({
+const LocaleContext = /* @__PURE__ */ createContext<LocaleContextValue>({
   locale: DEFAULT_LOCALE,
   currency: DEFAULT_CURRENCY,
 })
