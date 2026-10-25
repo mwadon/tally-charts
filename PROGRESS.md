@@ -1398,3 +1398,32 @@ Naprawiłem zduplikowane kotwice na stronie small-pieces. W sekcji Props nagłó
 - `getByRole('rowheader', { name: '--ch-accent' })` łapie też `--ch-accent-soft`; w e2e jest `exact: true`.
 - `LineChart` wymaga `series`, nie ma `y`.
 **Bramki:** `docs test` (519), `docs typecheck`, `pnpm lint` (bez błędów, te same ostrzeżenia CSS co wcześniej), `pnpm build`, `check:content` (0 błędów, API coverage 35/52), `docs build`, `docs test:e2e` (143, darwin, bez update). `git status` bez zmian w `apps/docs/e2e/__screenshots__` i `packages/`.
+
+## ✔ T28.1 Strony theming, palettes i dark-mode (TokenTable, PaletteSwatches, przepis next-themes) (2026-10-25)
+Dodałem strony theming, palettes i dark-mode: 3 fiksturki i 4 przykłady (`theming/token-overrides`, `theming/nested-dark`, `palettes/vivid`, `dark-mode/side-by-side`). Testy „strony nie ma” używają teraz sluga `accessibility`. Przy okazji przełączyłem na accessibility `app/docs/layout.test.tsx`, który też zakładał, że Theming nie jest linkiem. Wszystkie bramki przechodzą: `docs test` (519), `docs typecheck`, `pnpm lint`, `pnpm build`, `check:content` (0 błędów, API coverage 35/52), `docs build` i `docs test:e2e` (143 testy, darwin, bez update). Baseline'y `home-*.png` i `packages/` bez zmian.
+
+- **Strony:** `theming.json` ma tabele tokenów theme i shared, prose o `data-ch-part` z 9 atrybutami `data-ch-*`, blok css z `stability.md` oraz opis `data-ch-theme`. `palettes.json` ma swatche default i vivid oraz ograniczenia z README (tylko light, forced colors, zagnieżdżenie, kontrast). `dark-mode.json` ma przepis next-themes (`attribute={['class', 'data-ch-theme']}`), przepis z własnym providerem i `data-ch-theme` z cookie na `<html>` oraz callout, że next-themes trzeba zainstalować samemu. Zależności nie dodałem.
+- **Przykłady:** wszystkie są `rscSafe: true`, mają po dwa wykresy z różnymi `title` i używają tylko `var(--ch-*)`. Panele układa grid `auto-fit`, więc przy 320 px nie ma przewijania poziomego.
+- **Atrybuty `data-ch-*`:** wartości opisałem na podstawie `theme.css` i `src`, nie tylko `stability.md` (np. `data-ch-direction` to up/down/left/right).
+- **Testy:** zaktualizowałem `fixtures.test.ts` i dodałem trzy specyfikacje e2e.
+- **PROGRESS.md:** dopisałem sekcję T28.1 z decyzjami.
+**Decyzje i pułapki:**
+- `app/docs/layout.test.tsx` też zakłada, że slug bez fiksturki nie jest linkiem, więc trzeba go zmieniać razem z pozostałymi testami „strony nie ma”.
+- `getByRole('rowheader', { name: '--ch-accent' })` trafia też w `--ch-accent-soft`; w e2e trzeba `exact: true`.
+- `LineChart` wymaga `series`, nie ma propa `y`.
+- Na macOS `sed -i` wymaga argumentu rozszerzenia (`sed -i ''`); błędne wywołanie w łańcuchu `&&` cicho pomija kolejne kroki.
+**Otwarte kwestie:**
+- Kolejny task T28.x, który doda fiksturkę accessibility, musi przełączyć testy „strony nie ma” na inny slug. Dotyczy to e2e/routes.spec.ts, app/docs/[slug]/page.test.tsx, blocks/link-row.test.tsx, blocks/ssr.test.tsx i app/docs/layout.test.tsx.
+- Baseline'y wizualne linux nie były dotykane (zmiana nie dotyczy strony głównej).
+- apps/docs/e2e/theming.spec.ts: Test 'the override example changes the accent, and the nested panel is dark' nie sprawdza, że akcent się zmienił: weryfikuje tylko widoczność drugiego wykresu. Gdyby nadpisanie tokenów przestało działać, test i tak by przeszedł.
+**Kryteria:**
+- `grep -n "theming" apps/docs/e2e/routes.spec.ts 'apps/docs/app/docs/[slug]/page.test.tsx' apps/docs/blocks/link-row.test.tsx apps/docs/blocks/ssr.test.tsx` nic nie zwraca. W tych miejscach przypadek „brak strony” używa `accessibility` / `/docs/accessibility` (404 w e2e, NEXT_NOT_FOUND w test.each, `span.nav-soon` z tekstem 'Accessibility' w link-row i `class="nav-soon"` w ssr.test).
+- Istnieją `apps/docs/examples/theming/*.tsx` (co najmniej token-overrides z nadpisaniem `--ch-*` przez style kontenera i nested-dark z `data-ch-theme="dark"`), `examples/palettes/*.tsx` (co najmniej 1 z `data-ch-palette="vivid"`) i `examples/dark-mode/*.tsx` (co najmniej 1). `meta.id` = '<slug>/<nazwa>'. Każdy renderuje `<svg>`, bez `console.error`, w `examples/registry.test.ts`, `render.test.tsx` i `ssr.test.tsx`. Inline style kolorów to wyłącznie `var(--ch-*)`, a żaden przykład nie importuje next-themes.
+- `content/theming.json` przechodzi `content/fixtures.test.ts`. Ma `token-table` z group 'theme' i 'shared', prose z `data-ch-part`, listę 9 atrybutów z docs/stability.md (tone, fill, active, dimmed, direction, theme, palette, seq-tone, level) i opis `data-ch-theme` oraz co najmniej 1 `chart-example` z `theming/`.
+- `content/palettes.json` przechodzi fixtures.test.ts. Ma `palette-swatches` dla 'default' i 'vivid', `chart-example` z `palettes/` i prose o ograniczeniu „tylko light” (oraz forced colors i zagnieżdżeniu) z README §Palettes.
+- `content/dark-mode.json` przechodzi fixtures.test.ts. Ma prose o `prefers-color-scheme` i `data-ch-theme`, `code-block` (lang tsx) z `ThemeProvider attribute={['class', 'data-ch-theme']}` i serwerowym `data-ch-theme` na `<html>` oraz co najmniej 1 `chart-example` z `dark-mode/`. `apps/docs/package.json` nie zawiera next-themes.
+- `content/fixtures.test.ts` oczekuje dostępnych stron [getting-started, theming, palettes, dark-mode, line-chart, composition, small-pieces, hooks-and-providers].
+- Nowe `apps/docs/e2e/theming.spec.ts`, `palettes.spec.ts` i `dark-mode.spec.ts`: themeSuite (h1 i wykres po title), status 200, link w sidebarze z `aria-current="page"` i bez `.nav-soon`. theming.spec znajduje `rowheader` '--ch-accent' i regiony 'Tokens: theme' i 'Tokens: shared'. palettes.spec znajduje listy 'default palette' i 'vivid palette'.
+- Po `pnpm build` `pnpm --filter docs check:content` kończy się kodem 0 i wypisuje `API coverage: 35/52`.
+- `pnpm --filter docs test`, `pnpm --filter docs typecheck`, `pnpm lint`, `pnpm --filter docs build` i `pnpm --filter docs test:e2e` (darwin, bez --update-snapshots) kończą się kodem 0. `git status` nie pokazuje zmian w `apps/docs/e2e/__screenshots__` ani w `packages/`.
+- PROGRESS.md ma sekcję T28.1 z decyzjami: accessibility jako slug „strony nie ma”, dobór i układ przykładów (vivid z data-ch-theme="light"), next-themes tylko w code-block.
