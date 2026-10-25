@@ -3,6 +3,19 @@ import { expect, test, vi } from 'vitest'
 import DocsLayout from './layout'
 
 vi.mock('next/navigation', () => ({ usePathname: () => '/docs/line-chart' }))
+// The navigation is controlled here, so the test does not depend on which pages exist in content/.
+vi.mock('../../lib/content', async (importOriginal) => {
+  const { controlledNavigation } = await import('../../lib/content/__fixtures__/navigation')
+  return {
+    ...(await importOriginal<typeof import('../../lib/content')>()),
+    getContentSource: () => ({
+      kind: 'fixtures',
+      getNavigation: async () => controlledNavigation,
+      getPage: async () => null,
+      listPages: async () => [],
+    }),
+  }
+})
 
 async function renderLayout() {
   return render(await DocsLayout({ children: <h1>LineChart</h1> }))
@@ -27,9 +40,11 @@ test('the sidebar lists the five groups of the content navigation and marks the 
 
   const current = within(nav).getByRole('link', { name: 'LineChart' })
   expect(current.getAttribute('aria-current')).toBe('page')
-  // Pages without a fixture are listed but are not links.
-  expect(within(nav).queryByRole('link', { name: 'Accessibility' })).toBeNull()
-  expect(within(nav).getByText('Accessibility').getAttribute('aria-disabled')).toBe('true')
+  // Pages that do not exist yet are listed but are not links.
+  expect(within(nav).queryByRole('link', { name: 'Coming soon' })).toBeNull()
+  const soon = within(nav).getByText('Coming soon')
+  expect(soon.getAttribute('aria-disabled')).toBe('true')
+  expect(soon.classList.contains('nav-soon')).toBe(true)
 })
 
 test('every sidebar group is a named region whose label id has no spaces', async () => {

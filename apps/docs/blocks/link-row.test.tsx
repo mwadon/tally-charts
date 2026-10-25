@@ -4,13 +4,27 @@ import { LinkRowView } from './home-views'
 import { LinkRow, linkRowBlock } from './link-row'
 import { parseBlockProps } from './registry'
 
+// The navigation is controlled here: `coming-soon` has no page, whatever content/ holds.
+vi.mock('../lib/content', async (importOriginal) => {
+  const { controlledNavigation } = await import('../lib/content/__fixtures__/navigation')
+  return {
+    ...(await importOriginal<typeof import('../lib/content')>()),
+    getContentSource: () => ({
+      kind: 'fixtures',
+      getNavigation: async () => controlledNavigation,
+      getPage: async () => null,
+      listPages: async () => [],
+    }),
+  }
+})
+
 beforeEach(() => {
   vi.stubEnv('CMS_BASE_URL', '')
 })
 
 const items = [
   { label: 'Getting started', href: '/docs/getting-started' },
-  { label: 'Accessibility', href: '/docs/accessibility' },
+  { label: 'Coming soon', href: '/docs/coming-soon' },
   { label: 'LineChart', href: '/docs/line-chart#props' },
   { label: 'GitHub', href: 'https://github.com/example/repo' },
 ]
@@ -20,8 +34,8 @@ test('a docs page that does not exist yet is disabled, the others are links', as
 
   expect(screen.getByRole('heading', { level: 2, name: 'Keep going' })).toBeTruthy()
   const soon = container.querySelector('span.nav-soon[aria-disabled="true"]')
-  expect(soon?.textContent).toBe('Accessibility')
-  expect(screen.queryByRole('link', { name: 'Accessibility' })).toBeNull()
+  expect(soon?.textContent).toBe('Coming soon')
+  expect(screen.queryByRole('link', { name: 'Coming soon' })).toBeNull()
   expect(screen.getByRole('link', { name: 'Getting started' }).getAttribute('href')).toBe(
     '/docs/getting-started',
   )

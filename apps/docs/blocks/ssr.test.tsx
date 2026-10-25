@@ -13,6 +13,20 @@ import { PropsTable } from './props-table'
 import { Prose } from './prose'
 import { TokenTable } from './token-table'
 
+// The navigation is controlled here: `coming-soon` has no page, whatever content/ holds.
+vi.mock('../lib/content', async (importOriginal) => {
+  const { controlledNavigation } = await import('../lib/content/__fixtures__/navigation')
+  return {
+    ...(await importOriginal<typeof import('../lib/content')>()),
+    getContentSource: () => ({
+      kind: 'fixtures',
+      getNavigation: async () => controlledNavigation,
+      getPage: async () => null,
+      listPages: async () => [],
+    }),
+  }
+})
+
 let errors: ReturnType<typeof vi.spyOn>
 
 beforeEach(() => {
@@ -118,7 +132,7 @@ test('LinkRow is an async server component whose output renders to a string', as
     await LinkRow({
       heading: 'Keep going',
       items: [
-        { label: 'Soon', href: '/docs/accessibility' },
+        { label: 'Soon', href: '/docs/coming-soon' },
         { label: 'Now', href: '/docs/line-chart' },
       ],
     }),
