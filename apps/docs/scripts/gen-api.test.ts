@@ -96,6 +96,18 @@ test('kinds and packages', () => {
   expect(symbols.createDateFormatter?.packages).toEqual(['tally-charts/core'])
 })
 
+test('a destructured parameter takes its name and description from the @param tag', () => {
+  const params = symbols.createDateFormatter?.params ?? []
+  expect(params.map((p) => p.name)).toEqual(['spec', 'options'])
+  expect(params[1]?.description).toMatch(/^`locale`/)
+  expect(params[1]).toMatchObject({ type: 'DateFormatOptions', required: false, default: '{}' })
+})
+
+test('descriptions are one line', () => {
+  const all = Object.values(symbols).flatMap((s) => [s, ...(s.props ?? []), ...(s.params ?? [])])
+  expect(all.filter((f) => /\s{2}|\n/.test(f.description))).toEqual([])
+})
+
 test('a link in a description is plain text', () => {
   const links = Object.values(symbols)
     .flatMap((s) => [...(s.props ?? []), ...(s.params ?? [])])

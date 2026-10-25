@@ -130,8 +130,8 @@ function readProps(checker, parameter) {
       const documented = declarations.filter((d) => ts.getJSDocCommentsAndTags(d).length > 0)
       // A union (`ChartName`) lists a prop once per branch: take the branch that documents it.
       const source = documented.find((d) => d.type) ?? declarations.find((d) => d.type)
-      const description = flattenLinks(
-        ts.displayPartsToString(symbol.getDocumentationComment(checker)),
+      const description = oneLine(
+        flattenLinks(ts.displayPartsToString(symbol.getDocumentationComment(checker))),
       )
       return {
         name: symbol.name,
@@ -144,17 +144,18 @@ function readProps(checker, parameter) {
     .sort((a, b) => compare(a.name, b.name))
 }
 
-/** `@param` descriptions of a function declaration by parameter name. */
-function paramDescriptions(declaration) {
-  const found = new Map()
-  for (const tag of ts.getJSDocTags(declaration)) {
-    if (ts.isJSDocParameterTag(tag)) {
+/** Top-level `@param` tags of a function declaration as `{ name, description }`, in order. */
+function paramTags(declaration) {
+  return ts
+    .getJSDocTags(declaration)
+    .filter((tag) => ts.isJSDocParameterTag(tag) && ts.isIdentifier(tag.name))
+    .map((tag) => ({
+      name: tag.name.text,
       // `@param spec - text`: TypeScript keeps the hyphen in the comment.
-      const text = oneLine(ts.getTextOfJSDocComment(tag.comment) ?? '').replace(/^- /, '')
-      found.set(tag.name.getText(), flattenLinks(text))
-    }
-  }
-  return found
+      description: flattenLinks(
+        oneLine(ts.getTextOfJSDocComment(tag.comment) ?? '').replace(/^- /, ''),
+      ),
+    }))
 }
 
 /** Text of a `@defaultValue` tag written on the parameter itself. */
@@ -163,20 +164,31 @@ function defaultValueTag(parameter) {
   return tag ? (ts.getTextOfJSDocComment(tag.comment) ?? '') : ''
 }
 
-function readParams(checker, declaration, modelParams) {
-  const descriptions = paramDescriptions(declaration)
-  return modelParams.map((param, index) => {
+/**
+ * The parameters of a function. A destructured parameter has no name of its own (the d.ts emitter
+ * calls it `input`), so it takes the name and description of the `@param` tag at its position.
+ */
+function readParams(checker, name, declaration, modelParams) {
+  const tags = paramTags(declaration)
+  const used = new Set()
+  const params = modelParams.map((param, index) => {
     const source = declaration.parameters[index]
+    const pattern = !ts.isIdentifier(source.name)
+    const tag = pattern ? tags[index] : tags.find((t) => t.name === param.parameterName)
+    if (tag) used.add(tag)
     return {
-      name: param.parameterName,
+      name: pattern ? (tag?.name ?? param.parameterName) : param.parameterName,
       type: typeText(checker, source.type, checker.getTypeAtLocation(source)),
       required: !param.isOptional,
       default: source.initializer
         ? oneLine(source.initializer.getText())
         : parseDefault('', [{ name: 'defaultValue', text: defaultValueTag(source) }]),
-      description: descriptions.get(param.parameterName) ?? '',
+      description: tag?.description ?? '',
     }
   })
+  const orphan = tags.find((t) => !used.has(t))
+  if (orphan) throw new Error(`${name}: @param ${orphan.name} matches no parameter`)
+  return params
 }
 
 /** Parameters of the model that carry a type: API Extractor also lists a destructured pattern. */
@@ -200,7 +212,9 @@ function readSymbol(checker, name, symbol, modelMember, packages) {
     kind,
     package: packages[0],
     packages,
-    description: flattenLinks(ts.displayPartsToString(symbol.getDocumentationComment(checker))),
+    description: oneLine(
+      flattenLinks(ts.displayPartsToString(symbol.getDocumentationComment(checker))),
+    ),
   }
   if (kind === 'component') {
     const [first] = declaration.parameters
@@ -209,7 +223,7 @@ function readSymbol(checker, name, symbol, modelMember, packages) {
   const signature = checker.getSignatureFromDeclaration(declaration)
   return {
     ...entry,
-    params: readParams(checker, declaration, modelParams),
+    params: readParams(checker, name, declaration, modelParams),
     returns: typeText(checker, declaration.type, checker.getReturnTypeOfSignature(signature)),
   }
 }
