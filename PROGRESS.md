@@ -1472,3 +1472,19 @@ Dodałem strony docs `time-scales` i `formatting`: 2 fiksturki JSON, 3 przykład
 - Po pnpm build `pnpm --filter docs check:content` kończy się kodem 0 i wypisuje `API coverage: 40/52` (stan przed taskiem: 35/52, zmierzone; backlog błędnie podawał 40). Lista brakujących nie zawiera toTime, toNumber, createFormatter, createFormatters ani createDateFormatter.
 - pnpm --filter docs test, pnpm --filter docs typecheck, pnpm lint, pnpm --filter docs build i pnpm --filter docs test:e2e (darwin, bez --update-snapshots) kończą się kodem 0. `git diff --stat -- packages apps/storybook` jest pusty, apps/docs/e2e/__screenshots__ bez zmian.
 - PROGRESS.md ma sekcję T28.2 z decyzjami (m.in. bazowe coverage 35→40, import z tally-charts/core, podział rscSafe przykładów).
+
+## T28.3 Strony thresholds i server-components (thresholds, heatmapLevel, RSC)
+Dodałem strony `thresholds` i `server-components`: 2 fiksturki, 3 przykłady, 2 specyfikacje e2e, `fixtures.test.ts` oczekuje obu stron (po `formatting`, przed `dark-mode`). Bramki: `docs test` (537), `docs typecheck`, `pnpm lint` (kod 0, te same ostrzeżenia CSS), `pnpm build`, `check:content` (0 błędów w 13 stronach, `API coverage: 42/52`), `docs build`, `docs test:e2e` (182, darwin, bez update). `git diff --stat -- packages apps/storybook apps/docs/e2e/__screenshots__` pusty.
+
+**Decyzje:**
+- **`thresholds/zones-and-dots`:** `'use client'` i `rscSafe: false`, bo wynik `thresholds()` ma metody i jako `toneBy` nie przejdzie granicy serwer/klient. Dwa `ZoneMeter` z wartością 2.5 pokazują granicę: Good przy `'upper'`, Needs improvement przy `'lower'`. Wymóg `<svg>` spełnia `DotHistogram` (`toneBy`), obok `Legend` z `legend(values)`.
+- **`thresholds/heatmap-legend`:** `rscSafe: true`. `Heatmap` to siatka HTML bez `<svg>`, więc dołożyłem `BarChart` z sumami dziennymi. `Legend` bierze `level` z `heatmapLevel(próbka, breaks)` (próbka z każdego z 5 binów).
+- **`server-components/server-chart`:** `rscSafe: true`, importuje `thresholds` z `tally-charts/core`, `ZoneMeter zones={{ bins, inclusive }}` i `BarChart` z presetem w obiekcie jako `format`.
+- **Tytuły:** `chart` w themeSuite to `title` wykresu z SVG (DotHistogram, BarChart), nie ZoneMeter. Tytuł wykresu w `heatmap-legend` jest unikalny na stronie.
+- **Strona „brak”:** nadal `accessibility`.
+
+**Podsumowanie T28:** 7 stron (theming, palettes, dark-mode, time-scales, formatting, thresholds, server-components), pokrycie API 35→40→42/52. Pozostałe 10 symboli to 9 wykresów i `runwayForecast` (T29–T31): BridgeChart, ComparisonBars, DotHistogram, Heatmap, RankedBars, RunwayChart, StripPlot, WaffleColumns, WaterfallChart, runwayForecast.
+
+**Otwarte kwestie:**
+- Strona thresholds używa `DotHistogram` i `Heatmap` w przykładach, ale ich PropsTable są dopiero w T29–T31.
+- Kolejny task, który doda fiksturkę accessibility, musi przełączyć testy „strony nie ma” na inny slug (lista plików w sekcji T28.1).

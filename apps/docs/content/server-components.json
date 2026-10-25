@@ -1,0 +1,131 @@
+{
+  "versionId": "fixture-server-components-v1",
+  "version": 1,
+  "locale": "en",
+  "publishedAt": "2026-10-25T00:00:00.000Z",
+  "codeInjection": {},
+  "layout": {
+    "key": "default",
+    "header": null,
+    "footer": null
+  },
+  "pageId": "fixture-server-components",
+  "title": "Server Components",
+  "slug": "server-components",
+  "seo": {
+    "metaTitle": "Server Components · tally-charts",
+    "metaDescription": "Using tally-charts in React Server Components: what renders on the server, when a file needs 'use client', and what to import from tally-charts/core."
+  },
+  "componentTree": [
+    {
+      "id": "n1",
+      "type": "prose",
+      "props": {
+        "markdown": "The charts work in the Next.js App Router and any other framework with React Server Components. The rule is small: a chart is a client component, so everything you give it has to be able to cross from the server to the browser. Plain data does, functions do not."
+      }
+    },
+    {
+      "id": "n2",
+      "type": "heading",
+      "props": {
+        "text": "Rendering a chart from a server file",
+        "level": "2",
+        "anchor": "main-entry"
+      }
+    },
+    {
+      "id": "n3",
+      "type": "prose",
+      "props": {
+        "markdown": "The main entry `tally-charts` starts with `'use client'`. Importing `<Chart>`, `BarChart` or `ZoneMeter` from it in a Server Component file is fine, because the entry already marks the boundary. The server renders the SVG into the HTML and the browser hydrates it for hover and keyboard. A file that only passes data and strings does not need `'use client'` itself."
+      }
+    },
+    {
+      "id": "n4",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "server-components/server-chart",
+        "defaultView": "preview"
+      }
+    },
+    {
+      "id": "n5",
+      "type": "heading",
+      "props": {
+        "text": "Import from tally-charts/core on the server",
+        "level": "2",
+        "anchor": "core"
+      }
+    },
+    {
+      "id": "n6",
+      "type": "prose",
+      "props": {
+        "markdown": "Server code that needs a helper rather than a component should import from `tally-charts/core`. It has no React in it and is safe on the server: the formatters (`fmt`, `createFormatter`, `createFormatters`, `createDateFormatter`), `thresholds`, `heatmapLevel`, `runwayForecast`, `toNumber`, `toTime` and the shared types. The example above calls `thresholds` there to build the bins of its `ZoneMeter`. See [Formatting](/docs/formatting) and [Thresholds](/docs/thresholds) for the helpers themselves."
+      }
+    },
+    {
+      "id": "n7",
+      "type": "heading",
+      "props": {
+        "text": "What can cross the boundary",
+        "level": "2",
+        "anchor": "props"
+      }
+    },
+    {
+      "id": "n8",
+      "type": "prose",
+      "props": {
+        "markdown": "Props must be serializable. Strings, numbers, booleans, arrays and plain objects are, so presets such as `format=\"currency-compact\"`, `format={{ preset: 'number', digits: 1 }}`, `data` and `x=\"month\"` work from a server file. Function props do not: `fill`, `tone`, a function `format`, `xAxisFormat`, `tooltip` and the result of `thresholds()`, which carries methods. Pass those from a client component."
+      }
+    },
+    {
+      "id": "n9",
+      "type": "prose",
+      "props": {
+        "markdown": "`ZoneMeter` has a way around it. Its `zones` also takes the plain part of a `thresholds()` result, so `zones={{ bins: lcp.bins, inclusive: lcp.inclusive }}` works from a Server Component, as in the example above."
+      }
+    },
+    {
+      "id": "n10",
+      "type": "callout",
+      "props": {
+        "tone": "warning",
+        "markdown": "**Passing a function from a server file fails when the page renders.** Next.js reports that functions cannot be passed to Client Components. Move the chart, with its function props, into a file that starts with `'use client'`."
+      }
+    },
+    {
+      "id": "n11",
+      "type": "heading",
+      "props": {
+        "text": "A client boundary",
+        "level": "2",
+        "anchor": "client-boundary"
+      }
+    },
+    {
+      "id": "n12",
+      "type": "prose",
+      "props": {
+        "markdown": "Put the chart that needs a function in its own file with `'use client'` and import it from the server page. The page then passes only data."
+      }
+    },
+    {
+      "id": "n13",
+      "type": "code-block",
+      "props": {
+        "code": "// app/margins/margin-chart.tsx\n'use client'\n\nimport { DotHistogram, thresholds } from 'tally-charts'\n\nconst bands = thresholds(\n  [10, 25, 38],\n  ['loss', 'warn', 'accent-soft', 'gain'],\n  ['Critical', 'At risk', 'Below target', 'On target'],\n)\n\nexport function MarginChart({ jobs }: { jobs: { id: string; margin: number }[] }) {\n  return (\n    <DotHistogram\n      title=\"Jobs by margin\"\n      data={jobs}\n      value=\"margin\"\n      toneBy={bands}\n      format={(v) => `${v}%`}\n    />\n  )\n}\n\n// app/margins/page.tsx (a Server Component, no directive)\nimport { MarginChart } from './margin-chart'\n\nexport default async function Page() {\n  const jobs = await loadJobs()\n  return <MarginChart jobs={jobs} />\n}",
+        "lang": "tsx",
+        "filename": "margin-chart.tsx"
+      }
+    },
+    {
+      "id": "n14",
+      "type": "prose",
+      "props": {
+        "markdown": "`toneBy={bands}` and the function `format` stay inside the client file, where they never have to be serialized. `page.tsx` loads the data on the server and hands the array over. For dates, give the chart ISO strings and keep the default `zone` of `'utc'`, so the server and the browser draw the same ticks; see [Time scales](/docs/time-scales)."
+      }
+    }
+  ]
+}
