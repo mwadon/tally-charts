@@ -424,3 +424,22 @@ Zrealizowałem cztery poprawki F6 w RunwayChart.tsx. (1) `pressed` czyści się 
 - D4. Własna treść tooltipa (prop `content`) trafia przez `createPortal` do overlaya z `aria-hidden="true"` (Chart.tsx, Tooltip.tsx), więc a11y.md opisuje to zgodnie z kodem. Ogłoszenia idą przez live region i tabelę danych.
 - D5. Komentarze o prywatnej `--_ch-swatch-color` w Performance.stories.tsx (nad `tone`) i w preview.css (`.perf-tick`).
 - D6. Changeset `.changeset/stability-docs.md`: `patch`, bez zmian w kodzie.
+
+## ✔ T12 Publiczne API i stabilność: README, znane ograniczenia a11y, prywatne zmienne (F7) (2026-10-25)
+Dodałem dokumentację granicy semver, bez zmian w kodzie biblioteki. Utworzyłem `docs/stability.md` ("Stability and semver", po angielsku, tylko pełne URL GitHub). Dodałem sekcję `## Stability` w README (po całym Styling, przed High-level charts) z listami Public/Not public i linkiem absolutnym. W `docs/a11y.md` §Known limits dopisałem dwa punkty: tooltip hover z `pointer-events: auto` (WCAG 1.4.13) wraz z treścią w overlayu `aria-hidden`, oraz lower-inclusive dla Heatmap `breaks`, `heatmapLevel` i RunwayChart `breaks`. Komentarze o prywatnej `--_ch-swatch-color` są w Performance.stories.tsx i preview.css. Dodałem changeset `stability-docs.md` (patch) i sekcję T12 w PROGRESS.md. Przeszły format, lint, typecheck, test, build i api:check; `git status` nie pokazuje zmian w `packages/tally-charts/api`.
+**Decyzje i pułapki:**
+- Własna treść tooltipa (prop `content`) jest renderowana przez createPortal do overlaya z aria-hidden="true" (Chart.tsx, Tooltip.tsx); ogłoszenia idą przez live region (`aria-live="polite"`) i DataTable.
+- Atrybuty data-ch-part używane w kodzie to m.in. bar, tooltip, callout, legend, heatmap-cell, runway-row; przykłady w docs/stability.md używają istniejących nazw.
+- Przy zmianie README sprawdzaj, że tabela tokenów w §Styling nie jest ruszana: parsuje ją src/theme/surface.test.ts.
+**Otwarte kwestie:**
+- Nie uruchamiałem pnpm size ani check:dev-strip (zmiany nie dotykają kodu ani bundla).
+- Akapit w README §Styling nie odsyła do sekcji Stability (opcjonalne według planu, pominięte, żeby nie ruszać README poza zakresem).
+- Ostrzeżenia lint o CSS istnieją od wcześniej (potwierdzone w T11).
+**Kryteria:**
+- `packages/tally-charts/README.md` ma sekcję `## Stability` (≤ ~15 linii) z listą Public: eksporty `tally-charts` i `tally-charts/core`, tokeny `--ch-*`, `data-ch-part`, atrybuty stanów i wariantów `data-ch-*`, `theme.css`; oraz listą Not public: klasy `ch-*`, zmienne `--_ch-*` (wprost `--_ch-swatch-color`), struktura DOM poza partami, brzmienie wbudowanych angielskich stringów (mogą się zmienić w minor do czasu hooka i18n w 1.x), budżety rozmiaru; z linkiem absolutnym do `docs/stability.md` na GitHub
+- Istnieje `docs/stability.md` z H1 „Stability and semver”: strict semver od 1.0, te same listy Public/Not public z krótkim uzasadnieniem i przykładami, rada stylowania przez `[data-ch-part]`, odesłanie do a11y Known limits; bez linków względnych do kodu (gotowe do przeniesienia na stronę `stability`)
+- `docs/a11y.md` §Known limits zawiera punkt o hover tooltipie z `pointer-events: auto`, który zasłania sąsiednie obszary trafień, i o własnej treści w overlayu aria-hidden, z adnotacją, że jest to zaakceptowane według WCAG 1.4.13
+- `docs/a11y.md` §Known limits zawiera punkt, że Heatmap `breaks` (`heatmapLevel`) i poziomy RunwayChart są tylko lower-inclusive (wartość równa krawędzi trafia do wyższego poziomu), a `inclusive` jest planowane w 1.x
+- `grep -rn "_ch-swatch-color" apps/storybook/stories apps/storybook/.storybook` zwraca tylko miejsca, przy których (linia wyżej lub w tym samym bloku) jest komentarz, że to prywatna zmienna bez publicznego tokenu w 1.0 (Performance.stories.tsx i preview.css)
+- Istnieje changeset `.changeset/*.md` z `'tally-charts': patch` opisujący dokumentację stabilności; PROGRESS.md ma sekcję T12 z decyzjami
+- Przechodzą `pnpm lint`, `pnpm typecheck`, `pnpm test` (w tym `surface.test.ts` czytający tabelę tokenów z README) oraz po `pnpm build` `pnpm --filter tally-charts api:check` bez zmian w `packages/tally-charts/api`
