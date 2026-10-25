@@ -2,6 +2,13 @@
 
 import { type CSSProperties, type ReactNode, useEffect, useRef, useState } from 'react'
 
+type WideStyle = CSSProperties & {
+  '--lazy-min-height-narrow': string
+  '--lazy-min-height-wide': string
+}
+
+const toLength = (value: number | string) => (typeof value === 'number' ? `${value}px` : value)
+
 interface LazyMountProps {
   /** Height of the placeholder in px, or any CSS length (`'16rem'`), so the layout does not shift when the children mount. */
   minHeight: number | string
@@ -55,17 +62,14 @@ export function LazyMount({
   }, [rootMargin])
 
   if (mounted) return children
-  const style: CSSProperties & { '--lazy-min-height-wide'?: string } = { minHeight }
-  if (wideMinHeight !== undefined) {
-    style['--lazy-min-height-wide'] =
-      typeof wideMinHeight === 'number' ? `${wideMinHeight}px` : wideMinHeight
+  if (wideMinHeight === undefined) {
+    return <div ref={ref} data-lazy-placeholder="" style={{ minHeight }} />
   }
-  return (
-    <div
-      ref={ref}
-      data-lazy-placeholder=""
-      data-lazy-wide={wideMinHeight === undefined ? undefined : ''}
-      style={style}
-    />
-  )
+  // The stylesheet picks the value for the width (`--lazy-min-height`), no `!important` needed.
+  const style: WideStyle = {
+    minHeight: 'var(--lazy-min-height)',
+    '--lazy-min-height-narrow': toLength(minHeight),
+    '--lazy-min-height-wide': toLength(wideMinHeight),
+  }
+  return <div ref={ref} data-lazy-placeholder="" data-lazy-wide="" style={style} />
 }

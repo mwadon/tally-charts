@@ -45,7 +45,7 @@ test('before it intersects, renders a placeholder of the given height and no chi
   expect(state.options).toEqual({ rootMargin: '200px 0px 200px 0px' })
 })
 
-test('a wide height goes into a custom property for the stylesheet, without it there is none', () => {
+test('narrow and wide heights go into custom properties for the stylesheet, without it there is none', () => {
   stubObserver()
   const { container, rerender } = render(
     <LazyMount minHeight={500} wideMinHeight={400}>
@@ -53,7 +53,8 @@ test('a wide height goes into a custom property for the stylesheet, without it t
     </LazyMount>,
   )
   const placeholder = container.querySelector<HTMLElement>('[data-lazy-placeholder]')
-  expect(placeholder?.style.minHeight).toBe('500px')
+  expect(placeholder?.style.minHeight).toBe('var(--lazy-min-height)')
+  expect(placeholder?.style.getPropertyValue('--lazy-min-height-narrow')).toBe('500px')
   expect(placeholder?.style.getPropertyValue('--lazy-min-height-wide')).toBe('400px')
   expect(placeholder?.hasAttribute('data-lazy-wide')).toBe(true)
 
@@ -63,6 +64,7 @@ test('a wide height goes into a custom property for the stylesheet, without it t
     </LazyMount>,
   )
   const plain = container.querySelector<HTMLElement>('[data-lazy-placeholder]')
+  expect(plain?.style.minHeight).toBe('500px')
   expect(plain?.style.getPropertyValue('--lazy-min-height-wide')).toBe('')
   expect(plain?.hasAttribute('data-lazy-wide')).toBe(false)
 })

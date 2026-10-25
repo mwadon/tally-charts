@@ -36,6 +36,22 @@ const placeholderHeight = (height: number | undefined) =>
   height === undefined ? '16rem' : height - PANEL_PADDING
 
 /**
+ * Height of the chart area in px at a narrow viewport (measured at 375 px) for the examples whose
+ * chart is taller there than at 1280 px (legend and axis labels wrap), keyed by example id. The
+ * placeholder uses it below 764 px; `height` / 16rem stays for wider screens. A card that is not
+ * here is as tall at 375 px as at 1280 px. `e2e/lazy-mount.spec.ts` measures every card at both
+ * widths: when it fails after a change to an example, measure the card and update the entry.
+ */
+const NARROW_CHART_HEIGHTS: Readonly<Record<string, number>> = {
+  'formatting/formatters': 469,
+  'thresholds/heatmap-legend': 479,
+  'comparison-bars/revenue-by-region': 442,
+  'dot-histogram/invoice-days-overdue': 269,
+  'heatmap/trial-conversion': 399,
+  'runway-chart/gpu-budgets': 574,
+}
+
+/**
  * Server component: the example is loaded by id from the registry, so an editor cannot break
  * it. Content saved before an example was renamed can still carry an id that the schema would
  * reject, hence the check here.
@@ -51,6 +67,8 @@ export async function ChartExampleBlock({
   const entry = examples[exampleId]
   const { default: Example } = await entry.load()
   const filename = entry.file.slice(entry.file.lastIndexOf('/') + 1)
+  const wideHeight = placeholderHeight(height)
+  const narrowHeight = NARROW_CHART_HEIGHTS[exampleId]
 
   return (
     <ChartExample
@@ -59,7 +77,10 @@ export async function ChartExampleBlock({
         eager ? (
           <Example />
         ) : (
-          <LazyMount minHeight={placeholderHeight(height)}>
+          <LazyMount
+            minHeight={narrowHeight ?? wideHeight}
+            wideMinHeight={narrowHeight === undefined ? undefined : wideHeight}
+          >
             <Example />
           </LazyMount>
         )

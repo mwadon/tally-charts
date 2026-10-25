@@ -146,6 +146,21 @@ test.describe('the card keeps its height when the chart mounts', () => {
   }
 })
 
+test.describe('the card keeps its height when the chart mounts, 375×812', () => {
+  test.use({ viewport: { width: 375, height: 812 } })
+
+  for (const path of DOC_PAGES) {
+    test(`${path}: every chart-example card`, async ({ page }) => {
+      await page.goto(path)
+      const { before, after } = await heightsBeforeAndAfter(page, '.chart-example')
+      // Other font metrics on linux wrap the legends differently (up to a few percent).
+      expectSameHeights('.chart-example', before, after, (h) =>
+        process.platform === 'darwin' ? 1 : h * 0.05,
+      )
+    })
+  }
+})
+
 for (const width of [375, 1280]) {
   test.describe(`/ keeps the height of every card when its chart mounts, ${width} px`, () => {
     test.use({ viewport: { width, height: width === 375 ? 812 : 800 } })

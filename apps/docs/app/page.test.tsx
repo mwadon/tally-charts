@@ -103,7 +103,7 @@ test('each gallery tile reserves the height of its own dashboard, narrow and wid
     ...body.querySelectorAll<HTMLElement>('li.gallery-tile [data-lazy-placeholder]'),
   ]
   expect(placeholders).toHaveLength(9)
-  const narrow = placeholders.map((el) => el.style.minHeight)
+  const narrow = placeholders.map((el) => el.style.getPropertyValue('--lazy-min-height-narrow'))
   const wide = placeholders.map((el) => el.style.getPropertyValue('--lazy-min-height-wide'))
   // Dashboards are 400 to 2200 px tall, so a single height for every tile would be wrong.
   expect(new Set(narrow).size).toBeGreaterThan(5)

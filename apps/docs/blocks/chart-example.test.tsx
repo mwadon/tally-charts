@@ -56,6 +56,18 @@ test('the placeholder is as tall as the content area of the panel', async () => 
   expect(tall).toContain('style="min-height:368px"')
 })
 
+test('an example with a taller narrow chart reserves a narrow and a wide height', async () => {
+  const html = await renderToHtml(
+    await ChartExampleBlock({
+      exampleId: 'runway-chart/gpu-budgets',
+      defaultView: 'preview',
+      height: 381,
+    }),
+  )
+  expect(html).toContain('--lazy-min-height-narrow:574px')
+  expect(html).toContain('--lazy-min-height-wide:349px')
+})
+
 test('eager is not part of the schema', () => {
   expect(Object.keys(chartExampleSchema.shape)).not.toContain('eager')
 })
