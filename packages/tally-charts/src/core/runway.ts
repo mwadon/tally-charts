@@ -53,7 +53,7 @@ export interface RunwayForecast {
   lockedMs: number
 }
 
-const warn = createWarner()
+const warn = /* @__PURE__ */ createWarner()
 
 /**
  * Where an allowance is heading at a steady pace: when it runs out, how long it then stays
@@ -128,10 +128,10 @@ export function runwayForecast(input: RunwayForecastInput): RunwayForecast {
 
 // --- Internal: the cell model RunwayChart draws. Not exported from any index. ---
 
-const MINUTE = 6e4
-const UNIT: Record<string, number> = { m: MINUTE, h: 60 * MINUTE, d: DAY }
+// Plain literals: a bundler can't prove `60 * MINUTE` pure, so it would keep it in every bundle.
+const UNIT: Record<string, number> = { m: 6e4, h: 36e5, d: 864e5 }
 
-export const DEFAULT_CELL = 6 * 60 * MINUTE
+export const DEFAULT_CELL = 216e5 // 6 h
 export const MAX_CELLS = 200
 export const DEFAULT_BREAKS: readonly number[] = [0.25, 0.5, 0.75]
 
@@ -285,7 +285,7 @@ export interface RunwayFacts {
   forecast: boolean
 }
 
-const SIX_DAYS = 6 * DAY
+const SIX_DAYS = 5184e5 // 6 d
 
 /** "Fri 03:24" within six days of now, "Oct 21 09:21" later in the domain, "Nov 9" past its end. */
 export function runwayDate(

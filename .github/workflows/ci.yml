@@ -23,6 +23,7 @@ jobs:
       - run: pnpm --filter tally-charts api:check
       - run: pnpm size
       - run: pnpm --filter tally-charts check:dev-strip
+      - run: pnpm --filter tally-charts check:treeshake
 
   # Unit tests on the oldest supported React major. Types stay on 19.
   react18:

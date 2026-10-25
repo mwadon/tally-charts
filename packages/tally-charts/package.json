@@ -48,6 +48,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "size": "size-limit",
     "check:dev-strip": "node scripts/check-dev-strip.mjs",
+    "check:treeshake": "node scripts/check-treeshake.mjs",
     "api:check": "api-extractor run --config api-extractor.json && api-extractor run --config api-extractor.core.json",
     "prepublishOnly": "pnpm build && pnpm test && pnpm api:check && pnpm size && pnpm check:dev-strip",
     "api:update": "api-extractor run --local --config api-extractor.json && api-extractor run --local --config api-extractor.core.json"

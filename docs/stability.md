@@ -53,7 +53,7 @@ These can change in any release, minor or patch, without a migration note.
   1.x. You don't have to wait: `keyboardHint` and `dataTable` (`caption`, `columns`) already let
   you replace the main ones. Don't assert on the built-in text in your tests; assert on text you
   set.
-- **Size budgets.** The limits in `.size-limit.json` are a CI guard for the maintainers. A chart
+- **Size budgets.** The limits in `.size-limit.js` are a CI guard for the maintainers. A chart
   can grow or shrink in a release, and a budget can be raised in a minor.
 - **Development warnings.** Their text. Warnings exist only in development builds and are removed
   from production builds, so don't match on their wording.
