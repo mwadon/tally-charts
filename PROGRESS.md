@@ -1617,3 +1617,28 @@ Dodałem strony waterfall-chart i bridge-chart w grupie Charts, z 4 nowymi przyk
 - Po pnpm build `pnpm --filter docs check:content` kończy się kodem 0 i wypisuje `API coverage: 46/52`, a brakują dokładnie DotHistogram, Heatmap, RunwayChart, StripPlot, WaffleColumns i runwayForecast.
 - pnpm --filter docs test, pnpm --filter docs typecheck, pnpm lint, pnpm --filter docs build i pnpm --filter docs test:e2e (darwin, bez --update-snapshots, port 3100 wolny) kończą się kodem 0. `git diff --stat -- packages apps/storybook apps/docs/e2e/__screenshots__` jest pusty.
 - PROGRESS.md ma sekcję T29.2 z decyzjami (rscSafe, „Props of”, różnice wobec reference/01 i 04) i podsumowanie T29: 5 stron, pokrycie 42→46/52 i lista 6 pozostałych symboli.
+
+## ✔ T32 Skrypt seed treści do glökki z dry-run (F15)
+Dodałem `pnpm --filter docs seed` (`apps/docs/scripts/seed.ts`): przez glökki MCP tworzy albo aktualizuje i publikuje strony z `content/*.json`. `--dry-run` wypisuje plan i niczego nie zapisuje. Drugi przebieg niczego nie zmienia. Bez `CMS_ADMIN_API_KEY` albo `CMS_BASE_URL` skrypt kończy się kodem 1 i nazywa brakującą zmienną. Instrukcja jest w `docs/releasing.md` §10, bez changesetu (`packages/tally-charts` bez zmian).
+**Decyzje:**
+- D1. Transport to glökki MCP (`CMS_BASE_URL` + `/api/mcp/mcp`, `Authorization: Bearer $CMS_ADMIN_API_KEY`), nie REST: SDK 0.17.0 nie ma klienta admin. Klient (`lib/content/glokki-mcp.ts`) robi initialize, notifications/initialized, przekazuje `Mcp-Session-Id`, czyta JSON i SSE.
+- D2. Po seedzie każda strona z fiksturek jest opublikowana, więc trafia do delivery navigation. Etykiety, grupy i kolejność zostają w `navigation.json`, skrypt nie dotyka menu layoutu. Slug z `navigation.json` bez fiksturki to `skip (no fixture)`, strona w CMS spoza fiksturek to `skip (not in fixtures)` i nigdy nie jest usuwana.
+- D3. Slug w CMS to `/` + slug fiksturki (`home` → `/home`), bo `app/page.tsx` czyta `getPage('home')`.
+- D4. Porównanie bez id węzłów (nadaje je serwer). Strona jest w porządku, gdy: title równy, pola seo z fiksturki równe, typy bloków w kolejności zgodne, każdy klucz props z fiksturki głęboko równy wartości w CMS, a `status` to `published`. Edycja opublikowanej strony przestawia status na `draft` (żywa wersja nadal jest serwowana), więc `published` znaczy „bez niepublikowanych zmian”. Dodatkowe klucze z `defaultProps` są ignorowane. Nazwy pól odpowiedzi (`id`, `slug`, `title`, `status`, `updatedAt`, `componentTree`, `seo`) są w jednym miejscu, w schematach zod na górze `glokki-mcp.ts`, i pochodzą z kodu serwera glökki.
+- D5. Aktualizacja: inna sekwencja typów → `remove_block` wszystkich, potem `add_block` w kolejności fiksturki; te same typy → `update_block_props` tylko dla różniących się bloków; `update_page` dla innego tytułu, `update_seo` dla innego seo; na końcu zawsze `publish_page`. `RATE_LIMITED` i `RATE_LIMIT_UNAVAILABLE` (narzędzia) oraz HTTP 429/503 (z `Retry-After`) kończą się czekaniem i ponowieniem, do 5 razy. `sleep` jest wstrzykiwany w testach.
+- D6. `--dry-run` też wymaga klucza, bo plan liczy się z odczytu CMS (`search_pages`, `get_page`). Nie woła żadnego narzędzia zapisu.
+- Odstępstwo od planu: `add_block` dostaje od razu `props` fiksturki (serwer scala je z `defaultProps`), zamiast osobnego `update_block_props` po każdym dodaniu. To mniej wywołań (limit `mcp:call` to 150/min na klucz). Gdyby serwer ignorował `props`, następny przebieg naprawi to ścieżką `update_block_props`.
+- Fiksturek jest 18, nie 19 jak w opisie taska (20 plików w `content/` minus `navigation.json` i `fixtures.test.ts`). Testy liczą z `readFixtures`, nie ze stałej. Fiksturka z zagnieżdżonymi blokami (`children`) kończy plan błędem, bo żadna takiej nie ma.
+**Otwarte kwestie:**
+- Nie uruchamiałem seeda na prawdziwym tenancie glökki (brak klucza). Klient sprawdzony na mocku `fetch`, na `FakeCms` i ręcznie na lokalnym serwerze HTTP, który udaje MCP. Pierwszy przebieg na prawdziwym tenancie trzeba zacząć od `--dry-run`.
+- Jeśli glökki znormalizuje któryś prop (np. zmieni wartość przy walidacji), strona nigdy nie wyjdzie z `update`. Wtedy diff zobaczymy w planie od razu przy drugim przebiegu.
+- Pierwszy przebieg publikuje 18 stron przy limicie 10 publikacji/min na klucz, więc trwa ponad minutę (skrypt czeka sam).
+**Kryteria:**
+- `pnpm --filter docs seed` istnieje i przez glökki MCP tworzy albo aktualizuje i publikuje strony z `content/*.json`; test na FakeCms: pierwszy przebieg tworzy i publikuje wszystkie fiksturki (navigation zawiera wszystkie slugi).
+- Idempotencja: drugi przebieg ma zero wywołań zapisu, a każda pozycja planu to `skip (unchanged)`, także gdy CMS dokłada defaultProps i własne id węzłów.
+- `--dry-run` wypisuje linie create/update/skip i `seed: N create, M update, K skip`, bez zapisu. Pusty CMS daje same create; po zmianie jednej fiksturki update ma tylko ona.
+- Strony spoza fiksturek: `skip (not in fixtures)`, nie są usuwane; slugi nawigacji bez fiksturki: `skip (no fixture)`.
+- Klient MCP: testy z mockiem fetch (handshake, Mcp-Session-Id, SSE, isError z nazwą narzędzia, retry przy RATE_LIMITED).
+- Bez `CMS_ADMIN_API_KEY` (także z `--dry-run`) albo bez `CMS_BASE_URL` exit 1 i komunikat z nazwą zmiennej (test CLI z pustym env).
+- `.env.example` opisuje `CMS_ADMIN_API_KEY`, `env-example.test.ts` wymaga 9 zmiennych; `docs/releasing.md` §10 i linia w CLAUDE.md istnieją.
+- `pnpm --filter docs test`, `pnpm --filter docs typecheck`, `pnpm lint` i `pnpm typecheck` przechodzą.
