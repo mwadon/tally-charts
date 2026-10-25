@@ -7,7 +7,7 @@ import { CHAR_WIDTH } from '../../core/text'
 import type { TickSpec } from '../../core/ticks'
 import type { Fill, Id, Tone } from '../../core/types'
 import { createWarner, DEV } from '../../core/warn'
-import { Chart } from '../Chart'
+import { Chart, type ChartName } from '../Chart'
 import { useFormat } from '../ChartsProvider'
 import { type Margin, useChartContext } from '../context'
 import type { DataTableSpec } from '../DataTable'
@@ -54,52 +54,52 @@ export interface WaterfallTotal {
 type WaterfallKind = 'start' | 'step' | 'end'
 
 /** In `onSelect` and `onActiveChange`, `point.datum` is the start, one of your steps, or the total. */
-export interface WaterfallChartProps<S extends WaterfallStep = WaterfallStep>
-  extends Omit<ChartPassThroughProps<S | WaterfallStart | WaterfallTotal>, 'aspectRatio'> {
-  start: WaterfallStart
-  steps: readonly S[]
-  /**
-   * The calculated end row. Default label "Total". In `onSelect` and `onActiveChange` its
-   * `point.datum` is a synthetic `{ label, value }` created on every render, so recognise it by
-   * `id === 'end'`, not by object identity.
-   */
-  end?: WaterfallEnd
-  /** Format of the start, end, totals and axis. Default 'number'. */
-  format?: FormatSpec
-  /** Text on the right of a step row. Default: the signed step value in `format`. */
-  stepLabel?: (step: S) => string
-  /** Default 'neutral' (hatched). */
-  startTone?: Tone
-  /** Default 'accent' (solid). */
-  endTone?: Tone
-  /**
-   * Value domain. Default: the totals' range without forcing zero, rounded to nice ticks. When it
-   * leaves out zero, the scale runs a little past its lower end (upper end for negative values), so
-   * the start and end bars stay visible even when a total equals the domain's end; the axis still
-   * labels the domain itself.
-   */
-  domain?: readonly [number, number]
-  /** Default 64. */
-  rowHeight?: number
-  /** Bar thickness in px. Default 18. */
-  barSize?: number
-  /** Value axis ticks, or 'none'. Default 5. */
-  axis?: TickSpec | 'none'
-  /** Axis label format. Default: `format`. */
-  axisFormat?: AxisFormat
-  /** Dotted lines from each bar to the next. Default true. */
-  connectors?: boolean
-  /**
-   * Hidden data table for screen readers: `true`, `false`, or `{ caption, columns }` to set its
-   * caption and rename column headers. Default true.
-   */
-  dataTable?: boolean | DataTableOptions
-  /**
-   * Tooltip on hover and focus: `true` for the default pill, or a function that renders the
-   * content for a point (`point.datum` is your row). Default true.
-   */
-  tooltip?: ChartTooltip<S | WaterfallStart | WaterfallTotal>
-}
+export type WaterfallChartProps<S extends WaterfallStep = WaterfallStep> = ChartName &
+  Omit<ChartPassThroughProps<S | WaterfallStart | WaterfallTotal>, 'aspectRatio'> & {
+    start: WaterfallStart
+    steps: readonly S[]
+    /**
+     * The calculated end row. Default label "Total". In `onSelect` and `onActiveChange` its
+     * `point.datum` is a synthetic `{ label, value }` created on every render, so recognise it by
+     * `id === 'end'`, not by object identity.
+     */
+    end?: WaterfallEnd
+    /** Format of the start, end, totals and axis. Default 'number'. */
+    format?: FormatSpec
+    /** Text on the right of a step row. Default: the signed step value in `format`. */
+    stepLabel?: (step: S) => string
+    /** Default 'neutral' (hatched). */
+    startTone?: Tone
+    /** Default 'accent' (solid). */
+    endTone?: Tone
+    /**
+     * Value domain. Default: the totals' range without forcing zero, rounded to nice ticks. When it
+     * leaves out zero, the scale runs a little past its lower end (upper end for negative values), so
+     * the start and end bars stay visible even when a total equals the domain's end; the axis still
+     * labels the domain itself.
+     */
+    domain?: readonly [number, number]
+    /** Default 64. */
+    rowHeight?: number
+    /** Bar thickness in px. Default 18. */
+    barSize?: number
+    /** Value axis ticks, or 'none'. Default 5. */
+    axis?: TickSpec | 'none'
+    /** Axis label format. Default: `format`. */
+    axisFormat?: AxisFormat
+    /** Dotted lines from each bar to the next. Default true. */
+    connectors?: boolean
+    /**
+     * Hidden data table for screen readers: `true`, `false`, or `{ caption, columns }` to set its
+     * caption and rename column headers. Default true.
+     */
+    dataTable?: boolean | DataTableOptions
+    /**
+     * Tooltip on hover and focus: `true` for the default pill, or a function that renders the
+     * content for a point (`point.datum` is your row). Default true.
+     */
+    tooltip?: ChartTooltip<S | WaterfallStart | WaterfallTotal>
+  }
 
 interface WaterfallRow<S> {
   key: string

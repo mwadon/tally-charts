@@ -7,7 +7,7 @@ import { truncateLabel } from '../../core/text'
 import { fits, type Tick } from '../../core/ticks'
 import type { Id, Tone } from '../../core/types'
 import { createWarner, DEV } from '../../core/warn'
-import { Chart } from '../Chart'
+import { Chart, type ChartName } from '../Chart'
 import { useFormat } from '../ChartsProvider'
 import { type Margin, useChartContext } from '../context'
 import type { DataTableSpec } from '../DataTable'
@@ -45,35 +45,35 @@ export interface BridgeStep {
 }
 
 /** In `onSelect` and `onActiveChange`, `point.datum` is the start or one of your steps. */
-export interface BridgeChartProps<S extends BridgeStep = BridgeStep>
-  extends Omit<ChartPassThroughProps<S | BridgeStart>, 'aspectRatio'> {
-  start: BridgeStart
-  steps: readonly S[]
-  /** Default 'number'. */
-  format?: FormatSpec
-  /** Text under each column total. Default: the signed change plus the note. */
-  stepLabel?: (step: S) => string
-  /** Solid, highlighted last column with an emphasized label. Default true. */
-  highlightLast?: boolean
-  /** A pill pinned above the last column, e.g. `$400 kept | 12.3% margin`. */
-  callout?: readonly TooltipSegment[]
-  /** Gradient area joining the column totals. Default true. */
-  area?: boolean
-  /** Value domain. Default: zero to the largest total, rounded to nice ticks. */
-  domain?: readonly [number, number]
-  /** Inner band padding, 0–1. Default 0.45. */
-  padding?: number
-  /**
-   * Hidden data table for screen readers: `true`, `false`, or `{ caption, columns }` to set its
-   * caption and rename column headers. Default true.
-   */
-  dataTable?: boolean | DataTableOptions
-  /**
-   * Tooltip on hover and focus: `true` for the default pill, or a function that renders the
-   * content for a point (`point.datum` is your row). Default true.
-   */
-  tooltip?: ChartTooltip<S | BridgeStart>
-}
+export type BridgeChartProps<S extends BridgeStep = BridgeStep> = ChartName &
+  Omit<ChartPassThroughProps<S | BridgeStart>, 'aspectRatio'> & {
+    start: BridgeStart
+    steps: readonly S[]
+    /** Default 'number'. */
+    format?: FormatSpec
+    /** Text under each column total. Default: the signed change plus the note. */
+    stepLabel?: (step: S) => string
+    /** Solid, highlighted last column with an emphasized label. Default true. */
+    highlightLast?: boolean
+    /** A pill pinned above the last column, e.g. `$400 kept | 12.3% margin`. */
+    callout?: readonly TooltipSegment[]
+    /** Gradient area joining the column totals. Default true. */
+    area?: boolean
+    /** Value domain. Default: zero to the largest total, rounded to nice ticks. */
+    domain?: readonly [number, number]
+    /** Inner band padding, 0–1. Default 0.45. */
+    padding?: number
+    /**
+     * Hidden data table for screen readers: `true`, `false`, or `{ caption, columns }` to set its
+     * caption and rename column headers. Default true.
+     */
+    dataTable?: boolean | DataTableOptions
+    /**
+     * Tooltip on hover and focus: `true` for the default pill, or a function that renders the
+     * content for a point (`point.datum` is your row). Default true.
+     */
+    tooltip?: ChartTooltip<S | BridgeStart>
+  }
 
 interface BridgeRow<S> {
   key: string

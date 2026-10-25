@@ -21,7 +21,25 @@ import type { ChartPoint } from './types'
 import { useIsoLayoutEffect } from './useIsoLayoutEffect'
 import { useWidth } from './useWidth'
 
-export interface ChartProps<D> {
+/**
+ * The accessible name every chart needs: a `title` or an `aria-labelledby` that points at an
+ * element which already names the chart (a visible heading, say). Give at least one; with both,
+ * `aria-labelledby` names the chart and `title` stays the default caption of the data table.
+ */
+export type ChartName =
+  | {
+      /** Accessible name of the chart; also the default caption of the data table. */
+      title: string
+      /** Id of an element that names the chart; it wins over `title` for the name. */
+      'aria-labelledby'?: string
+    }
+  | {
+      title?: undefined
+      /** Id of an element that names the chart; it wins over `title` for the name. */
+      'aria-labelledby': string
+    }
+
+export type ChartProps<D> = ChartName & {
   data?: readonly D[]
   x?: ScaleSpec<D>
   y?: ScaleSpec<D>
@@ -34,8 +52,6 @@ export interface ChartProps<D> {
   /** width / height. Used when `height` is not set. */
   aspectRatio?: number
   margin?: Partial<Margin>
-  /** Accessible name of the figure. */
-  title?: string
   /** Accessible description, usually the takeaway sentence. */
   description?: string
   /** Visually hidden table of the data for screen readers. High-level charts set it by default. */
@@ -86,6 +102,7 @@ export function Chart<D>({
   aspectRatio,
   margin: marginProp,
   title,
+  'aria-labelledby': labelledBy,
   description,
   dataTable,
   keyboardHint,
@@ -123,7 +140,7 @@ export function Chart<D>({
 
   const warn = useMemo(() => createWarner(), [])
   const scaleWarn = isEmpty ? silent : warn
-  if (DEV && !title) {
+  if (DEV && !title && !labelledBy) {
     warn('chart-title', 'Chart has no `title`, so screen readers announce an unnamed figure.')
   }
   const xScale = useMemo(
@@ -218,6 +235,8 @@ export function Chart<D>({
       ? announcement(interaction.points, interaction.activePoint)
       : ''
   const titleId = `${chartId}-title`
+  // An element the caller names wins over the hidden `title` span, as in ARIA.
+  const nameId = labelledBy ?? (title ? titleId : undefined)
   const descId = `${chartId}-desc`
   const hintId = `${chartId}-hint`
   // Only a chart whose marks registered points takes focus: the arrow keys need something to
@@ -247,7 +266,7 @@ export function Chart<D>({
       data-ch-animate={animate ? 'true' : 'false'}
       className={className}
       style={{ ...sizeStyle, ...style }}
-      aria-labelledby={title ? titleId : undefined}
+      aria-labelledby={nameId}
       aria-describedby={description ? descId : undefined}
       onPointerLeave={() => interaction.setActive(null, 'pointer')}
     >
@@ -281,7 +300,7 @@ export function Chart<D>({
               ? {
                   role: 'application',
                   'aria-roledescription': 'chart',
-                  'aria-labelledby': title ? titleId : undefined,
+                  'aria-labelledby': nameId,
                   'aria-describedby': describedBy || undefined,
                   tabIndex: 0,
                   onKeyDown,

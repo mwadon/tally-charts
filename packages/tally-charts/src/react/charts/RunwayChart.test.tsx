@@ -43,6 +43,22 @@ function renderRunway(props: Partial<RunwayChartProps> = {}) {
   )
 }
 
+function renderLabelled(props: Partial<RunwayChartProps> = {}) {
+  return render(
+    <>
+      <h2 id="ext">Runway by account</h2>
+      <RunwayChart
+        rows={rows}
+        domain={domain}
+        now={now}
+        aria-labelledby="ext"
+        initialWidth={900}
+        {...props}
+      />
+    </>,
+  )
+}
+
 const part = (root: ParentNode, name: string) =>
   [...root.querySelectorAll(`[data-ch-part="${name}"]`)] as HTMLElement[]
 
@@ -184,6 +200,23 @@ describe('<RunwayChart>', () => {
     expect(warn.mock.calls.some(([m]) => String(m).includes('RunwayChart needs a domain'))).toBe(
       true,
     )
+  })
+
+  it('takes the list name from the element aria-labelledby points at, without a warning', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    renderLabelled()
+    expect(screen.getByRole('list', { name: 'Runway by account' })).toBeInTheDocument()
+    expect(warn).not.toHaveBeenCalled()
+  })
+
+  it('names the listbox from aria-labelledby when rows are selectable', () => {
+    renderLabelled({ onSelect: () => {} })
+    expect(screen.getByRole('listbox', { name: 'Runway by account' })).toBeInTheDocument()
+  })
+
+  it('prefers aria-labelledby over title for the list name', () => {
+    renderLabelled({ title: 'Runway' })
+    expect(screen.getByRole('list', { name: 'Runway by account' })).toBeInTheDocument()
   })
 
   it('warns about a bad cell, too many cells, bad breaks, duplicate ids and a missing title', () => {

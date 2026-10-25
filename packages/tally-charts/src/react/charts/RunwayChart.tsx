@@ -31,6 +31,7 @@ import { DAY, type TimeInput, type TimeZone, timeScale, toTime } from '../../cor
 import type { Tone } from '../../core/types'
 import { createWarner, DEV } from '../../core/warn'
 import { DEFAULT_HATCH, patternId, readHatchGeometry } from '../../theme/patterns'
+import type { ChartName } from '../Chart'
 import { useFormat } from '../ChartsProvider'
 import { DataTable } from '../DataTable'
 import { PatternDefs } from '../PatternDefs'
@@ -67,7 +68,7 @@ export interface RunwayRow {
 }
 
 /** Props of {@link RunwayChart}. */
-export interface RunwayChartProps {
+export type RunwayChartProps = ChartName & {
   /** One strip per row, in this order. */
   rows: readonly RunwayRow[]
   /** Time span of the strips. */
@@ -104,8 +105,6 @@ export interface RunwayChartProps {
   status?: (row: RunwayRow, facts: RunwayFacts) => ReactNode
   /** Default true. */
   legend?: boolean
-  /** Accessible name of the list; also the data table caption. */
-  title?: string
   /** Accessible description, usually the takeaway sentence. */
   description?: string
   /** A visually hidden table of the rows for screen readers. Default true. */
@@ -158,6 +157,7 @@ export function RunwayChart({
   status,
   legend = true,
   title,
+  'aria-labelledby': labelledBy,
   description,
   dataTable = true,
   empty,
@@ -171,8 +171,10 @@ export function RunwayChart({
   const reactId = useId()
   const baseId = `ch-${(chartId ?? reactId).replace(/[^a-zA-Z0-9_-]/g, '')}`
   const titleId = `${baseId}-title`
+  // An element the caller names wins over the hidden `title` span, as in ARIA.
+  const nameId = labelledBy ?? (title ? titleId : undefined)
   const descId = `${baseId}-desc`
-  if (DEV && !title) {
+  if (DEV && !title && !labelledBy) {
     warn('runway-title', 'RunwayChart has no `title`, so screen readers announce an unnamed list.')
   }
 
@@ -442,7 +444,7 @@ export function RunwayChart({
         className="ch-runway-rows"
         data-ch-part="runway-rows"
         role={selectable ? 'listbox' : 'list'}
-        aria-labelledby={title ? titleId : undefined}
+        aria-labelledby={nameId}
         aria-describedby={description ? descId : undefined}
         tabIndex={selectable ? 0 : undefined}
         aria-activedescendant={selectable && focused ? `${baseId}-row-${current ?? 0}` : undefined}

@@ -15,6 +15,7 @@ import { toNumber } from '../../core/number'
 import { binLevels, levelFor, MAX_BREAKS, sequentialBreaks } from '../../core/thresholds'
 import type { Accessor, SeqLevel, Tone } from '../../core/types'
 import { createWarner, DEV, type Warn } from '../../core/warn'
+import type { ChartName } from '../Chart'
 import { useFormat } from '../ChartsProvider'
 import { Legend } from '../ui/Legend'
 import { cx } from '../ui/util'
@@ -34,7 +35,7 @@ export interface HeatmapCell<D> {
   level: SeqLevel | 0
 }
 
-export interface HeatmapProps<D> {
+export type HeatmapProps<D> = ChartName & {
   /** One item per cell, in long format. */
   data: readonly D[]
   /** Row name per item, e.g. the branch. */
@@ -68,8 +69,6 @@ export interface HeatmapProps<D> {
    * ancestor, else loss. Every tone keeps cell text at 4.5:1 or more in both themes.
    */
   tone?: Tone
-  /** Accessible name of the grid. */
-  title?: string
   /** Accessible description, usually the takeaway sentence. */
   description?: string
   activeId?: string | null
@@ -172,6 +171,7 @@ export function Heatmap<D>({
   legend = true,
   tone,
   title,
+  'aria-labelledby': labelledBy,
   description,
   activeId,
   onActiveChange,
@@ -189,8 +189,10 @@ export function Heatmap<D>({
   const totalName = totalLabel || 'Total'
   const baseId = `ch-${(chartId ?? reactId).replace(/[^a-zA-Z0-9_-]/g, '')}`
   const titleId = `${baseId}-title`
+  // An element the caller names wins over the hidden `title` span, as in ARIA.
+  const nameId = labelledBy ?? (title ? titleId : undefined)
   const descId = `${baseId}-desc`
-  if (DEV && !title) {
+  if (DEV && !title && !labelledBy) {
     warn('heatmap-title', 'Heatmap has no `title`, so screen readers announce an unnamed grid.')
   }
 
@@ -432,14 +434,22 @@ export function Heatmap<D>({
         ref={scrollRef}
         className="ch-heatmap-scroll"
         data-ch-part="heatmap-scroll"
-        {...(overflowing ? { tabIndex: 0, role: 'group', 'aria-label': title || 'Heatmap' } : null)}
+        {...(overflowing
+          ? {
+              tabIndex: 0,
+              role: 'group',
+              ...(labelledBy
+                ? { 'aria-labelledby': labelledBy }
+                : { 'aria-label': title || 'Heatmap' }),
+            }
+          : null)}
       >
         <div
           role="grid"
           className="ch-heatmap-grid"
           data-ch-part="heatmap-grid"
           data-ch-totals={totals ? 'true' : undefined}
-          aria-labelledby={title ? titleId : undefined}
+          aria-labelledby={nameId}
           aria-describedby={description ? descId : undefined}
           style={{ '--_ch-heatmap-columns': model.columns.length } as CSSProperties}
           onPointerLeave={(event) => {

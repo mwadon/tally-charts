@@ -100,6 +100,16 @@ describe('<BarChart>', () => {
     expect(screen.getByTestId('extra')).toBeInTheDocument()
   })
 
+  it('names the chart from the element aria-labelledby points at', () => {
+    render(
+      <>
+        <h2 id="ext">Weekly margin</h2>
+        <BarChart<Week> data={weeks} x="week" y="margin" width={300} aria-labelledby="ext" />
+      </>,
+    )
+    expect(screen.getByRole('application', { name: 'Weekly margin' })).toBeInTheDocument()
+  })
+
   it('selects with the keyboard', () => {
     const onSelect = vi.fn()
     renderChart({ onSelect })

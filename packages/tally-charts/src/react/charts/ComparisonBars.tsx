@@ -5,7 +5,7 @@ import { inferLinearDomain } from '../../core/scale'
 import { CHAR_WIDTH } from '../../core/text'
 import type { Accessor, Id, Tone } from '../../core/types'
 import { createWarner, DEV } from '../../core/warn'
-import { FittedChart } from '../Chart'
+import { type ChartName, FittedChart } from '../Chart'
 import { useFormat } from '../ChartsProvider'
 import { type Margin, useChartContext } from '../context'
 import type { DataTableSpec } from '../DataTable'
@@ -26,62 +26,63 @@ import {
 
 type ComparisonStatus = 'over' | 'under' | 'on-plan' | 'unknown'
 
-export interface ComparisonBarsProps<D> extends Omit<ChartPassThroughProps<D>, 'aspectRatio'> {
-  data: readonly D[]
-  /** Row name. */
-  label: Accessor<D, string>
-  /** Optional muted second line under the name. */
-  sublabel?: Accessor<D, string>
-  /** Planned or estimated value: the hatched bar. */
-  plan: Accessor<D, number>
-  /** Actual value: the solid bar. */
-  actual: Accessor<D, number>
-  /** Row id passed to onSelect and onActiveChange. Default: the data index. */
-  id?: Accessor<D, Id>
-  /** Default 'number'. */
-  format?: FormatSpec
-  /** Value domain. Default: zero to the largest plan or actual. */
-  domain?: readonly [number, number]
-  /** A difference at or below this counts as on plan. Default 0. */
-  tolerance?: number
-  /** Text for rows on plan. Default "On plan". */
-  onPlanLabel?: string
-  /**
-   * Which direction of actual against plan is good news: 'down' (under plan, for costs and
-   * hours) or 'up' (over plan, for revenue-like rows). Default 'down'.
-   */
-  good?: 'up' | 'down'
-  /**
-   * 'columns': label, bars and values side by side. 'stacked': the label and the values in a block
-   * of up to two lines above bars that span the full width. 'auto' stacks when the bars would get less than
-   * 120px between the columns. Default 'auto'.
-   */
-  layout?: 'auto' | 'columns' | 'stacked'
-  /** Row height in the columns layout; stacked rows add room for the text line. Default 56. */
-  rowHeight?: number
-  /** Thickness of each of the two bars in px. Default 8. */
-  barSize?: number
-  /** Width of the label column in px, in the columns layout. Default 240. */
-  labelWidth?: number
-  /** Width of the value columns (change and delta) in px. Default 220. */
-  valueWidth?: number
-  /** Width of the delta column inside `valueWidth`, in px. Default 80. */
-  deltaWidth?: number
-  /** Show the "$640 → $1,060  +$420" columns. Default true. */
-  showValues?: boolean
-  /** Thin rules between rows. Default true. */
-  dividers?: boolean
-  /**
-   * Hidden data table for screen readers: `true`, `false`, or `{ caption, columns }` to set its
-   * caption and rename column headers. Default true.
-   */
-  dataTable?: boolean | DataTableOptions
-  /**
-   * Tooltip on hover and focus: `true` for the default pill, or a function that renders the
-   * content for a point (`point.datum` is your row). Default true.
-   */
-  tooltip?: ChartTooltip<D>
-}
+export type ComparisonBarsProps<D> = ChartName &
+  Omit<ChartPassThroughProps<D>, 'aspectRatio'> & {
+    data: readonly D[]
+    /** Row name. */
+    label: Accessor<D, string>
+    /** Optional muted second line under the name. */
+    sublabel?: Accessor<D, string>
+    /** Planned or estimated value: the hatched bar. */
+    plan: Accessor<D, number>
+    /** Actual value: the solid bar. */
+    actual: Accessor<D, number>
+    /** Row id passed to onSelect and onActiveChange. Default: the data index. */
+    id?: Accessor<D, Id>
+    /** Default 'number'. */
+    format?: FormatSpec
+    /** Value domain. Default: zero to the largest plan or actual. */
+    domain?: readonly [number, number]
+    /** A difference at or below this counts as on plan. Default 0. */
+    tolerance?: number
+    /** Text for rows on plan. Default "On plan". */
+    onPlanLabel?: string
+    /**
+     * Which direction of actual against plan is good news: 'down' (under plan, for costs and
+     * hours) or 'up' (over plan, for revenue-like rows). Default 'down'.
+     */
+    good?: 'up' | 'down'
+    /**
+     * 'columns': label, bars and values side by side. 'stacked': the label and the values in a block
+     * of up to two lines above bars that span the full width. 'auto' stacks when the bars would get less than
+     * 120px between the columns. Default 'auto'.
+     */
+    layout?: 'auto' | 'columns' | 'stacked'
+    /** Row height in the columns layout; stacked rows add room for the text line. Default 56. */
+    rowHeight?: number
+    /** Thickness of each of the two bars in px. Default 8. */
+    barSize?: number
+    /** Width of the label column in px, in the columns layout. Default 240. */
+    labelWidth?: number
+    /** Width of the value columns (change and delta) in px. Default 220. */
+    valueWidth?: number
+    /** Width of the delta column inside `valueWidth`, in px. Default 80. */
+    deltaWidth?: number
+    /** Show the "$640 → $1,060  +$420" columns. Default true. */
+    showValues?: boolean
+    /** Thin rules between rows. Default true. */
+    dividers?: boolean
+    /**
+     * Hidden data table for screen readers: `true`, `false`, or `{ caption, columns }` to set its
+     * caption and rename column headers. Default true.
+     */
+    dataTable?: boolean | DataTableOptions
+    /**
+     * Tooltip on hover and focus: `true` for the default pill, or a function that renders the
+     * content for a point (`point.datum` is your row). Default true.
+     */
+    tooltip?: ChartTooltip<D>
+  }
 
 interface ComparisonRow<D> {
   key: string

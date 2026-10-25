@@ -105,31 +105,29 @@ export type BarAlign = 'start' | 'center' | 'end';
 export function BarChart<D>(input: BarChartProps<D>): JSX.Element;
 
 // @public (undocumented)
-export interface BarChartProps<D> extends ChartPassThroughProps<D> {
-    axis?: TickSpec | 'none';
-    axisFormat?: AxisFormat;
-    // (undocumented)
+export type BarChartProps<D> = ChartName & ChartPassThroughProps<D> & {
     data: readonly D[];
-    dataTable?: boolean | DataTableOptions;
-    domain?: readonly [number, number];
-    fill?: PerItem<D, Fill>;
-    format?: FormatSpec;
-    // (undocumented)
+    x: Accessor<D, string | number>;
+    y: Accessor<D, number>;
     id?: Accessor<D, Id>;
     label?: Accessor<D, string>;
     orientation?: 'vertical' | 'horizontal';
-    padding?: number;
+    domain?: readonly [number, number];
     target?: number | {
         value: number;
         label?: string;
     };
-    tone?: PerItem<D, Tone>;
-    tooltip?: ChartTooltip<D>;
-    valueFormat?: FormatSpec;
     valueLabel?: 'last' | 'all' | 'none';
-    x: Accessor<D, string | number>;
-    y: Accessor<D, number>;
-}
+    valueFormat?: FormatSpec;
+    format?: FormatSpec;
+    axis?: TickSpec | 'none';
+    axisFormat?: AxisFormat;
+    tone?: PerItem<D, Tone>;
+    fill?: PerItem<D, Fill>;
+    padding?: number;
+    dataTable?: boolean | DataTableOptions;
+    tooltip?: ChartTooltip<D>;
+};
 
 // @public (undocumented)
 export function Bars<D>(props: BarsProps<D>): JSX.Element;
@@ -163,21 +161,19 @@ export interface BarsProps<D> {
 export function BridgeChart<S extends BridgeStep = BridgeStep>(input: BridgeChartProps<S>): JSX.Element;
 
 // @public
-export interface BridgeChartProps<S extends BridgeStep = BridgeStep> extends Omit<ChartPassThroughProps<S | BridgeStart>, 'aspectRatio'> {
-    area?: boolean;
-    callout?: readonly TooltipSegment[];
-    dataTable?: boolean | DataTableOptions;
-    domain?: readonly [number, number];
-    format?: FormatSpec;
-    highlightLast?: boolean;
-    padding?: number;
-    // (undocumented)
+export type BridgeChartProps<S extends BridgeStep = BridgeStep> = ChartName & Omit<ChartPassThroughProps<S | BridgeStart>, 'aspectRatio'> & {
     start: BridgeStart;
-    stepLabel?: (step: S) => string;
-    // (undocumented)
     steps: readonly S[];
+    format?: FormatSpec;
+    stepLabel?: (step: S) => string;
+    highlightLast?: boolean;
+    callout?: readonly TooltipSegment[];
+    area?: boolean;
+    domain?: readonly [number, number];
+    padding?: number;
+    dataTable?: boolean | DataTableOptions;
     tooltip?: ChartTooltip<S | BridgeStart>;
-}
+};
 
 // @public (undocumented)
 export interface BridgeStart {
@@ -245,7 +241,16 @@ export interface ChartContextValue {
 }
 
 // @public
-export type ChartPassThroughProps<D> = Pick<ChartProps<D>, 'width' | 'initialWidth' | 'height' | 'aspectRatio' | 'margin' | 'title' | 'description' | 'keyboardHint' | 'activeId' | 'onActiveChange' | 'onSelect' | 'animate' | 'dimInactive' | 'empty' | 'className' | 'style' | 'chartId' | 'children'>;
+export type ChartName = {
+    title: string;
+    'aria-labelledby'?: string;
+} | {
+    title?: undefined;
+    'aria-labelledby': string;
+};
+
+// @public
+export type ChartPassThroughProps<D> = Pick<ChartProps<D>, 'width' | 'initialWidth' | 'height' | 'aspectRatio' | 'margin' | 'description' | 'keyboardHint' | 'activeId' | 'onActiveChange' | 'onSelect' | 'animate' | 'dimInactive' | 'empty' | 'className' | 'style' | 'chartId' | 'children'>;
 
 // @public
 export interface ChartPoint<D = unknown> {
@@ -270,40 +275,29 @@ export interface ChartPoint<D = unknown> {
 }
 
 // @public (undocumented)
-export interface ChartProps<D> {
-    // (undocumented)
-    activeId?: Id | null;
-    // (undocumented)
-    animate?: boolean;
-    aspectRatio?: number;
-    chartId?: string;
-    // (undocumented)
-    children?: ReactNode;
-    // (undocumented)
-    className?: string;
-    // (undocumented)
+export type ChartProps<D> = ChartName & {
     data?: readonly D[];
-    dataTable?: DataTableSpec<D>;
-    description?: string;
-    // (undocumented)
-    dimInactive?: boolean;
-    empty?: ReactNode;
-    height?: number;
+    x?: ScaleSpec<D>;
+    y?: ScaleSpec<D>;
+    width?: number;
     initialWidth?: number;
-    keyboardHint?: string;
-    // (undocumented)
+    height?: number;
+    aspectRatio?: number;
     margin?: Partial<Margin>;
+    description?: string;
+    dataTable?: DataTableSpec<D>;
+    keyboardHint?: string;
+    activeId?: Id | null;
     onActiveChange?: (id: Id | null, point: ChartPoint<D> | null) => void;
     onSelect?: (id: Id, point: ChartPoint<D>) => void;
-    // (undocumented)
+    animate?: boolean;
+    dimInactive?: boolean;
+    empty?: ReactNode;
+    className?: string;
     style?: CSSProperties;
-    title?: string;
-    width?: number;
-    // (undocumented)
-    x?: ScaleSpec<D>;
-    // (undocumented)
-    y?: ScaleSpec<D>;
-}
+    chartId?: string;
+    children?: ReactNode;
+};
 
 // @public (undocumented)
 export function ChartsProvider(input: ChartsProviderProps): JSX.Element;
@@ -335,30 +329,29 @@ export interface ColumnHighlightProps {
 export function ComparisonBars<D>(input: ComparisonBarsProps<D>): JSX.Element;
 
 // @public (undocumented)
-export interface ComparisonBarsProps<D> extends Omit<ChartPassThroughProps<D>, 'aspectRatio'> {
-    actual: Accessor<D, number>;
-    barSize?: number;
-    // (undocumented)
+export type ComparisonBarsProps<D> = ChartName & Omit<ChartPassThroughProps<D>, 'aspectRatio'> & {
     data: readonly D[];
-    dataTable?: boolean | DataTableOptions;
-    deltaWidth?: number;
-    dividers?: boolean;
-    domain?: readonly [number, number];
-    format?: FormatSpec;
-    good?: 'up' | 'down';
-    id?: Accessor<D, Id>;
     label: Accessor<D, string>;
-    labelWidth?: number;
-    layout?: 'auto' | 'columns' | 'stacked';
-    onPlanLabel?: string;
-    plan: Accessor<D, number>;
-    rowHeight?: number;
-    showValues?: boolean;
     sublabel?: Accessor<D, string>;
+    plan: Accessor<D, number>;
+    actual: Accessor<D, number>;
+    id?: Accessor<D, Id>;
+    format?: FormatSpec;
+    domain?: readonly [number, number];
     tolerance?: number;
-    tooltip?: ChartTooltip<D>;
+    onPlanLabel?: string;
+    good?: 'up' | 'down';
+    layout?: 'auto' | 'columns' | 'stacked';
+    rowHeight?: number;
+    barSize?: number;
+    labelWidth?: number;
     valueWidth?: number;
-}
+    deltaWidth?: number;
+    showValues?: boolean;
+    dividers?: boolean;
+    dataTable?: boolean | DataTableOptions;
+    tooltip?: ChartTooltip<D>;
+};
 
 // @public
 export function Connector(input: ConnectorProps): JSX.Element | null;
@@ -458,30 +451,28 @@ export interface DotCountProps {
 export function DotHistogram<D>(input: DotHistogramProps<D>): JSX.Element;
 
 // @public (undocumented)
-export interface DotHistogramProps<D> extends Omit<ChartPassThroughProps<D>, 'aspectRatio'> {
-    axis?: TickSpec | 'none';
-    axisFormat?: AxisFormat;
-    binWidth?: number;
-    calloutId?: Id;
-    // (undocumented)
+export type DotHistogramProps<D> = ChartName & Omit<ChartPassThroughProps<D>, 'aspectRatio'> & {
     data: readonly D[];
-    dataTable?: boolean | DataTableOptions;
-    domain?: readonly [number, number];
-    format?: FormatSpec;
+    value: Accessor<D, number>;
     id?: Accessor<D, Id>;
     label?: Accessor<D, string>;
-    maxRadius?: number;
-    minRadius?: number;
     segments?: (d: D, i: number) => readonly TooltipSegment[];
-    // (undocumented)
+    toneBy?: Thresholds | ((d: D, i: number) => Tone);
+    binWidth?: number;
+    domain?: readonly [number, number];
     target?: number | {
         value: number;
         label?: string;
     };
-    toneBy?: Thresholds | ((d: D, i: number) => Tone);
+    calloutId?: Id;
+    format?: FormatSpec;
+    axis?: TickSpec | 'none';
+    axisFormat?: AxisFormat;
+    maxRadius?: number;
+    minRadius?: number;
+    dataTable?: boolean | DataTableOptions;
     tooltip?: ChartTooltip<D>;
-    value: Accessor<D, number>;
-}
+};
 
 // @public (undocumented)
 export interface DotItem {
@@ -587,37 +578,30 @@ export interface HeatmapCell<D> {
 export function heatmapLevel(value: unknown, breaks: readonly number[]): SeqLevel | 0;
 
 // @public (undocumented)
-export interface HeatmapProps<D> {
-    // (undocumented)
-    activeId?: string | null;
-    binLabels?: readonly string[];
-    breaks: readonly number[];
-    chartId?: string;
-    // (undocumented)
-    className?: string;
-    column: Accessor<D, string>;
-    columns?: readonly string[];
+export type HeatmapProps<D> = ChartName & {
     data: readonly D[];
-    description?: string;
-    empty?: ReactNode;
-    format?: FormatSpec;
-    legend?: boolean;
-    // (undocumented)
-    onActiveChange?: (id: string | null, cell: HeatmapCell<D> | null) => void;
-    // (undocumented)
-    onSelect?: (id: string, cell: HeatmapCell<D>) => void;
     row: Accessor<D, string>;
-    rowLabel?: string;
-    rows?: readonly string[];
-    // (undocumented)
-    style?: CSSProperties;
-    title?: string;
-    tone?: Tone;
-    totalLabel?: string;
-    totals?: boolean;
-    // (undocumented)
+    column: Accessor<D, string>;
     value: Accessor<D, number>;
-}
+    rows?: readonly string[];
+    columns?: readonly string[];
+    breaks: readonly number[];
+    binLabels?: readonly string[];
+    format?: FormatSpec;
+    totals?: boolean;
+    totalLabel?: string;
+    rowLabel?: string;
+    legend?: boolean;
+    tone?: Tone;
+    description?: string;
+    activeId?: string | null;
+    onActiveChange?: (id: string | null, cell: HeatmapCell<D> | null) => void;
+    onSelect?: (id: string, cell: HeatmapCell<D>) => void;
+    empty?: ReactNode;
+    className?: string;
+    style?: CSSProperties;
+    chartId?: string;
+};
 
 // @public (undocumented)
 export type Id = string | number;
@@ -715,32 +699,29 @@ export interface LineBand<D> {
 export function LineChart<D>(input: LineChartProps<D>): JSX.Element;
 
 // @public (undocumented)
-export interface LineChartProps<D> extends Omit<ChartPassThroughProps<D>, 'aspectRatio'> {
-    band?: LineBand<D>;
-    // (undocumented)
+export type LineChartProps<D> = ChartName & Omit<ChartPassThroughProps<D>, 'aspectRatio'> & {
     data: readonly D[];
-    dataTable?: boolean | DataTableOptions;
-    domain?: readonly [number, number];
-    forecastFrom?: TimeInput;
-    format?: FormatSpec;
-    grid?: boolean;
-    radius?: number;
-    // (undocumented)
+    x: Accessor<D, string | number> | (TimeScaleSpec<D> & {
+        field: Accessor<D, TimeInput>;
+    });
     series: readonly LineSeries<D>[];
-    // (undocumented)
+    band?: LineBand<D>;
+    forecastFrom?: TimeInput;
     target?: number | {
         value: number;
         label?: string;
     };
-    tooltip?: ChartTooltip<D>;
-    x: Accessor<D, string | number> | (TimeScaleSpec<D> & {
-        field: Accessor<D, TimeInput>;
-    });
-    xAxis?: TickSpec | 'none';
-    xAxisFormat?: AxisFormat;
+    domain?: readonly [number, number];
+    format?: FormatSpec;
     yAxis?: TickSpec | 'none';
     yAxisFormat?: AxisFormat;
-}
+    xAxis?: TickSpec | 'none';
+    xAxisFormat?: AxisFormat;
+    grid?: boolean;
+    radius?: number;
+    dataTable?: boolean | DataTableOptions;
+    tooltip?: ChartTooltip<D>;
+};
 
 // @public (undocumented)
 export type LineDots = 'filled' | 'hollow' | 'none';
@@ -877,34 +858,31 @@ export interface RangeMeterProps {
 export function RankedBars<D>(input: RankedBarsProps<D>): JSX.Element;
 
 // @public (undocumented)
-export interface RankedBarsProps<D> extends Omit<ChartPassThroughProps<D>, 'aspectRatio'> {
-    barSize?: number;
-    // (undocumented)
+export type RankedBarsProps<D> = ChartName & Omit<ChartPassThroughProps<D>, 'aspectRatio'> & {
     data: readonly D[];
-    dataTable?: boolean | DataTableOptions;
-    domain?: readonly [number, number];
-    fill?: PerItem<D, Fill>;
-    format?: FormatSpec;
-    id?: Accessor<D, Id>;
-    // (undocumented)
     label: Accessor<D, string>;
-    labelWidth?: number;
-    layout?: 'inline' | 'stacked';
-    limit?: number;
-    meta?: Accessor<D, string>;
-    metaWidth?: number;
-    rowHeight?: number;
-    selectable?: PerItem<D, boolean>;
-    selectedId?: Id | null;
-    selectedTone?: Tone;
-    sort?: 'desc' | 'asc' | 'none';
-    tone?: PerItem<D, Tone>;
-    tooltip?: ChartTooltip<D>;
-    track?: boolean;
-    // (undocumented)
     value: Accessor<D, number>;
+    id?: Accessor<D, Id>;
+    meta?: Accessor<D, string>;
+    layout?: 'inline' | 'stacked';
+    sort?: 'desc' | 'asc' | 'none';
+    limit?: number;
+    format?: FormatSpec;
+    domain?: readonly [number, number];
+    tone?: PerItem<D, Tone>;
+    fill?: PerItem<D, Fill>;
+    selectedId?: Id | null;
+    selectable?: PerItem<D, boolean>;
+    selectedTone?: Tone;
+    rowHeight?: number;
+    barSize?: number;
+    labelWidth?: number;
     valueWidth?: number;
-}
+    metaWidth?: number;
+    track?: boolean;
+    dataTable?: boolean | DataTableOptions;
+    tooltip?: ChartTooltip<D>;
+};
 
 // @public
 export function Region(input: RegionProps): JSX.Element | null;
@@ -962,31 +940,30 @@ export interface RowLabelsProps<D> {
 export function RunwayChart(input: RunwayChartProps): JSX.Element;
 
 // @public
-export interface RunwayChartProps {
-    activeId?: string | null;
-    breaks?: readonly number[];
-    cell?: string | number;
-    chartId?: string;
-    className?: string;
-    dataTable?: boolean | DataTableOptions;
-    description?: string;
+export type RunwayChartProps = ChartName & {
+    rows: readonly RunwayRow[];
     domain: readonly [TimeInput, TimeInput];
-    empty?: ReactNode;
+    now: TimeInput;
+    cell?: string | number;
+    breaks?: readonly number[];
+    tone?: Tone;
+    layout?: 'auto' | 'columns' | 'stacked';
     initialWidth?: number;
     labelWidth?: number;
-    layout?: 'auto' | 'columns' | 'stacked';
-    legend?: boolean;
-    now: TimeInput;
-    onActiveChange?: (id: string | null, row: RunwayRow | null) => void;
-    onSelect?: (id: string, row: RunwayRow) => void;
-    rows: readonly RunwayRow[];
     selectedId?: string | null;
+    onSelect?: (id: string, row: RunwayRow) => void;
+    activeId?: string | null;
+    onActiveChange?: (id: string | null, row: RunwayRow | null) => void;
     status?: (row: RunwayRow, facts: RunwayFacts) => ReactNode;
+    legend?: boolean;
+    description?: string;
+    dataTable?: boolean | DataTableOptions;
+    empty?: ReactNode;
+    className?: string;
     style?: CSSProperties;
+    chartId?: string;
     timeZone?: TimeZone;
-    title?: string;
-    tone?: Tone;
-}
+};
 
 // @public
 export interface RunwayFacts {
@@ -1094,23 +1071,22 @@ export interface StatProps {
 export function StripPlot<D>(input: StripPlotProps<D>): JSX.Element;
 
 // @public (undocumented)
-export interface StripPlotProps<D> extends Omit<ChartPassThroughProps<D>, 'aspectRatio'> {
-    axis?: TickSpec | 'none';
-    axisFormat?: AxisFormat;
-    // (undocumented)
+export type StripPlotProps<D> = ChartName & Omit<ChartPassThroughProps<D>, 'aspectRatio'> & {
     data: readonly D[];
-    dataTable?: boolean | DataTableOptions;
-    domain?: readonly [number, number];
-    format?: FormatSpec;
+    series: readonly StripSeries<D>[];
     id?: Accessor<D, Id>;
     label?: Accessor<D, string>;
-    labelWidth?: number;
-    median?: boolean;
+    format?: FormatSpec;
+    domain?: readonly [number, number];
     radius?: number;
+    median?: boolean;
     rowHeight?: number;
-    series: readonly StripSeries<D>[];
+    labelWidth?: number;
+    axis?: TickSpec | 'none';
+    axisFormat?: AxisFormat;
+    dataTable?: boolean | DataTableOptions;
     tooltip?: ChartTooltip<D>;
-}
+};
 
 // @public (undocumented)
 export interface StripSeries<D> {
@@ -1286,47 +1262,44 @@ export interface ValueLabelProps<D> {
 export function WaffleColumns<D>(input: WaffleColumnsProps<D>): JSX.Element;
 
 // @public (undocumented)
-export interface WaffleColumnsProps<D> extends Omit<ChartPassThroughProps<D>, 'aspectRatio'> {
-    callout?: boolean | ((d: D) => readonly TooltipSegment[]);
-    // (undocumented)
+export type WaffleColumnsProps<D> = ChartName & Omit<ChartPassThroughProps<D>, 'aspectRatio'> & {
     data: readonly D[];
-    dataTable?: boolean | DataTableOptions;
-    format?: FormatSpec;
-    group?: Accessor<D, string>;
-    groupTone?: (group: string, index: number, groups: readonly string[]) => Tone;
-    id?: Accessor<D, Id>;
-    padding?: number;
-    peak?: boolean;
-    tooltip?: ChartTooltip<D>;
-    unit?: number;
-    wide?: number;
     x: Accessor<D, string | number>;
     y: Accessor<D, number>;
-}
+    id?: Accessor<D, Id>;
+    group?: Accessor<D, string>;
+    groupTone?: (group: string, index: number, groups: readonly string[]) => Tone;
+    unit?: number;
+    wide?: number;
+    peak?: boolean;
+    callout?: boolean | ((d: D) => readonly TooltipSegment[]);
+    format?: FormatSpec;
+    padding?: number;
+    dataTable?: boolean | DataTableOptions;
+    tooltip?: ChartTooltip<D>;
+};
 
 // @public (undocumented)
 export function WaterfallChart<S extends WaterfallStep = WaterfallStep>(input: WaterfallChartProps<S>): JSX.Element;
 
 // @public
-export interface WaterfallChartProps<S extends WaterfallStep = WaterfallStep> extends Omit<ChartPassThroughProps<S | WaterfallStart | WaterfallTotal>, 'aspectRatio'> {
+export type WaterfallChartProps<S extends WaterfallStep = WaterfallStep> = ChartName & Omit<ChartPassThroughProps<S | WaterfallStart | WaterfallTotal>, 'aspectRatio'> & {
+    start: WaterfallStart;
+    steps: readonly S[];
+    end?: WaterfallEnd;
+    format?: FormatSpec;
+    stepLabel?: (step: S) => string;
+    startTone?: Tone;
+    endTone?: Tone;
+    domain?: readonly [number, number];
+    rowHeight?: number;
+    barSize?: number;
     axis?: TickSpec | 'none';
     axisFormat?: AxisFormat;
-    barSize?: number;
     connectors?: boolean;
     dataTable?: boolean | DataTableOptions;
-    domain?: readonly [number, number];
-    end?: WaterfallEnd;
-    endTone?: Tone;
-    format?: FormatSpec;
-    rowHeight?: number;
-    // (undocumented)
-    start: WaterfallStart;
-    startTone?: Tone;
-    stepLabel?: (step: S) => string;
-    // (undocumented)
-    steps: readonly S[];
     tooltip?: ChartTooltip<S | WaterfallStart | WaterfallTotal>;
-}
+};
 
 // @public (undocumented)
 export interface WaterfallEnd {

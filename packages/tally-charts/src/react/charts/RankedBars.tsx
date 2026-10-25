@@ -3,7 +3,7 @@ import { resolveAccessor, resolvePerItem } from '../../core/accessor'
 import type { FormatSpec } from '../../core/format'
 import { inferLinearDomain } from '../../core/scale'
 import type { Accessor, Fill, Id, PerItem, Tone } from '../../core/types'
-import { Chart } from '../Chart'
+import { Chart, type ChartName } from '../Chart'
 import { useFormat } from '../ChartsProvider'
 import { type Margin, useChartContext } from '../context'
 import type { DataTableColumn, DataTableSpec } from '../DataTable'
@@ -21,60 +21,61 @@ import {
   withTableOptions,
 } from './shared'
 
-export interface RankedBarsProps<D> extends Omit<ChartPassThroughProps<D>, 'aspectRatio'> {
-  data: readonly D[]
-  label: Accessor<D, string>
-  value: Accessor<D, number>
-  /** Row id passed to onSelect and compared with selectedId. Default: the data index. */
-  id?: Accessor<D, Id>
-  /** Muted text before the value, e.g. "9 jobs". */
-  meta?: Accessor<D, string>
-  /** 'inline': label | bar | value on one line. 'stacked': label and value above a thin bar. Default 'inline'. */
-  layout?: 'inline' | 'stacked'
-  /** By size of the value, ignoring its sign. Default 'desc'. */
-  sort?: 'desc' | 'asc' | 'none'
-  /** Show only the first rows after sorting. */
-  limit?: number
-  /** Default 'number'. */
-  format?: FormatSpec
-  /** Domain of bar lengths. Default: zero to the largest magnitude. */
-  domain?: readonly [number, number]
-  /** Default 'neutral'. A non-neutral tone also colors the value text. */
-  tone?: PerItem<D, Tone>
-  /** Default 'solid'. Use 'hatch' for a plan or reference look. */
-  fill?: PerItem<D, Fill>
-  /** The highlighted row. Hover and focus stay separate (`activeId`). */
-  selectedId?: Id | null
-  /**
-   * False for rows `onSelect` skips, e.g. an "Other" row that can't be a filter. They still take
-   * hover, focus and the tooltip. Default true.
-   */
-  selectable?: PerItem<D, boolean>
-  /** Tone of the selected row's bar and value. Default 'loss'. */
-  selectedTone?: Tone
-  /** Default 40 (inline) or 52 (stacked). */
-  rowHeight?: number
-  /** Default 12 (inline) or 6 (stacked). */
-  barSize?: number
-  /** Inline label column width in px (default 140). In the stacked layout, a max label width. */
-  labelWidth?: number
-  /** Inline value column width in px. Default 72. */
-  valueWidth?: number
-  /** Meta column width in px. Default 64. */
-  metaWidth?: number
-  /** Faint track behind each bar. Default true. */
-  track?: boolean
-  /**
-   * Hidden data table for screen readers: `true`, `false`, or `{ caption, columns }` to set its
-   * caption and rename column headers. Default true.
-   */
-  dataTable?: boolean | DataTableOptions
-  /**
-   * Tooltip on hover and focus, so cut labels stay readable: `true` for the default pill (full
-   * label and value), or a function that renders the content for a point. Default true.
-   */
-  tooltip?: ChartTooltip<D>
-}
+export type RankedBarsProps<D> = ChartName &
+  Omit<ChartPassThroughProps<D>, 'aspectRatio'> & {
+    data: readonly D[]
+    label: Accessor<D, string>
+    value: Accessor<D, number>
+    /** Row id passed to onSelect and compared with selectedId. Default: the data index. */
+    id?: Accessor<D, Id>
+    /** Muted text before the value, e.g. "9 jobs". */
+    meta?: Accessor<D, string>
+    /** 'inline': label | bar | value on one line. 'stacked': label and value above a thin bar. Default 'inline'. */
+    layout?: 'inline' | 'stacked'
+    /** By size of the value, ignoring its sign. Default 'desc'. */
+    sort?: 'desc' | 'asc' | 'none'
+    /** Show only the first rows after sorting. */
+    limit?: number
+    /** Default 'number'. */
+    format?: FormatSpec
+    /** Domain of bar lengths. Default: zero to the largest magnitude. */
+    domain?: readonly [number, number]
+    /** Default 'neutral'. A non-neutral tone also colors the value text. */
+    tone?: PerItem<D, Tone>
+    /** Default 'solid'. Use 'hatch' for a plan or reference look. */
+    fill?: PerItem<D, Fill>
+    /** The highlighted row. Hover and focus stay separate (`activeId`). */
+    selectedId?: Id | null
+    /**
+     * False for rows `onSelect` skips, e.g. an "Other" row that can't be a filter. They still take
+     * hover, focus and the tooltip. Default true.
+     */
+    selectable?: PerItem<D, boolean>
+    /** Tone of the selected row's bar and value. Default 'loss'. */
+    selectedTone?: Tone
+    /** Default 40 (inline) or 52 (stacked). */
+    rowHeight?: number
+    /** Default 12 (inline) or 6 (stacked). */
+    barSize?: number
+    /** Inline label column width in px (default 140). In the stacked layout, a max label width. */
+    labelWidth?: number
+    /** Inline value column width in px. Default 72. */
+    valueWidth?: number
+    /** Meta column width in px. Default 64. */
+    metaWidth?: number
+    /** Faint track behind each bar. Default true. */
+    track?: boolean
+    /**
+     * Hidden data table for screen readers: `true`, `false`, or `{ caption, columns }` to set its
+     * caption and rename column headers. Default true.
+     */
+    dataTable?: boolean | DataTableOptions
+    /**
+     * Tooltip on hover and focus, so cut labels stay readable: `true` for the default pill (full
+     * label and value), or a function that renders the content for a point. Default true.
+     */
+    tooltip?: ChartTooltip<D>
+  }
 
 interface RankedRow<D> {
   key: string

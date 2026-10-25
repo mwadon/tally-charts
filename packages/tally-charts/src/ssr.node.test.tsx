@@ -58,7 +58,11 @@ describe('server rendering', () => {
   })
 
   it('reserves the height with CSS aspect-ratio while measuring', () => {
-    const html = renderToString(<Chart aspectRatio={2}>{null}</Chart>)
+    const html = renderToString(
+      <Chart title="Test chart" aspectRatio={2}>
+        {null}
+      </Chart>,
+    )
     const figure = html.match(/<figure[^>]*>/)?.[0] ?? ''
     expect(figure).toContain('aspect-ratio:2')
     // The 640px-wide server svg must not give the box an automatic min-height in narrow containers.
@@ -69,7 +73,7 @@ describe('server rendering', () => {
 
   it('keeps a fixed height for a fixed width', () => {
     const html = renderToString(
-      <Chart width={400} aspectRatio={2}>
+      <Chart title="Test chart" width={400} aspectRatio={2}>
         {null}
       </Chart>,
     )

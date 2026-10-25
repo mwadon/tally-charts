@@ -10,6 +10,7 @@ function rows(props: ConnectorProps) {
   // Bands a, b, c on y: 30px each. Linear x: 0–100 over 200px.
   return render(
     <Chart
+      title="Test chart"
       {...frame}
       width={200}
       height={90}
@@ -56,6 +57,7 @@ describe('<Connector>', () => {
   it('draws a horizontal line between columns when the band is on x', () => {
     const { container } = render(
       <Chart
+        title="Test chart"
         {...frame}
         width={300}
         height={100}
@@ -74,7 +76,14 @@ describe('<Connector>', () => {
   it('warns and draws nothing without a band scale', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     const { container } = render(
-      <Chart {...frame} width={100} height={100} x={{ domain: [0, 1] }} y={{ domain: [0, 1] }}>
+      <Chart
+        title="Test chart"
+        {...frame}
+        width={100}
+        height={100}
+        x={{ domain: [0, 1] }}
+        y={{ domain: [0, 1] }}
+      >
         <Connector links={[{ at: 0.5, from: 'a', to: 'b' }]} />
       </Chart>,
     )

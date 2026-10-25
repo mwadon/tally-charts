@@ -12,6 +12,7 @@ const weeks = [
 function renderCallout(props: CalloutProps) {
   return render(
     <Chart
+      title="Test chart"
       data={weeks}
       width={200}
       height={120}

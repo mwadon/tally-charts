@@ -205,7 +205,8 @@ const rows = accounts.map((a) => ({
 | `activeId`, `onActiveChange` | | Hovered or keyboard-focused row, controlled or not |
 | `status` | | `(row, facts) => ReactNode` for a custom status: `undefined` keeps the default, `null` shows none, a string is also the table's Status; a row's own `status` wins |
 | `legend` | `true` | |
-| `title`, `description` | | Name and describe the list |
+| `title` or `aria-labelledby` | required | Name the list: text, or the id of the element that names it |
+| `description` | | Describe the list |
 | `dataTable` | `true` | Hidden table: Name, Detail, Runs out, Resets, Projected at reset, Status |
 | `empty` | `'No data'` | Shown for an invalid domain or no rows |
 | `timeZone` | `'utc'` | Zone of the day boundaries and the dates; `'local'` can differ between server and client |
@@ -395,8 +396,18 @@ ZoneMeter's `zones` also takes the plain part of a `thresholds()` result:
 
 ## Accessibility
 
-Every chart is a `figure` named by `title` and described by `description`, with a hidden data
-table. Its plot is one tab stop (`role="application"`, role description "chart"): focus shows
+Every chart is a `figure` named by `title` (or by the element `aria-labelledby` points at) and
+described by `description`, with a hidden data table. TypeScript requires one of the two on
+`Chart` and every high-level chart, the type is `ChartName`; with both, `aria-labelledby` names
+the chart and `title` stays the caption of the data table. Calls from JavaScript that give neither
+still warn in development.
+
+```tsx
+<h2 id="margin-heading">Margin by week</h2>
+<BarChart aria-labelledby="margin-heading" data={weeks} x="week" y="margin" />
+```
+
+ Its plot is one tab stop (`role="application"`, role description "chart"): focus shows
 the first point and its tooltip, ←/→ (and ↑/↓) move, Home and End jump, Enter selects with
 `onSelect`, Escape clears, and each point is announced as "{series}, {n} of {total}, {label}".
 `keyboardHint` translates the instructions read on focus; `keyboardHint=""` turns them off. A

@@ -13,7 +13,10 @@ import type { ChartPoint } from '../types'
  */
 export type ChartTooltip<D> = boolean | ((point: ChartPoint<D>) => ReactNode)
 
-/** `<Chart>` props every high-level chart passes through unchanged. */
+/**
+ * `<Chart>` props every high-level chart passes through unchanged, except the name: add
+ * `ChartName` outside any `Omit` (which would collapse its union).
+ */
 export type ChartPassThroughProps<D> = Pick<
   ChartProps<D>,
   | 'width'
@@ -21,7 +24,6 @@ export type ChartPassThroughProps<D> = Pick<
   | 'height'
   | 'aspectRatio'
   | 'margin'
-  | 'title'
   | 'description'
   | 'keyboardHint'
   | 'activeId'

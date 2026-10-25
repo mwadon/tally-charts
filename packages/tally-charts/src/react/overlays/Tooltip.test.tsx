@@ -23,6 +23,7 @@ function Example({
 }) {
   return (
     <Chart
+      title="Test chart"
       data={data}
       width={300}
       height={120}
