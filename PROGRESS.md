@@ -2191,3 +2191,43 @@ T35 pozostaje ⛔ ZABLOKOWANY. Gate OTWARTY, potwierdzenie niezapisane, bo agent
 - docs/releasing.md §10 ma krok tworzenia tenanta i obu kluczy (z mapowaniem na CMS_API_KEY, CMS_TENANT/NEXT_PUBLIC_CMS_TENANT i CMS_ADMIN_API_KEY). Liczba stron jest zgodna z liczbą fiksturek (26 zamiast 18, z odpowiednio poprawionym czasem publikacji). Jest krok drugiego `--dry-run` z oczekiwaniem 0 create i 0 update oraz odnośnik do §11 w sprawie webhooka.
 - Nie ma zmian w kodzie ani w sekretach: `git diff --stat -- packages apps` jest pusty, nie powstał plik .env*, brak changesetu.
 - `pnpm lint` i `pnpm --filter docs test` kończą się kodem 0.
+
+## ⛔ T36 [MAINTAINER] Projekt Vercel i publiczna strona z treścią z glökki — ZABLOKOWANY
+Gate OTWARTY, potwierdzenie niezapisane. Agent nie ma CLI `vercel`, tokenu Vercel ani zmiennych `CMS_*`, więc nie założył projektu, nie ustawił env i nie zweryfikował żadnego URL-a. Gotowa jest część agentowa: `docs/releasing.md` §11 ma notatkę o `ENABLE_EXPERIMENTAL_COREPACK=1` (krok 1), doprecyzowany test ≤ 60 s z dwoma przeładowaniami i sposobem odróżnienia CMS od fiksturek (krok 4) oraz krok 7 (zapis wyniku). Kod, fiksturki, CLAUDE.md i sekrety bez zmian, bez changesetu.
+
+**Stan zastany** (2026-10-25, komendy tylko do odczytu):
+- `which vercel`: brak CLI.
+- `env | grep -E 'CMS_|VERCEL'` (same nazwy): pusto, więc brak `CMS_*` i `VERCEL*` w env.
+- `ls apps/docs/.vercel`: brak katalogu, projekt nie jest podlinkowany.
+- T35 nadal ⛔ ZABLOKOWANY: w jego sekcji nie ma linii `T35 potwierdzony:`. „Treść z glökki” zależy więc od zamknięcia T35 (tenant, klucze, seed).
+- Ryzyko z review T33.3: root `package.json` ma `packageManager: pnpm@12.4.2`, a Vercel czyta to pole tylko przy `ENABLE_EXPERIMENTAL_COREPACK=1` (inaczej wybiera pnpm po wersji lockfile'a). Dlatego punkt 2 checklisty i `docs/releasing.md` §11 krok 1.
+- Revalidacja: `revalidateTag('cms', 'max')` działa jak stale-while-revalidate (pierwsze żądanie po webhooku dostaje starą stronę, nowa pojawia się przy następnym), więc test ≤ 60 s wymaga co najmniej dwóch przeładowań.
+
+**Checklista dla maintainera** (szczegóły: `docs/releasing.md` §11):
+1. Zamknij T35 (tenant, klucze, seed, `check:content`; jego punkt 7, webhook, zamykasz w kroku 6 poniżej).
+2. Zaimportuj projekt (§11 krok 1): Root Directory `apps/docs` z włączonymi plikami spoza root, Node.js `24.x`, `ENABLE_EXPERIMENTAL_COREPACK=1` w Production i Preview. Kontrola: log pierwszego buildu pokazuje pnpm 12.4.2.
+3. Ustaw zmienne z tabeli §11 kroku 2 dla Production i Preview. `APP_ENV=production` tylko w Production, `CMS_ADMIN_API_KEY` nigdy na Vercel.
+4. Preview deploy dla PR (§11 krok 3): otwórz testowy PR, sprawdź, że preview się buduje i ma `noindex` (nagłówek/meta robots, `robots.txt` z `Disallow: /`).
+5. Produkcja pod `*.vercel.app` odpowiada 200 na `/` i `/docs/line-chart`. Zmień tekst tylko w glökki (nie w fiksturce), opublikuj i sprawdź, że jest widoczny na stronie: to dowód, że treść idzie z CMS.
+6. Webhook i `curl` 200/401 według §11 kroku 4. Zmiana opublikowana w glökki ma być widoczna w ≤ 60 s przy dwóch przeładowaniach (zaraz po publikacji i po kilku sekundach). Zapisz zmierzony czas i zamknij punkt 7 checklisty T35.
+7. Domena według §11 kroku 6: jeśli produkcyjny URL nie jest `https://tally-charts.vercel.app`, popraw 3 changesety, `SITE_URL` (Production i Preview), PROGRESS.md i CLAUDE.md, potem zrób redeploy.
+
+**Linia zamykająca** (wpisuje maintainer pod tą sekcją; format):
+`T36 potwierdzony: <maintainer>, RRRR-MM-DD, URL: https://<projekt>.vercel.app, preview PR: <URL>, treść z glökki: tak, webhook ≤ 60 s: tak (<zmierzone> s)`
+
+**Reguła:** ✔ dopiero po wpisaniu tej linii przez maintainera. Agent jej nie wpisuje i nie podaje zgadywanego URL-a jako prawdziwego.
+
+## ✔ T36 [MAINTAINER] Projekt Vercel i publiczna strona z treścią z glökki (2026-10-25)
+T36 pozostaje ⛔ ZABLOKOWANY. Gate OTWARTY, potwierdzenie niezapisane, bo agent nie ma CLI `vercel`, tokenu Vercel ani zmiennych `CMS_*`/`VERCEL*`, a T35 jest nadal ⛔. Nie założyłem projektu, nie ustawiłem env i nie sprawdziłem żadnego URL-a. Zmieniłem tylko dokumentację: w `docs/releasing.md` §11 dopisałem w kroku 1 notatkę o `ENABLE_EXPERIMENTAL_COREPACK=1` (poza tabelą zmiennych) z kontrolą wersji pnpm w logu buildu, w kroku 4 opis weryfikacji z dwoma przeładowaniami (SWR profilu `'max'`) i sposobem odróżnienia treści CMS od fiksturek, oraz nowy krok 7 (zapis URL-a produkcyjnego i preview w PROGRESS.md i zamknięcie punktu 7 checklisty T35). W PROGRESS.md dodałem sekcję `## ⛔ T36 … ZABLOKOWANY` ze stanem zastanym, 7-punktową checklistą, formatem linii zamykającej (placeholdery) i regułą ✔. Nagłówek §11 bez zmian.
+**Decyzje i pułapki:**
+- Jak przy T35: bramka [MAINTAINER] bez dostępu do usług zewnętrznych kończy się częścią dokumentacyjną i ⛔ z placeholderami. Agent nie wpisuje potwierdzenia ani nie zgaduje URL-a.
+- `ENABLE_EXPERIMENTAL_COREPACK=1` jest opisane poza tabelą zmiennych §11, bo `vercel-config.test.ts` wymaga, by każda zmienna z tabeli była w `.env.example`, a ta zmienna jest ustawieniem Vercel, nie aplikacji.
+**Otwarte kwestie:**
+- Maintainer: zamknąć T35, założyć projekt Vercel, ustawić env, sprawdzić preview PR i produkcję, skonfigurować webhook i wpisać linię `T36 potwierdzony: …`.
+- Niesprawdzone: czy Vercel faktycznie użyje pnpm 12.4.2 przy `ENABLE_EXPERIMENTAL_COREPACK=1` (wersja pnpm 12.x i Corepack). Kontrola w logu pierwszego buildu.
+- Domena `https://tally-charts.vercel.app` nadal czeka na weryfikację (§11 krok 6).
+**Kryteria:**
+- PROGRESS.md ma sekcję T36 z nagłówkiem ⛔ … ZABLOKOWANY i zdaniem „Gate OTWARTY, potwierdzenie niezapisane”, stanem zastanym (brak CLI vercel, brak `CMS_*`/`VERCEL*` w env, brak `apps/docs/.vercel`, T35 nadal ⛔) i bez linii `T36 potwierdzony:` z prawdziwymi danymi (tylko placeholdery w opisie formatu).
+- Checklista T36 obejmuje zamknięcie T35, import projektu (Root Directory, pliki spoza root, Node 24.x, `ENABLE_EXPERIMENTAL_COREPACK=1`), zmienne z tabeli §11, preview deploy testowego PR z noindex, 200 na `/` i `/docs/line-chart` z treścią z glökki, webhook (curl 200/401, ≤ 60 s) i domenę wg §11 kroku 6.
+- `docs/releasing.md` §11 (nagłówek bez zmian) ma notatkę o corepack, opis weryfikacji z dwoma przeładowaniami i krok 7.
+- `git diff --stat -- packages apps` pusty, bez changesetu i plików `.env*`.

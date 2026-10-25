@@ -262,6 +262,11 @@ command); it holds no secret and no value of any variable.
      `pnpm --filter tally-charts build && pnpm --filter docs build` (the library goes first, because
      the docs resolve `tally-charts` to its `dist`). If a field shows "Override" turned on, turn it
      off.
+   - **pnpm version**: set `ENABLE_EXPERIMENTAL_COREPACK=1` in Production and Preview (Settings →
+     Environment Variables). Without it Vercel picks the pnpm version from the lockfile version
+     and ignores `packageManager` (`pnpm@12.4.2` in the root `package.json`), so
+     `--frozen-lockfile` can fail or install with a different pnpm than CI. Check: the build log of
+     the first deploy shows pnpm 12.4.2.
 2. **Environment variables** (Settings → Environment Variables). Names and meaning:
    `apps/docs/.env.example`.
 
@@ -295,7 +300,16 @@ command); it holds no secret and no value of any variable.
    ```
 
    Then change a text on a page in glökki, publish it and check that the change is visible on the
-   production site within 60 seconds.
+   production site within 60 seconds. The webhook calls `revalidateTag('cms', 'max')`, which works
+   as stale-while-revalidate: the first request after the webhook still gets the old page and
+   starts a refresh in the background, the new content shows on the next request. So reload the
+   page right after publishing, wait a few seconds and reload again; the change must be visible
+   at the latest 60 s after publishing (note the measured time for step 7).
+
+   To make sure the site reads the CMS and not the JSON fixtures, change a text only in glökki
+   (not in `apps/docs/content/*.json`), for example add a word to a heading, publish and see it
+   on the site. A change that exists only in the CMS can't come from the fixtures. Without
+   `CMS_BASE_URL` the site always shows the fixtures.
 5. **Draft preview**: in glökki set the preview URL to `https://<domain>/preview?slug=<slug>` (the
    slug `home` opens `/`, any other `/docs/<slug>`), sending `PREVIEW_SECRET` in
    `Authorization: Bearer`, in `x-preview-secret` or as `?secret=`. A wrong secret answers 401, an
@@ -307,3 +321,6 @@ command); it holds no secret and no value of any variable.
    - set `SITE_URL` to the new address in Production and Preview,
    - update the address in `PROGRESS.md` and `CLAUDE.md` where it is mentioned,
    - redeploy the project so the new `SITE_URL` takes effect.
+7. **Record the result**: write the production URL and the URL of an example preview deploy (a
+   test PR) in `PROGRESS.md`, as the closing line of T36 (format in its section), and close point 7
+   of the T35 checklist (the webhook) in `PROGRESS.md` with the same measured time.
