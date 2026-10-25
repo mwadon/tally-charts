@@ -443,3 +443,51 @@ Dodałem dokumentację granicy semver, bez zmian w kodzie biblioteki. Utworzyłe
 - `grep -rn "_ch-swatch-color" apps/storybook/stories apps/storybook/.storybook` zwraca tylko miejsca, przy których (linia wyżej lub w tym samym bloku) jest komentarz, że to prywatna zmienna bez publicznego tokenu w 1.0 (Performance.stories.tsx i preview.css)
 - Istnieje changeset `.changeset/*.md` z `'tally-charts': patch` opisujący dokumentację stabilności; PROGRESS.md ma sekcję T12 z decyzjami
 - Przechodzą `pnpm lint`, `pnpm typecheck`, `pnpm test` (w tym `surface.test.ts` czytający tabelę tokenów z README) oraz po `pnpm build` `pnpm --filter tally-charts api:check` bez zmian w `packages/tally-charts/api`
+
+## T13 E2E widoczności małych znaczników w zagnieżdżonym dark theme i backlog G (F19)
+**Decyzje:**
+- D1. Story `primitives-small-pieces--nested-dark` (`SmallPieces.stories.tsx`, `parameters.theme: 'light'`): karta `.card` z `data-ch-theme="dark"` i `data-testid="nested-dark"` (320 px) z ShareBar (accent, warn, gain) i ZoneMeter (`inpZones`, wartość 350 z 1000). Poza STORIES, THEMELESS i VIEWPORTS, więc bez PNG.
+- D2. `contrastOf` przeniesiona do `e2e/stories.ts` i wyeksportowana. `stories.spec.ts` ją importuje, bez zmiany zachowania.
+- D3. `e2e/nested-theme.spec.ts`: `measure(page)` (inline w `page.evaluate`) zwraca computed `backgroundColor`, iloczyn `opacity` przodków, `visibility`, `display` i wymiary bbox dla markera i każdego segmentu, plus tło karty i kolor/motyw `.sb-canvas`. Próg 3:1 (WCAG 1.4.11) wobec tła karty. Tony w story spełniły próg w dark, więc żaden nie wymagał zmiany.
+- D4. Siatka bezpieczeństwa trwale w teście: `addStyleTag` odtwarza bug z 7de9111 (`:root { --ch-zone-marker: var(--ch-ink) }`), segment biorący kolor karty, oraz marker `display:none`, `visibility:hidden`, `background:transparent`, `opacity:0`, `width:1px`. Każdy wariant musi dać niepustą listę problemów.
+- D5. Asercje w testach siatki są zawężone do sprawdzanego problemu (`toContainEqual`, filtr `share-segment`), bo mutacja w źródle dokłada problem markera i test siatki nie może od niej zależeć.
+
+**Weryfikacja mutacją w źródle** (`packages/tally-charts/src/theme/theme.css`, po każdej zmianie `pnpm build`, `lsof -i :6007` puste, `pnpm --filter storybook-app exec playwright test nested-theme`; Storybook buduje się w webServerze przy każdym uruchomieniu):
+- Mutacja 1: `--ch-zone-marker: var(--ch-ink);` w bloku `:root` (Theme-independent tokens). Test „the ZoneMeter marker and every ShareBar segment stay visible on the nested dark card” CZERWONY: `zone-meter-marker: contrast 1.01:1 of rgb(17, 17, 20) on rgb(18, 18, 21), needs 3:1`.
+- Mutacja 2: `display: none;` w regule `[data-ch-part="zone-meter-marker"]`. Ten sam test CZERWONY: `zone-meter-marker: display is none`, `zone-meter-marker: 0px wide, needs at least 2px`, `zone-meter-marker: no height`.
+- Po revercie: `git diff packages/` pusty, `nested-theme` 6/6 zielone.
+
+## ✔ T13 E2E widoczności małych znaczników w zagnieżdżonym dark theme i backlog G (F19) (2026-10-25)
+Dodałem story `primitives-small-pieces--nested-dark` (jasna strona, ciemna karta z ShareBar i ZoneMeter, poza STORIES, bez PNG) oraz `e2e/nested-theme.spec.ts` (6 testów): sanity (jasna strona, ciemna karta), widoczność markera i segmentów z computed style (bbox ≥2 px, display, visibility, opacity, alfa, kontrast ≥3:1 wobec karty), siatka bezpieczeństwa z `addStyleTag` (bug 7de9111, segment w kolorze karty, ukryty/przezroczysty/zwężony marker) i axe. `contrastOf` jest teraz w `e2e/stories.ts`. Mutacje w źródle (wyniki wyżej) dały czerwony test, po revercie zielony. Bramki: lint (tylko wcześniejsze ostrzeżenia CSS), typecheck, build, `pnpm test:e2e` 314/314, `git status` bez nowych PNG. Brak zmian w `packages/tally-charts`, więc bez changesetu.
+
+### Backlog 1.0.x (testy, kubełek G)
+Źródło: `docs/superpowers/specs/2026-10-25-tally-charts-1.0-candidates.md`, sekcja G. Pozycji e2e computed-style (małe znaczniki w zagnieżdżonym dark) nie ma, bo zrobił ją T13.
+- [ ] band: reversed range z paddingiem i case „like d3”
+- [ ] `niceTimeDomain`: przypadki local i null (obecne testy: `src/core/time.test.ts`, `date.test.ts`)
+- [ ] asercje w `types.test`
+- [ ] tooltip `true`/`false`
+- [ ] throw `useRegisterPoints` poza wykresem
+- [ ] check „selected part is rendered”
+- Runway core:
+  - [ ] `runsOutAt` przed domeną i bez `resetAt`
+  - [ ] `statusLines` z forecastem bez resetu
+  - [x] Escape i `pointerLeave` (zrobione w T11: `RunwayChart.test.tsx` „Escape clears the active row”, „ignores Escape when nothing is active”, pointerleave/touch)
+  - [ ] nieobsłużone klawisze (brak testu w `RunwayChart.test.tsx`)
+  - [ ] stroke hatch w Region
+  - [ ] shadowing `warn` w `normalizeRow`
+- [ ] forced-colors: testy sprawdzają selektory, nie wartości
+- ComparisonBars:
+  - [ ] resize re-layout
+  - [ ] user margin
+  - [ ] label po lewej od wartości
+- Hygiene:
+  - [ ] Escape listener vs keyboard source
+  - [ ] rest-on-tooltip settle
+  - [ ] dokładny string stylu RowLabels
+  - [ ] standalone Legend pod seq-tone
+  - [ ] waffle `margin.top` override
+  - [ ] flake pill `boundingBox`
+  - [ ] DotHistogram ring handover
+  - [ ] dataTable unlisted columns
+  - [ ] liczniki runów contrast-gate
+  - [ ] ~20 baseline'ów sprawdzonych tylko przez implementera

@@ -130,6 +130,30 @@ function EdgeCasesStory() {
   )
 }
 
+// A dark card nested in a light page, so the pieces resolve their tokens under the inner theme.
+// Not in STORIES: e2e/nested-theme.spec.ts measures the marker and segments instead of comparing a
+// screenshot (a 3px marker is too small for maxDiffPixelRatio to notice).
+function NestedDarkStory() {
+  return (
+    <div
+      className="card piece-grid"
+      data-ch-theme="dark"
+      data-testid="nested-dark"
+      style={{ width: 320 }}
+    >
+      <ShareBar
+        label="Where visitors come from"
+        segments={[
+          { label: 'Search', value: 60, tone: 'accent' },
+          { label: 'Direct', value: 30, tone: 'warn' },
+          { label: 'Social', value: 10, tone: 'gain' },
+        ]}
+      />
+      <ZoneMeter label="Response time" value={350} zones={inpZones} max={1000} />
+    </div>
+  )
+}
+
 const meta = {
   title: 'Primitives/Small pieces',
   component: SmallPieces,
@@ -141,3 +165,8 @@ type Story = StoryObj<typeof meta>
 export const Default: Story = {}
 
 export const EdgeCases: Story = { render: () => <EdgeCasesStory /> }
+
+export const NestedDark: Story = {
+  parameters: { theme: 'light' },
+  render: () => <NestedDarkStory />,
+}
