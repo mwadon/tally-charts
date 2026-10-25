@@ -1,0 +1,25 @@
+{
+  "versionId": "fixture-partial-v1",
+  "version": 1,
+  "locale": "en",
+  "publishedAt": "2026-10-25T00:00:00.000Z",
+  "codeInjection": {},
+  "layout": { "key": "default", "header": null, "footer": null },
+  "pageId": "fixture-partial",
+  "title": "Partial",
+  "slug": "partial",
+  "seo": {},
+  "componentTree": [
+    {
+      "id": "partial-1",
+      "type": "heading",
+      "props": { "text": "Only LineChart", "level": "2", "anchor": "only-line-chart" }
+    },
+    {
+      "id": "partial-2",
+      "type": "chart-example",
+      "props": { "exampleId": "line-chart/revenue-forecast", "defaultView": "preview" }
+    },
+    { "id": "partial-3", "type": "props-table", "props": { "symbol": "LineChart" } }
+  ]
+}

@@ -1,0 +1,185 @@
+{
+  "versionId": "fixture-runway-chart-v1",
+  "version": 1,
+  "locale": "en",
+  "publishedAt": "2026-10-25T00:00:00.000Z",
+  "codeInjection": {},
+  "layout": {
+    "key": "default",
+    "header": null,
+    "footer": null
+  },
+  "pageId": "fixture-runway-chart",
+  "title": "RunwayChart",
+  "slug": "runway-chart",
+  "seo": {
+    "metaTitle": "RunwayChart · tally-charts",
+    "metaDescription": "Which allowances run out before they reset: a strip of shaded time cells per row, with the run-out moment, the locked time and the reset."
+  },
+  "componentTree": [
+    {
+      "id": "n1",
+      "type": "prose",
+      "props": {
+        "markdown": "Which allowances will run out before they reset. Every row is a strip of time cells shaded by the projected use, with a dot where the allowance runs out and hatching until it resets."
+      }
+    },
+    {
+      "id": "n2",
+      "type": "heading",
+      "props": {
+        "text": "When to use it",
+        "level": "2",
+        "anchor": "when-to-use"
+      }
+    },
+    {
+      "id": "n3",
+      "type": "prose",
+      "props": {
+        "markdown": "Use `RunwayChart` for limits that reset: API quotas, GPU hours, a usage cap per seat. Each row has its own window, a projection of cumulative use, and optionally when it runs out and when it resets. The chart shades each cell by the projected share (`breaks`, `tone`), marks the moment the allowance runs out, hatches the locked time until the reset, and draws a Now line.\n\nTo see how one allowance moved over time, use [LineChart](/docs/line-chart) with a time axis (see [time scales](/docs/time-scales)): it plots one value per moment, while the runway compares many allowances on the same dates."
+      }
+    },
+    {
+      "id": "n4",
+      "type": "heading",
+      "props": {
+        "text": "Import",
+        "level": "2",
+        "anchor": "install"
+      }
+    },
+    {
+      "id": "n5",
+      "type": "code-block",
+      "props": {
+        "code": "npm i tally-charts",
+        "lang": "bash"
+      }
+    },
+    {
+      "id": "n6",
+      "type": "code-block",
+      "props": {
+        "code": "import { RunwayChart, runwayForecast } from 'tally-charts'\nimport 'tally-charts/theme.css'",
+        "lang": "tsx",
+        "filename": "app/quotas.tsx"
+      }
+    },
+    {
+      "id": "n7",
+      "type": "heading",
+      "props": {
+        "text": "Examples",
+        "level": "2",
+        "anchor": "examples"
+      }
+    },
+    {
+      "id": "n8",
+      "type": "prose",
+      "props": {
+        "markdown": "Rows are built by spreading `runwayForecast` over each window: it adds the `projection`, `runsOutAt` and `resetAt`. The `now` and the windows are fixed ISO strings, so the page renders the same on every request. A row with `disconnected` is muted and has no forecast. `runwayForecast` is imported from `tally-charts/core`, whose functions a server component can call, and every prop is serializable."
+      }
+    },
+    {
+      "id": "n9",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "runway-chart/api-quotas",
+        "defaultView": "preview"
+      }
+    },
+    {
+      "id": "n10",
+      "type": "prose",
+      "props": {
+        "markdown": "`activeId` is the highlighted row, and `onActiveChange` reports hover and keyboard changes. Here both live in `useState`, so the buttons outside the chart move the highlight too, and `onSelect` with `selectedId` makes the rows a listbox. Functions and state make this a client component."
+      }
+    },
+    {
+      "id": "n11",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "runway-chart/gpu-budgets",
+        "defaultView": "preview"
+      }
+    },
+    {
+      "id": "n12",
+      "type": "heading",
+      "props": {
+        "text": "Props",
+        "level": "2",
+        "anchor": "props"
+      }
+    },
+    {
+      "id": "n13",
+      "type": "props-table",
+      "props": {
+        "symbol": "RunwayChart"
+      }
+    },
+    {
+      "id": "n14",
+      "type": "heading",
+      "props": {
+        "text": "runwayForecast",
+        "level": "2",
+        "anchor": "runway-forecast"
+      }
+    },
+    {
+      "id": "n15",
+      "type": "prose",
+      "props": {
+        "markdown": "`runwayForecast` turns one window into the fields of a row. Spread the result into the row next to the `id` and `label`: `{ id, label, ...runwayForecast({ used, windowStart, resetAt, now }) }`. It returns `projection`, `runsOutAt` (only when the allowance runs out before `resetAt`), `resetAt` and the numbers `usedAtReset`, `paceRatio`, `elapsed` and `lockedMs`. The pace is the observed one unless you pass `pace`, a share per day."
+      }
+    },
+    {
+      "id": "n16",
+      "type": "props-table",
+      "props": {
+        "symbol": "runwayForecast"
+      }
+    },
+    {
+      "id": "n17",
+      "type": "heading",
+      "props": {
+        "text": "Keyboard and screen readers",
+        "level": "2",
+        "anchor": "keyboard"
+      }
+    },
+    {
+      "id": "n18",
+      "type": "prose",
+      "props": {
+        "markdown": "Without `onSelect` the rows are a plain `list` of `listitem`s: there is no tab stop and no keys. With `onSelect` the rows container is a `listbox` and one tab stop. The focused row is `aria-activedescendant`, and real focus stays on the container. Tabbing in resumes at the existing cursor (set by earlier keys or a click), else at the selected row, else at the first. Hovering a row highlights it but does not move the cursor; pressing a row moves the cursor there."
+      }
+    },
+    {
+      "id": "n19",
+      "type": "prose",
+      "props": {
+        "markdown": "`↑` and `↓` move one row, `Home` and `End` go to the first and last, and `PageUp` and `PageDown` move five. `Enter` or `Space` selects the focused row. `Esc` clears the active row, and only when one is active, so an enclosing dialog still closes. Keys with `Alt`, `Ctrl` or `Cmd` pass through. The cursor follows its row by id when `rows` change, and falls back to the first row if that row is gone."
+      }
+    },
+    {
+      "id": "n20",
+      "type": "prose",
+      "props": {
+        "markdown": "Screen readers get a `list` (or, with `onSelect`, a `listbox`) named by `title` or `aria-labelledby` and described by `description`. Each row is announced by its label followed by its status, such as “Work account Runs out Fri 03:24 Resets Mon 09:21”; with `onSelect` each is an `option` with `aria-selected`, named from those two parts. The strips, the time axis and the legend swatches are hidden from assistive technology, and icons are hidden too. A visually hidden data table has the name, detail text, run-out, reset, projected share at reset and status of every row (`dataTable` renames it or turns it off). A custom `status` replaces the text that is read, and `null` leaves the row with its label only. A disconnected row reads “Disconnected”."
+      }
+    },
+    {
+      "id": "n21",
+      "type": "prose",
+      "props": {
+        "markdown": "The full model is in the [accessibility guide](https://github.com/mwadon/tally-charts/blob/main/docs/a11y.md)."
+      }
+    }
+  ]
+}

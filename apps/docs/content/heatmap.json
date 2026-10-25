@@ -1,0 +1,169 @@
+{
+  "versionId": "fixture-heatmap-v1",
+  "version": 1,
+  "locale": "en",
+  "publishedAt": "2026-10-25T00:00:00.000Z",
+  "codeInjection": {},
+  "layout": {
+    "key": "default",
+    "header": null,
+    "footer": null
+  },
+  "pageId": "fixture-heatmap",
+  "title": "Heatmap",
+  "slug": "heatmap",
+  "seo": {
+    "metaTitle": "Heatmap · tally-charts",
+    "metaDescription": "Two categories and one value as a grid of shaded cells, with bins you choose, a legend and row and column totals."
+  },
+  "componentTree": [
+    {
+      "id": "n1",
+      "type": "prose",
+      "props": {
+        "markdown": "Two categories and one value, as a grid of shaded cells. Rows and columns are the categories, and the shade of a cell is the bin its value falls in, so the biggest numbers stand out at a glance."
+      }
+    },
+    {
+      "id": "n2",
+      "type": "heading",
+      "props": {
+        "text": "When to use it",
+        "level": "2",
+        "anchor": "when-to-use"
+      }
+    },
+    {
+      "id": "n3",
+      "type": "prose",
+      "props": {
+        "markdown": "Use `Heatmap` when every combination of two categories has a value and you want to see where the high ones cluster: cost by branch and cause, pages by team and shift, tickets by day and category. You pick the bins with `breaks` (1 to 4 edges give 2 to 5 bins), and each cell keeps its number as text, so the shade never carries the value alone. With `totals` (on by default) a row and a column of sums frame the grid.\n\nThe shades come from the same bins as the [thresholds](/docs/thresholds) page describes, and a `Legend` can show them next to other charts. If you only have one category, use [BarChart](/docs/bar-chart): bars compare a single row of values more precisely than shades."
+      }
+    },
+    {
+      "id": "n4",
+      "type": "heading",
+      "props": {
+        "text": "Import",
+        "level": "2",
+        "anchor": "install"
+      }
+    },
+    {
+      "id": "n5",
+      "type": "code-block",
+      "props": {
+        "code": "npm i tally-charts",
+        "lang": "bash"
+      }
+    },
+    {
+      "id": "n6",
+      "type": "code-block",
+      "props": {
+        "code": "import { Heatmap } from 'tally-charts'\nimport 'tally-charts/theme.css'",
+        "lang": "tsx",
+        "filename": "app/pages.tsx"
+      }
+    },
+    {
+      "id": "n7",
+      "type": "heading",
+      "props": {
+        "text": "Examples",
+        "level": "2",
+        "anchor": "examples"
+      }
+    },
+    {
+      "id": "n8",
+      "type": "prose",
+      "props": {
+        "markdown": "Data in long format, one item per cell. `rows` and `columns` fix the order, `rowLabel` names the row header column, and `binLabels` names the four bins. Every prop is serializable, so this is a server component."
+      }
+    },
+    {
+      "id": "n9",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "heatmap/on-call-pages",
+        "defaultView": "preview"
+      }
+    },
+    {
+      "id": "n10",
+      "type": "prose",
+      "props": {
+        "markdown": "Conversion rates do not add up, so `totals={false}` drops the sums. A missing cell (Events has no Starter trials) reads “No data” and is drawn as a dashed empty cell. `onSelect` and the selected cell in state make this a client component."
+      }
+    },
+    {
+      "id": "n11",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "heatmap/trial-conversion",
+        "defaultView": "preview"
+      }
+    },
+    {
+      "id": "n12",
+      "type": "heading",
+      "props": {
+        "text": "Props",
+        "level": "2",
+        "anchor": "props"
+      }
+    },
+    {
+      "id": "n13",
+      "type": "props-table",
+      "props": {
+        "symbol": "Heatmap"
+      }
+    },
+    {
+      "id": "n14",
+      "type": "heading",
+      "props": {
+        "text": "Keyboard and screen readers",
+        "level": "2",
+        "anchor": "keyboard"
+      }
+    },
+    {
+      "id": "n15",
+      "type": "prose",
+      "props": {
+        "markdown": "`Heatmap` is an ARIA `grid`, not a `Chart`, with one tab stop: a roving `tabindex` that sits on the first data cell until another cell has had focus. Arrow keys move one cell, `Home` and `End` go to the start and end of the row, `Ctrl+Home` and `Ctrl+End` (or `Cmd`) to the first and last cell of the grid, and `PageUp` and `PageDown` move five rows. `Enter` or `Space` selects a data cell when the heatmap has `onSelect`. `Esc` clears the active cell, and only when one is active."
+      }
+    },
+    {
+      "id": "n16",
+      "type": "prose",
+      "props": {
+        "markdown": "The row of column totals and the column of row totals are cells too: arrow keys reach them, and focusing one clears the active cell. `Enter` does nothing on a total. Turn them off with `totals={false}`."
+      }
+    },
+    {
+      "id": "n17",
+      "type": "prose",
+      "props": {
+        "markdown": "In a container too narrow for the columns, the grid scrolls sideways inside a `role=\"group\"` named after the title (“Heatmap” without one). That group becomes a tab stop of its own so that keyboard users can scroll it, which makes two tab stops: the scroll region first, then the grid. The page itself does not scroll sideways."
+      }
+    },
+    {
+      "id": "n18",
+      "type": "prose",
+      "props": {
+        "markdown": "Screen readers get a `grid` named by `title` (or `aria-labelledby`) and described by `description`. The first row holds the column headers: the corner, named by `rowLabel` (by default the `row` field in sentence case), the column names and, with `totals`, a “Total” header (`totalLabel`). With `totals`, the next row holds the column totals, headed by `totalLabel`, and ends with the grand total. Every data row starts with its row header and, with `totals`, ends with its total. A cell reads as its value with its row and column header, such as “Dallas, Labor, $14.8K”, and a missing value reads “No data”."
+      }
+    },
+    {
+      "id": "n19",
+      "type": "prose",
+      "props": {
+        "markdown": "The full model is in the [accessibility guide](https://github.com/mwadon/tally-charts/blob/main/docs/a11y.md)."
+      }
+    }
+  ]
+}

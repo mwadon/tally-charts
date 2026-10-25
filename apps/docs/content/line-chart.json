@@ -84,6 +84,21 @@
       }
     },
     {
+      "id": "n13",
+      "type": "prose",
+      "props": {
+        "markdown": "`underlay` takes marks that sit under the lines, such as an `<Area>` on a time axis. The chart draws in a fixed order: the grid first, then the `underlay`, then the `target` and `band`, then the series, then the axes, and last your `children`. So an `underlay` is above the grid and under every line, and `children` stay above the lines. Here last year's orders are a soft area behind this year's line. The `underlay` is a plain element, so every prop of this chart is still serializable."
+      }
+    },
+    {
+      "id": "n14",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "line-chart/orders-last-year",
+        "defaultView": "preview"
+      }
+    },
+    {
       "id": "n9",
       "type": "heading",
       "props": {
@@ -112,7 +127,28 @@
       "id": "n12",
       "type": "prose",
       "props": {
-        "markdown": "The chart is a single tab stop. Arrow keys move between points, `Home` and `End` jump to the ends, and `Esc` hides the tooltip. Screen readers get the chart title and description, an announcement for each point, and a hidden data table with every value. The full notes are in the [accessibility guide](https://github.com/mwadon/tally-charts/blob/main/docs/a11y.md)."
+        "markdown": "`LineChart` is built on `Chart`, so it follows the same keyboard model as the other charts: it is a single tab stop, and tabbing in shows the first point with its tooltip and announces it. A click that focuses the chart does not. `←` and `→` (and `↑` and `↓`) move to the previous or next point, and `Home` and `End` jump to the first and last. `Enter` or `Space` selects the active point when the chart has `onSelect`, but only a point that can be selected (a point with `selectable: false` never promises `Enter`). `Esc` clears the active point; it is only consumed when a point is active, so an enclosing dialog still closes."
+      }
+    },
+    {
+      "id": "n15",
+      "type": "prose",
+      "props": {
+        "markdown": "The widget’s description ends with a keyboard hint (“Use arrow keys to move between points, Home and End for first and last, Escape to clear.”, plus “Press Enter to select.” with `onSelect`). `keyboardHint` replaces it, for example to translate it, and `keyboardHint=\"\"` turns it off."
+      }
+    },
+    {
+      "id": "n16",
+      "type": "prose",
+      "props": {
+        "markdown": "Screen readers get the chart title and description, then an announcement for each point the keyboard moves to: the position, the x and each series’ value, such as “9 of 9, Dec, 36.0% on the current path, 37.6% with changes”. A visually hidden data table follows the chart with every value, and `dataTable` renames its caption and headers or turns it off. The `underlay` is drawing only: it is hidden from assistive technology like the rest of the SVG, so put what it shows in the `description` or the data, as the example does with last year’s orders."
+      }
+    },
+    {
+      "id": "n17",
+      "type": "prose",
+      "props": {
+        "markdown": "The full model is in the [accessibility guide](https://github.com/mwadon/tally-charts/blob/main/docs/a11y.md)."
       }
     }
   ]

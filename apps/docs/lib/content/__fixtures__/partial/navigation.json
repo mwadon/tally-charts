@@ -1,0 +1,8 @@
+{
+  "groups": [
+    {
+      "label": "Start",
+      "items": [{ "label": "Partial", "slug": "partial" }]
+    }
+  ]
+}

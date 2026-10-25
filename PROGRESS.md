@@ -1773,3 +1773,28 @@ Poprawiłem uwagi z review. W PROGRESS.md jest teraz jedna sekcja `## ✔ T30.1`
 - Po `pnpm build` `pnpm --filter docs check:content` kończy się kodem 0 i wypisuje `API coverage: 49/52`; brakują dokładnie Heatmap, RunwayChart i runwayForecast.
 - pnpm --filter docs test, pnpm --filter docs typecheck, pnpm lint, pnpm --filter docs build i pnpm --filter docs test:e2e (darwin, bez --update-snapshots, port 3100 wolny) kończą się kodem 0; `git diff --stat -- packages apps/storybook apps/docs/e2e/__screenshots__` jest pusty.
 - PROGRESS.md ma sekcję T30.1 z decyzjami (rscSafe, „Props of”, różnice wobec reference/02, 06 i thresholds, pokrycie 46→49/52).
+
+## ✔ T30.2 Strony line-chart (underlay), heatmap i runway-chart (2026-10-25)
+Rozbudowałem stronę LineChart o przykład `underlay` i pełną sekcję klawiatury, dodałem strony Heatmap i RunwayChart (po 2 przykłady) i domknąłem pokrycie API: `check:content` daje `API coverage: 52/52`, także z `--require-coverage`. Zmiany zostają w drzewie roboczym, bez commitów i bez changesetu (packages bez zmian).
+
+- **Przykłady:**
+  - `line-chart/orders-last-year` (oś czasu, `underlay={<Area … tone="neutral" />}` z zeszłorocznymi zamówieniami pod linią tego roku, rscSafe: true). 12 tygodni, 1210→1695, 19% ponad ten sam tydzień rok wcześniej (1420).
+  - `heatmap/on-call-pages` (5 zespołów × 4 zmiany, `rows`, `columns`, `rowLabel`, `binLabels`, rscSafe: true). 155 wywołań, wieczór 57, Platform wieczorem 21.
+  - `heatmap/trial-conversion` (kanały × plany w %, `totals={false}`, brakująca komórka, `tone="accent"`, `onSelect` + stan, 'use client', rscSafe: false). Maks. 18,3% (Events, Enterprise).
+  - `runway-chart/api-quotas` (stałe `now` i okna ISO, wiersze przez `...runwayForecast`, wiersz `disconnected`, rscSafe: true). 3 z 5 kluczy kończą limit, pierwszy Reports export w środę 18:53 i zablokowany 59 h.
+  - `runway-chart/gpu-budgets` (`activeId` + `onActiveChange` + `selectedId` + `onSelect` w `useState`, przyciski Previous/Next/Clear, tekst `Active: …` poza wykresem, 'use client', rscSafe: false).
+- **Decyzje:**
+  - rscSafe: `runwayForecast` z głównego entry jest referencją klientową i `next build` pada („Attempted to call runwayForecast() from the server”), więc `api-quotas` importuje go z `tally-charts/core` i zostaje rscSafe: true (Date w propsach przechodzi przez granicę RSC). Underlay `<Area>` jest zwykłym elementem, więc `orders-last-year` też jest rscSafe: true.
+  - `themeSuite` dostał opcjonalne `chartRole` (domyślnie `application`); `chart.locator('svg')` sprawdza się tylko dla `application`. Heatmap używa `grid`, RunwayChart `list`.
+  - `render.test.tsx` i `ssr.test.tsx` dopuszczają brak `<svg>` także dla `heatmap/` (Heatmap to HTML i CSS, jak małe elementy). To jedyna zmiana w testach przykładów, wbrew założeniu planu, że przejdą bez zmian.
+  - `line-chart.spec.ts`: przyciski Preview/Code zawężone do pierwszej karty (`.chart-example`), bo drugi chart-example łamie strict mode; asercje `expect` bez zmian, przykład underlay stoi po revenue-forecast. Nowy test sprawdza `application` o nazwie z title przykładu.
+  - W Heatmap nazwa gridcell to sam tekst komórki („21”); „Dallas, Labor, $14.8K” to odczyt czytnika przez nagłówki, więc e2e sprawdza komórkę w wierszu z nagłówkiem, a nie w nazwie. Grupa przewijana ma `exact: true`, bo „View of …” przełącznika też pasuje do nazwy.
+  - `lib/content/__fixtures__/partial` (navigation + jedna strona z samym LineChart) służy testom exit 1 dla `--require-coverage` i `CHECK_CONTENT_REQUIRE_COVERAGE=1`; test na `content/` oczekuje `52/52`, braku `no PropsTable for` i exit 0, jest też osobny test `--require-coverage` na `content/` z exit 0.
+  - `fixtures.test.ts` oczekuje 22 stron w kolejności …, line-chart, heatmap, runway-chart, composition, … Strona runway ma dodatkowy H2 „runwayForecast” z `props-table` (region „Parameters of runwayForecast”).
+- **Różnice danych:** Heatmap: zespoły × zmiany (liczba wywołań) i kanały × plany (% konwersji) zamiast oddział × przyczyna w $ (reference/05) i dzień × kategoria (thresholds/heatmap-legend). Runway: klucze API i budżety GPU z innymi datami (21 i 2 listopada 2026) niż konta z 15 października w reference/08.
+- **320 px:** e2e potwierdza, że strona nie przewija się poziomo, a heatmapa przewija się w swojej grupie `role="group"` (scrollWidth > clientWidth).
+- **Podsumowanie T30:** pokrycie API 46→49 (T30.1: DotHistogram, StripPlot, WaffleColumns)→52/52 (T30.2: Heatmap, RunwayChart, runwayForecast). Strony wykresów T30: dot-histogram, strip-plot, waffle-columns, line-chart (rozbudowana), heatmap, runway-chart; 22 dostępne strony.
+
+**Bramki:** `pnpm build`, `docs test` (633), `docs typecheck`, `pnpm lint` (kod 0, 5 ostrzeżeń i 1 info jak wcześniej), `check:content` (0 błędów, 52/52, także z `--require-coverage`), `docs build`, `docs test:e2e` (290, bez update, port 3100 wolny) przeszły. `git diff --stat -- packages apps/storybook apps/docs/e2e/__screenshots__` jest pusty; `grep Date.now examples/runway-chart` pusty.
+
+**Otwarte kwestie:** liczby w description przykładów (sumy, daty run-outu, godziny blokady) policzyłem skryptem, nic ich nie pilnuje automatycznie.

@@ -284,15 +284,20 @@ describe('the CLI', () => {
     expect(stderr).toContain('check:content: 5 errors in 2 pages')
   }, 60_000)
 
-  test('exits 0 on content/ and reports the coverage', () => {
+  test('exits 0 on content/ and reports full coverage', () => {
     const { status, stdout, stderr } = run()
     expect(stderr).toBe('')
     expect(status).toBe(0)
-    expect(stdout).toMatch(
-      new RegExp(`fixtures: API coverage: \\d+/${Object.keys(symbols).length}`),
-    )
-    expect(stdout).toContain('no PropsTable for')
+    const total = Object.keys(symbols).length
+    expect(stdout).toContain(`fixtures: API coverage: ${total}/${total}`)
+    expect(stdout).not.toContain('no PropsTable for')
     expect(stdout).toContain('check:content: 0 errors')
+  }, 60_000)
+
+  test('exits 0 on content/ when coverage is required', () => {
+    const { status, stderr } = run('--require-coverage')
+    expect(stderr).toBe('')
+    expect(status).toBe(0)
   }, 60_000)
 
   test.each([
@@ -301,7 +306,8 @@ describe('the CLI', () => {
   ])(
     'exits 1 with missing symbols when coverage is required (%s)',
     (flag, env) => {
-      const result = spawnSync(tsx, ['scripts/check-content.ts', ...(flag ? [flag] : [])], {
+      const args = ['--content-dir', 'lib/content/__fixtures__/partial', ...(flag ? [flag] : [])]
+      const result = spawnSync(tsx, ['scripts/check-content.ts', ...args], {
         cwd: appDir,
         encoding: 'utf8',
         env: { ...process.env, CMS_BASE_URL: '', ...env },

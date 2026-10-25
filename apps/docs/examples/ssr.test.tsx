@@ -21,9 +21,9 @@ test('there is at least one rscSafe and one non-rscSafe example', () => {
   expect(all.length - safe.length).toBeGreaterThan(0)
 })
 
-// Charts draw an <svg>. The small pieces (Stat, Meter, Legend…) are plain HTML and CSS, so their
-// examples may have none, but they must still render some HTML.
-const mayOmitSvg = (id: string) => id.startsWith('small-pieces/')
+// Charts draw an <svg>. The small pieces (Stat, Meter, Legend…) and the Heatmap are plain HTML
+// and CSS, so their examples may have none, but they must still render some HTML.
+const mayOmitSvg = (id: string) => id.startsWith('small-pieces/') || id.startsWith('heatmap/')
 
 test.each(safe)('$id (rscSafe) renders to an HTML string', async (entry) => {
   const { default: Example } = await entry.load()
