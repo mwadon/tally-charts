@@ -23,6 +23,7 @@ export type DateFormatSpec =
   | 'year'
   | Intl.DateTimeFormatOptions
 
+/** Options of `createDateFormatter`. */
 export interface DateFormatOptions {
   /** Default `en-US`, or the `ChartsProvider` locale through `useFormat()`. */
   locale?: string
@@ -106,7 +107,27 @@ function intl(locale: string, zone: TimeZone, fields: Intl.DateTimeFormatOptions
   return new Intl.DateTimeFormat(locale, zone === 'utc' ? { ...fields, timeZone: 'UTC' } : fields)
 }
 
-/** A formatter for single dates: tooltip headers, announcements and data-table cells. */
+/**
+ * A formatter for single dates: tooltip headers, announcements and data-table cells.
+ *
+ * @param spec - How to write the date: a preset (`'day'`, `'month'`, `'quarter'`, `'year'`),
+ * `'auto'` or any `Intl.DateTimeFormatOptions`. Default: `'auto'`.
+ * @param options - `locale` (default `en-US`), `zone` (default `'utc'`) and `step`, the typical
+ * distance between the dates in ms (default: one day). With `'auto'` the step picks the fields
+ * that tell the dates apart: the time under a day, the day under four weeks, the month under a
+ * year, else the year.
+ * @returns A function from epoch milliseconds to text. It returns an empty string for a date that
+ * is not valid (`NaN`, or a value outside the `Date` range).
+ *
+ * @example
+ * ```ts
+ * import { createDateFormatter } from 'tally-charts/core'
+ *
+ * const month = createDateFormatter('month', { locale: 'en-US' })
+ * month(Date.UTC(2026, 0, 15)) // "Jan 2026"
+ * month(Number.NaN) // ""
+ * ```
+ */
 export function createDateFormatter(
   spec: DateFormatSpec = 'auto',
   { locale = DEFAULT_LOCALE, zone = 'utc', step = DAY }: DateFormatOptions = {},

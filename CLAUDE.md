@@ -12,9 +12,10 @@ Opis produktu i zakres: SPEC.md. Stan prac i decyzje: PROGRESS.md.
 - lint: `pnpm lint`, `pnpm typecheck` (autofix: `pnpm format`)
 - build: `pnpm build`
 - checki biblioteki:
-  - `pnpm --filter tally-charts api:check` (po `pnpm build`; przy zamierzonej zmianie API `api:update` i commit pliku z `packages/tally-charts/api`)
+  - `pnpm --filter tally-charts api:check` (po `pnpm build`; failuje „dist is older than src, run pnpm build”, gdy jakikolwiek plik w `src/` jest nowszy niż `dist/index.d.ts`, więc po każdej zmianie src, także testów, buduj ponownie; przy zamierzonej zmianie API `api:update` i commit pliku z `packages/tally-charts/api`)
   - `pnpm size` (konfiguracja: `packages/tally-charts/.size-limit.js`, mierzy rolldown)
   - `pnpm --filter tally-charts check:dev-strip`
+  - `pnpm --filter tally-charts check:dts` (po `pnpm build`; failuje na gołym `import "pkg"` w `dist/**/*.d.ts`). `src/dts-parse.test.ts` czyta `dist` i bez builda się pomija; `REQUIRE_DIST=1` zamienia pominięcie w błąd (ustawia to CI)
   - `pnpm --filter tally-charts check:treeshake` (po `pnpm build`; esbuild bundluje fixture każdego wpisu size-limit i failuje, gdy bundle ma moduły src spoza grafu importów eksportu. Nowy top-levelowy `createWarner()`, `createContext()`, `memo()` w src oznacz `/* @__PURE__ */`, stałe zapisuj literałami)
 - docs (`apps/docs`, Next.js): runtime rozwiązuje `tally-charts` do `dist`, więc wszystko poniżej wymaga wcześniejszego `pnpm build`.
   - `pnpm --filter docs dev` (port 3000), `pnpm --filter docs start` (`next start`, port 3100)

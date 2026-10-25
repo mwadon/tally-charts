@@ -404,7 +404,7 @@ export interface DataTableSpec<D> {
     columns: readonly DataTableColumn<D>[];
 }
 
-// @public (undocumented)
+// @public
 export interface DateFormatOptions {
     locale?: string;
     step?: number;
