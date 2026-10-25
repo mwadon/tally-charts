@@ -809,3 +809,49 @@ Cztery bloki treści w `apps/docs/blocks/`, każdy jako `defineBlock` ze schemat
 - Zduplikowane `id` nagłówków na stronie (dwa „Install” bez `anchor`) wyłapie dopiero walidacja treści (F14); `collectToc` zwraca je oba.
 - Bloki nie są jeszcze użyte przez żadną stronę, więc `next build` nie bundluje shiki w realnej trasie; rozmiar chunków sprawdzić przy przepinaniu stron (M5).
 - `Heading` renderuje `#` jako tekst linku (ukryty wizualnie przez opacity do hover/focus); dostępna nazwa pochodzi z `aria-label`.
+
+## ✔ T20 Bloki glökki: Prose, Heading, Callout, CodeBlock i rejestr bloków (F12) (2026-10-25)
+Dodałem cztery bloki glökki (Prose, Heading, Callout, CodeBlock) w `apps/docs/blocks/`, każdy jako `defineBlock` ze schematem Zod, oraz `blockRegistry` w `registry.ts`. Przechodzą wszystkie bramki z taska: `pnpm install --frozen-lockfile`, `pnpm build`, oba typechecki, `pnpm lint` (0 błędów, 4 ostrzeżenia i 1 info jak w bazie), `pnpm --filter docs test` (131 testów), `pnpm --filter docs build` i e2e (20 testów, specs bez zmian). Install nie zgłasza ignored builds.
+
+**Zależności:** do `apps/docs` dodałem `@glokki-cms/sdk@0.17.0`, `@glokki-cms/react@0.10.0`, `zod@^4.6.7`, `shiki@4.5.0`, `react-markdown@10.1.0` i `remark-gfm@4.0.1`. Lockfile jest zaktualizowany.
+
+**Bloki:**
+- **Rejestr:** `registry.ts` eksportuje `blockRegistry`, `blockSchemas` i `parseBlockProps`. Ten ostatni zwraca błąd także dla nazw typu `constructor`.
+- **Markdown:** Prose i Callout używają wspólnego `markdown.tsx` (GFM, bez `rehype-raw`, z `skipHtml`). Surowy HTML jest wycinany, a `javascript:` w linkach czyszczony.
+- **Heading:** `level` to `z.enum(['2','3'])`. Renderuje `<hN id>` z kotwicą `href="#id"` i nazwą „Link to section: …”. `collectToc` zbiera nagłówki także z `children`.
+- **CodeBlock:** to async server component z podświetlaniem shiki. Przycisk kopiowania to jedyny moduł klientowy; wywołuje `clipboard.writeText` i ogłasza „Copied” albo „Copy failed” w `role="status"`.
+
+**Odchylenia od planu:**
+- **`skipHtml` (D4):** bez niego react-markdown 10 pokazuje surowy HTML jako zescapowany tekst, więc `onerror` zostawałby w `innerHTML`. Dodałem `skipHtml`, żeby HTML był faktycznie ignorowany.
+- **Tokeny zamiast HTML-a (D6):** `highlight()` zwraca tokeny (`codeToTokens`), a CodeBlock renderuje je jako spany Reacta z `color: var(--shiki-…)`. Nie ma `dangerouslySetInnerHTML`, a React sam escapuje kod.
+
+**Dokumentacja i style:**
+- **Kontrast:** do `app/contrast.test.ts` dopisałem pary dla etykiet callout i kolorów składni; wszystkie mają ≥ 4.5:1 w obu motywach.
+- **D-6:** w PROGRESS.md nie ma tabeli D-6 (jest tylko w SPEC.md), więc potwierdzenie „markdown, nie richtext” zapisałem w sekcji T20 jako D1.
+- **PROGRESS.md i CLAUDE.md:** PROGRESS.md ma sekcję T20 z D1–D7, pułapkami SDK, testami, bramkami i otwartymi kwestiami; CLAUDE.md ma jedną linię o blokach.
+- **`globals.css`:** dodałem zmienne `--shiki-*` oraz style `.heading`, `.heading-anchor` i `.callout`.
+
+Żadna strona jeszcze nie używa bloków, więc zwykły `next build` nie bundluje shiki ani react-markdown. Sprawdziłem to tymczasową stroną importującą wszystkie bloki. Build przeszedł w Next 16, HTML miał `var(--shiki-…)` i nie zawierał `<script>`. Stronę usunąłem. Nie ruszałem `packages/tally-charts`, więc nie ma changesetu ani `api:update`.
+**Decyzje i pułapki:**
+- react-markdown 10 bez skipHtml nie usuwa surowego HTML-a, tylko pokazuje go jako zescapowany tekst. Do 'ignorowany' potrzebny jest skipHtml.
+- defineBlock gubi propsSchema (zostaje fields), więc schematy trzeba eksportować osobno; fieldType przez .meta na z.string(), z.enum zawsze daje select.
+- shiki: createCssVariablesTheme i createHighlighterCore są w shiki/core, silnik JS w shiki/engine/javascript, języki w shiki/langs/<x>.mjs. Renderowanie tokenów (codeToTokens) w React omija dangerouslySetInnerHTML.
+- Slugify NFKD nie rozkłada 'ł', trzeba je zamienić ręcznie.
+**Otwarte kwestie:**
+- Zduplikowane id nagłówków na stronie (np. dwa „Install” bez anchor) wyłapie dopiero walidacja treści F14; collectToc zwraca oba wpisy.
+- Bloki nie są jeszcze użyte przez żadną stronę, więc zwykły next build nie bundluje shiki ani react-markdown. Zadziałało to tylko na tymczasowej stronie. Rozmiar chunków sprawdzić przy przepinaniu stron w M5.
+- Placeholder app/_components/code-block.tsx i strona LineChart zostają bez zmian (zakres M5).
+- apps/docs/blocks/markdown.tsx: Markdown images are allowed. `![x](https://external/pixel.png)` renders an `<img>` (React 19 also adds `<link rel=preload>`) pointing at any host, which allows tracking pixels in CMS content. `![e](javascript:…)` renders `<img alt="e"/>` without src and makes React log console.error about an empty src. This is not XSS, but it doesn't fit 'no img' as well as the comment suggests.
+- apps/docs/blocks/callout.tsx: An unnamed `<aside>` inside `<main>` is a complementary landmark. Several callouts on a page will produce multiple unnamed complementary landmarks nested in main, which axe (best-practice: landmark-complementary-is-top-level, landmark-unique) will flag once the blocks are wired into pages in M5.
+- apps/docs/blocks/code-block.tsx: CodeBlock is an async server component, and `@glokki-cms/react` has a client-side editor (`cms-page-editor.js` has 'use client'). Previewing it in the editor, or importing registry.ts from a client component, will break the block (async component on the client, shiki in the client bundle). For now no page uses the blocks.
+**Kryteria:**
+- `apps/docs/package.json` ma w dependencies `@glokki-cms/sdk`, `@glokki-cms/react`, `zod` (^4), a także `react-markdown`, `remark-gfm` i `shiki`; `pnpm install --frozen-lockfile` przechodzi na zaktualizowanym `pnpm-lock.yaml`.
+- Każdy z bloków Prose, Heading, Callout, CodeBlock jest wpisem `defineBlock({ type, label, category, icon, defaultProps, propsSchema, component })` w `apps/docs/blocks/` i eksportuje obok swój schemat Zod; `blocks/registry.ts` eksportuje `blockRegistry = createBlockRegistry([...])` z typami `prose`, `heading`, `callout`, `code-block` oraz mapę schematów/`parseBlockProps`; test sprawdza `getTypes()`, `getComponent()`, serializowalność `getSerializedDefinitions()`, że `defaultProps` każdego bloku przechodzi jego schemat i że nieznany typ daje błąd.
+- Prose renderuje GFM (test: tabela, przekreślenie, lista zadań), a test z `<script>alert(1)</script>`, `<img src=x onerror=alert(1)>` i linkiem `javascript:` potwierdza brak elementów `script`/`img`, atrybutu `onerror` i hrefa `javascript:` w wyniku; pole `markdown` serializuje się jako `fieldType: 'textarea'`.
+- PROGRESS.md ma sekcję T20 z decyzją: D-6 potwierdzona (markdown w textarea, nie richtext, bo richtext glökki to HTML), wraz z pozostałymi decyzjami i pułapkami SDK (`propsSchema`/`component`, `defineBlock` gubi schemat, `.meta({ fieldType })`).
+- Heading z `level` '2'|'3' renderuje odpowiednio `h2`/`h3` z `id` równym `anchor` lub slugowi tekstu i linkiem kotwicy `href="#id"` z dostępną nazwą; `collectToc(nodes)` zwraca `TocItem[]` (`{id,label}`) z węzłów heading, także zagnieżdżonych w `children` (test).
+- Callout renderuje `aside` z `data-tone` i widoczną etykietą dla każdego z tonów info|warning|tip oraz markdown treści, z tą samą sanityzacją co Prose (test).
+- CodeBlock (`lang` tsx|ts|bash|css|json, `filename?`) zwraca HTML podświetlony przez shiki po stronie serwera (test: spany z `var(--shiki-…)`, tekst `pre` równy `code`, `</code><script>` nie tworzy elementu `script`), a kolory pochodzą z tokenów `--ch-*` w `globals.css`.
+- Przycisk kopiowania ma dostępną nazwę `Copy code: <filename albo lang>`, po kliknięciu wywołuje `navigator.clipboard.writeText` z dokładnym kodem i ogłasza „Copied” w elemencie `role="status"` (aria-live polite), który się czyści; błąd schowka ogłasza „Copy failed” (test RTL z mockiem clipboard i fake timers).
+- Każdy blok ma test unit: poprawne propsy się renderują, a niepoprawne (np. `level: '4'`, `tone: 'danger'`, `lang: 'py'`, brak wymaganego pola, zły `anchor`) odrzuca `safeParse` schematu; test SSR (`renderToString`, środowisko node) renderuje wszystkie 4 bloki bez błędów.
+- Przechodzą: `pnpm build`, `pnpm --filter docs typecheck`, `pnpm typecheck`, `pnpm lint` (bez nowych błędów), `pnpm --filter docs test`, `pnpm --filter docs build` i `pnpm --filter docs test:e2e` bez zmian w specach; brak zmian w `packages/tally-charts` (bez changesetu).
