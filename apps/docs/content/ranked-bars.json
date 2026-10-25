@@ -1,0 +1,170 @@
+{
+  "versionId": "fixture-ranked-bars-v1",
+  "version": 1,
+  "locale": "en",
+  "publishedAt": "2026-10-25T00:00:00.000Z",
+  "codeInjection": {},
+  "layout": {
+    "key": "default",
+    "header": null,
+    "footer": null
+  },
+  "pageId": "fixture-ranked-bars",
+  "title": "RankedBars",
+  "slug": "ranked-bars",
+  "seo": {
+    "metaTitle": "RankedBars · tally-charts",
+    "metaDescription": "A ranked list of horizontal bars with labels, values and optional details. Solid by default, hatched for a plan or reference, selectable with the keyboard."
+  },
+  "componentTree": [
+    {
+      "id": "n1",
+      "type": "prose",
+      "props": {
+        "markdown": "A ranked list: one horizontal bar per item, sorted by size, with the label on the left and the value on the right. An optional muted column adds a detail such as a job count."
+      }
+    },
+    {
+      "id": "n2",
+      "type": "heading",
+      "props": {
+        "text": "When to use it",
+        "level": "2",
+        "anchor": "when-to-use"
+      }
+    },
+    {
+      "id": "n3",
+      "type": "prose",
+      "props": {
+        "markdown": "Use `RankedBars` for “what is the biggest” questions: overruns by category, hours by technician, top customers. It sorts by the size of the value (`sort`), can cut the list (`limit`), and gives long labels a tooltip. By default the bars are solid: `fill` is `'solid'`. Pass `fill=\"hatch\"` for the look of a plan or a reference, so a list of planned values doesn’t pass for actuals. `fill` also accepts a function, to hatch only some rows. When each row has both a plan and an actual, use `ComparisonBars` instead."
+      }
+    },
+    {
+      "id": "n4",
+      "type": "heading",
+      "props": {
+        "text": "Import",
+        "level": "2",
+        "anchor": "install"
+      }
+    },
+    {
+      "id": "n5",
+      "type": "code-block",
+      "props": {
+        "code": "npm i tally-charts",
+        "lang": "bash"
+      }
+    },
+    {
+      "id": "n6",
+      "type": "code-block",
+      "props": {
+        "code": "import { RankedBars } from 'tally-charts'\nimport 'tally-charts/theme.css'",
+        "lang": "tsx",
+        "filename": "app/overruns.tsx"
+      }
+    },
+    {
+      "id": "n7",
+      "type": "heading",
+      "props": {
+        "text": "Examples",
+        "level": "2",
+        "anchor": "examples"
+      }
+    },
+    {
+      "id": "n8",
+      "type": "prose",
+      "props": {
+        "markdown": "No `fill` prop: the bars are `'solid'`, the default. `tone=\"loss\"` colors the bars and the values."
+      }
+    },
+    {
+      "id": "n9",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "ranked-bars/overruns",
+        "defaultView": "preview"
+      }
+    },
+    {
+      "id": "n10",
+      "type": "prose",
+      "props": {
+        "markdown": "`fill=\"hatch\"` marks the bars as a plan. `meta` adds the muted “9 jobs” column before the value."
+      }
+    },
+    {
+      "id": "n11",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "ranked-bars/hatch-plan",
+        "defaultView": "preview"
+      }
+    },
+    {
+      "id": "n12",
+      "type": "prose",
+      "props": {
+        "markdown": "With `onSelect` and `selectedId`, a row can drive something else on the page. Focus the chart and press `Enter` or `Space` on a row."
+      }
+    },
+    {
+      "id": "n13",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "ranked-bars/pick-a-category",
+        "defaultView": "preview"
+      }
+    },
+    {
+      "id": "n14",
+      "type": "heading",
+      "props": {
+        "text": "Props",
+        "level": "2",
+        "anchor": "props"
+      }
+    },
+    {
+      "id": "n15",
+      "type": "props-table",
+      "props": {
+        "symbol": "RankedBars"
+      }
+    },
+    {
+      "id": "n16",
+      "type": "heading",
+      "props": {
+        "text": "Keyboard and screen readers",
+        "level": "2",
+        "anchor": "keyboard"
+      }
+    },
+    {
+      "id": "n17",
+      "type": "prose",
+      "props": {
+        "markdown": "`RankedBars` is built on `Chart`, so it follows the same keyboard model as the other charts: the list is a single tab stop, and tabbing in shows the first row with its tooltip and announces it. Arrow keys move between rows (rows are sorted, so “previous” and “next” follow the order on screen), `Home` and `End` jump to the first and last row, `Enter` or `Space` selects the active row when the chart has `onSelect`, and `Esc` clears the active row. `Esc` is only consumed when a row is active, so an enclosing dialog still closes. A row with `selectable: false` takes focus and a tooltip but `Enter` skips it."
+      }
+    },
+    {
+      "id": "n18",
+      "type": "prose",
+      "props": {
+        "markdown": "Screen readers get the chart title and description, then an announcement for each row the keyboard moves to, in the form “1 of 5, Labor overruns, $31.2K”. With `meta` the detail is added: “1 of 5, Tyler Brooks, $2.6K, 9 jobs”. A visually hidden data table with the label, the value and the details follows the chart. Hatch is only a visual cue, so say in the title or description when a list shows a plan."
+      }
+    },
+    {
+      "id": "n19",
+      "type": "prose",
+      "props": {
+        "markdown": "The full model is in the [accessibility guide](https://github.com/mwadon/tally-charts/blob/main/docs/a11y.md)."
+      }
+    }
+  ]
+}

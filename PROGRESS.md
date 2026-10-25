@@ -1509,3 +1509,15 @@ Bramki po poprawce, wszystkie przeszły: `pnpm build`, `pnpm --filter docs build
 - Po pnpm build `pnpm --filter docs check:content` kończy się kodem 0 i wypisuje `API coverage: 42/52`, a lista brakujących nie zawiera thresholds ani heatmapLevel. Test w lib/content/check.test.ts z --require-coverage nadal oczekuje jako pierwszego braku BridgeChart i przechodzi.
 - pnpm --filter docs test, pnpm --filter docs typecheck, pnpm lint, pnpm --filter docs build i pnpm --filter docs test:e2e (darwin, bez --update-snapshots) kończą się kodem 0. `git diff --stat -- packages apps/storybook` jest pusty, a apps/docs/e2e/__screenshots__ są bez zmian.
 - PROGRESS.md ma sekcję T28.3 z decyzjami i podsumowaniem T28: 7 stron, pokrycie 42/52, pozostałe 10 symboli (9 wykresów i runwayForecast) w T29–T31.
+
+## ✔ T29.1 Strony bar-chart, comparison-bars i ranked-bars (2026-10-25)
+Trzy nowe strony w grupie Charts (`content/bar-chart.json`, `comparison-bars.json`, `ranked-bars.json`), 5 nowych przykładów, 3 specyfikacje e2e i zaktualizowana kolejność w `content/fixtures.test.ts`. Pliki `examples/bar-chart/*` bez zmian.
+**Decyzje:**
+- **Podział rscSafe:** `comparison-bars/job-costs` (`good="down"`, `initialWidth={640}`), `ranked-bars/overruns` (bez `fill`, czyli solid) i `ranked-bars/hatch-plan` (`fill="hatch"`, `meta`) mają `rscSafe: true` (akcesory to stringi, brak funkcji). `comparison-bars/revenue-by-region` (`good="up"`) i `ranked-bars/pick-a-category` (opcjonalny, `selectedId` + `onSelect`) mają `'use client'` i `rscSafe: false`, bo przekazują `onSelect`.
+- **Pokrycie API 42→44/52:** przybyły ComparisonBars i RankedBars. BarChart był już pokryty przez PropsTable w `getting-started`, więc `bar-chart.json` go nie zmienia; pierwszy brak to nadal BridgeChart (`lib/content/check.test.ts` bez zmian).
+- **„Props of” zamiast „Parameters of”:** `props-table-view.tsx` podpisuje region komponentu „Props of X”, więc e2e szuka `Props of BarChart|ComparisonBars|RankedBars` z `exact: true`.
+- **RankedBars a11y:** w `docs/a11y.md` nie ma osobnej sekcji klawiatury listy RankedBars (sekcja z PageUp/PageDown dotyczy RunwayChart). RankedBars jest zbudowany na `Chart`, więc strona opisuje ogólny model wykresu (jeden tab stop, strzałki, Home/End, Enter/Space z `onSelect`, Escape) i zapowiedź z tabeli.
+- **ComparisonBars:** prose ostrzega, że układ zależy od zmierzonej szerokości (`initialWidth` albo jawny `layout`); `job-costs` ustawia `initialWidth`.
+- **ranked-bars.spec:** sprawdza po title widoczność dwóch wykresów (solid i hatch); trzeci przykład na stronie jest dodatkowy.
+- **Strona „brak”:** nadal `accessibility`.
+**Bramki:** `pnpm build`, `docs test` (551), `docs typecheck`, `pnpm lint` (kod 0, 5 ostrzeżeń i 1 info jak wcześniej), `check:content` (0 błędów, `API coverage: 44/52`, brakuje BridgeChart, DotHistogram, Heatmap, RunwayChart, StripPlot, WaffleColumns, WaterfallChart, runwayForecast), `docs build`, `docs test:e2e` (213, bez update) przeszły. `git diff --stat -- packages apps/storybook apps/docs/e2e/__screenshots__` jest pusty.

@@ -1,0 +1,162 @@
+{
+  "versionId": "fixture-comparison-bars-v1",
+  "version": 1,
+  "locale": "en",
+  "publishedAt": "2026-10-25T00:00:00.000Z",
+  "codeInjection": {},
+  "layout": {
+    "key": "default",
+    "header": null,
+    "footer": null
+  },
+  "pageId": "fixture-comparison-bars",
+  "title": "ComparisonBars",
+  "slug": "comparison-bars",
+  "seo": {
+    "metaTitle": "ComparisonBars · tally-charts",
+    "metaDescription": "Plan against actual for each row: a hatched bar for the plan, a solid bar for the actual, and a delta that is colored by whether the change is good news."
+  },
+  "componentTree": [
+    {
+      "id": "n1",
+      "type": "prose",
+      "props": {
+        "markdown": "Plan against actual, one row per item. The plan is a hatched bar, the actual is a solid bar, and the difference is written next to them and colored by whether it is good news."
+      }
+    },
+    {
+      "id": "n2",
+      "type": "heading",
+      "props": {
+        "text": "When to use it",
+        "level": "2",
+        "anchor": "when-to-use"
+      }
+    },
+    {
+      "id": "n3",
+      "type": "prose",
+      "props": {
+        "markdown": "Use `ComparisonBars` for budgets, estimates, quotas or targets, where each row has an expected value and a real one: job costs, hours, revenue by region. Set `good` to say which direction is good news. `good=\"down\"` (the default) suits costs and hours, where under plan is good. `good=\"up\"` suits revenue, where over plan is good. Rows within `tolerance` of the plan read “On plan” (change the text with `onPlanLabel`), and the part of an overrun beyond the plan is drawn apart from the solid bar. For a plain ranking without a plan, use `RankedBars`."
+      }
+    },
+    {
+      "id": "n4",
+      "type": "heading",
+      "props": {
+        "text": "Import",
+        "level": "2",
+        "anchor": "install"
+      }
+    },
+    {
+      "id": "n5",
+      "type": "code-block",
+      "props": {
+        "code": "npm i tally-charts",
+        "lang": "bash"
+      }
+    },
+    {
+      "id": "n6",
+      "type": "code-block",
+      "props": {
+        "code": "import { ComparisonBars } from 'tally-charts'\nimport 'tally-charts/theme.css'",
+        "lang": "tsx",
+        "filename": "app/job-costs.tsx"
+      }
+    },
+    {
+      "id": "n7",
+      "type": "heading",
+      "props": {
+        "text": "Examples",
+        "level": "2",
+        "anchor": "examples"
+      }
+    },
+    {
+      "id": "n8",
+      "type": "prose",
+      "props": {
+        "markdown": "Costs with `good=\"down\"`: Labor and Permits are over plan, so their deltas are the bad news, and Materials, under plan, is the good news."
+      }
+    },
+    {
+      "id": "n9",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "comparison-bars/job-costs",
+        "defaultView": "preview"
+      }
+    },
+    {
+      "id": "n10",
+      "type": "prose",
+      "props": {
+        "markdown": "Revenue with `good=\"up\"`: over plan is the good news here. `onSelect` makes the rows selectable, so this example is a client component."
+      }
+    },
+    {
+      "id": "n11",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "comparison-bars/revenue-by-region",
+        "defaultView": "preview"
+      }
+    },
+    {
+      "id": "n12",
+      "type": "heading",
+      "props": {
+        "text": "Props",
+        "level": "2",
+        "anchor": "props"
+      }
+    },
+    {
+      "id": "n13",
+      "type": "props-table",
+      "props": {
+        "symbol": "ComparisonBars"
+      }
+    },
+    {
+      "id": "n14",
+      "type": "heading",
+      "props": {
+        "text": "Keyboard and screen readers",
+        "level": "2",
+        "anchor": "keyboard"
+      }
+    },
+    {
+      "id": "n15",
+      "type": "prose",
+      "props": {
+        "markdown": "The chart is a single tab stop. Tabbing in shows the first row with its tooltip and announces it. Arrow keys move between rows, `Home` and `End` jump to the first and last, `Enter` or `Space` selects the active row when the chart has `onSelect`, and `Esc` clears the active row. `Esc` is only consumed when a row is active, so an enclosing dialog still closes."
+      }
+    },
+    {
+      "id": "n16",
+      "type": "prose",
+      "props": {
+        "markdown": "Screen readers get the chart title and description, then an announcement for each row the keyboard moves to, in the form “1 of 6, Labor, plan $640, actual $1,060, +$420”: the position, the label, both values and the difference. The values and the delta are also in a visually hidden data table after the chart."
+      }
+    },
+    {
+      "id": "n17",
+      "type": "prose",
+      "props": {
+        "markdown": "`ComparisonBars` picks its layout from the measured width: columns when the bars get at least 120 px between the label and the values, stacked rows otherwise. On a server-rendered page a narrow screen first renders columns at the 640 px default and switches to stacked after hydration. To avoid the jump, pass `initialWidth` or an explicit `layout`."
+      }
+    },
+    {
+      "id": "n18",
+      "type": "prose",
+      "props": {
+        "markdown": "The full model is in the [accessibility guide](https://github.com/mwadon/tally-charts/blob/main/docs/a11y.md)."
+      }
+    }
+  ]
+}
