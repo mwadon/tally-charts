@@ -364,6 +364,88 @@
         "defaultView": "preview",
         "height": 294
       }
+    },
+    {
+      "id": "n44",
+      "type": "heading",
+      "props": {
+        "text": "Earlier changes (0.6 to 0.9)",
+        "level": "2",
+        "anchor": "earlier-changes"
+      }
+    },
+    {
+      "id": "n45",
+      "type": "prose",
+      "props": {
+        "markdown": "If you come from before 0.9, these changes still apply. The full history is in the [CHANGELOG](https://github.com/mwadon/tally-charts/blob/main/packages/tally-charts/CHANGELOG.md)."
+      }
+    },
+    {
+      "id": "n46",
+      "type": "heading",
+      "props": {
+        "text": "Renames in 0.6",
+        "level": "3",
+        "anchor": "renames-0-6"
+      }
+    },
+    {
+      "id": "n47",
+      "type": "prose",
+      "props": {
+        "markdown": "0.6 froze the public API. Every rename, before → after:\n\n- `<LineChart axis={…} axisFormat={…}>` → `<LineChart yAxis={…} yAxisFormat={…}>`, plus a new `xAxisFormat`.\n- The type of `<LineChart band={…}>`, `LineRange` → `LineBand`.\n- `<Bars tooltip={(d) => segments}>` → `<Bars segments={(d) => segments}>`.\n- `<ComparisonBars overIsBad={false}>` → `<ComparisonBars good=\"up\">` (the default is `good=\"down\"`); `onPlanText` → `onPlanLabel`.\n- `useChart('MyMark')` → `useChart()`, which returns only the public fields (`chartId`, `warn`, `radius`, `registerPoints` and `unregisterPoints` are gone).\n- `useRegisterPoints(ctx, points)` → `useRegisterPoints(points)`.\n- `ctx.x.scale` and `ctx.y.scale` are the library's own `LinearScale`, `BandScale`, `PointScale` and `TimeScale`. D3-only methods such as `.copy()` are gone, and d3-scale is no longer a dependency.\n- Axis format functions get an `AxisValue` (`string | number | Date`): `(v: string | number) => string` → `(v: AxisValue) => string`, or drop the annotation.\n- The types `ComparisonStatus`, `WaterfallKind` and `DeltaDirection` are no longer exported. Use string literals.\n- `tally-charts/core` keeps only formatting, `thresholds`, `heatmapLevel`, `toNumber`, `toTime` and the shared and scale types. `createScale`, `computeBars`, `categoryTicks` and the other layout helpers, `createWarner` and `isDev` are internal now.\n- CSS: style `[data-ch-part=\"…\"]`, not classes (`.ch-pill-seg` → `[data-ch-part=\"pill-segment\"]`, `.ch-swatch` → `[data-ch-part=\"legend-swatch\"]`, …). `--ch-swatch-color`, `--ch-range-ref-color`, `--ch-heatmap-columns` and `--ch-seq-ink-strong` became private `--_ch-*` variables. `[data-ch-dir]` on bars → `[data-ch-direction]`, as on `Delta`.\n- Percent and pts axes drop their decimals when every tick is whole: \"0%\", not \"0.0%\".\n- `Chart` (and so every high-level chart) and `Heatmap` warn in development when `title` is missing."
+      }
+    },
+    {
+      "id": "n48",
+      "type": "code-block",
+      "props": {
+        "code": "<LineChart data={rows} x=\"year\" series={series} axis=\"currency\" axisFormat={(v: string | number) => String(v)} />",
+        "lang": "tsx",
+        "filename": "Before (0.5)"
+      }
+    },
+    {
+      "id": "n49",
+      "type": "code-block",
+      "props": {
+        "code": "<LineChart data={rows} x=\"year\" series={series} yAxis=\"currency\" yAxisFormat={(v: AxisValue) => String(v)} />",
+        "lang": "tsx",
+        "filename": "After (0.6)"
+      }
+    },
+    {
+      "id": "n50",
+      "type": "heading",
+      "props": {
+        "text": "Accessibility changes in 0.6b",
+        "level": "3",
+        "anchor": "a11y-0-6b"
+      }
+    },
+    {
+      "id": "n51",
+      "type": "prose",
+      "props": {
+        "markdown": "These need no code change, but tests and custom styles may notice them:\n\n- The chart's focus, keys and `aria-*` moved from the `<figure>` to the plot inside it (`[data-ch-part=\"plot\"]`, `role=\"application\"`). Tests that focus or send keys to the figure should use `getByRole('application')`. The focus ring is on the plot.\n- Announcements start with the position: \"Jul 6, 37.5%\" → \"1 of 12, Jul 6, 37.5%\", and with the series when there are several. `StripPlot` point labels no longer repeat the series name.\n- Data tables head each row with its first cell, read empty values as \"no value\", and use field names in sentence case (\"week\" → \"Week\").\n- Toned text (row and value labels, bridge notes, waffle group labels, pill values) mixes the tone with ink, keyed on `data-ch-tone-text`. The `ch-tone-text` class is gone.\n- Light `--ch-warn` is `#be802f` (was `#f1a23b`), `--ch-gain` `#22a363` (`#23a866`) and `--ch-neutral` `#8e8e95` (`#a3a3ab`). Hatched and soft-accent marks have a 1px outline in both themes. [Palettes](/docs/palettes) has the old colors as `vivid`.\n- The sequential levels have new shares per tone and theme, and the dark top level is the pure base with dark text. `data-ch-seq-tone` now also sets `--ch-seq-base`.\n- `Heatmap` column headers hold only the names. The column totals are a row of their own (`[data-ch-part=\"heatmap-total-row\"]`), ending with the grand total, so 0.6's `heatmap-header-total` part is gone. The grid sits in `[data-ch-part=\"heatmap-scroll\"]`.\n- `WaffleColumns`' default top margin is 44px when it pins the peak pill (8px before), so the pill no longer sits on the tallest column.\n- An axis keeps only its first label when even its first and last would overlap. Every value stays reachable through the tooltip and the data table."
+      }
+    },
+    {
+      "id": "n52",
+      "type": "heading",
+      "props": {
+        "text": "Additions in 0.6 to 0.9",
+        "level": "3",
+        "anchor": "additions-0-6-0-9"
+      }
+    },
+    {
+      "id": "n53",
+      "type": "prose",
+      "props": {
+        "markdown": "Nothing was removed in 0.8 and 0.9, they only added to the API.\n\n- 0.6: time scales, `ChartPoint<D>` in callbacks, a function `tooltip` on high-level charts, `{ preset, digits, signed }` formats, `axisFormat` on `BarChart` and `DotHistogram`, `chartId` on `Heatmap`, `heatmapLevel`, and readonly arrays everywhere.\n- 0.6b: `keyboardHint` on every chart, `rowLabel` on `Heatmap`, `dataTable={{ caption, columns }}` on high-level charts, `layout` on `ComparisonBars`, `marker` and `shape: 'band'` on `Legend` items, `series` on `ChartPoint` and `DotItem`, and the `--ch-heatmap-min-cell` token.\n- 0.8: `ShareBar` and `ZoneMeter`. See [Small pieces](/docs/small-pieces).\n- 0.9: `thresholds(…, { inclusive: 'upper' })`, plain `{ bins, inclusive }` zones on `ZoneMeter`, and `selectable` on `RankedBars`, `Bars` and `ChartPoint`. See [Thresholds](/docs/thresholds)."
+      }
     }
   ]
 }

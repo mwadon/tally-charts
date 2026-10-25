@@ -234,7 +234,11 @@ test('migration-1-0 lists four breaking changes with code before and an example 
 
   expect(page?.title).toBe('Migration to 1.0')
   expect(page?.seo.metaTitle).toBe('Migration to 1.0 · tally-charts')
-  expect(headings('2')).toEqual(['Breaking changes', 'Additive changes'])
+  expect(headings('2')).toEqual([
+    'Breaking changes',
+    'Additive changes',
+    'Earlier changes (0.6 to 0.9)',
+  ])
 
   const start = blocks.findIndex((n) => n.type === 'heading' && n.props.text === 'Breaking changes')
   const end = blocks.findIndex((n) => n.type === 'heading' && n.props.text === 'Additive changes')

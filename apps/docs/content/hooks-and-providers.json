@@ -96,6 +96,30 @@
       }
     },
     {
+      "id": "n16",
+      "type": "heading",
+      "props": {
+        "text": "Several React roots on one page",
+        "level": "2",
+        "anchor": "react-roots"
+      }
+    },
+    {
+      "id": "n17",
+      "type": "prose",
+      "props": {
+        "markdown": "Pattern ids, for hatching and gradients, come from React's `useId`, which is only unique within one root. When charts render in separate roots (islands, micro-frontends), two charts can end up with the same pattern id. Give each chart its own `chartId`. `Chart`, the high-level charts and `Heatmap` take it."
+      }
+    },
+    {
+      "id": "n18",
+      "type": "code-block",
+      "props": {
+        "code": "<BarChart chartId=\"margin-chart\" data={weeks} x=\"week\" y=\"margin\" title=\"Margin by week\" />",
+        "lang": "tsx"
+      }
+    },
+    {
       "id": "n11",
       "type": "heading",
       "props": {

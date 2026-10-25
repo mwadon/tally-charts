@@ -166,6 +166,36 @@
       }
     },
     {
+      "id": "n44",
+      "type": "heading",
+      "props": {
+        "text": "Conventions",
+        "level": "2",
+        "anchor": "conventions"
+      }
+    },
+    {
+      "id": "n45",
+      "type": "prose",
+      "props": {
+        "markdown": "The charts follow a few rules, so a prop that means one thing on one mark means the same on the next.\n\n- `BarChart`'s `x` is the category and `y` the value, in both orientations.\n- `at` is scoped by its mark: a data index (a number) on `ValueLabel`, a category on `ColumnHighlight` and a value on a `Connector` link.\n- `radius` is the corner radius on `Bars` and `ColumnHighlight`, and the dot radius elsewhere.\n- Numbers in data follow one rule: numbers and numeric strings count, while blanks, booleans and other values are missing.\n- Toggles are bare booleans (`legend`, `totals`, `grid`, `tooltip`, …). Only `showValues` and `showScale` carry `show`, where the bare word would be ambiguous.\n- `meta` is a number on a `WaterfallStep` and an accessor on `RankedBars`. To carry more per step, extend the step type (`WaterfallChart<MyStep>`) rather than packing it into `meta`."
+      }
+    },
+    {
+      "id": "n46",
+      "type": "prose",
+      "props": {
+        "markdown": "Defaults follow the reference cards, so they differ by chart:\n\n- Heights: `Chart` 240, `LineChart` 280, `DotHistogram` 220, `WaffleColumns` 200, `BridgeChart` 360.\n- Band padding: 0.2 on a band scale, 0.35 on `BarChart`, 0.45 on `BridgeChart`, 0.3 on `WaffleColumns`.\n- Tick counts: 5, and 6 on `DotHistogram`.\n- Tones: `InlineBar`, `RangeMeter` and `DotCount` use `loss`, `Meter` uses `accent`."
+      }
+    },
+    {
+      "id": "n47",
+      "type": "prose",
+      "props": {
+        "markdown": "Ids of points and rows, as `activeId`, `selectedId` and `onSelect` see them:\n\n- `RankedBars`: the index in your data, unless you pass `id`.\n- `WaterfallChart`: `'start'`, then `step.id ?? index`, then `'end'`. The end row's `point.datum` is a synthetic `{ label, value }` created on every render, so compare by `id === 'end'`, not by identity.\n- `BridgeChart`: `'start'`, then `step.id ?? index`.\n- `StripPlot`: `\"<series id>:<row id>\"`.\n- `LineChart`: the x values as strings, so `activeId` takes `'2025'`, not `2025`. On a time scale they are ISO strings (`'2026-01-04T00:00:00.000Z'`).\n- `Heatmap`: `\"<row>:<column>\"`. Names containing `:` can collide (`a:b` + `c` and `a` + `b:c`), and each row and column name must be unique."
+      }
+    },
+    {
       "id": "n20",
       "type": "heading",
       "props": {

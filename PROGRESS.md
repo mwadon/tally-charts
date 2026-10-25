@@ -2252,3 +2252,44 @@ T36 pozostaje ⛔ ZABLOKOWANY (bramka [MAINTAINER]). Gate OTWARTY, potwierdzenie
 - docs/releasing.md §11 (nagłówek bez zmian) zawiera: notatkę o ENABLE_EXPERIMENTAL_COREPACK=1 i sprawdzeniu wersji pnpm w logu buildu (poza tabelą zmiennych), w kroku 4 opis weryfikacji z dwoma przeładowaniami (stale-while-revalidate przy revalidateTag 'max') i sposób odróżnienia treści CMS od fiksturek oraz nowy krok zapisu URL produkcyjnego i preview w PROGRESS.md
 - `pnpm --filter docs test` (w tym vercel-config.test.ts) i `pnpm lint` kończą się kodem 0
 - `git diff --stat -- packages apps` jest pusty; zmieniają się tylko PROGRESS.md i docs/releasing.md; brak changesetu i plików .env*
+
+## ✔ T37 Krótszy README paczki i homepage na stronę dokumentacji (F18) (2026-10-25)
+README `packages/tally-charts/README.md` ma 51 linii (było 508): opis, Install (z uwagą o `NODE_ENV`), `import 'tally-charts/theme.css'`, minimalny `BarChart` z `title` i 4 wierszami danych, `## Stability` z linkiem do strony, `## Links` (dokumentacja, migration-1-0, GitHub, CHANGELOG) i „MIT licensed.”. Linki tylko absolutne, brak linii „Status: 0.8”. `homepage` w `package.json` to `https://tally-charts.vercel.app`. `docs/stability.md` linkuje do strony Theming zamiast do README#styling. `docs/releasing.md` §11 krok 6 wymienia `homepage` i linki README. Changeset `patch`: `.changeset/readme-short.md`. Bez zmian w kodzie biblioteki i w `packages/tally-charts/api`.
+
+**Decyzje:**
+- D1. Domena: `https://tally-charts.vercel.app`, to samo założenie co w 3 changesetach i §11 (projekt Vercel nadal nie istnieje, T36 ⛔). Przy innym adresie §11 krok 6 każe poprawić też `homepage` i README (a to wymaga changesetu, bo rusza `packages/`). Changeset T37 celowo nie zawiera adresu, żeby `grep -l 'tally-charts.vercel.app' .changeset/*.md` nadal dawał te same 3 pliki.
+- D2. Test tokenów README usunięty z `surface.test.ts` (README nie ma już tabeli). Przejął go `apps/docs/content/tokens.test.ts`: tokeny z `TokenTable` (`collectTokens` na `theme.css`, 24) ∪ tokeny wymienione w markdownie `prose`/`callout` strony `theming.json` = wszystkie `--ch-*` użyte w `theme.css` i `src/**` biblioteki bez testów (38, ta sama regexp co w surface.test). Łańcuch: `surface.test` pilnuje „użyte = TOKENS”, test docs „użyte = udokumentowane na stronie”. Sprawdzone ręcznie: po usunięciu akapitu z tokenami (`n20`) test failuje i wypisuje brakujące `--ch-seq-mix-1…5`; po przywróceniu przechodzi. Komentarz w `surface.test.ts` odsyła teraz do `apps/docs/content/theming.json`.
+- D3. README bez linii statusu wersji (status 1.0 to osobne kryterium SPEC) i tylko z linkami absolutnymi (względne nie działają na npm).
+- Test `migration-1-0` w `fixtures.test.ts` sprawdzał, że nagłówki poziomu 2 to dokładnie `Breaking changes` i `Additive changes`. Nowa sekcja „Earlier changes (0.6 to 0.9)” jest trzecim nagłówkiem h2, więc dopisałem go do oczekiwanej listy. Liczba breaking changes (4) i reszta asercji bez zmian, sekcja leży po „Additive changes”.
+- Strony: tokeny i zakresy zapisane jawnie, listami zamiast tabel markdown (tabela mogłaby łamać reflow 320 px). Luki z planu (a–d) uzupełnione w `theming`, `composition`, `hooks-and-providers`, `migration-1-0`. Grep po fiksturach wykrył jeszcze dwie luki, których plan nie widział, dopisane do „Conventions” w `composition`: formaty id punktów (`'start'`/`'end'` WaterfallChart, `"<series id>:<row id>"` StripPlot, `"<row>:<column>"` Heatmap i kolizje `:`, LineChart, RankedBars) i reguła liczb w danych (liczby i numeryczne stringi się liczą, puste/boolean/inne to braki).
+
+**Mapowanie: usunięta sekcja README → strona** (każdy wiersz sprawdzony grepem po `apps/docs/content/*.json`; wiersze „PropsTable” = opis propa w TSDoc, widoczny w `api.generated.json`)
+| Sekcja README | Strona (slug) | Dowód |
+|---|---|---|
+| lead, motyw, klasa dark mode / next-themes | `dark-mode`, `theming` | `next-themes` w dark-mode; „Forcing a theme” w theming |
+| NODE_ENV | `getting-started` | `NODE_ENV` |
+| Styling + tabela tokenów | `theming` | `token-table` (24) + nowa sekcja „Tokens without a default in theme.css” (14 tokenów, w tym `--ch-seq-1…5`) |
+| Palettes | `palettes` | `vivid`, forced colors; kontrasty: `accessibility` |
+| Stability | `stability` | `semver` |
+| High-level charts: wstęp (`dataTable`, `keyboardHint`, `ChartPoint<D>`, `tooltip`) | PropsTable wykresów, `accessibility` | opisy propów `dataTable`, `tooltip`, `onSelect` (`point.datum`); `keyboardHint` w accessibility i na stronach wykresów |
+| BarChart, ComparisonBars (`initialWidth`, `layout`), RankedBars (`selectable`), WaterfallChart, BridgeChart, DotHistogram, StripPlot, WaffleColumns, LineChart, Heatmap (`rowLabel`) | `bar-chart`, `comparison-bars`, `ranked-bars`, `waterfall-chart`, `bridge-chart`, `dot-histogram`, `strip-plot`, `waffle-columns`, `line-chart`, `heatmap` | osobne strony; `initialWidth` w comparison-bars, `selectable` w ranked-bars, `rowLabel` w heatmap |
+| id punktów i wierszy poszczególnych wykresów | `composition` (nowa „Conventions”) | `Ids of points and rows` |
+| RunwayChart, `runwayForecast` | `runway-chart` | `runwayForecast` |
+| Small pieces, ShareBar, ZoneMeter | `small-pieces` | `ShareBar`, `ZoneMeter` |
+| thresholds, `inclusive: 'upper'`, `heatmapLevel` | `thresholds` | `inclusive: 'upper'`, `heatmapLevel` |
+| building blocks 0.3/0.4/0.5 (`Connector`, `ColumnHighlight`, `Area`, `Callout`, `Dots`, `NearestPointer`, `Line`, `Band`, `Grid`, `Region`, `Legend`) | `composition` | `Connector`, `NearestPointer`, `Region`; `Callout.clearance` w PropsTable (TSDoc) |
+| Time scales | `time-scales` | `'utc'`, zone |
+| Formatting | `formatting` | `currency-compact`, `createFormatter` |
+| Conventions | `composition` (nowa) | sekcja „Conventions” |
+| Custom marks | `hooks-and-providers` | `useRegisterPoints` |
+| Several React roots | `hooks-and-providers` (nowa) | `chartId` |
+| Server Components | `server-components` | `tally-charts/core`, `runwayForecast` |
+| Accessibility | `accessibility` | `Escape`, forced colors, 320 px |
+| Changes in 0.9 / 0.8 | `migration-1-0` (nowa „Earlier changes”) + CHANGELOG | `inclusive: 'upper'`, `ShareBar`, `ZoneMeter` |
+| Changes in 0.6 | `migration-1-0` (nowa „Renames in 0.6”, „Accessibility changes in 0.6b”, „Additions in 0.6 to 0.9”) + CHANGELOG | lista zmian nazw przed → po |
+
+**Bramki (exit 0):** `pnpm lint`, `pnpm typecheck`, `pnpm test` (1154), `pnpm build`, `api:check` (bez zmian w `packages/tally-charts/api`), `check:dts`, `check:treeshake`, `check:dev-strip`, `pnpm size`, `pnpm test:scripts`, `pnpm --filter docs typecheck`, `pnpm --filter docs test` (698), `pnpm --filter docs check:content` (API coverage 52/52, 26 stron), `pnpm --filter docs build`, `pnpm --filter docs test:e2e` (448, w tym axe, reflow 320, linki, lazy-mount; baseline'y `/` i `/docs/line-chart` bez zmian).
+**Otwarte kwestie:**
+- Maintainer: ponowić `pnpm --filter docs seed`, bo zmieniły się 4 fiksturki (`theming`, `composition`, `hooks-and-providers`, `migration-1-0`), a produkcja czyta glökki. Do czasu seeda strona na produkcji nie ma nowych sekcji, a README na npm już odsyła do strony.
+- Przy innej domenie niż `https://tally-charts.vercel.app` poprawić `homepage`, linki README i changesety (§11 krok 6); README i `homepage` trafią na npm razem z najbliższym wydaniem, więc adres musi być znany przed publikacją.
+- e2e uruchomiony tylko na darwin; reflow na linuxie (docker, `CI=1`) niesprawdzony, ale nowe sekcje to wyłącznie proza i listy.
