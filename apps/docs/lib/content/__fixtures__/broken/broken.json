@@ -1,0 +1,27 @@
+{
+  "versionId": "fixture-broken-v1",
+  "version": 1,
+  "locale": "en",
+  "publishedAt": "2026-10-25T00:00:00.000Z",
+  "codeInjection": {},
+  "layout": { "key": "default", "header": null, "footer": null },
+  "pageId": "fixture-broken",
+  "title": "Broken",
+  "slug": "broken",
+  "seo": {},
+  "componentTree": [
+    {
+      "id": "bad-example",
+      "type": "chart-example",
+      "props": { "exampleId": "nope/missing", "defaultView": "preview" }
+    },
+    { "id": "bad-prop", "type": "heading", "props": { "text": "Oops", "level": "4" } },
+    {
+      "id": "bad-link",
+      "type": "prose",
+      "props": { "markdown": "Read [the guide](/docs/does-not-exist) first." }
+    },
+    { "id": "bad-symbol", "type": "props-table", "props": { "symbol": "NoSuchSymbol" } },
+    { "id": "bad-type", "type": "carousel", "props": {} }
+  ]
+}

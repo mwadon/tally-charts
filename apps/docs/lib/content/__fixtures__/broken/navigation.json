@@ -1,0 +1,8 @@
+{
+  "groups": [
+    {
+      "label": "Start",
+      "items": [{ "label": "OK", "slug": "ok" }, { "label": "Broken", "slug": "broken" }]
+    }
+  ]
+}
