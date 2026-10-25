@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { Chart, type ChartProps } from '../Chart'
 import { Tooltip } from '../overlays/Tooltip'
@@ -61,6 +61,34 @@ describe('<Bars>', () => {
     expect(a).toHaveAttribute('height', '60')
     expect(b).toHaveAttribute('y', '0')
     expect(b).toHaveAttribute('height', '120')
+  })
+
+  it('mentions Enter in the chart description only on selectable bars', () => {
+    const enter = 'Press Enter to select'
+    const { container, unmount } = renderBars(
+      { selectable: (_, i) => i !== 1 },
+      { onSelect: () => {} },
+    )
+    const chart = screen.getByRole('application')
+    expect(chart).toHaveAccessibleDescription(expect.stringContaining(enter))
+    act(() => chart.focus())
+    expect(chart).toHaveAccessibleDescription(expect.stringContaining(enter))
+    fireEvent.keyDown(chart, { key: 'ArrowRight' })
+    expect(chart).not.toHaveAccessibleDescription(expect.stringContaining(enter))
+    expect(container.querySelector('[aria-live]')?.textContent).not.toContain('Enter')
+    fireEvent.keyDown(chart, { key: 'ArrowLeft' })
+    expect(chart).toHaveAccessibleDescription(expect.stringContaining(enter))
+    unmount()
+    // Without onSelect no bar can be selected.
+    const plain = renderBars({ selectable: (_, i) => i !== 1 })
+    const plainChart = screen.getByRole('application')
+    act(() => plainChart.focus())
+    expect(plainChart).not.toHaveAccessibleDescription(expect.stringContaining(enter))
+    fireEvent.keyDown(plainChart, { key: 'ArrowRight' })
+    expect(plainChart).not.toHaveAccessibleDescription(expect.stringContaining(enter))
+    fireEvent.keyDown(plainChart, { key: 'ArrowLeft' })
+    expect(plainChart).not.toHaveAccessibleDescription(expect.stringContaining(enter))
+    expect(plain.container.querySelector('[aria-live]')?.textContent).not.toContain('Enter')
   })
 
   it('applies tone and fill per item', () => {

@@ -21,7 +21,7 @@ function Probe({ onContext }: { onContext: (ctx: InternalChartContext) => void }
   return null
 }
 
-function PointsProbe({ ids }: { ids: Id[] }) {
+function PointsProbe({ ids, unselectable = [] }: { ids: Id[]; unselectable?: Id[] }) {
   useRegisterPoints(
     ids.map((id, index) => ({
       id,
@@ -31,6 +31,7 @@ function PointsProbe({ ids }: { ids: Id[] }) {
       y: 0,
       label: `Week ${id}`,
       segments: [],
+      ...(unselectable.includes(id) ? { selectable: false } : {}),
     })),
   )
   return null
@@ -118,6 +119,71 @@ describe('<Chart>', () => {
     expect(descId).toBeTruthy()
     expect(app.getAttribute('aria-describedby')).toBe(descId)
     expect(app).toHaveAccessibleDescription('About it.')
+  })
+
+  describe('Enter hint', () => {
+    const enter = 'Press Enter to select'
+    const live = (root: HTMLElement) => root.querySelector('[aria-live]')
+
+    it('is absent without onSelect, in the description and the live region', () => {
+      const { container } = render(
+        <Chart width={400} title="Probe">
+          <PointsProbe ids={[1, 2, 3]} />
+        </Chart>,
+      )
+      const chart = screen.getByRole('application')
+      expect(chart).not.toHaveAccessibleDescription(expect.stringContaining(enter))
+      fireEvent.keyDown(chart, { key: 'ArrowRight' })
+      fireEvent.keyDown(chart, { key: 'End' })
+      expect(live(container)?.textContent).toBeTruthy()
+      expect(live(container)?.textContent).not.toContain('Enter')
+      expect(chart).not.toHaveAccessibleDescription(expect.stringContaining(enter))
+    })
+
+    it('is absent while the first point cannot be selected, before and after focus', () => {
+      const { container } = render(
+        <Chart width={400} title="Probe" onSelect={() => {}}>
+          <PointsProbe ids={[1, 2]} unselectable={[1]} />
+        </Chart>,
+      )
+      const chart = screen.getByRole('application')
+      expect(chart).not.toHaveAccessibleDescription(expect.stringContaining(enter))
+      act(() => chart.focus())
+      expect(chart).not.toHaveAccessibleDescription(expect.stringContaining(enter))
+      expect(live(container)?.textContent).not.toContain('Enter')
+    })
+
+    it('follows the active point between selectable and unselectable points', () => {
+      const { container } = render(
+        <Chart width={400} title="Probe" onSelect={() => {}}>
+          <PointsProbe ids={[1, 2, 3]} unselectable={[2]} />
+        </Chart>,
+      )
+      const chart = screen.getByRole('application')
+      const hint = `${enter}.`
+      expect(chart).toHaveAccessibleDescription(expect.stringContaining(hint))
+      act(() => chart.focus())
+      expect(chart).toHaveAccessibleDescription(expect.stringContaining(hint))
+      expect(live(container)?.textContent).not.toContain('Enter')
+      fireEvent.keyDown(chart, { key: 'ArrowRight' })
+      expect(chart).not.toHaveAccessibleDescription(expect.stringContaining(enter))
+      expect(live(container)?.textContent).not.toContain('Enter')
+      fireEvent.keyDown(chart, { key: 'ArrowRight' })
+      expect(chart).toHaveAccessibleDescription(expect.stringContaining(hint))
+      expect(live(container)?.textContent).not.toContain('Enter')
+    })
+
+    it('uses a custom keyboardHint as is, whatever the point', () => {
+      render(
+        <Chart width={400} title="Probe" onSelect={() => {}} keyboardHint="Custom.">
+          <PointsProbe ids={[1, 2]} unselectable={[1]} />
+        </Chart>,
+      )
+      const chart = screen.getByRole('application')
+      expect(chart).toHaveAccessibleDescription('Custom.')
+      fireEvent.keyDown(chart, { key: 'ArrowRight' })
+      expect(chart).toHaveAccessibleDescription('Custom.')
+    })
   })
 
   it('leaves Alt, Ctrl and Cmd shortcuts to the browser', () => {

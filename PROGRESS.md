@@ -260,3 +260,12 @@ W tej próbie zmieniłem dwie rzeczy:
 
 Co przeszło: `pnpm format`, `pnpm lint` (4 ostrzeżenia i 1 info jak wcześniej), `pnpm typecheck`, `pnpm test` (1055), `pnpm build`, `api:check`, `pnpm size`, `check:dev-strip`. `pnpm test:e2e` na darwin przechodzi bez aktualizacji snapshotów (313), port 6007 był wolny. W katalogu darwin są 2 nowe PNG underlay, a istniejące PNG się nie zmieniły. W drzewie roboczym są tylko zmiany w `.size-limit.json`, `LineChart.tsx` i `PROGRESS.md`.
 Ostatnie uwagi: zobacz .crew/backlog.json (lastNote).
+
+## T08 Podpowiedź „Press Enter to select” tylko na wybieralnych punktach (F4)
+**Decyzje:**
+- D1. Dopisek „ Press Enter to select.” pojawia się, gdy `onSelect` jest ustawiony i punkt odniesienia ma `selectable !== false`. Punkt odniesienia to `interaction.activePoint`, a gdy go nie ma, `interaction.points[0]` (fokus z klawiatury i tak aktywuje pierwszy punkt). Aktywny punkt z kursora też przełącza opis.
+- D2. Własny `keyboardHint` zostaje bez zmian (tekst użytkownika); zmienia się tylko tekst domyślny. Opisane w JSDoc propa i w `docs/a11y.md`.
+- D3. Komunikat live (`announcement()`) dalej nie zawiera podpowiedzi, tak jak w 0.9; przypięte testami.
+- D4. Bez zmiany publicznego API: changeset `patch` (`.changeset/select-hint-selectable-points.md`).
+**Zmiany:** `Chart.tsx` (`hintPoint`, `canSelect`), JSDoc `keyboardHint`, `docs/a11y.md`. Bundle LineChart wyszedł 13003 B przy limicie 13000 B (marginesu nie było już po T06); inline'owanie warunku pogarszało gzip, więc limit LineChart w `packages/tally-charts/.size-limit.json` wrócił do 13.2 KB.
+**Testy:** `Chart.test.tsx` (`describe('Enter hint')`: bez onSelect, pierwszy punkt niewybieralny, przejście wybieralny → niewybieralny → wybieralny, własny hint; `PointsProbe` ma `unselectable`), `Bars.test.tsx` i `RankedBars.test.tsx` (z `onSelect` i bez). Bez poprawki w `Chart.tsx` padają 4 nowe testy.
