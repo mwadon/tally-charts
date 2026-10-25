@@ -1,4 +1,10 @@
+import { CMSPage } from '@glokki-cms/react'
+import type { Metadata } from 'next'
+import { notFound } from 'next/navigation'
+import { componentRegistry } from '../blocks/registry'
 import MarginByWeek from '../examples/bar-chart/margin-by-week'
+import { getContentSource } from '../lib/content'
+import { pageMetadata } from '../lib/metadata'
 import { CodeBlock, Tok } from './_components/code-block'
 import { SiteHeader } from './_components/site-header'
 import { VisualLanguage } from './_components/visual-language'
@@ -25,7 +31,17 @@ const FEATURES = [
 
 const DASHBOARDS = [1, 2, 3, 4, 5, 6, 7, 8, 9] as const
 
-export default function Home() {
+const loadHome = () => getContentSource().getPage('home')
+
+export async function generateMetadata(): Promise<Metadata> {
+  const page = await loadHome()
+  return page ? pageMetadata(page, '/') : {}
+}
+
+export default async function Home() {
+  const page = await loadHome()
+  if (!page) notFound()
+
   return (
     <>
       <SiteHeader />
@@ -109,6 +125,8 @@ export default function Home() {
             </li>
           </ul>
         </section>
+
+        <CMSPage componentTree={page.componentTree} registry={componentRegistry} />
       </main>
       <footer className="site-footer">
         <p>tally-charts · MIT</p>

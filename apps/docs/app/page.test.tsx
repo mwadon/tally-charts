@@ -3,8 +3,8 @@ import { expect, test } from 'vitest'
 import { meta } from '../examples/bar-chart/margin-by-week'
 import Home from './page'
 
-test('home page renders the hero sentence, a chart from tally-charts and the sections in order', () => {
-  const { container } = render(<Home />)
+test('home page renders the hero sentence, a chart from tally-charts and the sections in order', async () => {
+  const { container } = render(await Home())
 
   expect(
     screen.getByRole('heading', {
@@ -25,8 +25,8 @@ test('home page renders the hero sentence, a chart from tally-charts and the sec
   ])
 })
 
-test('the header has a text wordmark linking to the home page and no logo image', () => {
-  const { container } = render(<Home />)
+test('the header has a text wordmark linking to the home page and no logo image', async () => {
+  const { container } = render(await Home())
 
   const header = screen.getByRole('banner')
   expect(within(header).getByRole('link', { name: 'tally-charts' }).getAttribute('href')).toBe('/')

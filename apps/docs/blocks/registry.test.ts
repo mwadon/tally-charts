@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest'
-import { blockRegistry, blockSchemas, parseBlockProps } from './registry'
+import { blockRegistry, blockSchemas, componentRegistry, parseBlockProps } from './registry'
 
 const types = [
   'prose',
@@ -47,4 +47,10 @@ test('an unknown type is an error, also for names from Object.prototype', () => 
     const result = parseBlockProps(type, {})
     expect(result.success).toBe(false)
   }
+})
+
+test('componentRegistry maps each of the eight types to its component', () => {
+  expect([...componentRegistry.keys()]).toEqual(types)
+  for (const type of types)
+    expect(componentRegistry.get(type)).toBe(blockRegistry.getComponent(type))
 })

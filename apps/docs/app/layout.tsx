@@ -1,9 +1,11 @@
 import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
 import 'tally-charts/theme.css'
+import { siteUrl } from '../lib/metadata'
 import './globals.css'
 
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl()),
   title: 'tally-charts',
 }
 

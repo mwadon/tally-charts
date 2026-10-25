@@ -93,7 +93,8 @@ p {
   margin: 0 0 1rem;
 }
 
-.lede {
+.lede,
+.doc h1 + .prose > p:first-child {
   max-width: 40rem;
   margin-top: 1rem;
   color: var(--docs-muted);

@@ -22,7 +22,7 @@ test('Tab reaches the wordmark and the Preview/Code toggle, both with a visible 
 test('the toggle swaps the live chart for the source and back', async ({ page }) => {
   await page.goto('/docs/line-chart')
   const chart = page.getByRole('application', { name: CHART })
-  const source = page.getByRole('region', { name: `Source of: ${CHART}` })
+  const source = page.getByRole('region', { name: 'revenue-forecast.tsx' })
   await expect(chart).toBeVisible()
   await expect(source).toBeHidden()
 
