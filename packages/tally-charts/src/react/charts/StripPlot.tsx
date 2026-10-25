@@ -7,7 +7,7 @@ import { inferLinearDomain } from '../../core/scale'
 import type { TickSpec } from '../../core/ticks'
 import type { Accessor, Id, Tone } from '../../core/types'
 import { createWarner, DEV, type Warn } from '../../core/warn'
-import { Chart } from '../Chart'
+import { Chart, type ChartName } from '../Chart'
 import { useFormat } from '../ChartsProvider'
 import { type Margin, useChartContext } from '../context'
 import type { DataTableSpec } from '../DataTable'
@@ -37,41 +37,42 @@ export interface StripSeries<D> {
   tone?: Tone
 }
 
-export interface StripPlotProps<D> extends Omit<ChartPassThroughProps<D>, 'aspectRatio'> {
-  data: readonly D[]
-  /** One row of dots per series. */
-  series: readonly StripSeries<D>[]
-  /** Item id. Default: the data index. */
-  id?: Accessor<D, Id>
-  /** Item name for announcements and tooltips. */
-  label?: Accessor<D, string>
-  /** Default 'number'. */
-  format?: FormatSpec
-  /** Value domain. Default: the range of all values without forcing zero, rounded to nice ticks. */
-  domain?: readonly [number, number]
-  /** Dot radius in px. Default 4. */
-  radius?: number
-  /** Dashed median line and label per row. Default true. */
-  median?: boolean
-  /** Default 72. */
-  rowHeight?: number
-  /** Label column width in px. Default 96. */
-  labelWidth?: number
-  /** Value axis ticks, or 'none'. Default 5. */
-  axis?: TickSpec | 'none'
-  /** Axis label format. Default: `format`. */
-  axisFormat?: AxisFormat
-  /**
-   * Hidden data table for screen readers: `true`, `false`, or `{ caption, columns }` to set its
-   * caption and rename column headers. Default true.
-   */
-  dataTable?: boolean | DataTableOptions
-  /**
-   * Tooltip on hover and focus: `true` for the default pill, or a function that renders the
-   * content for a point (`point.datum` is your row). Default true.
-   */
-  tooltip?: ChartTooltip<D>
-}
+export type StripPlotProps<D> = ChartName &
+  Omit<ChartPassThroughProps<D>, 'aspectRatio'> & {
+    data: readonly D[]
+    /** One row of dots per series. */
+    series: readonly StripSeries<D>[]
+    /** Item id. Default: the data index. */
+    id?: Accessor<D, Id>
+    /** Item name for announcements and tooltips. */
+    label?: Accessor<D, string>
+    /** Default 'number'. */
+    format?: FormatSpec
+    /** Value domain. Default: the range of all values without forcing zero, rounded to nice ticks. */
+    domain?: readonly [number, number]
+    /** Dot radius in px. Default 4. */
+    radius?: number
+    /** Dashed median line and label per row. Default true. */
+    median?: boolean
+    /** Default 72. */
+    rowHeight?: number
+    /** Label column width in px. Default 96. */
+    labelWidth?: number
+    /** Value axis ticks, or 'none'. Default 5. */
+    axis?: TickSpec | 'none'
+    /** Axis label format. Default: `format`. */
+    axisFormat?: AxisFormat
+    /**
+     * Hidden data table for screen readers: `true`, `false`, or `{ caption, columns }` to set its
+     * caption and rename column headers. Default true.
+     */
+    dataTable?: boolean | DataTableOptions
+    /**
+     * Tooltip on hover and focus: `true` for the default pill, or a function that renders the
+     * content for a point (`point.datum` is your row). Default true.
+     */
+    tooltip?: ChartTooltip<D>
+  }
 
 interface StripRow<D> {
   key: string

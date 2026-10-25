@@ -11,6 +11,7 @@ describe('<Axis>', () => {
   it('labels the band ends with outer anchors below the plot', () => {
     const { container } = render(
       <Chart
+        title="Test chart"
         {...frame}
         width={300}
         x={{ type: 'band', domain: ['W1', 'W2', 'W3'], padding: 0 }}
@@ -31,6 +32,7 @@ describe('<Axis>', () => {
   it('anchors point labels on the plot edges inward at padding 0', () => {
     const { container } = render(
       <Chart
+        title="Test chart"
         {...frame}
         width={300}
         x={{ type: 'point', domain: ['Apr', 'May', 'Jun', 'Jul'], padding: 0 }}
@@ -52,6 +54,7 @@ describe('<Axis>', () => {
   it('puts band end labels on a side axis level with their rows', () => {
     const { container } = render(
       <Chart
+        title="Test chart"
         {...frame}
         width={300}
         x={{ domain: [0, 1] }}
@@ -68,7 +71,13 @@ describe('<Axis>', () => {
 
   it('formats linear ticks on the left with a preset', () => {
     const { container } = render(
-      <Chart {...frame} width={300} x={{ domain: [0, 1] }} y={{ domain: [30, 40] }}>
+      <Chart
+        title="Test chart"
+        {...frame}
+        width={300}
+        x={{ domain: [0, 1] }}
+        y={{ domain: [30, 40] }}
+      >
         <Axis side="left" ticks={2} format="percent" />
       </Chart>,
     )
@@ -81,7 +90,13 @@ describe('<Axis>', () => {
 
   it('keeps the preset decimals when a tick is not whole', () => {
     const { container } = render(
-      <Chart {...frame} width={300} x={{ domain: [0, 1] }} y={{ domain: [0, 1] }}>
+      <Chart
+        title="Test chart"
+        {...frame}
+        width={300}
+        x={{ domain: [0, 1] }}
+        y={{ domain: [0, 1] }}
+      >
         <Axis side="left" ticks={2} format="percent" />
       </Chart>,
     )
@@ -90,7 +105,13 @@ describe('<Axis>', () => {
 
   it('drops whole-tick decimals for pts and keeps explicit digits', () => {
     const { container } = render(
-      <Chart {...frame} width={300} x={{ domain: [-2, 2] }} y={{ domain: [30, 40] }}>
+      <Chart
+        title="Test chart"
+        {...frame}
+        width={300}
+        x={{ domain: [-2, 2] }}
+        y={{ domain: [30, 40] }}
+      >
         <Axis side="bottom" ticks={2} format="pts" />
         <Axis side="left" ticks={2} format={{ preset: 'percent', digits: 2 }} />
       </Chart>,
@@ -101,7 +122,13 @@ describe('<Axis>', () => {
   it('gives a format function the number on a value axis', () => {
     const pct = (v: number) => `${v.toFixed(0)} pct`
     const { container } = render(
-      <Chart {...frame} width={300} x={{ domain: [0, 1] }} y={{ domain: [30, 40] }}>
+      <Chart
+        title="Test chart"
+        {...frame}
+        width={300}
+        x={{ domain: [0, 1] }}
+        y={{ domain: [30, 40] }}
+      >
         <Axis side="left" ticks={2} format={pct} />
       </Chart>,
     )
@@ -110,7 +137,13 @@ describe('<Axis>', () => {
 
   it('ignores a date spec on a value axis', () => {
     const { container } = render(
-      <Chart {...frame} width={300} x={{ domain: [0, 1] }} y={{ domain: [30, 40] }}>
+      <Chart
+        title="Test chart"
+        {...frame}
+        width={300}
+        x={{ domain: [0, 1] }}
+        y={{ domain: [30, 40] }}
+      >
         <Axis side="left" ticks={2} format="month" />
       </Chart>,
     )
@@ -119,7 +152,13 @@ describe('<Axis>', () => {
 
   it('accepts a custom format function', () => {
     const { container } = render(
-      <Chart {...frame} width={300} x={{ type: 'band', domain: ['a', 'b'] }} y={{ domain: [0, 1] }}>
+      <Chart
+        title="Test chart"
+        {...frame}
+        width={300}
+        x={{ type: 'band', domain: ['a', 'b'] }}
+        y={{ domain: [0, 1] }}
+      >
         <Axis side="bottom" format={(v) => String(v).toUpperCase()} />
       </Chart>,
     )
@@ -129,7 +168,13 @@ describe('<Axis>', () => {
   it('thins crowded labels', () => {
     const domain = Array.from({ length: 12 }, (_, i) => `Week ${String(i + 1).padStart(2, '0')}`)
     const { container } = render(
-      <Chart {...frame} width={200} x={{ type: 'band', domain, padding: 0 }} y={{ domain: [0, 1] }}>
+      <Chart
+        title="Test chart"
+        {...frame}
+        width={200}
+        x={{ type: 'band', domain, padding: 0 }}
+        y={{ domain: [0, 1] }}
+      >
         <Axis side="bottom" />
       </Chart>,
     )
@@ -139,7 +184,13 @@ describe('<Axis>', () => {
   it('keeps every label when thinning is off', () => {
     const domain = Array.from({ length: 12 }, (_, i) => `Week ${i + 1}`)
     const { container } = render(
-      <Chart {...frame} width={200} x={{ type: 'band', domain }} y={{ domain: [0, 1] }}>
+      <Chart
+        title="Test chart"
+        {...frame}
+        width={200}
+        x={{ type: 'band', domain }}
+        y={{ domain: [0, 1] }}
+      >
         <Axis side="bottom" thin={false} />
       </Chart>,
     )
@@ -149,6 +200,7 @@ describe('<Axis>', () => {
   it('marks the highlighted label', () => {
     const { container } = render(
       <Chart
+        title="Test chart"
         {...frame}
         width={300}
         x={{ type: 'band', domain: ['W1', 'W2', 'W3'], padding: 0 }}
@@ -165,7 +217,13 @@ describe('<Axis>', () => {
 
   it('labels only the extent it is given on a padded scale', () => {
     const { container } = render(
-      <Chart {...frame} width={340} x={{ domain: [30, 64] }} y={{ type: 'band', domain: ['a'] }}>
+      <Chart
+        title="Test chart"
+        {...frame}
+        width={340}
+        x={{ domain: [30, 64] }}
+        y={{ type: 'band', domain: ['a'] }}
+      >
         <Axis side="bottom" ticks="ends" extent={[34, 64]} />
       </Chart>,
     )
@@ -176,6 +234,7 @@ describe('<Axis>', () => {
   it('labels point scales at their positions', () => {
     const { container } = render(
       <Chart
+        title="Test chart"
         {...frame}
         width={400}
         x={{ type: 'point', domain: ['Apr', 'May', 'Jun', 'Jul'] }}

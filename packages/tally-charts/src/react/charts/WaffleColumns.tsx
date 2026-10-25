@@ -5,7 +5,7 @@ import type { FormatSpec, Formatter } from '../../core/format'
 import type { Accessor, Id, Tone } from '../../core/types'
 import { packWaffle } from '../../core/waffle'
 import { createWarner, DEV, type Warn } from '../../core/warn'
-import { Chart } from '../Chart'
+import { Chart, type ChartName } from '../Chart'
 import { useFormat } from '../ChartsProvider'
 import { type Margin, useChartContext } from '../context'
 import type { DataTableColumn, DataTableSpec } from '../DataTable'
@@ -27,41 +27,42 @@ import {
   withTableOptions,
 } from './shared'
 
-export interface WaffleColumnsProps<D> extends Omit<ChartPassThroughProps<D>, 'aspectRatio'> {
-  data: readonly D[]
-  /** Period label, e.g. "Sep 7". */
-  x: Accessor<D, string | number>
-  /** Value per period. */
-  y: Accessor<D, number>
-  /** Passed to onSelect and onActiveChange. Default: the data index. */
-  id?: Accessor<D, Id>
-  /** Group of periods, e.g. the month; labelled under its columns. */
-  group?: Accessor<D, string>
-  /** Tone per group. Default: the last group 'loss', the others 'neutral'. */
-  groupTone?: (group: string, index: number, groups: readonly string[]) => Tone
-  /** Value of one dot. Default: a nice step that gives the tallest column about 12 dots. */
-  unit?: number
-  /** Dots across each column. Default 2. */
-  wide?: number
-  /** The largest column solid, the others soft. Default true. */
-  peak?: boolean
-  /** Pinned pill over the peak column: true for "Peak | <period> | <value>", or custom segments. Default true. */
-  callout?: boolean | ((d: D) => readonly TooltipSegment[])
-  /** Default 'number'. */
-  format?: FormatSpec
-  /** Inner band padding, 0–1. Default 0.3. */
-  padding?: number
-  /**
-   * Hidden data table for screen readers: `true`, `false`, or `{ caption, columns }` to set its
-   * caption and rename column headers. Default true.
-   */
-  dataTable?: boolean | DataTableOptions
-  /**
-   * Tooltip on hover and focus: `true` for the default pill, or a function that renders the
-   * content for a point (`point.datum` is your row). Default true.
-   */
-  tooltip?: ChartTooltip<D>
-}
+export type WaffleColumnsProps<D> = ChartName &
+  Omit<ChartPassThroughProps<D>, 'aspectRatio'> & {
+    data: readonly D[]
+    /** Period label, e.g. "Sep 7". */
+    x: Accessor<D, string | number>
+    /** Value per period. */
+    y: Accessor<D, number>
+    /** Passed to onSelect and onActiveChange. Default: the data index. */
+    id?: Accessor<D, Id>
+    /** Group of periods, e.g. the month; labelled under its columns. */
+    group?: Accessor<D, string>
+    /** Tone per group. Default: the last group 'loss', the others 'neutral'. */
+    groupTone?: (group: string, index: number, groups: readonly string[]) => Tone
+    /** Value of one dot. Default: a nice step that gives the tallest column about 12 dots. */
+    unit?: number
+    /** Dots across each column. Default 2. */
+    wide?: number
+    /** The largest column solid, the others soft. Default true. */
+    peak?: boolean
+    /** Pinned pill over the peak column: true for "Peak | <period> | <value>", or custom segments. Default true. */
+    callout?: boolean | ((d: D) => readonly TooltipSegment[])
+    /** Default 'number'. */
+    format?: FormatSpec
+    /** Inner band padding, 0–1. Default 0.3. */
+    padding?: number
+    /**
+     * Hidden data table for screen readers: `true`, `false`, or `{ caption, columns }` to set its
+     * caption and rename column headers. Default true.
+     */
+    dataTable?: boolean | DataTableOptions
+    /**
+     * Tooltip on hover and focus: `true` for the default pill, or a function that renders the
+     * content for a point (`point.datum` is your row). Default true.
+     */
+    tooltip?: ChartTooltip<D>
+  }
 
 interface WaffleRow<D> {
   key: string

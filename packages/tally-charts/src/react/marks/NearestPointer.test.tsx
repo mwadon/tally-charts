@@ -22,9 +22,13 @@ function Points({ at, hit }: { at: [Id, number, number][]; hit?: [number, number
   return null
 }
 
-function renderLayer(props: NearestPointerProps = {}, chart: Partial<ChartProps<unknown>> = {}) {
+function renderLayer(
+  props: NearestPointerProps = {},
+  chart: Partial<Omit<ChartProps<unknown>, 'title' | 'aria-labelledby'>> = {},
+) {
   return render(
     <Chart
+      title="Test chart"
       width={200}
       height={100}
       margin={{ top: 0, right: 0, bottom: 0, left: 0 }}
@@ -79,6 +83,7 @@ describe('<NearestPointer>', () => {
     const onActiveChange = vi.fn()
     const { container } = render(
       <Chart
+        title="Test chart"
         width={200}
         height={100}
         margin={{ top: 0, right: 0, bottom: 0, left: 0 }}

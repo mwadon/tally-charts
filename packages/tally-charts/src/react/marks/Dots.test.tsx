@@ -8,9 +8,13 @@ const items: DotItem[] = [
   { key: 'b', id: 'b', datum: null, cx: 30, cy: 90, tone: 'gain', soft: true, label: 'Job B' },
 ]
 
-function renderDots(chart: Partial<ChartProps<unknown>> = {}, interactive = true) {
+function renderDots(
+  chart: Partial<Omit<ChartProps<unknown>, 'title' | 'aria-labelledby'>> = {},
+  interactive = true,
+) {
   return render(
     <Chart
+      title="Test chart"
       width={100}
       height={100}
       margin={{ top: 0, right: 0, bottom: 0, left: 0 }}

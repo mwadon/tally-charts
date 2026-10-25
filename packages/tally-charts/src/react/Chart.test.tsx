@@ -38,14 +38,14 @@ function PointsProbe({ ids }: { ids: Id[] }) {
 
 describe('<Chart>', () => {
   it('uses chartId as the pattern id prefix', () => {
-    const { container } = render(<Chart width={100} chartId="revenue" />)
+    const { container } = render(<Chart title="Test chart" width={100} chartId="revenue" />)
     expect(container.querySelector('#ch-revenue-hatch-accent')).not.toBeNull()
   })
 
   it('exposes the default corner radius through context', () => {
     let ctx: InternalChartContext | undefined
     render(
-      <Chart width={100}>
+      <Chart title="Test chart" width={100}>
         <Probe
           onContext={(c) => {
             ctx = c
@@ -150,9 +150,9 @@ describe('<Chart>', () => {
   })
 
   it('sizes the svg from width and height, or from aspectRatio', () => {
-    const { container, rerender } = render(<Chart width={400} height={180} />)
+    const { container, rerender } = render(<Chart title="Test chart" width={400} height={180} />)
     expect(container.querySelector('svg')).toHaveAttribute('height', '180')
-    rerender(<Chart width={400} aspectRatio={2} />)
+    rerender(<Chart title="Test chart" width={400} aspectRatio={2} />)
     const svg = container.querySelector('svg')
     expect(svg).toHaveAttribute('width', '400')
     expect(svg).toHaveAttribute('height', '200')
@@ -162,6 +162,7 @@ describe('<Chart>', () => {
     let ctx: InternalChartContext | undefined
     render(
       <Chart
+        title="Test chart"
         data={weeks}
         width={400}
         height={230}
@@ -202,7 +203,13 @@ describe('<Chart>', () => {
       return null
     }
     render(
-      <Chart data={weeks} width={400} x={{ type: 'band', field: 'week' }} y={{ domain: [0, 40] }}>
+      <Chart
+        title="Test chart"
+        data={weeks}
+        width={400}
+        x={{ type: 'band', field: 'week' }}
+        y={{ domain: [0, 40] }}
+      >
         <Custom />
       </Chart>,
     )
@@ -251,18 +258,56 @@ describe('<Chart>', () => {
   it('warns once when the figure has no title, for <Chart> and every high-level chart', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     const axes = { x: { domain: [0, 1] }, y: { domain: [0, 1] } } as const
+    // @ts-expect-error a call from JS without a name
     const { rerender } = render(<Chart width={100} {...axes} />)
+    // @ts-expect-error a call from JS without a name
     rerender(<Chart width={200} {...axes} />)
     expect(warn).toHaveBeenCalledTimes(1)
     expect(warn.mock.calls[0]?.[0]).toBe(
       '[tally-charts] Chart has no `title`, so screen readers announce an unnamed figure.',
     )
     warn.mockClear()
+    // @ts-expect-error a call from JS without a name
     render(<BarChart data={weeks} x="week" y="margin" width={300} />)
     expect(warn).toHaveBeenCalledTimes(1)
     warn.mockClear()
     render(<Chart width={100} title="Named" {...axes} />)
     expect(warn).not.toHaveBeenCalled()
+  })
+
+  it('takes its name from the element aria-labelledby points at, without a warning', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    render(
+      <>
+        <h2 id="ext">Weekly margin</h2>
+        <Chart width={400} aria-labelledby="ext" x={{ domain: [0, 1] }} y={{ domain: [0, 1] }}>
+          <PointsProbe ids={['a', 'b']} />
+        </Chart>
+      </>,
+    )
+    expect(screen.getByRole('application', { name: 'Weekly margin' })).toBeInTheDocument()
+    expect(screen.getByRole('figure', { name: 'Weekly margin' })).toBeInTheDocument()
+    expect(warn).not.toHaveBeenCalled()
+  })
+
+  it('names the chart from aria-labelledby when it has a title too; the title stays the caption', () => {
+    render(
+      <>
+        <h2 id="ext">Weekly margin</h2>
+        <Chart
+          width={400}
+          title="Margin by week"
+          aria-labelledby="ext"
+          data={weeks}
+          dataTable={{ columns: [{ header: 'Week', value: (d) => d.week }] }}
+        >
+          <PointsProbe ids={['a', 'b']} />
+        </Chart>
+      </>,
+    )
+    expect(screen.getByRole('application', { name: 'Weekly margin' })).toBeInTheDocument()
+    expect(screen.getByRole('figure', { name: 'Weekly margin' })).toBeInTheDocument()
+    expect(screen.getByRole('table', { name: 'Margin by week' })).toBeInTheDocument()
   })
 
   it('throws when a building block is rendered outside <Chart>', () => {
@@ -275,8 +320,8 @@ describe('<Chart>', () => {
   it('scopes pattern ids per chart', () => {
     const { container } = render(
       <>
-        <Chart width={200} />
-        <Chart width={200} />
+        <Chart title="Test chart" width={200} />
+        <Chart title="Test chart" width={200} />
       </>,
     )
     const ids = [...container.querySelectorAll('pattern, mask')].map((el) => el.id)
@@ -287,7 +332,13 @@ describe('<Chart>', () => {
   it('keeps geometry finite at zero width', () => {
     let ctx: InternalChartContext | undefined
     const { container } = render(
-      <Chart width={0} height={0} x={{ type: 'band', domain: ['a'] }} y={{ domain: [0, 1] }}>
+      <Chart
+        title="Test chart"
+        width={0}
+        height={0}
+        x={{ type: 'band', domain: ['a'] }}
+        y={{ domain: [0, 1] }}
+      >
         <Probe
           onContext={(c) => {
             ctx = c
@@ -303,7 +354,7 @@ describe('<Chart>', () => {
   it('moves the active point with the keyboard and announces it', () => {
     const onActiveChange = vi.fn()
     const { container } = render(
-      <Chart width={300} onActiveChange={onActiveChange}>
+      <Chart title="Test chart" width={300} onActiveChange={onActiveChange}>
         <PointsProbe ids={[1, 2, 3]} />
       </Chart>,
     )
@@ -322,7 +373,7 @@ describe('<Chart>', () => {
   it('activates and announces the first point when keyboard focus arrives', () => {
     const onActiveChange = vi.fn()
     const { container } = render(
-      <Chart width={300} onActiveChange={onActiveChange}>
+      <Chart title="Test chart" width={300} onActiveChange={onActiveChange}>
         <PointsProbe ids={[1, 2, 3]} />
       </Chart>,
     )
@@ -334,7 +385,7 @@ describe('<Chart>', () => {
   it('leaves the active point alone when a pointer press focuses the chart', () => {
     const onActiveChange = vi.fn()
     render(
-      <Chart width={300} onActiveChange={onActiveChange}>
+      <Chart title="Test chart" width={300} onActiveChange={onActiveChange}>
         <PointsProbe ids={[1, 2]} />
       </Chart>,
     )
@@ -351,7 +402,7 @@ describe('<Chart>', () => {
   it('activates the first point on keyboard focus after a press that moved no focus', () => {
     const onActiveChange = vi.fn()
     const { container } = render(
-      <Chart width={300} onActiveChange={onActiveChange}>
+      <Chart title="Test chart" width={300} onActiveChange={onActiveChange}>
         <PointsProbe ids={[1, 2]} />
       </Chart>,
     )
@@ -368,7 +419,7 @@ describe('<Chart>', () => {
   it('calls onSelect with the active point on Enter', () => {
     const onSelect = vi.fn()
     render(
-      <Chart width={300} onSelect={onSelect}>
+      <Chart title="Test chart" width={300} onSelect={onSelect}>
         <PointsProbe ids={['a', 'b']} />
       </Chart>,
     )
@@ -382,7 +433,7 @@ describe('<Chart>', () => {
     const onActiveChange = vi.fn()
     let ctx: InternalChartContext | undefined
     render(
-      <Chart width={300} onActiveChange={onActiveChange}>
+      <Chart title="Test chart" width={300} onActiveChange={onActiveChange}>
         <PointsProbe ids={[1, 2]} />
         <Probe
           onContext={(c) => {
@@ -401,7 +452,7 @@ describe('<Chart>', () => {
     const onActiveChange = vi.fn()
     let ctx: InternalChartContext | undefined
     render(
-      <Chart width={300} onActiveChange={onActiveChange}>
+      <Chart title="Test chart" width={300} onActiveChange={onActiveChange}>
         <PointsProbe ids={[1, 2]} />
         <Probe
           onContext={(c) => {
@@ -424,7 +475,7 @@ describe('<Chart>', () => {
   it('reports a null active id when the controlled id is not among the registered points', () => {
     let ctx: InternalChartContext | undefined
     const { container } = render(
-      <Chart width={300} activeId={99}>
+      <Chart title="Test chart" width={300} activeId={99}>
         <PointsProbe ids={[1, 2]} />
         <Probe
           onContext={(c) => {
@@ -441,7 +492,7 @@ describe('<Chart>', () => {
   it('navigates past ids registered by two marks', () => {
     const onActiveChange = vi.fn()
     render(
-      <Chart width={300} onActiveChange={onActiveChange}>
+      <Chart title="Test chart" width={300} onActiveChange={onActiveChange}>
         <PointsProbe ids={['a', 'b']} />
         <PointsProbe ids={['a', 'b']} />
       </Chart>,
@@ -469,6 +520,7 @@ describe('<Chart>', () => {
   it('renders no data table for empty data', () => {
     render(
       <Chart<{ week: string }>
+        title="Test chart"
         data={[]}
         width={300}
         dataTable={{ columns: [{ header: 'Week', value: (d) => d.week }] }}

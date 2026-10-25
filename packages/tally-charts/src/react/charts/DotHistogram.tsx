@@ -9,7 +9,7 @@ import type { Thresholds } from '../../core/thresholds'
 import type { TickSpec } from '../../core/ticks'
 import type { Accessor, Id, Tone } from '../../core/types'
 import { createWarner, DEV, type Warn } from '../../core/warn'
-import { Chart } from '../Chart'
+import { Chart, type ChartName } from '../Chart'
 import { useFormat } from '../ChartsProvider'
 import { type Margin, useChartContext } from '../context'
 import type { DataTableColumn, DataTableSpec } from '../DataTable'
@@ -31,46 +31,47 @@ import {
   withTableOptions,
 } from './shared'
 
-export interface DotHistogramProps<D> extends Omit<ChartPassThroughProps<D>, 'aspectRatio'> {
-  data: readonly D[]
-  /** The binned value, e.g. margin. */
-  value: Accessor<D, number>
-  /** Passed to onSelect, onActiveChange and `calloutId`. Default: the data index. */
-  id?: Accessor<D, Id>
-  /** Item name for announcements and the default tooltip, e.g. "#5819". */
-  label?: Accessor<D, string>
-  /** Custom tooltip segments per item. */
-  segments?: (d: D, i: number) => readonly TooltipSegment[]
-  /** Tone per item: a `thresholds()` result or a function. Default 'accent'. */
-  toneBy?: Thresholds | ((d: D, i: number) => Tone)
-  /** Bin width in value units. Default: a nice step that gives about 50 bins. */
-  binWidth?: number
-  /** Value domain. Default: the data range including zero, rounded to nice ticks. */
-  domain?: readonly [number, number]
-  target?: number | { value: number; label?: string }
-  /** Pin a callout with a stem to this item id. */
-  calloutId?: Id
-  /** Default 'number'. */
-  format?: FormatSpec
-  /** Value axis ticks, or 'none'. Default 6. */
-  axis?: TickSpec | 'none'
-  /** Axis label format. Default: `format`. */
-  axisFormat?: AxisFormat
-  /** Default 6. */
-  maxRadius?: number
-  /** Default 2. */
-  minRadius?: number
-  /**
-   * Hidden data table for screen readers: `true`, `false`, or `{ caption, columns }` to set its
-   * caption and rename column headers. Default true.
-   */
-  dataTable?: boolean | DataTableOptions
-  /**
-   * Tooltip on hover and focus: `true` for the default pill, or a function that renders the
-   * content for a point (`point.datum` is your row). Default true.
-   */
-  tooltip?: ChartTooltip<D>
-}
+export type DotHistogramProps<D> = ChartName &
+  Omit<ChartPassThroughProps<D>, 'aspectRatio'> & {
+    data: readonly D[]
+    /** The binned value, e.g. margin. */
+    value: Accessor<D, number>
+    /** Passed to onSelect, onActiveChange and `calloutId`. Default: the data index. */
+    id?: Accessor<D, Id>
+    /** Item name for announcements and the default tooltip, e.g. "#5819". */
+    label?: Accessor<D, string>
+    /** Custom tooltip segments per item. */
+    segments?: (d: D, i: number) => readonly TooltipSegment[]
+    /** Tone per item: a `thresholds()` result or a function. Default 'accent'. */
+    toneBy?: Thresholds | ((d: D, i: number) => Tone)
+    /** Bin width in value units. Default: a nice step that gives about 50 bins. */
+    binWidth?: number
+    /** Value domain. Default: the data range including zero, rounded to nice ticks. */
+    domain?: readonly [number, number]
+    target?: number | { value: number; label?: string }
+    /** Pin a callout with a stem to this item id. */
+    calloutId?: Id
+    /** Default 'number'. */
+    format?: FormatSpec
+    /** Value axis ticks, or 'none'. Default 6. */
+    axis?: TickSpec | 'none'
+    /** Axis label format. Default: `format`. */
+    axisFormat?: AxisFormat
+    /** Default 6. */
+    maxRadius?: number
+    /** Default 2. */
+    minRadius?: number
+    /**
+     * Hidden data table for screen readers: `true`, `false`, or `{ caption, columns }` to set its
+     * caption and rename column headers. Default true.
+     */
+    dataTable?: boolean | DataTableOptions
+    /**
+     * Tooltip on hover and focus: `true` for the default pill, or a function that renders the
+     * content for a point (`point.datum` is your row). Default true.
+     */
+    tooltip?: ChartTooltip<D>
+  }
 
 interface HistogramRow<D> {
   key: string

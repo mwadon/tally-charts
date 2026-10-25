@@ -12,6 +12,7 @@ const lines: Line[] = [
 function renderRows(props: Partial<RowLabelsProps<Line>> = {}, data: Line[] = lines) {
   return render(
     <Chart<Line>
+      title="Test chart"
       data={data}
       width={300}
       height={50 * data.length}
@@ -87,6 +88,7 @@ describe('<RowLabels>', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     const { container } = render(
       <Chart
+        title="Test chart"
         data={lines}
         width={300}
         x={{ type: 'band', field: 'name' }}

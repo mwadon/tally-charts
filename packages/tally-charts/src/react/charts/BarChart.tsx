@@ -3,7 +3,7 @@ import type { FormatSpec } from '../../core/format'
 import type { BandScaleSpec, LinearScaleSpec } from '../../core/scale'
 import type { TickSpec } from '../../core/ticks'
 import type { Accessor, Fill, Id, PerItem, Tone } from '../../core/types'
-import { Chart } from '../Chart'
+import { Chart, type ChartName } from '../Chart'
 import { useFormat } from '../ChartsProvider'
 import type { Margin } from '../context'
 import type { DataTableSpec } from '../DataTable'
@@ -22,51 +22,52 @@ import {
   withTableOptions,
 } from './shared'
 
-export interface BarChartProps<D> extends ChartPassThroughProps<D> {
-  data: readonly D[]
-  /** Category field: the band axis in both orientations. */
-  x: Accessor<D, string | number>
-  /** Value field. */
-  y: Accessor<D, number>
-  id?: Accessor<D, Id>
-  /** Category label for tooltips, announcements and the data table. Defaults to `x`. */
-  label?: Accessor<D, string>
-  /** Default 'vertical'. */
-  orientation?: 'vertical' | 'horizontal'
-  /** Value domain. Inferred from the data (including zero) when omitted. */
-  domain?: readonly [number, number]
-  /** A target value, optionally with a label. */
-  target?: number | { value: number; label?: string }
-  /** Which bars get a value label. Default 'last'. */
-  valueLabel?: 'last' | 'all' | 'none'
-  /** Format for value labels. Defaults to `format`. */
-  valueFormat?: FormatSpec
-  /** Format for tooltips, announcements and the data table. Default 'number'. */
-  format?: FormatSpec
-  /** Category axis ticks, or 'none'. Default 'ends'. */
-  axis?: TickSpec | 'none'
-  /**
-   * Category axis labels: a function of the category. Number presets and date formats don't apply
-   * to categories and are ignored with a development warning. Default: the category itself.
-   */
-  axisFormat?: AxisFormat
-  /** Default 'accent'. */
-  tone?: PerItem<D, Tone>
-  /** Default: history 'hatch-fade', last bar 'solid'. */
-  fill?: PerItem<D, Fill>
-  /** Inner band padding, 0–1. Default 0.35. */
-  padding?: number
-  /**
-   * Hidden data table for screen readers: `true`, `false`, or `{ caption, columns }` to set its
-   * caption and rename column headers. Default true.
-   */
-  dataTable?: boolean | DataTableOptions
-  /**
-   * Tooltip on hover and focus: `true` for the default pill, or a function that renders the
-   * content for a point (`point.datum` is your row). Default true.
-   */
-  tooltip?: ChartTooltip<D>
-}
+export type BarChartProps<D> = ChartName &
+  ChartPassThroughProps<D> & {
+    data: readonly D[]
+    /** Category field: the band axis in both orientations. */
+    x: Accessor<D, string | number>
+    /** Value field. */
+    y: Accessor<D, number>
+    id?: Accessor<D, Id>
+    /** Category label for tooltips, announcements and the data table. Defaults to `x`. */
+    label?: Accessor<D, string>
+    /** Default 'vertical'. */
+    orientation?: 'vertical' | 'horizontal'
+    /** Value domain. Inferred from the data (including zero) when omitted. */
+    domain?: readonly [number, number]
+    /** A target value, optionally with a label. */
+    target?: number | { value: number; label?: string }
+    /** Which bars get a value label. Default 'last'. */
+    valueLabel?: 'last' | 'all' | 'none'
+    /** Format for value labels. Defaults to `format`. */
+    valueFormat?: FormatSpec
+    /** Format for tooltips, announcements and the data table. Default 'number'. */
+    format?: FormatSpec
+    /** Category axis ticks, or 'none'. Default 'ends'. */
+    axis?: TickSpec | 'none'
+    /**
+     * Category axis labels: a function of the category. Number presets and date formats don't apply
+     * to categories and are ignored with a development warning. Default: the category itself.
+     */
+    axisFormat?: AxisFormat
+    /** Default 'accent'. */
+    tone?: PerItem<D, Tone>
+    /** Default: history 'hatch-fade', last bar 'solid'. */
+    fill?: PerItem<D, Fill>
+    /** Inner band padding, 0–1. Default 0.35. */
+    padding?: number
+    /**
+     * Hidden data table for screen readers: `true`, `false`, or `{ caption, columns }` to set its
+     * caption and rename column headers. Default true.
+     */
+    dataTable?: boolean | DataTableOptions
+    /**
+     * Tooltip on hover and focus: `true` for the default pill, or a function that renders the
+     * content for a point (`point.datum` is your row). Default true.
+     */
+    tooltip?: ChartTooltip<D>
+  }
 
 const VERTICAL_MARGIN: Margin = { top: 24, right: 0, bottom: 28, left: 0 }
 const HORIZONTAL_MARGIN: Margin = { top: 8, right: 48, bottom: 8, left: 96 }

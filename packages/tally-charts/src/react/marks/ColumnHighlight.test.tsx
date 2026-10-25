@@ -9,6 +9,7 @@ describe('<ColumnHighlight>', () => {
   it('backs one column across the whole chart height', () => {
     const { container } = render(
       <Chart
+        title="Test chart"
         width={300}
         height={130}
         margin={{ top: 10, right: 0, bottom: 20, left: 0 }}
@@ -28,6 +29,7 @@ describe('<ColumnHighlight>', () => {
   it('backs one row across the whole chart width when the band is on y', () => {
     const { container } = render(
       <Chart
+        title="Test chart"
         width={300}
         height={120}
         margin={{ top: 0, right: 0, bottom: 0, left: 0 }}
@@ -45,7 +47,12 @@ describe('<ColumnHighlight>', () => {
 
   it('draws nothing for an unknown band', () => {
     const { container } = render(
-      <Chart width={300} x={{ type: 'band', domain: ['a'] }} y={{ domain: [0, 1] }}>
+      <Chart
+        title="Test chart"
+        width={300}
+        x={{ type: 'band', domain: ['a'] }}
+        y={{ domain: [0, 1] }}
+      >
         <ColumnHighlight at="zzz" />
       </Chart>,
     )

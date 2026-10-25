@@ -13,7 +13,7 @@ import type { TickSpec } from '../../core/ticks'
 import { DAY, type TimeInput, toTime } from '../../core/time'
 import type { Accessor, Tone } from '../../core/types'
 import { createWarner, DEV } from '../../core/warn'
-import { Chart } from '../Chart'
+import { Chart, type ChartName } from '../Chart'
 import { useFormat, useLocale } from '../ChartsProvider'
 import { type Margin, useChartContext } from '../context'
 import type { DataTableColumn, DataTableSpec } from '../DataTable'
@@ -68,57 +68,58 @@ export interface LineBand<D> {
   tone?: Tone
 }
 
-export interface LineChartProps<D> extends Omit<ChartPassThroughProps<D>, 'aspectRatio'> {
-  data: readonly D[]
-  /**
-   * The x of each row. An accessor puts categories on a point scale: each value appears once,
-   * repeats are skipped, and point ids are the values as strings, so `1` and `'1'` are the same
-   * x. A time scale spec with a `field` puts dates on a time axis instead: rows are sorted by
-   * date, rows with the same epoch ms are repeats, and point ids are ISO strings.
-   */
-  x: Accessor<D, string | number> | (TimeScaleSpec<D> & { field: Accessor<D, TimeInput> })
-  series: readonly LineSeries<D>[]
-  /** A soft band between two values, e.g. the likely range of a forecast. */
-  band?: LineBand<D>
-  /**
-   * Shade from here to the end, e.g. the first forecast month: a category, or a date on a time
-   * axis. The shading starts halfway between it and the x before it.
-   */
-  forecastFrom?: TimeInput
-  target?: number | { value: number; label?: string }
-  /**
-   * Value domain. Default: every series, the band and the target, rounded to nice ticks; zero
-   * isn't forced.
-   */
-  domain?: readonly [number, number]
-  /** Default 'number'. */
-  format?: FormatSpec
-  /** Value axis ticks, or 'none'. The grid follows them. Default 'all' (about 5). */
-  yAxis?: TickSpec | 'none'
-  /** Value axis labels. Default: `format`. */
-  yAxisFormat?: AxisFormat
-  /** x axis ticks, or 'none'. Default 'all'. */
-  xAxis?: TickSpec | 'none'
-  /**
-   * x axis labels; tooltip headers, announcements and the data table's x cells use the same
-   * format. Default: the category itself, or 'auto' dates on a time axis.
-   */
-  xAxisFormat?: AxisFormat
-  /** Horizontal grid lines at the value ticks ('all' when `yAxis` is 'none'). Default true. */
-  grid?: boolean
-  /** Dot radius in px. Default 4. */
-  radius?: number
-  /**
-   * Hidden data table for screen readers: `true`, `false`, or `{ caption, columns }` to set its
-   * caption and rename column headers. Default true.
-   */
-  dataTable?: boolean | DataTableOptions
-  /**
-   * Tooltip on hover and focus: `true` for the default pill, or a function that renders the
-   * content for a point (`point.datum` is your row). Default true.
-   */
-  tooltip?: ChartTooltip<D>
-}
+export type LineChartProps<D> = ChartName &
+  Omit<ChartPassThroughProps<D>, 'aspectRatio'> & {
+    data: readonly D[]
+    /**
+     * The x of each row. An accessor puts categories on a point scale: each value appears once,
+     * repeats are skipped, and point ids are the values as strings, so `1` and `'1'` are the same
+     * x. A time scale spec with a `field` puts dates on a time axis instead: rows are sorted by
+     * date, rows with the same epoch ms are repeats, and point ids are ISO strings.
+     */
+    x: Accessor<D, string | number> | (TimeScaleSpec<D> & { field: Accessor<D, TimeInput> })
+    series: readonly LineSeries<D>[]
+    /** A soft band between two values, e.g. the likely range of a forecast. */
+    band?: LineBand<D>
+    /**
+     * Shade from here to the end, e.g. the first forecast month: a category, or a date on a time
+     * axis. The shading starts halfway between it and the x before it.
+     */
+    forecastFrom?: TimeInput
+    target?: number | { value: number; label?: string }
+    /**
+     * Value domain. Default: every series, the band and the target, rounded to nice ticks; zero
+     * isn't forced.
+     */
+    domain?: readonly [number, number]
+    /** Default 'number'. */
+    format?: FormatSpec
+    /** Value axis ticks, or 'none'. The grid follows them. Default 'all' (about 5). */
+    yAxis?: TickSpec | 'none'
+    /** Value axis labels. Default: `format`. */
+    yAxisFormat?: AxisFormat
+    /** x axis ticks, or 'none'. Default 'all'. */
+    xAxis?: TickSpec | 'none'
+    /**
+     * x axis labels; tooltip headers, announcements and the data table's x cells use the same
+     * format. Default: the category itself, or 'auto' dates on a time axis.
+     */
+    xAxisFormat?: AxisFormat
+    /** Horizontal grid lines at the value ticks ('all' when `yAxis` is 'none'). Default true. */
+    grid?: boolean
+    /** Dot radius in px. Default 4. */
+    radius?: number
+    /**
+     * Hidden data table for screen readers: `true`, `false`, or `{ caption, columns }` to set its
+     * caption and rename column headers. Default true.
+     */
+    dataTable?: boolean | DataTableOptions
+    /**
+     * Tooltip on hover and focus: `true` for the default pill, or a function that renders the
+     * content for a point (`point.datum` is your row). Default true.
+     */
+    tooltip?: ChartTooltip<D>
+  }
 
 interface LineRow<D> {
   /** Point id: the category as a string, or the date as an ISO string. */

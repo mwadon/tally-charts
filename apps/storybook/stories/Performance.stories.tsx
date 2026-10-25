@@ -192,11 +192,14 @@ function Performance() {
                 <path d="M12 10v4M12 17.5v.01" />
               </svg>
             </span>
-            <h3 className="perf-card-title">Below threshold</h3>
+            <h3 id="perf-below-title" className="perf-card-title">
+              Below threshold
+            </h3>
             <Stat value="223" size="sm" tone="loss" className="perf-big" />
           </header>
           <p className="perf-sub">Pages scoring under 70.</p>
           <RankedBars
+            aria-labelledby="perf-below-title"
             data={below}
             label="path"
             value="pages"

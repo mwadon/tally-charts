@@ -11,6 +11,7 @@ const weeks = [
 function renderLabels(at: 'first' | 'last' | 'all' | number) {
   return render(
     <Chart
+      title="Test chart"
       data={weeks}
       width={200}
       height={120}
@@ -51,6 +52,7 @@ describe('<ValueLabel>', () => {
   it('labels its own data', () => {
     const { container } = render(
       <Chart
+        title="Test chart"
         data={weeks}
         width={200}
         height={120}
@@ -67,6 +69,7 @@ describe('<ValueLabel>', () => {
   it('keeps the label of a value below the domain inside the plot', () => {
     const { container } = render(
       <Chart
+        title="Test chart"
         data={[{ week: 'W1', margin: -5 }]}
         width={200}
         height={120}

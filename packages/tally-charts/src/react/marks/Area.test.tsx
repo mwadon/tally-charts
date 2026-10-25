@@ -13,6 +13,7 @@ const rows: Row[] = [
 function renderArea(props: AreaProps<Row> = {}, data: Row[] = rows) {
   return render(
     <Chart<Row>
+      title="Test chart"
       data={data}
       width={300}
       height={100}
@@ -37,6 +38,7 @@ describe('<Area>', () => {
   it('fills only the gaps between bands on request, so bars keep their own fill', () => {
     const { container } = render(
       <Chart<Row>
+        title="Test chart"
         data={rows}
         width={300}
         height={100}
@@ -83,6 +85,7 @@ describe('<Area>', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     const { container } = render(
       <Chart
+        title="Test chart"
         data={rows}
         width={300}
         x={{ field: 'v', domain: [0, 1] }}

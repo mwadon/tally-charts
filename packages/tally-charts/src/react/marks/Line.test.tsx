@@ -118,6 +118,7 @@ describe('<Line>', () => {
   it('reads its own data and fields, and centres on bands', () => {
     const { container } = render(
       <Chart
+        title="Test chart"
         width={300}
         height={100}
         margin={{ top: 0, right: 0, bottom: 0, left: 0 }}

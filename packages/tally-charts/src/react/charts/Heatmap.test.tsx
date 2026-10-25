@@ -578,10 +578,48 @@ describe('<Heatmap>', () => {
   it('warns once without a title', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     const { rerender } = renderHeatmap({ title: undefined })
+    // @ts-expect-error a call from JS without a name
     rerender(<Heatmap<Leak> data={leaks} row="branch" column="cause" value="amount" breaks={[1]} />)
     expect(warn).toHaveBeenCalledTimes(1)
     expect(warn.mock.calls[0]?.[0]).toBe(
       '[tally-charts] Heatmap has no `title`, so screen readers announce an unnamed grid.',
     )
+  })
+
+  it('takes the grid name from the element aria-labelledby points at, without a warning', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    render(
+      <>
+        <h2 id="ext">Leaks by branch</h2>
+        <Heatmap<Leak>
+          data={leaks}
+          row="branch"
+          column="cause"
+          value="amount"
+          breaks={[4000, 7000, 13000]}
+          aria-labelledby="ext"
+        />
+      </>,
+    )
+    expect(screen.getByRole('grid', { name: 'Leaks by branch' })).toBeInTheDocument()
+    expect(warn).not.toHaveBeenCalled()
+  })
+
+  it('prefers aria-labelledby over title for the grid name', () => {
+    render(
+      <>
+        <h2 id="ext">Leaks by branch</h2>
+        <Heatmap<Leak>
+          data={leaks}
+          row="branch"
+          column="cause"
+          value="amount"
+          breaks={[4000, 7000, 13000]}
+          title="Where it leaks"
+          aria-labelledby="ext"
+        />
+      </>,
+    )
+    expect(screen.getByRole('grid', { name: 'Leaks by branch' })).toBeInTheDocument()
   })
 })
