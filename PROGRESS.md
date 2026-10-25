@@ -1715,3 +1715,10 @@ Kryteria spełnione przez wcześniejsze zmiany.
 - pnpm build && pnpm --filter tally-charts api:check przechodzi; api/tally-charts.api.md zawiera underlay?: ReactNode
 - .changeset/line-chart-underlay.md ma 'tally-charts': minor
 - pnpm size przechodzi
+
+## ✔ T09.2 ZoneMeter: baseline wizualny przy 320 px (darwin + linux) (2026-10-25)
+Kryteria spełnione przez wcześniejsze zmiany.
+**Kryteria:**
+- 'primitives-small-pieces--edge-cases' jest w STORIES (apps/storybook/e2e/stories.ts:23), a VIEWPORTS ma dla niego 320×640 (stories.ts:60), co stories.spec.ts stosuje przy screenshocie
+- git ls-files pokazuje darwin/ i linux/primitives-small-pieces--edge-cases.png; `file` daje dla obu 320 x 640; linux dodany w Q1-01 komendą docker z ci.yml (PROGRESS.md, sekcja Q1-01)
+- pnpm test:e2e bez --update-snapshots przechodzi, a potem `git status --short -- apps/storybook/e2e/__screenshots__` jest pusty
