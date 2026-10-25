@@ -1,3 +1,5 @@
+export type { DateFormatOptions, DateFormatSpec, DateFormatter } from './date'
+export { createDateFormatter } from './date'
 export type {
   FormatOptions,
   FormatPreset,

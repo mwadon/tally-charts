@@ -32,11 +32,27 @@ export interface BandScaleSpec<D> {
     type: 'band';
 }
 
+// @public
+export function createDateFormatter(spec?: DateFormatSpec, input?: DateFormatOptions): DateFormatter;
+
 // @public (undocumented)
 export function createFormatter(spec?: FormatSpec, options?: FormatOptions): Formatter;
 
 // @public (undocumented)
 export function createFormatters(options?: LocaleOptions): Formatters;
+
+// @public
+export interface DateFormatOptions {
+    locale?: string;
+    step?: number;
+    zone?: TimeZone;
+}
+
+// @public
+export type DateFormatSpec = 'auto' | 'day' | 'month' | 'quarter' | 'year' | Intl.DateTimeFormatOptions;
+
+// @public
+export type DateFormatter = (ms: number) => string;
 
 // @public (undocumented)
 export const DEFAULT_CURRENCY = "USD";

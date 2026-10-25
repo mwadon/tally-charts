@@ -49,9 +49,10 @@
     "size": "size-limit",
     "check:dev-strip": "node scripts/check-dev-strip.mjs",
     "check:treeshake": "node scripts/check-treeshake.mjs",
-    "api:check": "api-extractor run --config api-extractor.json && api-extractor run --config api-extractor.core.json",
-    "prepublishOnly": "pnpm build && pnpm test && pnpm api:check && pnpm size && pnpm check:dev-strip",
-    "api:update": "api-extractor run --local --config api-extractor.json && api-extractor run --local --config api-extractor.core.json"
+    "api:check": "node scripts/check-api-fresh.mjs && api-extractor run --typescript-compiler-folder ./node_modules/typescript --config api-extractor.json && api-extractor run --typescript-compiler-folder ./node_modules/typescript --config api-extractor.core.json",
+    "prepublishOnly": "pnpm build && pnpm test && pnpm api:check && pnpm size && pnpm check:dev-strip && pnpm check:treeshake && pnpm check:dts",
+    "api:update": "node scripts/check-api-fresh.mjs && api-extractor run --local --typescript-compiler-folder ./node_modules/typescript --config api-extractor.json && api-extractor run --local --typescript-compiler-folder ./node_modules/typescript --config api-extractor.core.json",
+    "check:dts": "node scripts/check-dts.mjs"
   },
   "dependencies": {
     "d3-array": "^3.2.4",

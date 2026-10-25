@@ -12,7 +12,8 @@ build on and which ones you shouldn't depend on.
   at which level (patch, minor or major).
 - The TypeScript surface is checked in CI: `api:check` compares the built declarations of
   `tally-charts` and `tally-charts/core` with a committed report, so a change to an export, a type
-  or a signature can't land by accident.
+  or a signature can't land by accident. The check fails on a `dist` older than `src`, and
+  `check:dts` fails on a bare side-effect `import` in the built declarations.
 
 New options, props, exports and tokens arrive in minor releases. Fixes arrive in patch releases.
 

@@ -57,11 +57,12 @@ describe('public entry points', () => {
     expect(main).toHaveProperty(name)
   })
 
-  it('keeps tally-charts/core to formatting, thresholds, value parsing, the runway forecast and types', () => {
+  it('keeps tally-charts/core to formatting, date formatting, thresholds, value parsing, the runway forecast and types', () => {
     expect(Object.keys(core).sort()).toEqual([
       'DEFAULT_CURRENCY',
       'DEFAULT_LOCALE',
       'TONES',
+      'createDateFormatter',
       'createFormatter',
       'createFormatters',
       'fmt',
@@ -71,5 +72,12 @@ describe('public entry points', () => {
       'toNumber',
       'toTime',
     ])
+  })
+
+  it('formats dates through createDateFormatter from tally-charts/core', () => {
+    const jan15 = Date.UTC(2026, 0, 15)
+    expect(core.createDateFormatter('month', { locale: 'en-US' })(jan15)).toBe('Jan 2026')
+    expect(core.createDateFormatter('day')(jan15)).toBe('Jan 15, 2026')
+    expect(core.createDateFormatter('month')(Number.NaN)).toBe('')
   })
 })
