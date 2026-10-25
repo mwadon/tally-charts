@@ -112,7 +112,7 @@
       "id": "n10",
       "type": "prose",
       "props": {
-        "markdown": "Colors that follow the theme belong in a token or in `var(--ch-*)`, not in a fixed hex value, or the chart will look wrong in the other theme. The `--ch-seq-1` to `--ch-seq-5` tokens are computed from `--ch-seq-base` and the `--ch-seq-mix-*` tokens, so steer those instead of overriding the computed ones."
+        "markdown": "Colors that follow the theme belong in a token or in `var(--ch-*)`, not in a fixed hex value, or the chart will look wrong in the other theme. The `--ch-seq-1` to `--ch-seq-5` tokens are computed from `--ch-seq-base` and the `--ch-seq-mix-*` tokens, so steer those instead of overriding the computed ones.\n\nColored text (row and value labels, bridge notes, waffle group labels, pill values) mixes the tone with `--ch-ink`, so that it stays readable on the surface. `--ch-tone-text-mix` is the share of the tone in that mix: 55% by default. Raise it for more color, lower it for more contrast."
       }
     },
     {

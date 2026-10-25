@@ -107,6 +107,13 @@
       }
     },
     {
+      "id": "n18",
+      "type": "prose",
+      "props": {
+        "markdown": "The tone of a step follows its sign: `loss` for a negative step and `gain` for a positive one. The start bar is hatched neutral and the end bar solid accent."
+      }
+    },
+    {
       "id": "n12",
       "type": "heading",
       "props": {

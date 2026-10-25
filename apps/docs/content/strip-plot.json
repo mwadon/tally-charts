@@ -106,6 +106,13 @@
       }
     },
     {
+      "id": "n19",
+      "type": "prose",
+      "props": {
+        "markdown": "Dots in a row that would overlap are lifted, so each one stays visible."
+      }
+    },
+    {
       "id": "n12",
       "type": "heading",
       "props": {

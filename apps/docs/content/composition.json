@@ -63,6 +63,13 @@
       }
     },
     {
+      "id": "n48",
+      "type": "prose",
+      "props": {
+        "markdown": "A high-level chart renders its `children` after its own marks, so a building block you pass sits on top of the chart. A `Callout` lives in the HTML overlay: it appears after mount, is hidden from screen readers (put the same facts in the title, the description or the data), and never gets wider than the chart, wrapping instead."
+      }
+    },
+    {
       "id": "n7",
       "type": "heading",
       "props": {
@@ -192,7 +199,14 @@
       "id": "n47",
       "type": "prose",
       "props": {
-        "markdown": "Ids of points and rows, as `activeId`, `selectedId` and `onSelect` see them:\n\n- `RankedBars`: the index in your data, unless you pass `id`.\n- `WaterfallChart`: `'start'`, then `step.id ?? index`, then `'end'`. The end row's `point.datum` is a synthetic `{ label, value }` created on every render, so compare by `id === 'end'`, not by identity.\n- `BridgeChart`: `'start'`, then `step.id ?? index`.\n- `StripPlot`: `\"<series id>:<row id>\"`.\n- `LineChart`: the x values as strings, so `activeId` takes `'2025'`, not `2025`. On a time scale they are ISO strings (`'2026-01-04T00:00:00.000Z'`).\n- `Heatmap`: `\"<row>:<column>\"`. Names containing `:` can collide (`a:b` + `c` and `a` + `b:c`), and each row and column name must be unique."
+        "markdown": "Ids of points and rows, as `activeId`, `selectedId` and `onSelect` see them:\n\n- `RankedBars`: the index in your data, unless you pass `id`.\n- `WaterfallChart`: `'start'`, then `step.id ?? index`, then `'end'`. The end row's `point.datum` is a synthetic `{ label, value }` created on every render, so compare by `id === 'end'`, not by identity.\n- `BridgeChart`: `'start'`, then `step.id ?? index`.\n- `StripPlot`: `\"<series id>:<row id>\"`.\n- `LineChart`: the x values as strings, so `activeId` takes `'2025'`, not `2025`. For the same reason `1` and `'1'` are the same x, and a repeated x is skipped with a warning. On a time scale they are ISO strings (`'2026-01-04T00:00:00.000Z'`).\n- `Heatmap`: `\"<row>:<column>\"`. Names containing `:` can collide (`a:b` + `c` and `a` + `b:c`), and each row and column name must be unique."
+      }
+    },
+    {
+      "id": "n49",
+      "type": "prose",
+      "props": {
+        "markdown": "In a `LineChart`, give each series its own `id`. Hover snaps to the nearest x, and one tooltip lists every series there. A forecast that continues the actuals repeats the last actual value, so the two lines join, and the tooltip lists that value once. A series `style` is `'actual'` (solid), `'forecast'` (dashed, hollow dots) or `'scenario'` (dashed, green)."
       }
     },
     {

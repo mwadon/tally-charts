@@ -121,6 +121,13 @@
       }
     },
     {
+      "id": "n20",
+      "type": "prose",
+      "props": {
+        "markdown": "Bars show magnitudes, so a negative \"lost\" amount extends to the right like the others and keeps its sign in the text."
+      }
+    },
+    {
       "id": "n14",
       "type": "heading",
       "props": {

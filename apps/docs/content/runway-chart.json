@@ -146,6 +146,70 @@
       }
     },
     {
+      "id": "n22",
+      "type": "heading",
+      "props": {
+        "text": "Rows and options",
+        "level": "2",
+        "anchor": "rows"
+      }
+    },
+    {
+      "id": "n23",
+      "type": "prose",
+      "props": {
+        "markdown": "A row is `{ id, label, icon?, sublabel?, projection?, runsOutAt?, resetAt?, disconnected?, status? }`. `projection` is a list of `{ at, used }` points, `used` from 0 to 1, with a straight line between the points; a row without a projection has no forecast. Cells before the first point take that point's value, so start the `domain` at `now` or include the history.\n\n- `domain` and `now` are dates, epoch milliseconds or ISO strings. An invalid domain, or no rows, shows `empty` (\"No data\" by default).\n- `cell` is the length of one cell: `'30m'`, `'6h'` (the default), `'1d'` or a number of milliseconds. A strip has at most 200 cells; a `cell` too short for the `domain` draws the first 200 and warns in development (\"use a longer `cell`\").\n- `breaks` are 1 to 4 ascending level edges as shares, `[0.25, 0.5, 0.75]` by default. `n` edges make `n + 1` levels.\n- `tone` (default `'neutral'`) colors the levels and the legend and is always applied: a `--ch-seq-base` set on an ancestor does not reach this chart.\n- `layout` is `'auto'`, `'columns'` or `'stacked'`. `'auto'` stacks the rows when the strip would be under 240px. On the server there is no measurement, so `initialWidth` (default 960, which renders columns) decides; `labelWidth` (default 200) is the label column in pixels.\n- `timeZone` is `'utc'` by default and sets the day boundaries and the dates in the status. `'local'` can differ between the server and the client."
+      }
+    },
+    {
+      "id": "n24",
+      "type": "heading",
+      "props": {
+        "text": "How cells are drawn",
+        "level": "2",
+        "anchor": "cells"
+      }
+    },
+    {
+      "id": "n25",
+      "type": "prose",
+      "props": {
+        "markdown": "Every cell is decided at its midpoint, in this order:\n\n- Before the run-out, with a forecast: a level from the projection at that moment, binned by `breaks`.\n- The cell that holds the run-out: the \"runs out\" cell, and the dot sits in it.\n- After the run-out and before the reset: locked, drawn hatched.\n- After the reset, or with no forecast: empty.\n\nThe cells carry that decision as `data-ch-state`: `level`, `runs-out`, `locked` or `empty` (see below). The levels use the sequential ramp `--ch-seq-1` to `--ch-seq-5`, see [Theming](/docs/theming)."
+      }
+    },
+    {
+      "id": "n26",
+      "type": "heading",
+      "props": {
+        "text": "Status text and dates",
+        "level": "2",
+        "anchor": "status"
+      }
+    },
+    {
+      "id": "n27",
+      "type": "prose",
+      "props": {
+        "markdown": "The default status has two lines. The first is `Runs out <date>` when the allowance runs out, `~N% at reset` when it does not (the projected share at the reset), or `No forecast` when the row has no projection. The second is `Resets <date>`. A row with `disconnected` reads `Disconnected`.\n\nDates are relative to `now`:\n\n- Within six days of `now`: weekday and time, `Fri 03:24`.\n- Later in the domain: month, day and time, `Oct 21 09:21`.\n- Past the end of the domain: month and day only, `Nov 9`, with ` →` after a reset.\n\nThe built-in strings (\"Now\", \"reset\", \"Runs out\", the legend and the table headers) are English. To change what you can, pass `status`, `legend={false}` or your own `title`. A row's own `status` wins over the `status` function, and a string from either is also the table's Status."
+      }
+    },
+    {
+      "id": "n28",
+      "type": "heading",
+      "props": {
+        "text": "Parts and attributes",
+        "level": "2",
+        "anchor": "parts"
+      }
+    },
+    {
+      "id": "n29",
+      "type": "prose",
+      "props": {
+        "markdown": "These names are part of the public surface (see [Stability](/docs/stability)), so you can select them with `[data-ch-part=\"…\"]`.\n\n- Parts: `runway`, `runway-axis`, `runway-now-label`, `runway-head-row`, `runway-rows`, `runway-row`, `runway-label`, `runway-icon`, `runway-name`, `runway-strip`, `runway-cell`, `runway-now`, `runway-reset`, `runway-reset-label`, `runway-dot`, `runway-status` and `runway-status-line`.\n- `data-ch-layout`: `columns` or `stacked`.\n- `data-ch-state` on a cell: `level`, `runs-out`, `locked` or `empty`.\n- `data-ch-focus`: the row the keyboard cursor is on, while the listbox has focus (only with `onSelect`).\n- On a row: `data-ch-active`, `data-ch-muted` (a disconnected row), `data-ch-selectable` and `data-ch-selected`."
+      }
+    },
+    {
       "id": "n17",
       "type": "heading",
       "props": {

@@ -68,7 +68,7 @@
       "id": "n7",
       "type": "prose",
       "props": {
-        "markdown": "When none of the building blocks in [Composition](/docs/composition) draws what you need, write a component and put it inside `Chart`. `useChart()` returns the `x` and `y` scales and the size of the plot, `useFormat()` returns formatters in the provider's locale, and `useRegisterPoints()` tells the chart where your points are."
+        "markdown": "When none of the building blocks in [Composition](/docs/composition) draws what you need, write a component and put it inside `Chart`. `useChart()` returns the size, the margins, the data, the number formatter, the active point and the `x` and `y` scales (narrow them on `kind`: `'linear'`, `'band'`, `'point'` or `'time'`), `useFormat()` returns formatters in the provider's locale, and `useRegisterPoints()` tells the chart where your points are."
       }
     },
     {
