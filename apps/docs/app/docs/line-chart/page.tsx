@@ -1,11 +1,14 @@
 import type { Metadata } from 'next'
+import RevenueForecast, { meta } from '../../../examples/line-chart/revenue-forecast'
+import { examples } from '../../../examples.generated'
 import { ChartExample } from '../../_components/chart-example'
 import { CodeBlock, Tok } from '../../_components/code-block'
 import { TocColumn, TocInline, type TocItem } from '../../_components/toc'
 import { SITE } from '../../_content/navigation'
-import { LINE_EXAMPLE_TITLE, LineExample } from './line-example'
 
 export const metadata: Metadata = { title: 'LineChart · tally-charts' }
+
+const example = examples['line-chart/revenue-forecast']
 
 const TOC: readonly TocItem[] = [
   { id: 'when-to-use', label: 'When to use it' },
@@ -48,59 +51,10 @@ export default function LineChartPage() {
         <h2 id="examples">Examples</h2>
         <ChartExample
           title="Revenue with a forecast and a target"
-          preview={<LineExample />}
+          preview={<RevenueForecast />}
           code={
-            <CodeBlock filename="revenue.tsx" label={`Source of: ${LINE_EXAMPLE_TITLE}`}>
-              <Tok k="keyword">const</Tok> months = [{'\n  '}
-              {'{ '}month: <Tok k="string">'Jan'</Tok>, actual: <Tok k="number">410</Tok>, forecast:{' '}
-              <Tok k="keyword">null</Tok>
-              {' },'}
-              {'\n  '}
-              <Tok k="comment">{'// …one row per month, Feb to May'}</Tok>
-              {'\n  '}
-              {'{ '}month: <Tok k="string">'Jun'</Tok>, actual: <Tok k="number">640</Tok>, forecast:{' '}
-              <Tok k="number">640</Tok>
-              {' },'}
-              {'\n  '}
-              {'{ '}month: <Tok k="string">'Jul'</Tok>, actual: <Tok k="keyword">null</Tok>,
-              forecast: <Tok k="number">700</Tok>
-              {' },'}
-              {'\n  '}
-              <Tok k="comment">{'// …Aug and Sep'}</Tok>
-              {'\n  '}
-              {'{ '}month: <Tok k="string">'Oct'</Tok>, actual: <Tok k="keyword">null</Tok>,
-              forecast: <Tok k="number">850</Tok>
-              {' },'}
-              {'\n]'}
-              {'\n\n'}
-              {'<'}
-              <Tok k="tag">LineChart</Tok>
-              {'\n  '}data={'{'}months{'}'}
-              {'\n  '}x=<Tok k="string">"month"</Tok>
-              {'\n  '}series={'{['}
-              {'\n    '}
-              {'{ '}id: <Tok k="string">'actual'</Tok>, label: <Tok k="string">'Actual'</Tok>,
-              value: <Tok k="string">'actual'</Tok>
-              {' },'}
-              {'\n    '}
-              {'{ '}id: <Tok k="string">'forecast'</Tok>, label: <Tok k="string">'Forecast'</Tok>,
-              value: <Tok k="string">'forecast'</Tok>, style: <Tok k="string">'forecast'</Tok>
-              {' },'}
-              {'\n  ]}'}
-              {'\n  '}forecastFrom=<Tok k="string">"Jul"</Tok>
-              {'\n  '}target={'{{ '}value: <Tok k="number">800</Tok>, label:{' '}
-              <Tok k="string">'Target'</Tok>
-              {' }}'}
-              {'\n  '}format=<Tok k="string">"currency-compact"</Tok>
-              {'\n  '}height={'{'}
-              <Tok k="number">260</Tok>
-              {'}'}
-              {'\n  '}title=<Tok k="string">"{LINE_EXAMPLE_TITLE}"</Tok>
-              {'\n  '}description=
-              <Tok k="string">
-                "Revenue grew from 410 to 640 over six months; the forecast reaches 850 in October."
-              </Tok>
-              {'\n/>'}
+            <CodeBlock filename="revenue-forecast.tsx" label={`Source of: ${meta.title}`}>
+              {example.source}
             </CodeBlock>
           }
         />

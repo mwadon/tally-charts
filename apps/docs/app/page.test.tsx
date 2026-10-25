@@ -1,6 +1,6 @@
 import { render, screen, within } from '@testing-library/react'
 import { expect, test } from 'vitest'
-import { HOME_CHART_TITLE } from './home-chart'
+import { meta } from '../examples/bar-chart/margin-by-week'
 import Home from './page'
 
 test('home page renders the hero sentence, a chart from tally-charts and the sections in order', () => {
@@ -12,7 +12,7 @@ test('home page renders the hero sentence, a chart from tally-charts and the sec
       name: 'Opinionated React charts for narrative business dashboards.',
     }),
   ).toBeTruthy()
-  expect(screen.getByRole('application', { name: HOME_CHART_TITLE })).toBeTruthy()
+  expect(screen.getByRole('application', { name: meta.title })).toBeTruthy()
   expect(container.querySelector('svg')).not.toBeNull()
 
   const sections = screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)

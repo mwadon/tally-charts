@@ -1,7 +1,9 @@
+import { readFileSync } from 'node:fs'
+import path from 'node:path'
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import { expect, test, vi } from 'vitest'
+import { meta } from '../../../examples/line-chart/revenue-forecast'
 import DocsLayout from '../layout'
-import { LINE_EXAMPLE_TITLE } from './line-example'
 import LineChartPage from './page'
 
 vi.mock('next/navigation', () => ({ usePathname: () => '/docs/line-chart' }))
@@ -18,9 +20,20 @@ test('the LineChart page has its heading and a live chart in a ChartExample', ()
   const { container } = renderPage()
 
   expect(screen.getByRole('heading', { level: 1, name: 'LineChart' })).toBeTruthy()
-  expect(screen.getByRole('application', { name: LINE_EXAMPLE_TITLE })).toBeTruthy()
+  expect(screen.getByRole('application', { name: meta.title })).toBeTruthy()
   expect(container.querySelector('svg')).not.toBeNull()
   expect(screen.getByRole('button', { name: 'Preview' }).getAttribute('aria-pressed')).toBe('true')
+})
+
+test('the Code panel shows the exact source of the example file', () => {
+  renderPage()
+
+  fireEvent.click(screen.getByRole('button', { name: 'Code' }))
+  const file = readFileSync(
+    path.join(process.cwd(), 'examples/line-chart/revenue-forecast.tsx'),
+    'utf8',
+  )
+  expect(screen.getByRole('region', { name: `Source of: ${meta.title}` }).textContent).toBe(file)
 })
 
 test('the header wordmark is a text link to the home page', () => {

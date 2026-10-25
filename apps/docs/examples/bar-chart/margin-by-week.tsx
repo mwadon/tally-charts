@@ -1,4 +1,11 @@
 import { BarChart } from 'tally-charts'
+import type { ExampleMeta } from '../types'
+
+export const meta = {
+  id: 'bar-chart/margin-by-week',
+  title: 'Margin by week, last 6 weeks',
+  rscSafe: true,
+} satisfies ExampleMeta
 
 const weeks = [
   { week: 'W1', margin: 31.2 },
@@ -9,10 +16,8 @@ const weeks = [
   { week: 'W6', margin: 35.4 },
 ]
 
-export const HOME_CHART_TITLE = 'Margin by week, last 6 weeks'
-
 // Props stay serializable (no functions): the page is a server component.
-export function HomeChart() {
+export default function MarginByWeek() {
   return (
     <BarChart
       data={weeks}
@@ -21,7 +26,7 @@ export function HomeChart() {
       domain={[26, 40]}
       format="percent"
       height={240}
-      title={HOME_CHART_TITLE}
+      title={meta.title}
       description="Margin rose from 31.2% to 35.4% over six weeks."
     />
   )
