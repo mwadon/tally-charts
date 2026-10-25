@@ -94,7 +94,7 @@ describe('draft mode', () => {
 })
 
 describe('an unknown page', () => {
-  test.each(['does-not-exist', 'getting-started', 'home', 'navigation', '../etc'])(
+  test.each(['does-not-exist', 'theming', 'home', 'navigation', '../etc'])(
     '/docs/%s is not found',
     async (slug) => {
       await expect(DocPage(params(slug))).rejects.toThrow('NEXT_NOT_FOUND')
@@ -110,6 +110,13 @@ describe('generateMetadata', () => {
     expect(meta.title).toBe('LineChart · tally-charts')
     expect(meta.alternates?.canonical).toBe('https://docs.example.com/docs/line-chart')
     expect(meta.robots).toMatchObject({ index: false })
+  })
+
+  test('has the Getting started page', async () => {
+    expect((await generateMetadata(params('getting-started'))).title).toBe(
+      'Getting started · tally-charts',
+    )
+    await expect(DocPage(params('getting-started'))).resolves.toBeTruthy()
   })
 
   test('is empty for a missing page', async () => {

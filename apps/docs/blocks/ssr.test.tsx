@@ -118,7 +118,7 @@ test('LinkRow is an async server component whose output renders to a string', as
     await LinkRow({
       heading: 'Keep going',
       items: [
-        { label: 'Soon', href: '/docs/getting-started' },
+        { label: 'Soon', href: '/docs/theming' },
         { label: 'Now', href: '/docs/line-chart' },
       ],
     }),

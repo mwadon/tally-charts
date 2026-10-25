@@ -112,13 +112,16 @@ test('the Install section has a copy button and a status', async () => {
   expect(install.textContent).toContain('npm i tally-charts')
 })
 
-test('the link row disables Getting started and links GitHub and npm', async () => {
+test('the link row links Getting started, GitHub and npm', async () => {
   const body = await renderHome()
 
   const row = body.querySelector('ul.link-row') as HTMLElement
-  const soon = row.querySelector('span.nav-soon[aria-disabled="true"]')
-  expect(soon?.textContent).toContain('Getting started')
-  expect(within(row).queryByRole('link', { name: /Getting started/ })).toBeNull()
+  expect(
+    within(row)
+      .getByRole('link', { name: /Getting started/ })
+      .getAttribute('href'),
+  ).toBe('/docs/getting-started')
+  expect(row.querySelector('.nav-soon')).toBeNull()
   expect(within(row).getByRole('link', { name: 'GitHub' }).getAttribute('href')).toBe(
     'https://github.com/mwadon/tally-charts',
   )

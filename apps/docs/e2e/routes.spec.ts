@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test'
 
 test.describe('pages that do not exist', () => {
-  for (const path of ['/docs/does-not-exist', '/docs/getting-started', '/docs/home']) {
+  for (const path of ['/docs/does-not-exist', '/docs/theming', '/docs/home']) {
     test(`${path} is a 404`, async ({ page }) => {
       const response = await page.goto(path)
       expect(response?.status()).toBe(404)

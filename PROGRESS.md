@@ -1270,3 +1270,16 @@ Dodano baseline'y wizualne strony głównej docs. `apps/docs/playwright.config.t
 - Punkt CLAUDE.md o baseline'ach wymienia `apps/docs/e2e/__screenshots__/{darwin,linux}`, komendę darwin `pnpm --filter docs exec playwright test --update-snapshots=all` i odsyła po linux do komentarza nad jobem `docs` w ci.yml
 - `shots.mjs` i `contrast.mjs` uruchomione (zrzuty `home-*.png` designu odświeżone). Tabela kontrastu w §10 dokumentu designu jest zaktualizowana, jeśli wynik się zmienił. PROGRESS.md (sekcja T26.3) opisuje różnice baseline'ów względem pierwotnych zrzutów designu wynikające z F16
 - `pnpm lint` i `pnpm --filter docs typecheck` przechodzą, `git diff --stat -- packages apps/storybook` jest pusty
+
+## ✔ T27.1 Strona getting-started i przełączenie testów „strony nie ma” (2026-10-25)
+Dodano stronę Getting started: fiksturka `apps/docs/content/getting-started.json` (wstęp, Install z `npm i tally-charts` i uwagą o `process.env.NODE_ENV`, Import the theme z `tally-charts/theme.css` i tokenami `--ch-*` / `data-ch-theme`, Your first chart z ChartExample, Name every chart z calloutem i wariantem `aria-labelledby`, Props z PropsTable `BarChart`, Next steps) oraz przykład `apps/docs/examples/getting-started/first-chart.tsx` (`BarChart` z przychodem per miesiąc, `rscSafe: true`). Link „Getting started” w sidebarze i w link row strony głównej jest teraz `<a>`, bez `.nav-soon`. Baseline'y `home-*.png` odświeżone (darwin i linux).
+**Decyzje:**
+- Slug „strony nie ma” w testach to `theming` (jest w nawigacji, nie ma fiksturki): `e2e/routes.spec.ts`, `app/docs/[slug]/page.test.tsx`, `blocks/link-row.test.tsx`, `blocks/ssr.test.tsx`. Test `link-row` ma dodatkowo Getting started jako zwykły link. `editor-registry.test.tsx` bez zmian.
+- PropsTable strony to `BarChart`: najprostszy wykres z `data`/`x`/`y`/`title`, tego samego typu co przykład, więc czytelnik widzi tabelę propsów wykresu z pierwszego przykładu (w tym `ChartName`).
+- Linki wewnętrzne w treści tylko do `/docs/line-chart` (istnieje); poza tym link zewnętrzny do README na GitHubie. Nie linkuję do theming ani innych stron bez fiksturki, bo `check:content` (c) by to odrzucił.
+- Callout używa tonu `warning` (schemat dopuszcza tylko info/warning/tip, bez tytułu), więc „A name is required.” jest pogrubionym początkiem treści.
+- Dwa testy zależne od zbioru stron wymagały korekty: `content/fixtures.test.ts` (dostępne strony to `getting-started` i `line-chart`) oraz CLI w `lib/content/check.test.ts` (brakujący symbol z `--require-coverage` to teraz `Area`, bo `BarChart` jest pokryty).
+- Nowy `e2e/getting-started.spec.ts`: `themeSuite` (light/dark, forced/system, 320/375 px), 200 + h1 + link w sidebarze z `aria-current` bez `.nav-soon`, link w link row na `/`.
+**Weryfikacja:** `pnpm build`, `pnpm --filter docs test` (485 testów), `docs typecheck`, `pnpm lint` (0 błędów), `docs check:content` (0 błędów, pokrycie API 2/52 tylko raportowane), `pnpm --filter docs build`, `docs test:e2e` zielone na darwin. `git diff --stat -- packages apps/storybook` pusty, changeset niepotrzebny. Obejrzany `home-1280-light.png`: „Keep going” ma Getting started jako link obok GitHub i npm.
+**Otwarte kwestie:**
+- Pokrycie API to nadal 2/52 (T31).
