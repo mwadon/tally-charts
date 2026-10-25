@@ -2489,3 +2489,25 @@ Wynik curl (2026-10-25): `curl -sS https://tally-charts.vercel.app/ | grep -o '<
 Zmiany: homepage, README paczki (3 linki), `docs/stability.md` i 4 changesety (`ranked-bars-solid-fill`, `required-chart-name`, `line-breaks-on-invalid-date`, `stability-docs`) wskazują nowy host; nowy changeset `docs-url.md` (patch). `docs-url.test.mjs` (w `pnpm test:scripts`) sprawdza prawdziwe repo i tmp-fixtury (obcy host `*.vercel.app` w README/changesecie, brak linku migracji, zły homepage, CLI exit 1/0). `docs/releasing.md` §11 krok 6 i CLAUDE.md opisują stałą. Starych wpisów historii w PROGRESS nie przepisywałem.
 
 Ostatnie uwagi: zobacz .crew/backlog.json (lastNote).
+
+## ✔ Q1-03.1 Jedna stała URL docs (tally-charts-docs.vercel.app), podmiana w homepage, README i changesetach, test rozjazdu (2026-10-25)
+Adres docs jest teraz w jednej stałej `DOCS_URL = 'https://tally-charts-docs.vercel.app'` w `scripts/release/docs-url.mjs`, a nowy test pilnuje, żeby się nie rozjechał. Stały host w `homepage`, README paczki (3 linki), `docs/stability.md` i 4 changesetach to nowy adres. Nowy changeset `docs-url.md` jest patch dla tally-charts. Bramki: `pnpm lint`, `pnpm check:workflows`, `pnpm test:scripts` (34 testy), `pnpm --filter docs test` (698 testów) i `pnpm build` z `api:check` kończą się kodem 0. Grep ze starym hostem zwraca już tylko zdanie w `docs/releasing.md` §11 krok 6. `checkDocsUrl(root)` zwraca komunikaty `plik: problem`. CLI (`node scripts/release/docs-url.mjs [root]`) wypisuje je na stderr i kończy się exit 1, a bez problemów exit 0. `docs/releasing.md` §11 krok 6 (teraz mówi o 4 changesetach) i CLAUDE.md opisują stałą i projekt Vercel `tally-charts-docs`. W PROGRESS.md jest sekcja `✔ Q1-03.1` z decyzją i wynikiem curl. Curl: stary host zwraca tytuł „Tally Response Viewer”, nowy 404 z `x-vercel-error: DEPLOYMENT_NOT_FOUND`. Nowy host zadziała dopiero po założeniu projektu przez maintainera (T36).
+**Decyzje i pułapki:**
+- Test docs-url.test.mjs na prawdziwym repo jest testem rozjazdu w CI, bo test:scripts już tam działa; nowy krok CI nie był potrzebny.
+- Kryterium grepa obejmuje CLAUDE.md, więc stary host może wystąpić tylko w docs/releasing.md §11. W CLAUDE.md jest odwołanie do tej sekcji zamiast nazwy hosta.
+- Brakujący homepage w package.json też jest błędem (homepage !== DOCS_URL).
+**Otwarte kwestie:**
+- Maintainer musi założyć projekt Vercel `tally-charts-docs` (T36) i ustawić SITE_URL=https://tally-charts-docs.vercel.app w Production i Preview; do tego czasu nowy host zwraca DEPLOYMENT_NOT_FOUND.
+- Stary host jest jeszcze w historycznych wpisach PROGRESS.md i w docs/superpowers (poza zakresem; nie przepisywałem historii).
+- scripts/release/docs-url.mjs: Wyrażenie VERCEL_URL łapie tylko hosty z protokołem (https?://). Goły obcy host w tekście, np. 'see tally-charts.vercel.app', przejdzie test bez błędu.
+- scripts/release/docs-url.mjs: Sprawdzane są tylko README, package.json, docs/stability.md i .changeset. packages/tally-charts/CHANGELOG.md (po wersji rc trafią tam linki z changesetów), apps/docs/.env.example i dokumenty w docs/ nie są skanowane. Dziś grep jest czysty, ale test nie złapie rozjazdu w tych miejscach.
+**Kryteria:**
+- `scripts/release/docs-url.mjs` eksportuje `DOCS_URL = 'https://tally-charts-docs.vercel.app'` i funkcję `checkDocsUrl(root)`; uruchomiony jako CLI kończy się kodem 1 z problemami na stderr, a bez problemów kodem 0
+- `packages/tally-charts/package.json` ma `homepage` równy DOCS_URL (sprawdza to test na prawdziwym repo)
+- README paczki zawiera `https://tally-charts-docs.vercel.app`, `…/docs/stability` i `…/docs/migration-1-0`, a 4 changesety (ranked-bars-solid-fill, required-chart-name, line-breaks-on-invalid-date, stability-docs) zawierają `https://tally-charts-docs.vercel.app/docs/migration-1-0`; docs/stability.md linkuje `https://tally-charts-docs.vercel.app/docs/theming`
+- `grep -rn 'tally-charts.vercel.app' packages/ .changeset/ apps/docs docs/ CLAUDE.md` (bez node_modules/dist/.next) zwraca tylko zdanie w docs/releasing.md §11 o hoście zajętym przez obcy projekt
+- `scripts/release/docs-url.test.mjs` przechodzi w `pnpm test:scripts`: na prawdziwym repo nie ma problemów, a na tmp-katalogu README albo changeset z innym hostem *.vercel.app daje błąd z nazwą hosta (funkcja) i exit 1 (CLI)
+- Nowy changeset `patch` dla tally-charts w `.changeset/` (bez starego hosta)
+- `pnpm lint`, `pnpm check:workflows`, `pnpm test:scripts`, `pnpm --filter docs test` oraz `pnpm build && pnpm --filter tally-charts api:check` kończą się kodem 0
+- docs/releasing.md §11 krok 6 i CLAUDE.md opisują stałą DOCS_URL, projekt Vercel `tally-charts-docs` i 4 changesety (już nie „three”)
+- PROGRESS.md ma sekcję Q1-03.1 z decyzją o URL-u i faktycznym wynikiem curl (stary host: tytuł Tally Response Viewer; nowy: DEPLOYMENT_NOT_FOUND przed założeniem projektu)
