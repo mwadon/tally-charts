@@ -1521,3 +1521,56 @@ Trzy nowe strony w grupie Charts (`content/bar-chart.json`, `comparison-bars.jso
 - **ranked-bars.spec:** sprawdza po title widoczność dwóch wykresów (solid i hatch); trzeci przykład na stronie jest dodatkowy.
 - **Strona „brak”:** nadal `accessibility`.
 **Bramki:** `pnpm build`, `docs test` (551), `docs typecheck`, `pnpm lint` (kod 0, 5 ostrzeżeń i 1 info jak wcześniej), `check:content` (0 błędów, `API coverage: 44/52`, brakuje BridgeChart, DotHistogram, Heatmap, RunwayChart, StripPlot, WaffleColumns, WaterfallChart, runwayForecast), `docs build`, `docs test:e2e` (213, bez update) przeszły. `git diff --stat -- packages apps/storybook apps/docs/e2e/__screenshots__` jest pusty.
+
+## ✔ T29.1 Strony bar-chart, comparison-bars i ranked-bars (2026-10-25)
+Dodałem strony bar-chart, comparison-bars i ranked-bars w grupie Charts. Wszystkie bramki z taska przechodzą (lista niżej). Zmiany zostają w drzewie roboczym, bez commitów.
+
+- **Przykłady:**
+  - `comparison-bars/job-costs` (good='down', `initialWidth={640}`, rscSafe: true).
+  - `comparison-bars/revenue-by-region` (good='up', `onSelect`, 'use client', rscSafe: false).
+  - `ranked-bars/overruns` (bez `fill`, czyli solid, rscSafe: true).
+  - `ranked-bars/hatch-plan` (`fill="hatch"`, `meta`, rscSafe: true).
+  - Opcjonalny `ranked-bars/pick-a-category` (`selectedId` + `onSelect`, 'use client', rscSafe: false).
+  - Pliki `examples/bar-chart/*` są bez zmian.
+- **Fiksturki:** `content/bar-chart.json`, `comparison-bars.json` i `ranked-bars.json` mają prose, sekcję „When to use it” (#when-to-use), Import, chart-examples, props-table i sekcję „Keyboard and screen readers” (#keyboard).
+  - Prose ranked-bars mówi, że domyślny fill to `'solid'`, a `'hatch'` służy do wyglądu planu lub odniesienia.
+  - Prose comparison-bars ostrzega, że układ zależy od zmierzonej szerokości (`initialWidth` albo jawny `layout`).
+- **Testy fiksturek:** `content/fixtures.test.ts` ma nową kolejność stron i zaktualizowaną nazwę testu.
+- **E2e:** trzy specyfikacje (`bar-chart`, `comparison-bars`, `ranked-bars`). Każda ma `themeSuite`, status 200, link w sidebarze (href, `aria-current`, bez `.nav-soon`) i dokładnie 1 region `Props of <X>` (exact).
+- **PROGRESS.md:** dopisałem sekcję T29.1 z decyzjami.
+
+Wyniki bramek:
+
+| Bramka | Wynik |
+|---|---|
+| `pnpm build` | przeszedł |
+| `pnpm --filter docs test` | 551 testów przeszło |
+| `pnpm --filter docs typecheck` | przeszedł |
+| `pnpm lint` | kod 0, 5 ostrzeżeń i 1 info |
+| `pnpm --filter docs check:content` | 0 błędów, `API coverage: 44/52`, brakuje BridgeChart, DotHistogram, Heatmap, RunwayChart, StripPlot, WaffleColumns, WaterfallChart, runwayForecast |
+| `pnpm --filter docs build` | przeszedł |
+| `pnpm --filter docs test:e2e` | 213 testów przeszło, bez update snapshotów, port 3100 był wolny |
+
+`git diff --stat -- packages apps/storybook apps/docs/e2e/__screenshots__` jest pusty.
+**Decyzje i pułapki:**
+- Region komponentu w PropsTable ma podpis „Props of X”, a „Parameters of X” tylko funkcje i hooki.
+- ComparisonBars przyjmuje `initialWidth` (domyślnie 640) przez ChartPassThroughProps. Przy layout='auto' wąski ekran najpierw renderuje kolumny, a po hydracji stacked.
+- Akcesory-stringi (`label="category"`) pozwalają zachować rscSafe: true, bo w propsach nie ma funkcji. Przykład z `onSelect` wymaga 'use client' i rscSafe: false.
+- RankedBars nie ma osobnej sekcji klawiatury w docs/a11y.md, bo jest zbudowany na `Chart`. Zapowiedzi dla niego są w tabeli „What a screen reader gets”.
+- Fiksturki stron wykresów da się generować skryptem z jednego szablonu (prose, heading, code-block, chart-example, props-table). To ogranicza ryzyko błędów w JSON-ie.
+**Otwarte kwestie:**
+- Plan zakładał osobną sekcję klawiatury RankedBars w docs/a11y.md (ok. linie 59-60). W pliku jej nie ma: sekcja z PageUp/PageDown dotyczy RunwayChart. Strona ranked-bars opisuje ogólny model wykresu na `Chart` i zapowiedź z tabeli. Jeśli lista ma mieć własną sekcję, trzeba ją dodać do a11y.md i strony.
+- Przykłady nie mają asercji, że liczby w ręcznie pisanych `description` zgadzają się z danymi. Sprawdziłem je ręcznie.
+- 5 ostrzeżeń lintu (kod 0) jest takich samych jak w poprzednim tasku. Nie sprawdzałem, skąd pochodzą.
+- Trzeci przykład ranked-bars/pick-a-category jest dodatkowy, więc na stronie ranked-bars są trzy wykresy, a e2e sprawdza po title tylko dwa (solid i hatch).
+- apps/docs/content/ranked-bars.json: n17: „A row with `selectable: false` takes focus…” sugeruje pole w wierszu danych. W RankedBars `selectable` to prop PerItem (RankedBars.tsx:53): stała albo funkcja wiersza.
+- apps/docs/content/bar-chart.json: Sekcja o czytnikach ekranu pomija podpowiedź klawiaturową, którą widget dodaje do opisu (a11y.md:43-47, `keyboardHint`). Tak samo jest na comparison-bars i ranked-bars.
+**Kryteria:**
+- content/bar-chart.json ma chart-example bar-chart/margin-by-week i bar-chart/selectable (oba pliki bez zmian w git diff), props-table BarChart oraz headingi level '2' „When to use it” i „Keyboard and screen readers” z unikalnymi anchorami. Przechodzi content/fixtures.test.ts.
+- Są ≥2 pliki examples/comparison-bars/*.tsx (jeden z good='down', jeden z good='up') i ≥2 examples/ranked-bars/*.tsx (jeden bez propa fill, jeden z fill="hatch"). meta.id = '<slug>/<nazwa>' z literałami, przykłady z funkcją w propsach mają 'use client' i rscSafe: false. Wszystkie przechodzą examples/registry.test.ts, render.test.tsx (svg, bez console.error) i ssr.test.tsx (rscSafe).
+- content/comparison-bars.json i ranked-bars.json mają po ≥2 chart-example, props-table ComparisonBars/RankedBars i prose o klawiaturze i czytniku zgodną z docs/a11y.md: jeden tab stop, strzałki, Home/End, Enter/Space z onSelect, Escape, zapowiedź w formacie z tabeli a11y.md, ukryta tabela danych. Prose ranked-bars mówi, że domyślny fill to 'solid', a 'hatch' daje wygląd planu albo odniesienia.
+- content/fixtures.test.ts oczekuje kolejności getting-started, theming, palettes, time-scales, formatting, thresholds, server-components, dark-mode, bar-chart, comparison-bars, ranked-bars, line-chart, composition, small-pieces, hooks-and-providers, a nazwa testu jest zaktualizowana.
+- e2e/bar-chart.spec.ts, comparison-bars.spec.ts i ranked-bars.spec.ts: themeSuite (h1 = nazwa komponentu, chart = unikalny title), status 200, link w sidebarze z href /docs/<slug>, aria-current="page", bez .nav-soon, dokładnie 1 region 'Props of <Komponent>' (exact: true; komponenty mają podpis „Props of”, nie „Parameters of”). ranked-bars.spec znajduje po title dwa wykresy RankedBars (role application).
+- Po pnpm build `pnpm --filter docs check:content` kończy się kodem 0 i wypisuje `API coverage: 44/52`, a lista brakujących nie zawiera ComparisonBars ani RankedBars. lib/content/check.test.ts (pierwszy brak BridgeChart) przechodzi bez zmian.
+- pnpm --filter docs test, pnpm --filter docs typecheck, pnpm lint, pnpm --filter docs build i pnpm --filter docs test:e2e (darwin, bez --update-snapshots) kończą się kodem 0. `git diff --stat -- packages apps/storybook apps/docs/e2e/__screenshots__` jest pusty.
+- PROGRESS.md ma sekcję T29.1 z decyzjami: podział rscSafe, pokrycie 42→44 (BarChart był już pokryty przez getting-started), „Props of” zamiast „Parameters of”.
