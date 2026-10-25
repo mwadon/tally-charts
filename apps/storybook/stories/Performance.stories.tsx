@@ -80,6 +80,8 @@ for (const b of buckets)
   perBand[bands.indexOf(Number(b.bucket))] =
     (perBand[bands.indexOf(Number(b.bucket))] ?? 0) + b.pages
 const [poor = 0, needs = 0, good = 0] = perBand
+// --_ch-swatch-color is a private variable (no public token in 1.0): fine in this story, don't copy
+// it into apps.
 const tone = (t: Tone): CSSProperties =>
   ({ '--_ch-swatch-color': `var(--ch-${t})` }) as CSSProperties
 

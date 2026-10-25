@@ -534,6 +534,8 @@ body {
   width: 3px;
   height: 16px;
   border-radius: 2px;
+  /* --_ch-swatch-color is a private variable (no public token in 1.0): fine in this story, don't
+     copy it into apps. */
   background: var(--_ch-swatch-color);
 }
 
