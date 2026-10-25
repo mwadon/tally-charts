@@ -1,114 +1,95 @@
-# QA runda 1: tally-charts 1.0 na `main` (f5d6309), 2026-10-25
+# QA runda 2: tally-charts 1.0 na `main` (b1c6ef2), 2026-10-25
 
-**Wynik: NIE PRZESZŁO.** Cały kod z repo działa: każda bramka kończy się kodem 0, a wszystkie 26 stron docs przechodzi ręczne przejście bez błędów. Zakres SPEC nie jest jednak domknięty, z dwóch powodów:
+**Wynik: NIE PRZESZŁO.** Kod z repo działa: wszystkie bramki kończą się kodem 0, a ręczne przejście 26 stron docs nie znalazło żadnego błędu. Problem 1 z rundy 1 (adres zajęty przez obcy projekt) jest poprawiony w repo przez Q1-03.1. Zakres SPEC nie jest jednak domknięty, bo kroki maintainera są otwarte, a część z nich ma w backlogu status done/skipped mimo braku potwierdzenia:
+- nie ma publicznej strony docs;
+- nie ma RC na npm;
+- nie ma trusted publishera ani environment `npm-publish`;
+- bramka designu F10 jest otwarta;
+- ręczny audyt a11y nie był robiony.
 
-1. **Domena publicznej strony należy do kogoś innego.** `https://tally-charts.vercel.app` to obca aplikacja („Tally Response Viewer”). Wskazują na nią `homepage`, README paczki i changesety, a te trafią na npm razem z RC.
-2. **Kroki maintainera są otwarte albo niepotwierdzone.** T35 i T36 mają w backlogu status done, ale w PROGRESS nie ma linii „T35 potwierdzony” ani „T36 potwierdzony”, a strona z treścią z glökki nie istnieje. Do tego zablokowane są T17, T39 i Q1-02, a T40–T43 nie są zaczęte.
+**Środowisko:** node v24.14.0, pnpm 12.4.2, darwin. Porty 3100, 3101 i 6007 były wolne (na 6006 działa Storybook dev, testy go nie używają). Po QA serwer jest zatrzymany, a `git status` jest czysty (bez nowych baseline'ów).
 
-**Środowisko:** node v24.14.0, pnpm 12.4.2, darwin. Porty 3100 i 6007 były wolne. Port 6006 był zajęty przez działający Storybook dev, ale testy go nie używają. Po QA serwer jest zatrzymany, a `git status` jest czysty, czyli nie powstały nowe baseline'y.
-
-## Bramki (uruchamiane po kolei, wszystkie exit 0)
+## Bramki (po kolei, wszystkie exit 0)
 | Komenda | Wynik |
 |---|---|
 | `pnpm install --frozen-lockfile`, `pnpm build` | OK |
 | `pnpm typecheck` | OK |
 | `pnpm lint` | OK (7 ostrzeżeń, 1 info, 0 błędów) |
-| `REQUIRE_DIST=1 pnpm test` | 1154/1154 |
-| `api:check` | OK (tylko ostrzeżenie o bundlowanym TS 5.9; `dts-parse.test` przechodzi z `REQUIRE_DIST=1`) |
-| `pnpm size` | OK; LineChart 13.19 kB przy limicie 14 kB, RunwayChart 8.62 kB |
-| `check:dev-strip` / `check:treeshake` / `check:dts` | 34/34 frazy / 15 fixture'ów / OK |
-| `check:workflows`, `test:scripts` | OK |
-| `pnpm --filter docs test` | 698/698 (54 pliki) |
-| `pnpm --filter docs check:content` | 0 błędów na 26 stronach, pokrycie API 52/52 |
-| `pnpm --filter docs build` | OK |
+| `REQUIRE_DIST=1 pnpm test` | 83 pliki, 1154/1154 |
+| `api:check` | OK (ostrzeżenie o bundlowanym TS 5.9.3 przy TS 6.0.3; decyzja z F8 zapisana w PROGRESS) |
+| `pnpm size` | OK: LineChart 13.19 kB przy limicie 14 kB, RunwayChart 8.62 kB przy 15 kB |
+| `check:dev-strip` | 34/34 frazy |
+| `check:treeshake` | 15 fixture'ów |
+| `check:dts` | OK |
+| `check:workflows` | OK |
+| `test:scripts` | 34/34, w tym nowy `docs-url.test.mjs` |
+| `pnpm --filter docs test` | 54 pliki, 698/698 |
+| `pnpm --filter docs check:content` | 0 błędów na 26 stronach, API coverage 52/52 |
+| `pnpm --filter docs build` | OK, 26 stron SSG |
 | `pnpm test:e2e` (Storybook) | 333/333 |
-| `pnpm --filter docs test:e2e` | 448/448 |
+| `pnpm --filter docs test:e2e` | 448/448: axe, reflow 320, linki, lazy-mount, skip link, reduced motion, baseline'y `/` i `/docs/line-chart` |
 
 ## Ręczne przejście (Playwright i curl na `next start -p 3101`, fiksturki)
-**Strony.** Sprawdziłem `/` i wszystkie 25 slugów z `navigation.json`, w motywie light i dark, czyli 52 widoki:
-- każdy widok zwraca 200, bez `console.error` i `pageerror`;
-- axe (wcag2a/2aa/21a/21aa/22aa) zgłasza 0 naruszeń;
-- po przewinięciu nie zostaje żaden lazy placeholder.
+- **Wszystkie strony:** `/` i 25 slugów z `navigation.json` (grupy Start, Guides, Charts, Building blocks, Reference), każda w light i dark, czyli 52 widoki.
+  - Każdy widok zwraca 200, bez `console.error` i `pageerror`.
+  - axe (wcag2a/2aa/21a/21aa/22aa) zgłasza 0 naruszeń.
+  - Po przewinięciu nie zostaje żaden `[data-lazy-placeholder]`.
+  - `data-ch-theme` jest zgodny z `?theme`.
+  - Przy 320 px żadna strona nie przewija się poziomo. Wynik: 0 FAIL.
+- **F16, strona główna:**
+  - h1 „Opinionated React charts for narrative business dashboards.”;
+  - sekcje w kolejności: visual language, „Nine reference dashboards” (9 kafelków), Install, „Built for real dashboards”, „Keep going” (Getting started, GitHub, npm);
+  - 23 żywe wykresy;
+  - przycisk „Copy code: bash” kopiuje `npm i tally-charts`, a live region ogłasza „Copied”;
+  - przy 375 px body ma 375 = 375.
+- **F11, header i motyw:**
+  - header ma wordmark, `v0.9.0`, linki do GitHuba i npm oraz select System/Light/Dark;
+  - Dark ustawia `data-ch-theme=dark` i `localStorage=dark`;
+  - po przeładowaniu na DOMContentLoaded jest już `dark` i tło `rgb(18,18,21)`, więc jasny motyw nie miga;
+  - System czyści atrybut i localStorage.
+- **F12/F13, `/docs/line-chart`:**
+  - Code ma `aria-pressed=true`;
+  - pokazany kod jest identyczny z `examples/line-chart/revenue-forecast.tsx`;
+  - przyciski kopiowania mają nazwy „Copy code: …”;
+  - strzałka na wykresie ogłasza „2 of 10, Feb, $455 Actual”;
+  - spis treści ma kotwice `#when-to-use`, `#install`, `#examples`, `#props` i `#keyboard`.
+- **Klawiatura:** pierwszy Tab trafia w „Skip to content”, a Enter przenosi do `#main`.
+- **Edytor i preview:**
+  - `?_editor=1` na `/`, `/docs/line-chart` i `/docs/composition` daje 200 bez błędów konsoli;
+  - wejście przez `/preview` pokazuje banner „Preview mode”.
+- **Routing i sekrety (curl):**
+  - nieznany slug: 404;
+  - `POST /api/revalidate` bez sekretu albo ze złym: 401, z Bearer albo `x-revalidate-secret`: 200 `{"revalidated":true}`;
+  - `/preview` bez sekretu albo ze złym: 401, z dobrym: 307 na `/docs/line-chart` albo `/`, przy slugu `../x`: 400.
+- **SEO:**
+  - poza produkcją `noindex, nofollow`, a `robots.txt` ma `Disallow: /`;
+  - sitemap ma 26 URL-i;
+  - title, canonical i og:title/description/url są ustawione.
+- **F18 / Q1-03.1:**
+  - `homepage`, README, `docs/stability.md` i 4 changesety migracji wskazują `https://tally-charts-docs.vercel.app`;
+  - `tally-charts.vercel.app` zostaje tylko w zdaniu w `docs/releasing.md` §11 i w fixturach testu.
+- **Biblioteka F1–F8 i F19:** pokryte testami jednostkowymi i e2e powyżej (szczegóły w raporcie rundy 1, kod od tamtej pory się nie zmienił; zmieniły się tylko URL-e i dokumentacja).
 
-**Reflow i klawiatura:**
-- przy 320 px żadna strona nie przewija się poziomo; przy 375 px `/` ma body 375 = 375;
-- pierwszy Tab trafia w „Skip to content”, który prowadzi do `#main`;
-- przy 375 px przycisk Menu przełącza `aria-expanded` i pokazuje 25 linków.
-
-**F16, strona główna:**
-- h1 brzmi „Opinionated React charts for narrative business dashboards.”;
-- sekcje są w kolejności: visual language → 9 kafelków galerii → Install → „Built for real dashboards” → „Keep going” (Getting started, GitHub, npm);
-- na stronie są 23 żywe wykresy;
-- przycisk „Copy code: bash” zapisuje do schowka `npm i tally-charts`, a live region ogłasza „Copied”.
-
-**F11, header i motyw:**
-- header ma wordmark, `v0.9.0` (poprawnie przed Version PR), linki do GitHuba i npm oraz select Theme z opcjami System/Light/Dark;
-- wybór Dark ustawia `data-ch-theme=dark` i `localStorage tally-docs-theme=dark`;
-- po przeładowaniu na `DOMContentLoaded` jest już `dark` i tło `rgb(18,18,21)`, więc jasny motyw nie miga;
-- wybór System usuwa atrybut i wpis w localStorage; przy `colorScheme: dark` tło jest ciemne.
-
-**F12/F13, ChartExample na `/docs/line-chart`:**
-- przełącznik Preview/Code działa (`aria-pressed`);
-- pokazywany kod jest identyczny z plikiem `examples/line-chart/revenue-forecast.tsx`;
-- przycisk kopiowania ma nazwę „Copy code: revenue-forecast.tsx”;
-- strzałka na wykresie ogłasza „2 of 10, Feb, $455 Actual”;
-- spis treści zawiera 5 kotwic.
-
-**Routing i bezpieczeństwo:**
-
-| Żądanie | Wynik |
+## Stan zewnętrzny (komendy tylko do odczytu)
+| Sprawdzenie | Wynik |
 |---|---|
-| nieznany slug | 404 |
-| `POST /api/revalidate` bez sekretu albo ze złym | 401 |
-| `POST /api/revalidate` z Bearer albo z `x-revalidate-secret` | 200 `{"revalidated":true}` |
-| `/preview` bez sekretu albo ze złym | 401 |
-| `/preview` z dobrym sekretem | 307 na `/docs/line-chart` albo `/` |
-| `/preview?slug=../x` | 400 |
-| po wejściu przez preview | banner „Preview mode” widoczny |
-| `?_editor=1` na `/docs/line-chart` i `/` | renderuje się bez błędów |
-
-**SEO:**
-- poza produkcją jest `noindex, nofollow`, a `robots.txt` ma `Disallow: /`;
-- sitemap ma 26 URL-i;
-- title, description, canonical i og:* są ustawione.
-
-**Treść (F15, F23):**
-- każda z 11 stron wykresów ma co najmniej 2 ChartExample, PropsTable oraz sekcje „When to use it” i „Keyboard and screen readers”;
-- `migration-1-0` opisuje 4 zmiany łamiące z „przed” i „po” (przykłady w `examples/migration/`) oraz 3 zmiany addytywne.
-
-**Biblioteka (F1–F8, F19), sprawdzone w kodzie i testach:**
-- domyślny `fill ?? 'solid'` z TSDoc;
-- `underlay` jest w api.md, a test sprawdza kolejność w DOM;
-- 13 `@ts-expect-error` w `types.test.ts`;
-- testy podpowiedzi Enter w Chart, Bars, RankedBars i NearestPointer;
-- RunwayChart: pointercancel, kontrolowany `activeId` i zduplikowane id;
-- thinTicks zachowuje wyróżniony tick;
-- `nested-theme.spec.ts` (F19);
-- `createDateFormatter` jest w `core.api.md`;
-- `prepublishOnly` uruchamia pełny zestaw;
-- komentarze o `--_ch-swatch-color` są na miejscu;
-- `docs/a11y.md` ma §Known limits (tooltip z `pointer-events`, przedziały domknięte tylko od dołu) oraz §Manual results.
-
-**F18:** README ma 51 linii (opis, install, `theme.css`, przykład, Stability, linki), a `homepage` jest ustawiony. Adres jest jednak zły, opis w problemie 1.
+| `npm view tally-charts dist-tags` | `{ latest: '0.9.0' }` |
+| `npm view tally-charts@1.0.0-rc.0` | E404 |
+| `npm view tally-charts@0.0.0-stage deprecated` | „Placeholder, use tally-charts@latest” (OK) |
+| `https://tally-charts-docs.vercel.app` (`/`, `/docs/line-chart`, `/docs/migration-1-0`, `/docs/stability`) | 404, `x-vercel-error: DEPLOYMENT_NOT_FOUND` |
+| `gh api repos/mwadon/tally-charts/environments` | `total_count` 0 |
+| `git rev-list --count origin/main..main` | 191 |
+| Ostatni run CI na GitHubie | 2026-10-24, sprzed prac nad 1.0 |
 
 ## Problemy
-1. **Domena `tally-charts.vercel.app` jest zajęta przez obcy projekt (nowy, realny problem).**
-   - `curl https://tally-charts.vercel.app/` zwraca 200 z `<title>Tally Response Viewer</title>` („View and visualize Tally.so survey responses”);
-   - `/docs/line-chart`, `/docs/migration-1-0`, `/docs/stability`, `/sitemap.xml` i `/robots.txt` zwracają 404;
-   - na ten adres wskazują `homepage` w `packages/tally-charts/package.json`, wszystkie linki README (w tym Stability i migration) i 4 linki `…/docs/migration-1-0` w changesetach, które trafią do CHANGELOG `1.0.0-rc.0`;
-   - po publikacji RC użytkownicy npm trafią na cudzą stronę;
-   - PROGRESS traktował ten adres jako „założenie do weryfikacji”, a teraz wiadomo, że projekt Vercel nie może dostać tej nazwy.
-2. **T35 i T36 są oznaczone jako done bez potwierdzenia maintainera.**
-   - Sekcje w PROGRESS mają nagłówki ⛔ i ✔ jednocześnie, a linii „T35 potwierdzony:” i „T36 potwierdzony:” nie ma (są tylko placeholdery).
-   - Publicznej strony z treścią z glökki nie ma (problem 1), więc F15 [MAINTAINER] (tenant, seed, webhook) i F17 (Vercel, zmiana widoczna w ≤ 60 s) nie są spełnione.
-   - DoD pkt 4 też nie jest spełniony: `check:content` na żywym CMS nie było uruchomione.
-3. **Kroki maintainera, które już mają taski:**
-   - F9: T17 skipped, nie ma trusted publishera ani environment `npm-publish`;
-   - F10: bramka designu otwarta, status w linii 3 to nadal „proposal…” (Q1-02 blocked);
-   - F20: brak RC, dist-tags to `{ latest: '0.9.0' }`, T39 blocked, main jest 183 commity przed origin, a ostatni run CI na GitHubie jest sprzed 1.0;
+1. **F9 nie ma właściciela: T17 ma status `skipped`.** Bez trusted publishera na npmjs.com i bez environment `npm-publish` (dziś 0 environments) workflow `release.yml` nie opublikuje niczego. To blokuje F9 (provenance, pre mode na npm), F20 (T39) i F22/T43. Żaden otwarty task nie odpowiada wprost za T17, bo T39 tylko go wymienia jako bloker. Nowy task: QA2-01.
+2. **Publicznej strony docs nie ma, choć Q1-03.2, T35 i T36 mają w backlogu status `done`.** `tally-charts-docs.vercel.app` zwraca DEPLOYMENT_NOT_FOUND. W PROGRESS nie ma linii `T35/T36/Q1-03 potwierdzony:` z prawdziwymi danymi, a mimo to są nagłówki `## ✔ T35` (l. 2177), `## ✔ T36` (l. 2220 i 2235) i `## ✔ Q1-03.2` (l. 2546). Porządki nagłówków opisane w Q1-04 nie trafiły na main. Zakres pokrywa zablokowany Q1-04 (tenant, seed, Vercel, webhook), więc nowego taska nie tworzę. Q1-04 musi jednak zamknąć także linię `Q1-03 potwierdzony:`. Skutki: README i `homepage` wskazują dziś stronę, która nie istnieje, a F15 [MAINTAINER], F17 (hosting, ≤ 60 s) i DoD pkt 4 są niespełnione.
+3. **Pozostałe kroki maintainera z istniejącymi taskami:**
+   - F10: Q1-02 blocked, linia 3 designu to nadal „proposal, waiting for the maintainer's approval”;
+   - F20: T39 blocked (brak RC, main 191 commitów przed origin, CI na GitHubie niepotwierdzone);
    - F21 i F22: T40–T43 todo.
-   - `0.0.0-stage` jest już deprecated („Placeholder, use tally-charts@latest”).
 
 ## Obserwacje bez tasków
-- Bez `CMS_BASE_URL` `/cdn/x.png` zwraca 500 (SDK: „baseUrl is required”). Fiksturki nie mają assetów, a na produkcji zmienna jest ustawiona, więc to nie jest problem w zakresie.
-- Lint zgłasza 7 ostrzeżeń (`noImportantStyles` w `theme.css`), bez błędów.
+- Link „Docs” w headerze prowadzi do `/docs/line-chart`, a nie do Getting started (pozostałość po placeholderze z F10). SPEC tego nie wymaga, więc warto to rozważyć przy akceptacji designu.
+- Bez `CMS_BASE_URL` `/cdn/*` zwraca 500. Fiksturki nie mają assetów, a na produkcji zmienna jest ustawiona.
+- Lint: 7 ostrzeżeń `noImportantStyles` w `theme.css`, bez błędów.
