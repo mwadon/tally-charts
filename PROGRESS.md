@@ -415,3 +415,12 @@ Zrealizowałem cztery poprawki F6 w RunwayChart.tsx. (1) `pressed` czyści się 
 - Dotychczasowe testy RunwayChart przechodzą (fraza ostrzeżenia o duplikatach zaktualizowana). Przechodzą pnpm lint, pnpm typecheck i pnpm test.
 - Po pnpm build przechodzą pnpm --filter tally-charts check:dev-strip (z zaktualizowaną frazą ostrzeżenia o duplikatach), api:check bez zmian i pnpm size.
 - Jest changeset w .changeset dla tally-charts (patch).
+
+## T12 Publiczne API i stabilność: README, znane ograniczenia a11y, prywatne zmienne (F7)
+**Decyzje:**
+- D1. Sekcja `## Stability` w README stoi po całym `## Styling` (po podsekcji Palettes), przed `## High-level charts`. Akapit w Styling został bez zmian, tabela tokenów też (czyta ją `surface.test.ts`).
+- D2. Link do pełnego tekstu w README jest absolutny (`https://github.com/mwadon/tally-charts/blob/main/docs/stability.md`), bo link względny nie działa na npm. `docs/stability.md` też używa tylko pełnych URL GitHub.
+- D3. `docs/stability.md` jest źródłem treści dla przyszłej strony `stability` w dokumentacji (F15). H1 „Stability and semver”, gotowy do przeniesienia.
+- D4. Własna treść tooltipa (prop `content`) trafia przez `createPortal` do overlaya z `aria-hidden="true"` (Chart.tsx, Tooltip.tsx), więc a11y.md opisuje to zgodnie z kodem. Ogłoszenia idą przez live region i tabelę danych.
+- D5. Komentarze o prywatnej `--_ch-swatch-color` w Performance.stories.tsx (nad `tone`) i w preview.css (`.perf-tick`).
+- D6. Changeset `.changeset/stability-docs.md`: `patch`, bez zmian w kodzie.

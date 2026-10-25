@@ -89,6 +89,20 @@ variables are private and can change in any release: select `[data-ch-part="…"
   2.9:1, neutral 2.4:1), so marks in these tones are harder to see than by default; see
   `docs/a11y.md`.
 
+## Stability
+
+From 1.0 the package follows strict semver for its public surface.
+
+- Public: the exports of `tally-charts` and `tally-charts/core`, the `--ch-*` tokens,
+  `data-ch-part`, the `data-ch-*` state and variant attributes, and `theme.css`.
+- Not public (can change in any release): `ch-*` classes, `--_ch-*` variables (including
+  `--_ch-swatch-color`), DOM structure outside the parts, the wording of the built-in English
+  strings (they can change in a minor until an i18n hook arrives in 1.x; `keyboardHint` and
+  `dataTable` override them now), and the size budgets.
+
+The full text, with examples, is at
+<https://github.com/mwadon/tally-charts/blob/main/docs/stability.md>.
+
 ## High-level charts
 
 Each one is a thin composition of `<Chart>` and the building blocks, renders a hidden data table
