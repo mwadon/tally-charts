@@ -75,7 +75,10 @@ export type LineChartProps<D> = ChartName &
      * The x of each row. An accessor puts categories on a point scale: each value appears once,
      * repeats are skipped, and point ids are the values as strings, so `1` and `'1'` are the same
      * x. A time scale spec with a `field` puts dates on a time axis instead: rows are sorted by
-     * date, rows with the same epoch ms are repeats, and point ids are ISO strings.
+     * date, rows with the same epoch ms are repeats, and point ids are ISO strings. A row whose x
+     * is not a date (or missing) is skipped and breaks every line and the band after the row
+     * before it in data order. On a time axis that row is the one before it in the data, not in
+     * date order: with unsorted data the break can fall between two other dates.
      */
     x: Accessor<D, string | number> | (TimeScaleSpec<D> & { field: Accessor<D, TimeInput> })
     series: readonly LineSeries<D>[]
@@ -134,6 +137,8 @@ interface LineRow<D> {
   values: number[]
   low: number
   high: number
+  /** A skipped row followed this one in data order: the lines and the band break after it. */
+  gapAfter?: boolean
 }
 
 const MARGIN: Margin = { top: 24, right: 16, bottom: 32, left: 44 }
@@ -252,6 +257,7 @@ export function LineChart<D>({
     const getLow = band ? resolveAccessor(band.low) : undefined
     const getHigh = band ? resolveAccessor(band.high) : undefined
     const seen = new Set<string>()
+    let previous: LineRow<D> | undefined
     const all = data.flatMap((d, i): LineRow<D>[] => {
       const raw = getX(d, i)
       const time = timeX ? toTime(raw) : Number.NaN
@@ -272,6 +278,7 @@ export function LineChart<D>({
               : `LineChart skipped a missing x value at index ${i}.`,
           )
         }
+        if (previous) previous.gapAfter = true
         return []
       }
       if (seen.has(key)) {
@@ -281,18 +288,18 @@ export function LineChart<D>({
         return []
       }
       seen.add(key)
-      return [
-        {
-          key,
-          time: time ?? Number.NaN,
-          label: key,
-          datum: d,
-          index: i,
-          values: getters.map((get) => toNumber(get(d, i))),
-          low: getLow ? toNumber(getLow(d, i)) : Number.NaN,
-          high: getHigh ? toNumber(getHigh(d, i)) : Number.NaN,
-        },
-      ]
+      const row: LineRow<D> = {
+        key,
+        time: time ?? Number.NaN,
+        label: key,
+        datum: d,
+        index: i,
+        values: getters.map((get) => toNumber(get(d, i))),
+        low: getLow ? toNumber(getLow(d, i)) : Number.NaN,
+        high: getHigh ? toNumber(getHigh(d, i)) : Number.NaN,
+      }
+      previous = row
+      return [row]
     })
     // Dates draw and step left to right, whatever order the data has. Sort is stable.
     return timeX ? all.sort((a, b) => a.time - b.time) : all
@@ -314,6 +321,11 @@ export function LineChart<D>({
     return (row) => date(row.time)
   }, [xAxisFormat, timeX, rows, locale, zone])
   const labelled = useMemo(() => rows.map((r) => ({ ...r, label: xLabel(r) })), [rows, xLabel])
+  // What the lines and the band draw: `labelled`, with a row of NaN values after each row that a
+  // skipped one followed. It has a valid x, so the marks don't warn, and its NaN breaks the path.
+  const drawn = labelled.flatMap((row) =>
+    row.gapAfter ? [row, { ...row, values: [], low: Number.NaN }] : [row],
+  )
 
   const targetSpec = typeof target === 'number' ? { value: target } : target
   // The target counts toward the inferred domain, so a goal above or below the data is drawn. The
@@ -400,11 +412,14 @@ export function LineChart<D>({
       {targetSpec ? (
         <Target y={targetSpec.value} label={targetSpec.label} labelPosition="start" />
       ) : null}
-      {band ? <Band<LineRow<D>> x={xField} low="low" high="high" tone={band.tone} /> : null}
+      {band ? (
+        <Band<LineRow<D>> data={drawn} x={xField} low="low" high="high" tone={band.tone} />
+      ) : null}
       {ordered.map(({ s, i }) => (
         <Line<LineRow<D>>
           // Index first: repeated series ids still get distinct keys.
           key={`${i}:${s.id}`}
+          data={drawn}
           x={xField}
           y={(r) => r.values[i] ?? Number.NaN}
           tone={toneOf(s)}

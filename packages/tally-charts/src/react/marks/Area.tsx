@@ -27,7 +27,8 @@ export interface AreaProps<D> {
 
 /**
  * A soft gradient area through the band centres, or through the dates on a time scale, e.g.
- * joining the tops of bridge columns.
+ * joining the tops of bridge columns. A missing value or a date that is not on the scale breaks
+ * the area, as it breaks a `Line`; a lone point between two breaks fills nothing.
  */
 export function Area<D>({
   data,
@@ -38,7 +39,8 @@ export function Area<D>({
   between = false,
 }: AreaProps<D>) {
   const ctx = useChartContext('Area')
-  const gradientId = `${ctx.chartId}-area-${useId().replace(/[^a-zA-Z0-9_-]/g, '')}`
+  const id = useId()
+  const gradientId = `${ctx.chartId}-area-${id.replace(/[^a-zA-Z0-9_-]/g, '')}`
   const xScale = ctx.x
   if ((xScale.kind !== 'band' && xScale.kind !== 'time') || ctx.y.kind !== 'linear') {
     if (DEV)
@@ -66,13 +68,16 @@ export function Area<D>({
   // A date is a band of width 0 at its position.
   const size = xScale.kind === 'band' ? xScale.scale.bandwidth() : 0
   const startOf = (value: unknown): number | undefined =>
-    xScale.kind === 'band' ? xScale.scale(String(value)) : timeX(ctx, xScale.scale, value, 'Area')
+    xScale.kind === 'band'
+      ? xScale.scale(String(value))
+      : timeX(ctx, xScale.scale, value, 'Area', id)
   const rows = (data ?? ctx.data) as readonly D[]
-  const columns = rows.flatMap((d, i) => {
+  // An incomplete column is NaN, which breaks the area there.
+  const columns = rows.map((d, i) => {
     const start = startOf(getX(d, i))
     const value = toNumber(getY(d, i))
-    if (start === undefined || !Number.isFinite(value)) return []
-    return [{ start, y: clamp(linear(value)) }]
+    if (start === undefined || !Number.isFinite(value)) return { start: Number.NaN, y: Number.NaN }
+    return { start, y: clamp(linear(value)) }
   })
   const path = between
     ? columns

@@ -165,6 +165,15 @@ function timeTicks(scale: TimeScale, spec: TickSpec, anchorEnds: boolean): Tick[
   })
 }
 
+/** Index of the tick whose value is `highlight` (compared as strings); undefined when none. */
+function indexOfValue(
+  ticks: readonly Tick[],
+  highlight: string | number | undefined,
+): number | undefined {
+  const i = ticks.findIndex((t) => String(t.value) === String(highlight))
+  return highlight === undefined || i < 0 ? undefined : i
+}
+
 /** The ticks with labels for their (epoch ms) values. */
 function withLabels(ticks: readonly Tick[], label: TimeLabels): Tick[] {
   const labels = label(ticks.map((tick) => tick.value as number))
@@ -176,11 +185,17 @@ function withLabels(ticks: readonly Tick[], label: TimeLabels): Tick[] {
  * have carried the year; a tick whose label repeats the one before it (a coarse format on fine
  * ticks) is dropped; and the new labels are thinned again until nothing changes, so they fit.
  */
-function fitTimeTicks(ticks: readonly Tick[], label: TimeLabels, measure?: MeasureTick): Tick[] {
+function fitTimeTicks(
+  ticks: readonly Tick[],
+  label: TimeLabels,
+  measure?: MeasureTick,
+  highlight?: string | number,
+): Tick[] {
   let kept = withLabels(ticks, label)
   for (let pass = 0; pass < 4; pass++) {
     const distinct = kept.filter((tick, i) => i === 0 || tick.label !== kept[i - 1]?.label)
-    const next = withLabels(measure ? thinTicks(distinct, measure) : distinct, label)
+    const keep = indexOfValue(distinct, highlight)
+    const next = withLabels(measure ? thinTicks(distinct, measure, { keep }) : distinct, label)
     if (next.length === kept.length && next.every((tick, i) => tick.label === kept[i]?.label)) {
       return next
     }
@@ -223,9 +238,11 @@ export function Axis({
     raw = categoryTicks(resolved.scale, spec, custom ?? String, { anchorEnds: horizontal })
   }
   const measure: MeasureTick | undefined = horizontal ? undefined : () => LABEL_HEIGHT
-  let ticks = thin ? thinTicks(raw, measure) : raw
+  // The highlighted label survives thinning.
+  const keep = indexOfValue(raw, highlight)
+  let ticks = thin ? thinTicks(raw, measure, { keep }) : raw
   if (timeLabel) {
-    ticks = fitTimeTicks(ticks, timeLabel, thin ? (measure ?? estimateWidth) : undefined)
+    ticks = fitTimeTicks(ticks, timeLabel, thin ? (measure ?? estimateWidth) : undefined, highlight)
   }
 
   return (

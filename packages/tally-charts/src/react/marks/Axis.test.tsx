@@ -215,6 +215,26 @@ describe('<Axis>', () => {
     expect(marked).toEqual([null, 'true', null])
   })
 
+  it('keeps the highlighted label when thinning would drop it', () => {
+    const domain = ['Planned profit', 'Price', 'Volume', 'Mix', 'Cost', 'Actual profit']
+    const chart = (highlight?: string) => (
+      <Chart
+        title="Test chart"
+        {...frame}
+        width={200}
+        x={{ type: 'band', domain, padding: 0 }}
+        y={{ domain: [0, 1] }}
+      >
+        <Axis side="bottom" highlight={highlight} />
+      </Chart>
+    )
+    expect(labels(render(chart()).container)).not.toContain('Actual profit')
+    const { container } = render(chart('Actual profit'))
+    expect(labels(container)).toEqual(['Planned profit', 'Actual profit'])
+    const active = container.querySelector('[data-ch-part="axis-label"][data-ch-active="true"]')
+    expect(active?.textContent).toBe('Actual profit')
+  })
+
   it('labels only the extent it is given on a padded scale', () => {
     const { container } = render(
       <Chart

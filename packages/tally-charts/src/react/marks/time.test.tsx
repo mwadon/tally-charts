@@ -197,6 +197,86 @@ describe('marks on a time x scale', () => {
     expect(warn.mock.calls[0]?.[0]).toContain('Area skipped an x value that is not a date')
   })
 
+  describe('an invalid date in the middle of the series', () => {
+    // 100px per day; y = 100 − 10 × v. The date after Jan 2 is not a date.
+    const gap: Day[] = [
+      { date: '2026-01-01', v: 2, lo: 1, hi: 3 },
+      { date: '2026-01-02', v: 5, lo: 4, hi: 6 },
+      { date: 'soon', v: 9, lo: 8, hi: 10 },
+      { date: '2026-01-03', v: 8, lo: 7, hi: 9 },
+      { date: '2026-01-04', v: 4, lo: 3, hi: 5 },
+    ]
+
+    it('breaks a line in two, drawing every valid dot', () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+      const { container } = renderTime(<Line<Day> />, X, gap)
+      const d = parts(container, 'line')[0]?.getAttribute('d') ?? ''
+      expect(d).toBe('M0,80L100,50M200,20L300,60')
+      expect(d.match(/M/g)).toHaveLength(2)
+      expect(parts(container, 'line-dot')).toHaveLength(4)
+      expect(container.innerHTML).not.toContain('NaN')
+      expect(warn).toHaveBeenCalledTimes(1)
+      expect(warn.mock.calls[0]?.[0]).toContain('Line skipped an x value that is not a date')
+    })
+
+    it('warns once per Line, not once per chart', () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+      const { container } = renderTime(
+        <>
+          <Line<Day> />
+          <Line<Day> y={(d) => d.v + 1} />
+        </>,
+        X,
+        gap,
+      )
+      expect(parts(container, 'line')).toHaveLength(2)
+      expect(warn).toHaveBeenCalledTimes(2)
+    })
+
+    it('breaks an area into two closed shapes, with one warning', () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+      const { container } = renderTime(<Area<Day> />, X, gap)
+      const d = parts(container, 'area')[0]?.getAttribute('d') ?? ''
+      expect(d).toBe('M0,80L100,50L100,100L0,100ZM200,20L300,60L300,100L200,100Z')
+      expect(d.match(/M/g)).toHaveLength(2)
+      expect(d.match(/Z/g)).toHaveLength(2)
+      expect(container.innerHTML).not.toContain('NaN')
+      expect(warn).toHaveBeenCalledTimes(1)
+    })
+
+    it('breaks a band in two', () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+      const { container } = renderTime(<Band<Day> low="lo" high="hi" />, X, gap)
+      expect(parts(container, 'band')[0]?.getAttribute('d')?.match(/M/g)).toHaveLength(2)
+      expect(warn).toHaveBeenCalledTimes(1)
+    })
+  })
+
+  it('does not join a pair of columns across a missing value in an area that fills the gaps', () => {
+    const { container } = render(
+      <Chart<{ k: string; v: number | null }>
+        title="Gaps"
+        width={300}
+        height={100}
+        margin={{ top: 0, right: 0, bottom: 0, left: 0 }}
+        animate={false}
+        data={[
+          { k: 'a', v: 100 },
+          { k: 'b', v: 50 },
+          { k: 'c', v: Number.NaN },
+          { k: 'd', v: 0 },
+        ]}
+        x={{ type: 'band', field: 'k', padding: 0.5 }}
+        y={{ field: 'v', domain: [0, 100] }}
+      >
+        <Area between />
+      </Chart>,
+    )
+    const d = parts(container, 'area')[0]?.getAttribute('d') ?? ''
+    expect(d.match(/M/g)).toHaveLength(1)
+    expect(container.innerHTML).not.toContain('NaN')
+  })
+
   it('skips dates outside an explicit domain in lines, bands and areas, with one warning', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     // Jan 2 – Jan 4: 200px per day, so Jan 1 would sit at −200px.

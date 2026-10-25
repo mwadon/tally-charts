@@ -1,3 +1,4 @@
+import { useId } from 'react'
 import { clampToRange } from '../../core/linear'
 import { toNumber } from '../../core/number'
 import { categoryCenter } from '../../core/scale'
@@ -21,12 +22,14 @@ export interface SeriesScales {
 /**
  * The shared scale guard of `Line` and `Band`: a point, band or time scale on x and a linear
  * scale on y. Otherwise it warns once per chart and returns undefined, and the mark draws
- * nothing. On a time scale, x values `toTime` rejects are skipped with one warning per chart.
+ * nothing. On a time scale, x values `toTime` rejects are skipped with one warning per mark
+ * instance. A hook: call it at the top of the mark.
  */
-export function seriesScales(
+export function useSeriesScales(
   ctx: InternalChartContext,
   mark: 'Line' | 'Band',
 ): SeriesScales | undefined {
+  const id = useId()
   const { x, y } = ctx
   if (x.kind === 'linear' || y.kind !== 'linear') {
     if (DEV) {
@@ -44,7 +47,7 @@ export function seriesScales(
   }
   if (x.kind === 'time') {
     return {
-      x: (value) => timeX(ctx, x.scale, value, mark) ?? Number.NaN,
+      x: (value) => timeX(ctx, x.scale, value, mark, id) ?? Number.NaN,
       y: yOf,
       key: (value) => {
         const t = toTime(value)
@@ -60,22 +63,27 @@ export function seriesScales(
 }
 
 /**
- * Plot x of a date on a time scale. Undefined, with one warning per chart, for a value that is
- * not a date or a date outside the scale's domain, so marks treat it as missing and never draw
- * outside the plot.
+ * Plot x of a date on a time scale. Undefined for a value that is not a date or a date outside
+ * the scale's domain, so marks treat it as missing and never draw outside the plot. Warns once
+ * per chart for a date outside the domain, and for a value that is not a date once per chart or,
+ * with `warnKey` (a mark instance), once per mark, so each series reports its own bad dates.
  */
 export function timeX(
   ctx: InternalChartContext,
   scale: TimeScale,
   value: unknown,
   mark: string,
+  warnKey?: string,
 ): number | undefined {
   const t = toTime(value)
   const [d0, d1] = scale.domain()
   if (t !== undefined && t >= d0 && t <= d1) return scale(t)
   if (DEV) {
     if (t === undefined) {
-      ctx.warn('x-time-value', `${mark} skipped an x value that is not a date: ${String(value)}.`)
+      ctx.warn(
+        warnKey === undefined ? 'x-time-value' : `x-time-value:${warnKey}`,
+        `${mark} skipped an x value that is not a date: ${String(value)}.`,
+      )
     } else {
       ctx.warn(
         'x-time-outside',

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { bandScale, pointScale } from './band'
 import { linearScale } from './linear'
-import { categoryTicks, linearTicks, type Tick, thinTicks } from './ticks'
+import { categoryTicks, estimateWidth, fits, linearTicks, type Tick, thinTicks } from './ticks'
 
 const band = bandScale(['a', 'b', 'c', 'd'], [0, 400], 0, 0)
 
@@ -83,6 +83,89 @@ describe('thinTicks', () => {
   it('keeps only the first label when even the two ends would overlap', () => {
     expect(thinTicks(row(5, 10, 'Sep 21')).map((t) => [t.value, t.anchor])).toEqual([[0, 'start']])
     expect(thinTicks(row(2, 20, 'Sep 21')).map((t) => [t.value, t.anchor])).toEqual([[0, 'start']])
+  })
+
+  describe('with keep', () => {
+    const measure = estimateWidth
+
+    it('leaves ticks that fit alone', () => {
+      expect(thinTicks(row(3, 100, 'Sep'), undefined, { keep: 1 }).map((t) => t.value)).toEqual([
+        0, 1, 2,
+      ])
+    })
+
+    it('keeps the index and drops the labels that would overlap it', () => {
+      // Without keep: 0, 2, 4, 6, 8. Tick 7 sits 40px from 6 and 8, so both go.
+      const ticks = row(9, 40, 'Aug 10')
+      const kept = thinTicks(ticks, undefined, { keep: 7 })
+      expect(kept.map((t) => t.value)).toEqual([0, 2, 4, 7])
+      expect(fits(kept, measure)).toBe(true)
+    })
+
+    it('keeps the first label and the kept one where only the ends fit', () => {
+      const ticks = row(9, 11, 'Sep 21')
+      expect(thinTicks(ticks).map((t) => t.value)).toEqual([0, 8])
+      const kept = thinTicks(ticks, undefined, { keep: 7 })
+      expect(kept.map((t) => [t.value, t.anchor])).toEqual([
+        [0, 'start'],
+        [7, 'middle'],
+      ])
+      expect(fits(kept, measure)).toBe(true)
+    })
+
+    it('anchors a kept last tick to the outer edge', () => {
+      const kept = thinTicks(row(9, 11, 'Sep 21'), undefined, { keep: 8 })
+      expect(kept.map((t) => [t.value, t.anchor])).toEqual([
+        [0, 'start'],
+        [8, 'end'],
+      ])
+    })
+
+    it('falls back to the kept label alone when it cannot sit beside the first', () => {
+      expect(thinTicks(row(5, 10, 'Sep 21'), undefined, { keep: 3 }).map((t) => t.value)).toEqual([
+        3,
+      ])
+      expect(thinTicks(row(5, 10, 'Sep 21'), undefined, { keep: 0 }).map((t) => t.value)).toEqual([
+        0,
+      ])
+    })
+
+    it('pins the first and the kept last label to their band edges', () => {
+      // 20px bands, labels ~39px wide: at the band centres the ends overlap, at the edges not.
+      const bands = Array.from({ length: 5 }, (_, i) => ({
+        value: i,
+        position: i * 20 + 10,
+        label: 'Sep 21',
+        anchor: 'middle' as const,
+        bounds: [i * 20, i * 20 + 20] as const,
+      }))
+      expect(thinTicks(bands).map((t) => t.value)).toEqual([0])
+      const kept = thinTicks(bands, undefined, { keep: 4 })
+      expect(kept.map((t) => [t.value, t.position, t.anchor])).toEqual([
+        [0, 0, 'start'],
+        [4, 100, 'end'],
+      ])
+      expect(fits(kept, measure)).toBe(true)
+    })
+
+    it('pins a lone kept last label to the right edge of its band', () => {
+      // Three 20px bands: even the first and last labels overlap, so only the kept one is left.
+      const bands = Array.from({ length: 3 }, (_, i) => ({
+        value: i,
+        position: i * 20 + 10,
+        label: 'Sep 21',
+        anchor: 'middle' as const,
+        bounds: [i * 20, i * 20 + 20] as const,
+      }))
+      expect(
+        thinTicks(bands, undefined, { keep: 2 }).map((t) => [t.value, t.position, t.anchor]),
+      ).toEqual([[2, 60, 'end']])
+    })
+
+    it('ignores an index outside the ticks', () => {
+      const ticks = row(9, 40, 'Aug 10')
+      expect(thinTicks(ticks, undefined, { keep: 20 })).toEqual(thinTicks(ticks))
+    })
   })
 })
 
