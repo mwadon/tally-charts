@@ -530,6 +530,73 @@ tbody th {
   font-style: italic;
 }
 
+/* Shiki's css-variables theme (blocks/highlight.ts) reads these; same mixes as [data-tok]. */
+.code-block {
+  --shiki-foreground: var(--docs-text);
+  --shiki-background: transparent;
+  --shiki-token-keyword: color-mix(in srgb, var(--ch-accent) 70%, var(--ch-ink));
+  --shiki-token-string: color-mix(in srgb, var(--ch-gain) 60%, var(--ch-ink));
+  --shiki-token-string-expression: var(--shiki-token-string);
+  --shiki-token-constant: color-mix(in srgb, var(--ch-warn) 65%, var(--ch-ink));
+  --shiki-token-parameter: var(--docs-text);
+  --shiki-token-function: var(--docs-text);
+  --shiki-token-punctuation: var(--docs-text);
+  --shiki-token-link: color-mix(in srgb, var(--ch-loss) 65%, var(--ch-ink));
+  --shiki-token-comment: var(--docs-muted);
+}
+
+/* ---------- Content blocks (blocks/) ---------- */
+.heading {
+  scroll-margin-top: calc(var(--docs-header-h) + 1rem);
+}
+
+.heading-anchor {
+  margin-inline-start: 0.25rem;
+  color: var(--docs-muted);
+  text-decoration: none;
+  opacity: 0;
+}
+
+.heading:hover .heading-anchor,
+.heading-anchor:focus-visible {
+  opacity: 1;
+}
+
+.callout {
+  margin: 0 0 1rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--docs-line);
+  border-inline-start: 4px solid var(--callout-tone);
+  border-radius: var(--docs-radius);
+  background: var(--docs-raised);
+  color: var(--docs-text);
+}
+
+.callout[data-tone="info"] {
+  --callout-tone: var(--ch-accent);
+}
+
+.callout[data-tone="warning"] {
+  --callout-tone: var(--ch-warn);
+}
+
+.callout[data-tone="tip"] {
+  --callout-tone: var(--ch-gain);
+}
+
+.callout-label {
+  margin: 0 0 0.25rem;
+  font-size: 0.8125rem;
+  font-weight: 650;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--callout-tone) 65%, var(--ch-ink));
+}
+
+.callout-body > :last-child {
+  margin-bottom: 0;
+}
+
 /* ---------- ChartExample ---------- */
 .chart-example {
   margin: 0 0 1rem;

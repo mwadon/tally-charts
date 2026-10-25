@@ -12,10 +12,16 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
+    "@glokki-cms/react": "0.10.0",
+    "@glokki-cms/sdk": "0.17.0",
     "next": "16.4.3",
     "react": "19.3.0",
     "react-dom": "19.3.0",
-    "tally-charts": "workspace:*"
+    "react-markdown": "10.1.0",
+    "remark-gfm": "4.0.1",
+    "shiki": "4.5.0",
+    "tally-charts": "workspace:*",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@playwright/test": "1.64.0",
