@@ -1,4 +1,11 @@
 import { LineChart } from 'tally-charts'
+import type { ExampleMeta } from '../types'
+
+export const meta = {
+  id: 'line-chart/revenue-forecast',
+  title: 'Monthly revenue, actual and forecast',
+  rscSafe: true,
+} satisfies ExampleMeta
 
 const months = [
   { month: 'Jan', actual: 410, forecast: null },
@@ -13,10 +20,8 @@ const months = [
   { month: 'Oct', actual: null, forecast: 850 },
 ]
 
-export const LINE_EXAMPLE_TITLE = 'Monthly revenue, actual and forecast'
-
 // Props stay serializable (no functions): the page is a server component.
-export function LineExample() {
+export default function RevenueForecast() {
   return (
     <LineChart
       data={months}
@@ -29,7 +34,7 @@ export function LineExample() {
       target={{ value: 800, label: 'Target' }}
       format="currency-compact"
       height={260}
-      title={LINE_EXAMPLE_TITLE}
+      title={meta.title}
       description="Revenue grew from 410 to 640 over six months; the forecast reaches 850 in October."
     />
   )

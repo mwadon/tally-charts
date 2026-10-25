@@ -12,3 +12,4 @@ packages/tally-charts/temp/
 .crew/
 .next/
 next-env.d.ts
+apps/docs/examples.generated.ts

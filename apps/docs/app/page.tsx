@@ -1,8 +1,8 @@
+import MarginByWeek from '../examples/bar-chart/margin-by-week'
 import { CodeBlock, Tok } from './_components/code-block'
 import { SiteHeader } from './_components/site-header'
 import { VisualLanguage } from './_components/visual-language'
 import { SITE } from './_content/navigation'
-import { HomeChart } from './home-chart'
 
 const FEATURES = [
   {
@@ -49,7 +49,7 @@ export default function Home() {
           <div className="hero-visual">
             <div className="hatch-field" aria-hidden="true" />
             <div className="card hero-card">
-              <HomeChart />
+              <MarginByWeek />
             </div>
           </div>
         </section>

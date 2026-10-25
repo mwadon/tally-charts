@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import { expect, test } from 'vitest'
-import { LINE_EXAMPLE_TITLE, LineExample } from '../docs/line-chart/line-example'
+import RevenueForecast, { meta } from '../../examples/line-chart/revenue-forecast'
 import { ChartExample } from './chart-example'
 import { CodeBlock } from './code-block'
 
@@ -10,7 +10,7 @@ function renderExample() {
   return render(
     <ChartExample
       title="Revenue"
-      preview={<LineExample />}
+      preview={<RevenueForecast />}
       code={<CodeBlock label={SOURCE}>{'<LineChart />'}</CodeBlock>}
     />,
   )
@@ -19,7 +19,7 @@ function renderExample() {
 test('shows the live chart by default and hides the code', () => {
   renderExample()
 
-  expect(screen.getByRole('application', { name: LINE_EXAMPLE_TITLE })).toBeTruthy()
+  expect(screen.getByRole('application', { name: meta.title })).toBeTruthy()
   expect(screen.queryByRole('region', { name: SOURCE })).toBeNull()
   expect(screen.getByRole('button', { name: 'Preview' }).getAttribute('aria-pressed')).toBe('true')
   expect(screen.getByRole('button', { name: 'Code' }).getAttribute('aria-pressed')).toBe('false')
@@ -30,12 +30,12 @@ test('clicking Code shows the source and hides the chart, clicking Preview bring
 
   fireEvent.click(screen.getByRole('button', { name: 'Code' }))
   expect(screen.getByRole('region', { name: SOURCE }).textContent).toBe('<LineChart />')
-  expect(screen.queryByRole('application', { name: LINE_EXAMPLE_TITLE })).toBeNull()
+  expect(screen.queryByRole('application', { name: meta.title })).toBeNull()
   expect(screen.getByRole('button', { name: 'Code' }).getAttribute('aria-pressed')).toBe('true')
   expect(screen.getByRole('button', { name: 'Preview' }).getAttribute('aria-pressed')).toBe('false')
 
   fireEvent.click(screen.getByRole('button', { name: 'Preview' }))
-  expect(screen.getByRole('application', { name: LINE_EXAMPLE_TITLE })).toBeTruthy()
+  expect(screen.getByRole('application', { name: meta.title })).toBeTruthy()
   expect(screen.queryByRole('region', { name: SOURCE })).toBeNull()
 })
 
