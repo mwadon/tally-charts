@@ -1,0 +1,155 @@
+{
+  "versionId": "fixture-bar-chart-v1",
+  "version": 1,
+  "locale": "en",
+  "publishedAt": "2026-10-25T00:00:00.000Z",
+  "codeInjection": {},
+  "layout": {
+    "key": "default",
+    "header": null,
+    "footer": null
+  },
+  "pageId": "fixture-bar-chart",
+  "title": "BarChart",
+  "slug": "bar-chart",
+  "seo": {
+    "metaTitle": "BarChart · tally-charts",
+    "metaDescription": "One value per category or period as bars, with a domain you control, a format preset, keyboard selection and a hidden data table."
+  },
+  "componentTree": [
+    {
+      "id": "n1",
+      "type": "prose",
+      "props": {
+        "markdown": "One value per category or period, drawn as bars. `BarChart` takes your rows, the field for the x axis and the field for the value, and handles the scale, the tooltip, the keyboard and the screen reader."
+      }
+    },
+    {
+      "id": "n2",
+      "type": "heading",
+      "props": {
+        "text": "When to use it",
+        "level": "2",
+        "anchor": "when-to-use"
+      }
+    },
+    {
+      "id": "n3",
+      "type": "prose",
+      "props": {
+        "markdown": "Use `BarChart` to compare a single measure across a few categories (orders by region) or to show it over equally spaced periods (margin by week). Put the measure on `y`, set `format` once for the axis, the tooltip and the data table, and pass `domain` when a zero baseline would flatten the differences. For several series that share an x axis, [`LineChart`](/docs/line-chart) usually reads better; for a ranked list with long labels, use `RankedBars`."
+      }
+    },
+    {
+      "id": "n4",
+      "type": "heading",
+      "props": {
+        "text": "Import",
+        "level": "2",
+        "anchor": "install"
+      }
+    },
+    {
+      "id": "n5",
+      "type": "code-block",
+      "props": {
+        "code": "npm i tally-charts",
+        "lang": "bash"
+      }
+    },
+    {
+      "id": "n6",
+      "type": "code-block",
+      "props": {
+        "code": "import { BarChart } from 'tally-charts'\nimport 'tally-charts/theme.css'",
+        "lang": "tsx",
+        "filename": "app/margin.tsx"
+      }
+    },
+    {
+      "id": "n7",
+      "type": "heading",
+      "props": {
+        "text": "Examples",
+        "level": "2",
+        "anchor": "examples"
+      }
+    },
+    {
+      "id": "n8",
+      "type": "prose",
+      "props": {
+        "markdown": "Props stay serializable here, so the chart renders in a server component. `domain` keeps the bars from starting at zero, and `format=\"percent\"` writes the axis and the tooltip."
+      }
+    },
+    {
+      "id": "n9",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "bar-chart/margin-by-week",
+        "defaultView": "preview"
+      }
+    },
+    {
+      "id": "n10",
+      "type": "prose",
+      "props": {
+        "markdown": "With `onSelect` the chart needs a client component, because the handler is a function. Click a bar, or focus the chart and press `Enter`."
+      }
+    },
+    {
+      "id": "n11",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "bar-chart/selectable",
+        "defaultView": "preview"
+      }
+    },
+    {
+      "id": "n12",
+      "type": "heading",
+      "props": {
+        "text": "Props",
+        "level": "2",
+        "anchor": "props"
+      }
+    },
+    {
+      "id": "n13",
+      "type": "props-table",
+      "props": {
+        "symbol": "BarChart"
+      }
+    },
+    {
+      "id": "n14",
+      "type": "heading",
+      "props": {
+        "text": "Keyboard and screen readers",
+        "level": "2",
+        "anchor": "keyboard"
+      }
+    },
+    {
+      "id": "n15",
+      "type": "prose",
+      "props": {
+        "markdown": "The chart is a single tab stop. Tabbing in shows the first bar with its tooltip and announces it. Arrow keys move between bars, `Home` and `End` jump to the first and last, `Enter` or `Space` selects the active bar when the chart has `onSelect`, and `Esc` clears the active bar. `Esc` is only consumed when a bar is active, so an enclosing dialog still closes."
+      }
+    },
+    {
+      "id": "n16",
+      "type": "prose",
+      "props": {
+        "markdown": "Screen readers get the chart title and description, then an announcement for each bar the keyboard moves to, in the form “1 of 12, Jul 6, 37.5%”: the position, the label and the formatted value. A visually hidden data table with every value follows the chart, so browse mode can read it row by row."
+      }
+    },
+    {
+      "id": "n17",
+      "type": "prose",
+      "props": {
+        "markdown": "The full model is in the [accessibility guide](https://github.com/mwadon/tally-charts/blob/main/docs/a11y.md)."
+      }
+    }
+  ]
+}
