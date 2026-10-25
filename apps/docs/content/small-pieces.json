@@ -83,7 +83,8 @@
       "type": "chart-example",
       "props": {
         "exampleId": "small-pieces/meters",
-        "defaultView": "preview"
+        "defaultView": "preview",
+        "height": 370
       }
     },
     {
@@ -114,7 +115,8 @@
       "type": "chart-example",
       "props": {
         "exampleId": "small-pieces/legend-and-tooltip",
-        "defaultView": "preview"
+        "defaultView": "preview",
+        "height": 313
       }
     },
     {

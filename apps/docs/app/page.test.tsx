@@ -96,6 +96,22 @@ test('the gallery has a tile per reference dashboard, captioned with the example
   })
 })
 
+test('each gallery tile reserves the height of its own dashboard, narrow and wide', async () => {
+  const body = await renderHome()
+
+  const placeholders = [
+    ...body.querySelectorAll<HTMLElement>('li.gallery-tile [data-lazy-placeholder]'),
+  ]
+  expect(placeholders).toHaveLength(9)
+  const narrow = placeholders.map((el) => el.style.minHeight)
+  const wide = placeholders.map((el) => el.style.getPropertyValue('--lazy-min-height-wide'))
+  // Dashboards are 400 to 2200 px tall, so a single height for every tile would be wrong.
+  expect(new Set(narrow).size).toBeGreaterThan(5)
+  expect(narrow).not.toContain('1600px')
+  for (const value of [...narrow, ...wide]) expect(value).toMatch(/^\d+px$/)
+  for (const el of placeholders) expect(el.hasAttribute('data-lazy-wide')).toBe(true)
+})
+
 test('the visual language cards have a mini chart each', async () => {
   const body = await renderHome()
 

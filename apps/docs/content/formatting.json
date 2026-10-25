@@ -92,7 +92,8 @@
       "type": "chart-example",
       "props": {
         "exampleId": "formatting/formatters",
-        "defaultView": "preview"
+        "defaultView": "preview",
+        "height": 474
       }
     },
     {
