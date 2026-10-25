@@ -47,9 +47,9 @@ describe('<ZoneMeter>', () => {
     const { container } = render(<ZoneMeter label="LCP" value={1} zones={lcp} max={6} />)
     const zones = [...container.querySelectorAll('[data-ch-part="zone-meter-zone"]')]
     expect(zones.map((z) => z.getAttribute('data-ch-tone'))).toEqual(['gain', 'warn', 'loss'])
-    expect(zones[0]).toHaveStyle({ left: '0%', width: '41.6667%' })
-    expect(zones[1]).toHaveStyle({ left: '41.6667%', width: '25%' })
-    expect(zones[2]).toHaveStyle({ left: '66.6667%', width: '33.3333%' })
+    expect(zones[0]).toHaveStyle({ width: '41.6667%' })
+    expect(zones[1]).toHaveStyle({ width: '25%' })
+    expect(zones[2]).toHaveStyle({ width: '33.3333%' })
     expect(container.querySelector('[data-ch-part="zone-meter-marker"]')).toHaveStyle({
       left: '16.6667%',
     })
@@ -60,7 +60,7 @@ describe('<ZoneMeter>', () => {
     const { container } = render(<ZoneMeter label="LCP" value={1} zones={lcp} min={5} max={6} />)
     const zones = container.querySelectorAll('[data-ch-part="zone-meter-zone"]')
     expect(zones).toHaveLength(1)
-    expect(zones[0]).toHaveStyle({ left: '0%', width: '100%' })
+    expect(zones[0]).toHaveStyle({ width: '100%' })
   })
 
   it('pins out-of-range values to the end and says so', () => {
@@ -78,11 +78,42 @@ describe('<ZoneMeter>', () => {
   })
 
   it('draws no marker for a missing value', () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
     const { container } = render(<ZoneMeter label="LCP" value={Number.NaN} zones={lcp} max={6} />)
     const meter = screen.getByRole('meter')
     expect(meter).toHaveAttribute('aria-valuenow', '0')
     expect(meter).toHaveAttribute('aria-valuetext', 'No data')
     expect(container.querySelector('[data-ch-part="zone-meter-marker"]')).toBeNull()
+  })
+
+  it.each([Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY, Number.NaN])(
+    'shows No data for %s, with no marker and one warning',
+    (v) => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+      const { container } = render(<ZoneMeter label={`M ${v}`} value={v} zones={lcp} max={6} />)
+      expect(screen.getByRole('meter')).toHaveAttribute('aria-valuetext', 'No data')
+      expect(container.querySelector('[data-ch-part="zone-meter-marker"]')).toBeNull()
+      expect(warn).toHaveBeenCalledTimes(1)
+      expect(String(warn.mock.calls[0]?.[0])).toContain('is not finite')
+    },
+  )
+
+  it('does not warn about a missing (null) value', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    render(<ZoneMeter label="Null" value={null as unknown as number} zones={lcp} max={6} />)
+    expect(screen.getByRole('meter')).toHaveAttribute('aria-valuetext', 'No data')
+    expect(warn).not.toHaveBeenCalled()
+  })
+
+  it('anchors the first label at its left edge and the last at its right edge', () => {
+    const { container } = render(<ZoneMeter label="LCP" value={1} zones={lcp} max={6} />)
+    const labels = container.querySelectorAll<HTMLElement>('[data-ch-part="zone-meter-label"]')
+    const first = labels[0] as HTMLElement
+    const last = labels[labels.length - 1] as HTMLElement
+    expect(first.style.left).toBe('0%')
+    expect(first.style.transform).toBe('translateX(-0%)')
+    expect(last.style.left).toBe('100%')
+    expect(last.style.transform).toBe('translateX(-100%)')
   })
 
   it('labels min, every break inside the range and max, with overrides', () => {

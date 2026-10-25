@@ -53,6 +53,9 @@ const phrases = [
   'has a value that is not a date',
   'runwayForecast needs',
   'must be a function on a band or point scale',
+  'must be greater than min',
+  'which is not finite; it counts as 0',
+  'is not finite; it shows No data',
 ]
 const leaks = phrases.filter((phrase) => code.includes(phrase))
 if (leaks.length > 0) {

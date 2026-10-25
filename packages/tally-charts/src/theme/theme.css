@@ -886,6 +886,12 @@
   min-width: 3px;
 }
 
+[data-ch-part="share-empty"] {
+  margin: 0;
+  color: var(--ch-ink-muted);
+  font-size: 15px;
+}
+
 [data-ch-part="share-list"] {
   display: grid;
   grid-template-columns: 100%;
@@ -932,19 +938,22 @@
 
 [data-ch-part="zone-meter-track"] {
   position: relative;
+  display: flex;
   height: 8px;
 }
 
+/* Zones are flex items sized by their inline width in percent; a tiny zone keeps 2px of fill and
+   the others give up the space, so the zones always add up to the track. */
 [data-ch-part="zone-meter-zone"] {
-  position: absolute;
-  top: 0;
-  bottom: 0;
+  flex: 0 1 auto;
+  min-width: 2px;
   box-sizing: border-box;
   background: var(--_ch-swatch-color);
 }
 
 /* The gap is a surface-colored edge, so zone edges stay exactly on their breaks. */
 [data-ch-part="zone-meter-zone"] + [data-ch-part="zone-meter-zone"] {
+  min-width: calc(2px + var(--ch-share-gap));
   border-left: var(--ch-share-gap) solid var(--ch-surface);
 }
 

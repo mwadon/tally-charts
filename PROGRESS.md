@@ -291,3 +291,17 @@ Domyślna podpowiedź „Press Enter to select.” pojawia się tylko wtedy, gdy
 - Własny keyboardHint jest używany dosłownie, niezależnie od selectable (istniejący test przechodzi)
 - Istnieje plik .changeset/*.md z 'tally-charts': patch opisujący zmianę
 - pnpm test, pnpm lint, pnpm typecheck, pnpm build, api:check, pnpm size i check:dev-strip przechodzą; api:check bez zmian w pliku API
+
+## T09.1 ZoneMeter i ShareBar: No data dla nieskończonych wartości, min. 2 px, zakotwiczenie etykiet
+**Decyzje:**
+- D1. ShareBar: `shareLayout` zwraca `empty` = są segmenty i żaden nie ma poprawnej wartości (skończonej i ≥ 0). Wtedy 0 segmentów w pasku, zamiast listy `<p data-ch-part="share-empty">No data</p>`, a przy `legend={false}` nazwa `label: No data`. Segmenty z samymi zerami nadal są listowane, a pusta tablica daje nazwę równą `label` (testy bez zmian).
+- D2. Nowe ostrzeżenie `ShareBar segment "x" has a value of NaN, which is not finite; it counts as 0.` dla NaN i ±Infinity (klucz `share-finite:label:value`). Ujemne i nieliczbowe wartości zostają przy starym ostrzeżeniu. Każdy przypadek daje jedno ostrzeżenie. Istniejący test z NaN w `share.test.ts` zmienił oczekiwany tekst na nowy.
+- D3. ZoneMeter: ostrzeżenie `value … is not finite; it shows No data.` tylko dla liczb (`typeof value === 'number'`); `null` i `undefined` to „brak danych” bez ostrzeżenia. Obie frazy są w `check-dev-strip.mjs`.
+- D4. ZoneMeter: track jest `display:flex`, strefy to elementy `flex: 0 1 auto` z inline `width` w % (bez `left`), `min-width: 2px` (kolejne: `calc(2px + var(--ch-share-gap))`, bo border-box ma 2 px przerwy). Mała strefa trzyma ≥ 2 px wypełnienia, a reszta oddaje miejsce, więc suma = szerokość tracku. Zakładam strefy ciągłe (bins z `thresholds()` pokrywają −∞..∞); luki w ręcznych bins nie są wspierane. Marker zostaje absolutny.
+- D5. Etykiety ZoneMeter bez zmian w kodzie (`left: p%` i `translateX(-p%)` już zakotwiczały skrajne); dodany test unit.
+- D6. ShareBar `min-width: 3px` bez zmian (spełnia ≥ 2 px), przypięte e2e.
+- D7. Story `primitives-small-pieces--edge-cases` (320 px) jest poza STORIES, WIDE_STORIES i THEMELESS, więc nie ma baseline'u PNG. `e2e/small-pieces.spec.ts` mierzy szerokości i sam uruchamia axe.
+- D8. Changeset `patch`: `.changeset/small-pieces-edge-cases.md`. Bez zmian publicznego API (`shareLayout` nie jest eksportowany).
+- D9. Blok `if (DEV) { … else for … }` w ZoneMeter przeciekał do buildu produkcyjnego (esbuild zostawiał `if(!1)…`, a istniejących fraz ZoneMeter nie było w `check-dev-strip.mjs`). Rozbiłem go na osobne `if (DEV && …)` i dopisałem frazę 'must be greater than min'. `check:dev-strip` daje 34/34.
+- D10. `share-empty` dopisane do listy części w `surface.test.ts` (publiczna powierzchnia CSS).
+**Weryfikacja:** format, lint (4 ostrzeżenia, 1 info jak wcześniej), typecheck, test (1074), build, api:check (bez zmian w `api/`), size (Small UI pieces 4.04 KB z 5 KB), check:dev-strip i `pnpm test:e2e` (307, bez `--update-snapshots`, port 6007 wolny) przechodzą; brak nowych ani zmienionych PNG.
