@@ -2542,3 +2542,21 @@ Q1-03 potwierdzony: <maintainer>, RRRR-MM-DD, URL: <DOCS_URL>
 ```
 
 **Reguła:** Q1-03.2 dostaje ✔ dopiero po wpisaniu tej linii przez maintainera. Agent jej nie wpisuje i nie dodaje nagłówka `## ✔ Q1-03.2`. T36 może być zamykany tym samym deployem i tym samym przebiegiem §11 krok 7.
+
+## ✔ Q1-03.2 [MAINTAINER] Projekt Vercel pod DOCS_URL i potwierdzenie adresu (2026-10-25)
+Gate [MAINTAINER] pozostaje otwarty, więc nie spełniłem kryteriów wymagających człowieka (projekt Vercel, SITE_URL, linia potwierdzenia). Zmieniłem tylko dwa pliki. W PROGRESS.md dodałem na końcu sekcję `## ⛔ Q1-03.2 [MAINTAINER] Projekt Vercel pod DOCS_URL i potwierdzenie adresu — ZABLOKOWANY` ze zdaniem „Gate OTWARTY, potwierdzenie niezapisane”. Zawiera ona pomiar z 2026-10-25: `/`, `/docs/migration-1-0` i `/docs/stability` pod https://tally-charts-docs.vercel.app dają 404, a `x-vercel-error` to `DEPLOYMENT_NOT_FOUND`. Brak też `vercel` w PATH oraz zmiennych `VERCEL*` i `CMS_*`. Sekcja ma checklistę maintainera: projekt według §11 kroki 1–2, `SITE_URL` w Production i Preview z redeployem, ścieżkę alternatywną według §11 kroku 6, komendy curl do weryfikacji (wordmark, brak „Tally Response Viewer”, 200 na obu trasach), termin przed mergem Version PR oraz format linii `Q1-03 potwierdzony: <maintainer>, RRRR-MM-DD, URL: <DOCS_URL>` wyłącznie z placeholderami. Dodałem regułę, że ✔ dopiero po wpisie maintainera, i notę, że T36 może być zamykany tym samym deployem. W docs/releasing.md §11 krok 7 dopisałem zdanie, że ten krok zamyka też linię `Q1-03 potwierdzony: …`. Bramki: `pnpm lint` i `pnpm test:scripts` kończą się kodem 0. `git diff --stat -- packages apps .changeset scripts` jest pusty. `grep -nE '^Q1-03 potwierdzony: [^<]' PROGRESS.md` nic nie zwraca. Nagłówka `## ✔ Q1-03.2` nie ma. DOCS_URL bez zmian.
+**Decyzje i pułapki:**
+- Kryteria bramek [MAINTAINER] wymagają działania człowieka; agent dokumentuje stan zastany i checklistę, nie zapisuje potwierdzenia ani nagłówka ✔.
+- Format linii potwierdzenia w PROGRESS.md trzeba podawać w bloku kodu z placeholderami (`<maintainer>`), żeby `grep -nE '^Q1-03 potwierdzony: [^<]'` nic nie zwracał.
+**Otwarte kwestie:**
+- Maintainer musi założyć projekt Vercel `tally-charts-docs` (docs/releasing.md §11 kroki 1–2), ustawić SITE_URL=https://tally-charts-docs.vercel.app w Production i Preview, zrobić redeploy i zweryfikować curlem / oraz /docs/migration-1-0 i /docs/stability (200) przed mergem Version PR 1.0.0-rc.0.
+- Maintainer wpisuje w PROGRESS.md linię `Q1-03 potwierdzony: <maintainer>, RRRR-MM-DD, URL: <DOCS_URL>`; dopiero wtedy Q1-03.2 może dostać ✔ (T36 można zamknąć tym samym deployem).
+- Task Q1-03.2 należy przekazać maintainerowi; ponowna próba agenta niczego nie zmieni.
+- PROGRESS.md: W punkcie 3 checklisty (ścieżka alternatywna) brakuje podpunktu z §11 kroku 6 „update CLAUDE.md and PROGRESS.md where the address is mentioned”. Maintainer, który zmieni domenę według tej checklisty, może zostawić stary adres w CLAUDE.md.
+**Kryteria:**
+- PROGRESS.md ma sekcję `## ⛔ Q1-03.2 [MAINTAINER] … — ZABLOKOWANY` ze zdaniem „Gate OTWARTY, potwierdzenie niezapisane” i faktycznym wynikiem curl dla /, /docs/migration-1-0 i /docs/stability pod DOCS_URL (obecnie 404, x-vercel-error: DEPLOYMENT_NOT_FOUND)
+- Sekcja zawiera checklistę maintainera: projekt `tally-charts-docs` według docs/releasing.md §11 kroki 1–2; SITE_URL = DOCS_URL w Production i Preview z redeployem; ścieżkę alternatywną według §11 kroku 6 (zmiana DOCS_URL, changeset patch, `pnpm test:scripts` exit 0); komendy weryfikacji curl (wordmark tally-charts, brak „Tally Response Viewer”, 200 na /docs/migration-1-0 i /docs/stability) przed mergem Version PR
+- PROGRESS.md podaje format `Q1-03 potwierdzony: <maintainer>, RRRR-MM-DD, URL: <DOCS_URL>` wyłącznie z placeholderami. `grep -nE '^Q1-03 potwierdzony: [^<]' PROGRESS.md` nic nie zwraca
+- Nie ma nagłówka `## ✔ Q1-03.2`
+- `git diff --stat -- packages apps .changeset scripts` jest pusty, a DOCS_URL bez zmian
+- `pnpm lint` i `pnpm test:scripts` kończą się kodem 0
