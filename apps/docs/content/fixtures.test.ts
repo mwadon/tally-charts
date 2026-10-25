@@ -2,6 +2,7 @@
 import { readdirSync } from 'node:fs'
 import path from 'node:path'
 import { expect, test } from 'vitest'
+import { type HeadingProps, headingId } from '../blocks/heading'
 import { parseBlockProps } from '../blocks/registry'
 import { createFixtureSource } from '../lib/content/fixtures'
 import { loadNavigationConfig } from '../lib/content/navigation-config'
@@ -45,6 +46,17 @@ test('the ids of the nodes of a page are unique', async () => {
   }
 })
 
+test('the heading anchors of a page are unique', async () => {
+  for (const slug of slugs) {
+    const page = await source.getPage(slug)
+    const ids = [...walk(page?.componentTree ?? [])]
+      .filter((n) => n.type === 'heading')
+      .map((n) => headingId(n.props as HeadingProps))
+    const duplicates = ids.filter((id, i) => ids.indexOf(id) !== i)
+    expect(duplicates, slug).toEqual([])
+  }
+})
+
 test('navigation.json is valid and its slugs are unique', async () => {
   const { groups } = await loadNavigationConfig(dir)
   const all = groups.flatMap((g) => g.items.map((i) => i.slug))
@@ -58,8 +70,14 @@ test('navigation.json is valid and its slugs are unique', async () => {
   expect(new Set(all).size).toBe(all.length)
 })
 
-test('getting-started, line-chart and composition are the only available pages in the navigation', async () => {
+test('getting-started, line-chart, composition, small-pieces and hooks-and-providers are the only available pages in the navigation', async () => {
   const { groups } = await source.getNavigation()
   const available = groups.flatMap((g) => g.items).filter((i) => i.available)
-  expect(available.map((i) => i.slug)).toEqual(['getting-started', 'line-chart', 'composition'])
+  expect(available.map((i) => i.slug)).toEqual([
+    'getting-started',
+    'line-chart',
+    'composition',
+    'small-pieces',
+    'hooks-and-providers',
+  ])
 })
