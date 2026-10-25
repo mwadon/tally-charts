@@ -2005,3 +2005,11 @@ Dodałem spec `apps/docs/e2e/line-chart-visual.spec.ts` i 4 baseline'y `line-cha
 - `git diff --stat` nie zawiera żadnego apps/docs/e2e/__screenshots__/*/home-*.png; `git diff -- packages` jest pusty
 - CLAUDE.md w konwencjach baseline'ów docs wymienia line-chart-visual.spec.ts / line-chart-1280-{light,dark}; PROGRESS.md ma sekcję T33.2
 - `pnpm lint` i `pnpm --filter docs typecheck` kończą się kodem 0
+
+## ✔ T33.3 Konfiguracja hostingu Vercel: vercel.json i docs/releasing.md §11 (2026-10-25)
+Dodano `apps/docs/vercel.json` (framework `nextjs`, `pnpm install --frozen-lockfile`, build `pnpm --filter tally-charts build && pnpm --filter docs build`; bez `env`, bez sekretów), sekcję `## 11. Docs on Vercel [MAINTAINER]` w `docs/releasing.md` (import repo, Root Directory, Node 24.x, tabela zmiennych Production/Preview, preview deploys, webhook `/api/revalidate` z weryfikacją curl i ≤ 60 s, podgląd `/preview?slug=`, weryfikacja domeny) oraz `apps/docs/vercel-config.test.ts` (parsowanie vercel.json, kolejność buildu, brak `env`/`build`, zmienne z tabeli §11 w `.env.example`, zakaz `CMS_ADMIN_API_KEY` na Vercel). Kod biblioteki i aplikacji bez zmian, bez changesetu.
+**Decyzje:**
+- D1: Root Directory to `apps/docs`, a `vercel.json` leży w `apps/docs`, bo Vercel czyta go z Root Directory. „Include files outside the root directory” jest potrzebne, bo build używa workspace'u (`packages/tally-charts`, lockfile) i `outputFileTracingRoot` w `next.config.ts` wskazuje root monorepo.
+- D2: `SITE_URL` w Preview = URL produkcyjny. Preview i tak ma noindex (brak `APP_ENV=production`), a canonical/OG nie wskazują wtedy na `localhost:3100`. Bez obsługi `VERCEL_URL`, żeby nie zmieniać kodu.
+- D3: osobne wartości `REVALIDATE_SECRET` i `PREVIEW_SECRET` dla Production i Preview.
+- D4: domena `https://tally-charts.vercel.app` z 3 changesetów (`ranked-bars-solid-fill`, `required-chart-name`, `line-breaks-on-invalid-date`) nadal wymaga weryfikacji przez maintainera; §11 krok 6 opisuje poprawkę, gdy jest inna.
