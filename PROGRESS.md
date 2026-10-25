@@ -2511,3 +2511,34 @@ Adres docs jest teraz w jednej stałej `DOCS_URL = 'https://tally-charts-docs.ve
 - `pnpm lint`, `pnpm check:workflows`, `pnpm test:scripts`, `pnpm --filter docs test` oraz `pnpm build && pnpm --filter tally-charts api:check` kończą się kodem 0
 - docs/releasing.md §11 krok 6 i CLAUDE.md opisują stałą DOCS_URL, projekt Vercel `tally-charts-docs` i 4 changesety (już nie „three”)
 - PROGRESS.md ma sekcję Q1-03.1 z decyzją o URL-u i faktycznym wynikiem curl (stary host: tytuł Tally Response Viewer; nowy: DEPLOYMENT_NOT_FOUND przed założeniem projektu)
+
+## ⛔ Q1-03.2 [MAINTAINER] Projekt Vercel pod DOCS_URL i potwierdzenie adresu — ZABLOKOWANY
+Gate OTWARTY, potwierdzenie niezapisane. Agent nie ma `vercel`, tokenu ani dostępu do konta Vercel, więc nie może założyć projektu ani ustawić `SITE_URL`. Nie zmieniłem `DOCS_URL`, bo wybór innej domeny należy do maintainera. Ponowna próba agenta niczego nie zmieni; orkiestrator powinien przekazać task maintainerowi.
+
+**Stan zastany (2026-10-25, tylko odczyt)**
+- `DOCS_URL = 'https://tally-charts-docs.vercel.app'` (`scripts/release/docs-url.mjs`, Q1-03.1).
+- `curl -s -o /dev/null -w "%{http_code}"` pod DOCS_URL: `/` → 404, `/docs/migration-1-0` → 404, `/docs/stability` → 404.
+- `curl -sI https://tally-charts-docs.vercel.app/ | grep -i x-vercel-error` → `x-vercel-error: DEPLOYMENT_NOT_FOUND`, czyli projekt Vercel nie istnieje.
+- `which vercel` → brak; `env | grep -iE 'vercel|CMS_'` → brak zmiennych `VERCEL*` i `CMS_*`.
+- Fiksturki `apps/docs/content/migration-1-0.json` i `stability.json` istnieją, więc po deployu obie trasy powinny dać 200.
+- Linii `T35/T36 potwierdzony:` nadal nie ma, więc T35 i T36 są ⛔.
+
+**Checklista maintainera (wszystko przed mergem Version PR 1.0.0-rc.0)**
+- [ ] 1. Projekt Vercel `tally-charts-docs` według `docs/releasing.md` §11 kroki 1–2: Root Directory `apps/docs` z włączonym „Include files outside the root directory”, Node.js `24.x`, `ENABLE_EXPERIMENTAL_COREPACK=1` w Production i Preview (build log pokazuje pnpm 12.4.2) oraz zmienne z tabeli kroku 2.
+- [ ] 2. `SITE_URL=https://tally-charts-docs.vercel.app` w Production i Preview, potem redeploy.
+- [ ] 3. Alternatywnie, gdy wybierasz inną nazwę lub domenę (§11 krok 6): zmień `DOCS_URL` w `scripts/release/docs-url.mjs`, `homepage` w `packages/tally-charts/package.json`, linki w README paczki, `docs/stability.md` i 4 changesety migracji (`ranked-bars-solid-fill`, `required-chart-name`, `line-breaks-on-invalid-date`, `stability-docs`); dodaj changeset `patch`; uruchamiaj `pnpm test:scripts` aż do exit 0; ustaw `SITE_URL` = nowy `DOCS_URL` w Production i Preview i zrób redeploy.
+- [ ] 4. Weryfikacja (`URL` = `DOCS_URL`):
+  - `curl -s $URL/ | grep -o 'tally-charts' | head -1` daje trafienie,
+  - `curl -s $URL/ | grep -c 'Tally Response Viewer'` daje `0`,
+  - `curl -s -o /dev/null -w '%{http_code}' $URL/docs/migration-1-0` daje `200`,
+  - `curl -s -o /dev/null -w '%{http_code}' $URL/docs/stability` daje `200`.
+- [ ] 5. Kroki 1–4 zrobione przed mergem Version PR 1.0.0-rc.0, żeby linki na npm i w CHANGELOG prowadziły do działającej dokumentacji.
+- [ ] 6. Wpis linii zamykającej (format poniżej) w PROGRESS.md.
+
+**Format linii zamykającej** (wpisuje maintainer, w osobnej linii bez wcięcia):
+
+```
+Q1-03 potwierdzony: <maintainer>, RRRR-MM-DD, URL: <DOCS_URL>
+```
+
+**Reguła:** Q1-03.2 dostaje ✔ dopiero po wpisaniu tej linii przez maintainera. Agent jej nie wpisuje i nie dodaje nagłówka `## ✔ Q1-03.2`. T36 może być zamykany tym samym deployem i tym samym przebiegiem §11 krok 7.

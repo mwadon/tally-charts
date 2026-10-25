@@ -334,3 +334,6 @@ command); it holds no secret and no value of any variable.
 7. **Record the result**: write the production URL and the URL of an example preview deploy (a
    test PR) in `PROGRESS.md`, as the closing line of T36 (format in its section), and close point 7
    of the T35 checklist (the webhook) in `PROGRESS.md` with the same measured time.
+   The same step closes the `Q1-03 potwierdzony: …` line (format in the Q1-03.2 section of
+   `PROGRESS.md`): check the home page, `/docs/migration-1-0` and `/docs/stability` with `curl`
+   (200, the tally-charts wordmark, no "Tally Response Viewer") before the Version PR is merged.
