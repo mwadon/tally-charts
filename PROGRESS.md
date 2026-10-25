@@ -491,3 +491,23 @@ Dodałem story `primitives-small-pieces--nested-dark` (jasna strona, ciemna kart
   - [ ] dataTable unlisted columns
   - [ ] liczniki runów contrast-gate
   - [ ] ~20 baseline'ów sprawdzonych tylko przez implementera
+
+## ✔ T13 E2E widoczności małych znaczników w zagnieżdżonym dark theme i backlog G (F19) (2026-10-25)
+Dodałem story `primitives-small-pieces--nested-dark` (jasna strona, ciemna karta z ShareBar i ZoneMeter, poza STORIES, bez PNG). Dodałem też `e2e/nested-theme.spec.ts` z 6 testami: sanity, widoczność markera i segmentów z computed style (bbox ≥2 px, display, visibility, opacity, alfa, kontrast ≥3:1 wobec karty), siatka bezpieczeństwa przez `addStyleTag` (bug 7de9111, segment w kolorze karty, ukryty, przezroczysty lub zwężony marker) oraz axe. `contrastOf` przeniosłem do `e2e/stories.ts` i wyeksportowałem. `stories.spec.ts` ją importuje, bez zmiany zachowania. Mutacje w źródle theme.css dały czerwony test widoczności: `--ch-zone-marker: var(--ch-ink)` na `:root` (kontrast 1.01:1) i `display:none` na markerze. Po revercie `git diff packages/` jest pusty, a test zielony. Wyniki i backlog G (1.0.x) są w PROGRESS.md. Przechodzą lint (tylko wcześniejsze ostrzeżenia CSS), typecheck, build i `pnpm test:e2e` (314/314), a `git status` nie pokazuje nowych PNG. Brak zmian w `packages/tally-charts`, więc bez changesetu.
+**Decyzje i pułapki:**
+- macOS sed odrzuca `a\n` w jednolinijkowym wyrażeniu, więc `sed -i` z wstawianiem linii cicho nie zmienia pliku, a test przechodzi na niezmutowanym kodzie. Mutacje robić Edit toolem i sprawdzać `git diff packages/`.
+- Playwright webServer (`pnpm run build && http-server`) przebudowuje Storybook przy każdym uruchomieniu, więc po zmianie tally-charts wystarczy `pnpm build` i pusty port 6007, bez ręcznego budowania Storybooka.
+- Pod zagnieżdżonym data-ch-theme token rozwiązany na :root (np. --ch-zone-marker: var(--ch-ink)) dziedziczy się już jako wartość z motywu strony. Tak powstała regresja z 7de9111.
+- pnpm format potrafi poprawić format po edycji ręcznej. Biome zgłosił format w SmallPieces.stories.tsx, więc przed lintem warto uruchomić format.
+**Otwarte kwestie:**
+- Backlog G (1.0.x) jest w PROGRESS.md. Odhaczyłem tylko Escape i pointerLeave w RunwayChart, pokryte w T11. Pozostałe pozycje są otwarte, w tym nieobsłużone klawisze Runway (brak testu).
+- Testy siatki bezpieczeństwa asertują tylko sprawdzany problem (toContainEqual, filtr share-segment), bo mutacja w źródle dokłada problem markera. Bez tego testy siatki padałyby razem z testem widoczności.
+- apps/storybook/e2e/nested-theme.spec.ts: Kontrast liczony jest wobec computed backgroundColor karty. Gdyby karta straciła tło (rgba(0,0,0,0)), contrastOf ignoruje alfę i potraktuje je jak czarne. Sanity test (luminance <0.1) też przejdzie, więc check zmierzy kontrast wobec czerni, a realnie widoczna będzie jasna strona.
+**Kryteria:**
+- Istnieje story `primitives-small-pieces--nested-dark`: jasna strona (`.sb-canvas` z `data-ch-theme="light"`), a w niej karta z `data-ch-theme="dark"` z ZoneMeter i ShareBar. Story nie ma jej w STORIES i nie powstaje dla niej żaden plik PNG.
+- `apps/storybook/e2e/nested-theme.spec.ts` sprawdza computed style markera ZoneMeter i każdego segmentu ShareBar w tej karcie: bbox ≥2 px, element widoczny, opacity > 0, alfa > 0 i kontrast koloru wobec tła karty ≥ 3:1. Test przechodzi na obecnym kodzie.
+- W tym samym pliku test z `page.addStyleTag(':root { --ch-zone-marker: var(--ch-ink) }')`, czyli bug z 7de9111, potwierdza, że check wykrywa niewidoczny marker (kontrast < 3). Analogiczny test robi to dla segmentu ShareBar.
+- Ręczna mutacja w `packages/tally-charts/src/theme/theme.css` (przywrócone `--ch-zone-marker: var(--ch-ink)` na `:root`) daje czerwony test widoczności. Po revercie test jest zielony. Komenda, komunikat błędu i wynik po revercie są zapisane w PROGRESS.md, a `git diff packages/` jest pusty.
+- PROGRESS.md ma sekcję „Backlog 1.0.x” z checklistą wszystkich pozostałych pozycji kubełka G z `docs/superpowers/specs/2026-10-25-tally-charts-1.0-candidates.md`. Pozycji e2e computed-style tam nie ma, bo zrobił ją T13.
+- `contrastOf` jest wyeksportowana z `e2e/stories.ts` i używana w `stories.spec.ts` bez zmiany zachowania.
+- `pnpm lint`, `pnpm typecheck` i `pnpm test:e2e` (po `pnpm build`, przy wolnym porcie 6007) przechodzą. Po e2e `git status` nie pokazuje nowych baseline'ów PNG.
