@@ -1,0 +1,162 @@
+{
+  "versionId": "fixture-waffle-columns-v1",
+  "version": 1,
+  "locale": "en",
+  "publishedAt": "2026-10-25T00:00:00.000Z",
+  "codeInjection": {},
+  "layout": {
+    "key": "default",
+    "header": null,
+    "footer": null
+  },
+  "pageId": "fixture-waffle-columns",
+  "title": "WaffleColumns",
+  "slug": "waffle-columns",
+  "seo": {
+    "metaTitle": "WaffleColumns · tally-charts",
+    "metaDescription": "A column of dots for each period, where one dot is a fixed unit. The largest column is solid and carries a pill, and periods can be grouped."
+  },
+  "componentTree": [
+    {
+      "id": "n1",
+      "type": "prose",
+      "props": {
+        "markdown": "A total for each period, counted in dots. Every period is a column, and each dot in it stands for the same unit, so the height of a column is how many units the period holds."
+      }
+    },
+    {
+      "id": "n2",
+      "type": "heading",
+      "props": {
+        "text": "When to use it",
+        "level": "2",
+        "anchor": "when-to-use"
+      }
+    },
+    {
+      "id": "n3",
+      "type": "prose",
+      "props": {
+        "markdown": "Use `WaffleColumns` for a sum per period where the size of each period should read as a count of things: signups per week, claims per month, dollars lost per week. `unit` sets the value of a dot and `wide` the dots across a column. The largest column is solid and the others soft (`peak={false}` makes them all solid), and a pill above it names the peak (`callout`). `group` labels runs of periods under their columns, such as the month, and `groupTone` picks a tone for each group.\n\nIf you want to see the individual items rather than a total, use [DotHistogram](/docs/dot-histogram): one dot per item, stacked by value. To compare several measures of the same items, use [StripPlot](/docs/strip-plot): one row of dots per measure."
+      }
+    },
+    {
+      "id": "n4",
+      "type": "heading",
+      "props": {
+        "text": "Import",
+        "level": "2",
+        "anchor": "install"
+      }
+    },
+    {
+      "id": "n5",
+      "type": "code-block",
+      "props": {
+        "code": "npm i tally-charts",
+        "lang": "bash"
+      }
+    },
+    {
+      "id": "n6",
+      "type": "code-block",
+      "props": {
+        "code": "import { WaffleColumns } from 'tally-charts'\nimport 'tally-charts/theme.css'",
+        "lang": "tsx",
+        "filename": "app/signups.tsx"
+      }
+    },
+    {
+      "id": "n7",
+      "type": "heading",
+      "props": {
+        "text": "Examples",
+        "level": "2",
+        "anchor": "examples"
+      }
+    },
+    {
+      "id": "n8",
+      "type": "prose",
+      "props": {
+        "markdown": "Weeks in two months. `group` names the month under its columns and the default `callout` pins “Peak” above the biggest week. Every prop is serializable."
+      }
+    },
+    {
+      "id": "n9",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "waffle-columns/weekly-signups",
+        "defaultView": "preview"
+      }
+    },
+    {
+      "id": "n10",
+      "type": "prose",
+      "props": {
+        "markdown": "`groupTone` is a function that picks the tone of each group, here the last quarter, and `callout` returns your own pill segments. Functions in the props make this a client component."
+      }
+    },
+    {
+      "id": "n11",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "waffle-columns/warranty-claims",
+        "defaultView": "preview"
+      }
+    },
+    {
+      "id": "n12",
+      "type": "heading",
+      "props": {
+        "text": "Props",
+        "level": "2",
+        "anchor": "props"
+      }
+    },
+    {
+      "id": "n13",
+      "type": "props-table",
+      "props": {
+        "symbol": "WaffleColumns"
+      }
+    },
+    {
+      "id": "n14",
+      "type": "heading",
+      "props": {
+        "text": "Keyboard and screen readers",
+        "level": "2",
+        "anchor": "keyboard"
+      }
+    },
+    {
+      "id": "n15",
+      "type": "prose",
+      "props": {
+        "markdown": "`WaffleColumns` is built on `Chart`, so it follows the same keyboard model as the other charts: it is a single tab stop, and tabbing in shows the first column with its tooltip and announces it. The points are the periods, in one dimension: `←` and `→` move to the previous or next period. `Home` and `End` jump to the first and last point, `Enter` or `Space` selects the active point when the chart has `onSelect`, and `Esc` clears the active point. `Esc` is only consumed when a point is active, so an enclosing dialog still closes. The widget’s description ends with a keyboard hint (“Use arrow keys to move between points, Home and End for first and last, Escape to clear.”, plus “Press Enter to select.” with `onSelect`); `keyboardHint` replaces it, for example to translate it, and `keyboardHint=\"\"` turns it off."
+      }
+    },
+    {
+      "id": "n16",
+      "type": "prose",
+      "props": {
+        "markdown": "Screen readers get the chart title and description, then an announcement for each period the keyboard moves to, in the form “1 of 8, Aug 3, $9.8K”: its position, the period and its value. A visually hidden data table follows the chart with the columns Period and Value (named after the `x` and `y` fields when they are strings) and a Group column when `group` is set. `dataTable` renames the caption and headers, or turns it off."
+      }
+    },
+    {
+      "id": "n17",
+      "type": "prose",
+      "props": {
+        "markdown": "The soft dots of columns that are not the peak are decorative and carry no meaning of their own, and the `callout` pill is `aria-hidden`, so it says nothing to a screen reader. Put the same facts in the `title`, the `description` or the data, as both examples do with the peak."
+      }
+    },
+    {
+      "id": "n18",
+      "type": "prose",
+      "props": {
+        "markdown": "The full model is in the [accessibility guide](https://github.com/mwadon/tally-charts/blob/main/docs/a11y.md)."
+      }
+    }
+  ]
+}

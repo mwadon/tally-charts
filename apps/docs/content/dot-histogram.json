@@ -1,0 +1,162 @@
+{
+  "versionId": "fixture-dot-histogram-v1",
+  "version": 1,
+  "locale": "en",
+  "publishedAt": "2026-10-25T00:00:00.000Z",
+  "codeInjection": {},
+  "layout": {
+    "key": "default",
+    "header": null,
+    "footer": null
+  },
+  "pageId": "fixture-dot-histogram",
+  "title": "DotHistogram",
+  "slug": "dot-histogram",
+  "seo": {
+    "metaTitle": "DotHistogram · tally-charts",
+    "metaDescription": "A histogram where every item is its own dot, stacked in bins along one value axis. Color the dots by threshold band and mark a target."
+  },
+  "componentTree": [
+    {
+      "id": "n1",
+      "type": "prose",
+      "props": {
+        "markdown": "A histogram that keeps the items. Each row of your data is one dot, dots with similar values stack in a bin, and the tallest stacks show where most items sit. You can still point at a single dot: it has a name, a tooltip and an announcement of its own."
+      }
+    },
+    {
+      "id": "n2",
+      "type": "heading",
+      "props": {
+        "text": "When to use it",
+        "level": "2",
+        "anchor": "when-to-use"
+      }
+    },
+    {
+      "id": "n3",
+      "type": "prose",
+      "props": {
+        "markdown": "Use `DotHistogram` for the distribution of one value across many items, when the individual items matter as much as the shape: tickets by hours to the first reply, invoices by days overdue, jobs by margin. `binWidth` sets the width of a bin and `domain` the range. `target` draws a reference line with a label, and `calloutId` pins a pill to one item. `toneBy` colors each dot, with a `thresholds()` result for named bands (which also puts the band in the tooltip and the data table) or a function for anything else.\n\nIf the same items are measured more than once and you want to compare the measures, use [StripPlot](/docs/strip-plot): one row of dots per measure, with a median. If you want totals per period rather than items, use [WaffleColumns](/docs/waffle-columns): one column of dots per period, where a dot stands for a unit of the total."
+      }
+    },
+    {
+      "id": "n4",
+      "type": "heading",
+      "props": {
+        "text": "Import",
+        "level": "2",
+        "anchor": "install"
+      }
+    },
+    {
+      "id": "n5",
+      "type": "code-block",
+      "props": {
+        "code": "npm i tally-charts",
+        "lang": "bash"
+      }
+    },
+    {
+      "id": "n6",
+      "type": "code-block",
+      "props": {
+        "code": "import { DotHistogram } from 'tally-charts'\nimport 'tally-charts/theme.css'",
+        "lang": "tsx",
+        "filename": "app/replies.tsx"
+      }
+    },
+    {
+      "id": "n7",
+      "type": "heading",
+      "props": {
+        "text": "Examples",
+        "level": "2",
+        "anchor": "examples"
+      }
+    },
+    {
+      "id": "n8",
+      "type": "prose",
+      "props": {
+        "markdown": "With no `toneBy`, every dot has the accent tone. `value` and `label` are field names, `binWidth` and `domain` fix the bins, and `target` marks the 4-hour goal."
+      }
+    },
+    {
+      "id": "n9",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "dot-histogram/first-reply-times",
+        "defaultView": "preview"
+      }
+    },
+    {
+      "id": "n10",
+      "type": "prose",
+      "props": {
+        "markdown": "`toneBy` takes a `thresholds()` result: the breaks, a tone for each band and a name for each band. `bands.legend(values)` gives the legend items with counts. A result of `thresholds()` has methods, so this example is a client component."
+      }
+    },
+    {
+      "id": "n11",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "dot-histogram/invoice-days-overdue",
+        "defaultView": "preview"
+      }
+    },
+    {
+      "id": "n12",
+      "type": "heading",
+      "props": {
+        "text": "Props",
+        "level": "2",
+        "anchor": "props"
+      }
+    },
+    {
+      "id": "n13",
+      "type": "props-table",
+      "props": {
+        "symbol": "DotHistogram"
+      }
+    },
+    {
+      "id": "n14",
+      "type": "heading",
+      "props": {
+        "text": "Keyboard and screen readers",
+        "level": "2",
+        "anchor": "keyboard"
+      }
+    },
+    {
+      "id": "n15",
+      "type": "prose",
+      "props": {
+        "markdown": "`DotHistogram` is built on `Chart`, so it follows the same keyboard model as the other charts: it is a single tab stop, and tabbing in shows the first dot with its tooltip and announces it. Its dots form stacks, so it moves in two dimensions: `←` and `→` walk from bin to bin, `↑` and `↓` walk up and down the stack in a bin. `Home` and `End` jump to the first and last point, `Enter` or `Space` selects the active point when the chart has `onSelect`, and `Esc` clears the active point. `Esc` is only consumed when a point is active, so an enclosing dialog still closes. The widget’s description ends with a keyboard hint (“Use arrow keys to move between points, Home and End for first and last, Escape to clear.”, plus “Press Enter to select.” with `onSelect`); `keyboardHint` replaces it, for example to translate it, and `keyboardHint=\"\"` turns it off."
+      }
+    },
+    {
+      "id": "n16",
+      "type": "prose",
+      "props": {
+        "markdown": "Screen readers get the chart title and description, then an announcement for each dot the keyboard moves to. With `toneBy` set to `thresholds()` the band is read as the series and the position counts within the band, as in “Critical, 1 of 6, #5600, 3.1%”: the band, the position in it, the item’s `label` and its value. Without bands, or with a function, the series is left out. A visually hidden data table follows the chart with the columns Item and Value, named after the `label` and `value` field when they are strings, and a Group column when `toneBy` is a `thresholds()` result. `dataTable` renames the caption and headers, or turns it off."
+      }
+    },
+    {
+      "id": "n17",
+      "type": "prose",
+      "props": {
+        "markdown": "The SVG and the HTML overlay are `aria-hidden`, so a `target` line and a `calloutId` pill say nothing to a screen reader. Put the same facts in the `title`, the `description` or the data, as both examples do with their counts."
+      }
+    },
+    {
+      "id": "n18",
+      "type": "prose",
+      "props": {
+        "markdown": "The full model is in the [accessibility guide](https://github.com/mwadon/tally-charts/blob/main/docs/a11y.md)."
+      }
+    }
+  ]
+}

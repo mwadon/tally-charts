@@ -1,0 +1,162 @@
+{
+  "versionId": "fixture-strip-plot-v1",
+  "version": 1,
+  "locale": "en",
+  "publishedAt": "2026-10-25T00:00:00.000Z",
+  "codeInjection": {},
+  "layout": {
+    "key": "default",
+    "header": null,
+    "footer": null
+  },
+  "pageId": "fixture-strip-plot",
+  "title": "StripPlot",
+  "slug": "strip-plot",
+  "seo": {
+    "metaTitle": "StripPlot · tally-charts",
+    "metaDescription": "One row of dots per measure, with the same items in every row and a median line. Compare estimates with actuals or attempts with each other."
+  },
+  "componentTree": [
+    {
+      "id": "n1",
+      "type": "prose",
+      "props": {
+        "markdown": "The same items measured more than once, one row of dots for each measure. Every item appears as one dot in every row, so the rows show how the measures differ in spread and position, and a dashed median marks the middle of each."
+      }
+    },
+    {
+      "id": "n2",
+      "type": "heading",
+      "props": {
+        "text": "When to use it",
+        "level": "2",
+        "anchor": "when-to-use"
+      }
+    },
+    {
+      "id": "n3",
+      "type": "prose",
+      "props": {
+        "markdown": "Use `StripPlot` to compare several measures of the same items: an estimate against the actual, a promise against a delivery, a score on each attempt. Each entry of `series` is a row with a `label`, a `value` accessor and an optional `tone`; `median` draws a dashed line and a label per row (on by default). The axis does not force zero, so the rows fill the width, and `domain` fixes it when you want to.\n\nIf you have a single measure and want to see how the items bunch up, use [DotHistogram](/docs/dot-histogram): the dots stack in bins instead of lining up in rows. If you want totals per period, use [WaffleColumns](/docs/waffle-columns): a column of dots for each period."
+      }
+    },
+    {
+      "id": "n4",
+      "type": "heading",
+      "props": {
+        "text": "Import",
+        "level": "2",
+        "anchor": "install"
+      }
+    },
+    {
+      "id": "n5",
+      "type": "code-block",
+      "props": {
+        "code": "npm i tally-charts",
+        "lang": "bash"
+      }
+    },
+    {
+      "id": "n6",
+      "type": "code-block",
+      "props": {
+        "code": "import { StripPlot } from 'tally-charts'\nimport 'tally-charts/theme.css'",
+        "lang": "tsx",
+        "filename": "app/deliveries.tsx"
+      }
+    },
+    {
+      "id": "n7",
+      "type": "heading",
+      "props": {
+        "text": "Examples",
+        "level": "2",
+        "anchor": "examples"
+      }
+    },
+    {
+      "id": "n8",
+      "type": "prose",
+      "props": {
+        "markdown": "Two rows, `Promised` and `Actual`. `value` is a field name, so the series stay serializable, and the medians show the gap between the two."
+      }
+    },
+    {
+      "id": "n9",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "strip-plot/delivery-days",
+        "defaultView": "preview"
+      }
+    },
+    {
+      "id": "n10",
+      "type": "prose",
+      "props": {
+        "markdown": "Three rows with their own tones. `median={false}` removes the dashed lines, `domain` sets the axis, and `radius`, `rowHeight` and `labelWidth` size the dots, the rows and the label column."
+      }
+    },
+    {
+      "id": "n11",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "strip-plot/exam-attempts",
+        "defaultView": "preview"
+      }
+    },
+    {
+      "id": "n12",
+      "type": "heading",
+      "props": {
+        "text": "Props",
+        "level": "2",
+        "anchor": "props"
+      }
+    },
+    {
+      "id": "n13",
+      "type": "props-table",
+      "props": {
+        "symbol": "StripPlot"
+      }
+    },
+    {
+      "id": "n14",
+      "type": "heading",
+      "props": {
+        "text": "Keyboard and screen readers",
+        "level": "2",
+        "anchor": "keyboard"
+      }
+    },
+    {
+      "id": "n15",
+      "type": "prose",
+      "props": {
+        "markdown": "`StripPlot` is built on `Chart`, so it follows the same keyboard model as the other charts: it is a single tab stop, and tabbing in shows the first dot with its tooltip and announces it. Its dots form rows, so it moves in two dimensions: `←` and `→` walk along a row, `↑` and `↓` change to the previous or next row. `Home` and `End` jump to the first and last point, `Enter` or `Space` selects the active point when the chart has `onSelect`, and `Esc` clears the active point. `Esc` is only consumed when a point is active, so an enclosing dialog still closes. The widget’s description ends with a keyboard hint (“Use arrow keys to move between points, Home and End for first and last, Escape to clear.”, plus “Press Enter to select.” with `onSelect`); `keyboardHint` replaces it, for example to translate it, and `keyboardHint=\"\"` turns it off."
+      }
+    },
+    {
+      "id": "n16",
+      "type": "prose",
+      "props": {
+        "markdown": "Screen readers get the chart title and description, then an announcement for each dot the keyboard moves to, in the form “Estimated, 1 of 29, #5900, 5.2 h”: the row’s label as the series, the position within that row, the item’s `label` and its value. A visually hidden data table follows the chart with an Item column (named after the `label` field when it is a string) and one column for each series, so the table has the measures of an item on one line. `dataTable` renames the caption and headers, or turns it off."
+      }
+    },
+    {
+      "id": "n17",
+      "type": "prose",
+      "props": {
+        "markdown": "The SVG and the HTML overlay are `aria-hidden`, so the median lines and their labels say nothing to a screen reader. Put the medians in the `title` or the `description`, as both examples do."
+      }
+    },
+    {
+      "id": "n18",
+      "type": "prose",
+      "props": {
+        "markdown": "The full model is in the [accessibility guide](https://github.com/mwadon/tally-charts/blob/main/docs/a11y.md)."
+      }
+    }
+  ]
+}
