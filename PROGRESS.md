@@ -1488,3 +1488,24 @@ Dodałem strony `thresholds` i `server-components`: 2 fiksturki, 3 przykłady, 2
 **Otwarte kwestie:**
 - Strona thresholds używa `DotHistogram` i `Heatmap` w przykładach, ale ich PropsTable są dopiero w T29–T31.
 - Kolejny task, który doda fiksturkę accessibility, musi przełączyć testy „strony nie ma” na inny slug (lista plików w sekcji T28.1).
+
+## ✔ T28.3 Strony thresholds i server-components (2026-10-25)
+Poprawiono uwagę z review (major). Opis dostępności DotHistogramu w `apps/docs/examples/thresholds/zones-and-dots.tsx` mówił „12 Good, 7 need improvement, 4 Poor”, a dane i Legend dają 13/7/3 (inclusive 'upper': dwie wartości 2.5 liczą się jako Good, a 4 jako Needs improvement). Opis brzmi teraz „Of 23 page loads, 13 are Good, 7 need improvement and 3 are Poor. The two loads of exactly 2.5 s count as Good.”. W `apps/docs/e2e/thresholds.spec.ts` dodałem test sprawdzający, że Legend pokazuje 13/7/3 (`.ch-legend-item`) i że `getByRole('application')` wykresu ma dostępny opis (`toHaveAccessibleDescription`) z tymi samymi liczbami. Reszta zmian z T28.3 jest bez zmian.
+
+Bramki po poprawce, wszystkie przeszły: `pnpm build`, `pnpm --filter docs build`, `pnpm --filter docs test` (537), `pnpm --filter docs typecheck`, `pnpm lint` (kod 0; wypisuje 5 ostrzeżeń i 1 info), `check:content` (API coverage: 42/52, 0 błędów) i `pnpm --filter docs test:e2e` (183, bez update). `git diff --stat` dla `packages`, `apps/storybook` i `apps/docs/e2e/__screenshots__` jest pusty.
+**Decyzje i pułapki:**
+- Legend renderuje `li.ch-legend-item` z `.ch-legend-count`, a opis wykresu jest elementem wskazywanym przez aria-describedby, więc `toHaveAccessibleDescription` na roli `application` wystarcza do pilnowania opisu.
+- Liczby w ręcznie pisanych opisach przykładów warto pilnować asercją e2e względem `legend(values)`, bo żadna bramka nie sprawdza treści opisu.
+**Otwarte kwestie:**
+- Do sprawdzenia przez orkiestratora: czy 5 ostrzeżeń lintu (kod wyjścia 0) pochodzi z tego brancha, czy istniało wcześniej. Nie sprawdzałem ich.
+**Kryteria:**
+- Istnieje co najmniej apps/docs/examples/thresholds/zones-and-dots.tsx: używa wyniku thresholds() w ZoneMeter i/lub Legend oraz w wykresie z <svg> (np. DotHistogram toneBy), ma 'use client' i rscSafe: false, a meta.id = 'thresholds/<nazwa>'.
+- Istnieje apps/docs/examples/server-components/*.tsx z rscSafe: true, bez 'use client' i bez funkcji w propsach. Importuje z tally-charts/core, podaje ZoneMeter zones={{ bins, inclusive }} i renderuje <svg> w ssr.test.tsx.
+- Wszystkie nowe przykłady przechodzą examples/registry.test.ts, render.test.tsx i ssr.test.tsx (rscSafe) bez console.error.
+- content/thresholds.json przechodzi content/fixtures.test.ts. Ma props-table dla 'thresholds' i 'heatmapLevel', prose o inclusive 'lower' i 'upper' z wartością na granicy (np. 2.5 przy breaks [2.5, 4] daje inny bin w każdym trybie), prose o heatmapLevel (poziomy 1–5, 0 dla braku wartości) i co najmniej 1 chart-example z thresholds/.
+- content/server-components.json przechodzi fixtures.test.ts. Ma prose o 'use client' w głównym wpisie, o importach z tally-charts/core na serwerze i o zwykłych obiektach (zones={{ bins, inclusive }}), chart-example z server-components/ z rscSafe: true oraz code-block (tsx) z plikiem 'use client' jako granicą klienta.
+- content/fixtures.test.ts oczekuje dostępnych stron w kolejności: getting-started, theming, palettes, time-scales, formatting, thresholds, server-components, dark-mode, line-chart, composition, small-pieces, hooks-and-providers.
+- apps/docs/e2e/thresholds.spec.ts i server-components.spec.ts: themeSuite (h1 i wykres po title), status 200, link w sidebarze z aria-current="page" i bez .nav-soon. thresholds.spec liczy 2 regiony /^Parameters of / i znajduje 'Parameters of thresholds' i 'Parameters of heatmapLevel' z exact: true.
+- Po pnpm build `pnpm --filter docs check:content` kończy się kodem 0 i wypisuje `API coverage: 42/52`, a lista brakujących nie zawiera thresholds ani heatmapLevel. Test w lib/content/check.test.ts z --require-coverage nadal oczekuje jako pierwszego braku BridgeChart i przechodzi.
+- pnpm --filter docs test, pnpm --filter docs typecheck, pnpm lint, pnpm --filter docs build i pnpm --filter docs test:e2e (darwin, bez --update-snapshots) kończą się kodem 0. `git diff --stat -- packages apps/storybook` jest pusty, a apps/docs/e2e/__screenshots__ są bez zmian.
+- PROGRESS.md ma sekcję T28.3 z decyzjami i podsumowaniem T28: 7 stron, pokrycie 42/52, pozostałe 10 symboli (9 wykresów i runwayForecast) w T29–T31.
