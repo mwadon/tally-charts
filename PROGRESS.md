@@ -1077,3 +1077,28 @@ Poprawki po review (próba 2). Zrobione: (1) w content-source.test.ts nowe testy
 **Otwarte kwestie:**
 - Live CMS (`cms:`) sprawdzony tylko na mockowanym źródle i wyborze źródeł; bez prawdziwego glökki ścieżka sieciowa jest niezweryfikowana.
 - Pokrycie wynosi 1/52 (tylko `LineChart`), dopóki T25–T31 nie dodadzą stron.
+
+## ✔ T24 Walidacja treści: check:content z pokryciem API (F14) (2026-10-25)
+Dodano `pnpm --filter docs check:content`: skrypt `tsx` sprawdza strony z fiksturek `content/` oraz z glökki, gdy ustawiono `CMS_BASE_URL`. Sprawdza typ i propsy bloków, istnienie `exampleId` i `symbol`, martwe linki `/docs/<slug>` oraz pokrycie API (`fixtures: API coverage: 1/52` plus lista brakujących, exit 0). `--require-coverage` albo `CHECK_CONTENT_REQUIRE_COVERAGE=1` zamienia brak pokrycia w błędy i exit 1. Fiksturka `lib/content/__fixtures__/broken` daje exit 1 i pięć osobnych komunikatów `slug › id węzła (typ): komunikat`. Komunikat o exampleId nie wypisuje listy id. Sprawdzone: `pnpm --filter docs test` (372 testy, 38 plików), `pnpm --filter docs typecheck`, `pnpm lint` (0 błędów, tylko wcześniejsze ostrzeżenia), `pnpm install --frozen-lockfile`, actionlint, `pnpm check:workflows`. `pnpm build` ani `docs build`/e2e nie były uruchamiane (`tally-charts` bez zmian, istniejący `dist` wystarczył). Pliki: logika w `lib/content/check.ts`, wybór źródeł w `check-sources.ts`, CLI w `scripts/check-content.ts`. Dodano `tsx` 4.23.15 do devDependencies `apps/docs`, krok w jobie `docs` w CI po `docs test`, opis komendy w CLAUDE.md i decyzje w PROGRESS.md.
+**Decyzje i pułapki:**
+- Pnpm przekazuje do skryptu dosłowne `--` z `pnpm check:content -- --flag`, więc parseArgs trzeba karmić argv bez wiodącego `--`.
+- Biome check --write nie formatuje plików ze składnią zepsutą przez ręczne zamiany tekstu. Po skryptowych podmianach w testach od razu uruchom typecheck.
+- tsconfig ma noUncheckedIndexedAccess, więc w testach `arr[0]` wymaga pomocnika (np. `defined()`).
+- Zod 4: issue `invalid_value` ma pole `values`, na jego podstawie można skracać komunikaty enumów.
+- Dodanie tsx do devDependencies zmienia w pnpm-lock.yaml także klucze peer-dep (vite/vitest/tsdown dostają `tsx@…`); to oczekiwany szum w diffie.
+**Otwarte kwestie:**
+- Ścieżka live CMS (cms:) jest sprawdzona tylko na mockowanych źródłach i wyborze źródeł; bez prawdziwego glökki nie zweryfikowano części sieciowej.
+- Pokrycie API wynosi 1/52 (tylko LineChart). Job docs w CI nie ma flagi --require-coverage; T31 ma ją włączyć domyślnie (zapisane w PROGRESS.md i CLAUDE.md).
+- Jedna zepsuta fiksturka (zły JSON) przerywa ładowanie całego źródła, bo fixture source czyta wszystkie strony w listPages. Raportowany jest jeden błąd z nazwą pliku, a pozostałe strony nie są wtedy sprawdzane.
+- apps/docs/lib/content/check.ts: `/docs/home` przechodzi jako poprawny link, bo slug `home` jest w stronach źródła. Ta trasa to jednak 404: `app/docs/[slug]/page.tsx:20,25,30` jawnie wyklucza `home`, a strona główna jest pod `/`. Edytor może więc wstawić martwy link wewnętrzny, którego check nie złapie.
+- apps/docs/lib/content/check.ts: `MARKDOWN_PROPS[node.type]` szuka klucza w zwykłym obiekcie, więc trafia też w prototyp. Blok z `type: "toString"` albo `"constructor"` (np. z CMS) wywala checkPages błędem `TypeError: function is not iterable`. Unknown type zostaje zgłoszony przez checkNode, ale zaraz potem pętla linków rzuca wyjątek. CLI łapie go w try/catch i kończy się exit 1 z nieczytelnym `check:content: function is not iterable`, a wszystkie pozostałe błędy z raportu przepadają. Sprawdzone sondą przez tsx.
+**Kryteria:**
+- `pnpm --filter docs check:content` (po `pnpm build`) na obecnych fiksturkach `content/` kończy się kodem 0 i wypisuje raport pokrycia API w postaci `API coverage: N/52` z listą brakujących symboli
+- Na fiksturce `lib/content/__fixtures__/broken` skrypt kończy się kodem 1, a stderr zawiera osobne komunikaty z slugiem i id węzła dla: nieistniejącego `exampleId`, złego propa (ścieżka propa, np. `level`), martwego linku `/docs/does-not-exist`, brakującego `symbol` w props-table i nieznanego typu bloku. Komunikat o exampleId nie wypisuje listy wszystkich id
+- Linki `/docs/<istniejący-slug>` (także z `#anchor`) oraz linki zewnętrzne nie dają błędu; slug liczony jest względem stron sprawdzanego źródła
+- Pokrycie API obejmuje każdy symbol z `api.generated.json` (komponenty, funkcje, hooki z `api/*.api.json`/`.api.md`). Bez flagi brak pokrycia nie failuje, a z `--require-coverage` (lub `CHECK_CONTENT_REQUIRE_COVERAGE=1`) każdy niepokryty symbol jest błędem i exit 1
+- Przy ustawionym `CMS_BASE_URL` (+ `CMS_TENANT`, `CMS_API_KEY`) skrypt sprawdza dodatkowo strony z glökki, a brak `CMS_TENANT`/`CMS_API_KEY` przy `CMS_BASE_URL` jest błędem z nazwą zmiennej. Pokrywa to test jednostkowy z mockowanym źródłem albo funkcją wyboru źródeł
+- Testy vitest w `lib/content/check.test.ts` (logika i spawn CLI) przechodzą w `pnpm --filter docs test`
+- Job `docs` w `.github/workflows/ci.yml` uruchamia `pnpm --filter docs check:content` na fiksturkach bez sekretów; actionlint przechodzi
+- CLAUDE.md opisuje komendę `pnpm --filter docs check:content` (zamiast notki „zostanie dopisana”), flagę pokrycia i wymaganie `pnpm build`; PROGRESS.md zapisuje decyzje (tsx jako runner, pokrycie tylko raportowane do T31)
+- `pnpm --filter docs typecheck` i `pnpm lint` przechodzą
