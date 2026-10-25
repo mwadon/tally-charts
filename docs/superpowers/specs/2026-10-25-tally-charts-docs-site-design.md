@@ -48,8 +48,9 @@ Content column up to 72 rem, centred. Sections in the F16 order:
    fading hatched field.
 2. **Visual language.** Four cards with a mini chart each: *Hatched is plan*, *Solid is actual*,
    *Pink is loss*, *Targets come first*. Four columns from 900 px, two from 640 px, one below.
-3. **Gallery.** Nine tiles for the nine reference dashboards (3×3 from 640 px, 2 columns below). In the
-   placeholder they are hatched tiles with a caption; F16 replaces them with live examples.
+3. **Gallery.** Nine tiles for the nine reference dashboards, each a live dashboard with a caption
+   (F16). The columns are `repeat(auto-fill, minmax(min(100%, 22rem), 1fr))`, so a tile is at least
+   ~22 rem wide: 1 column below ~765 px, 2 up to ~1130 px, 3 above (T26.2, D2).
 4. **Install.** A code block with `npm i tally-charts` and a Copy button.
 5. **Features.** Four cards: accessibility, Server Components, theming with tokens, light and dark.
 6. **Links.** Getting started, GitHub, npm. Then a footer.
