@@ -54,7 +54,7 @@ export default function ZonesAndDots() {
       <Legend shape="dot" items={tiers.legend(loads.map((l) => l.lcp))} />
       <DotHistogram
         title={meta.title}
-        description="Of 23 page loads, 12 are Good, 7 need improvement and 4 are Poor. The two loads of exactly 2.5 s count as Good."
+        description="Of 23 page loads, 13 are Good, 7 need improvement and 3 are Poor. The two loads of exactly 2.5 s count as Good."
         data={loads}
         value="lcp"
         id="id"

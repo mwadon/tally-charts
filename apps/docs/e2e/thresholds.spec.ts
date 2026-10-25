@@ -33,6 +33,23 @@ test('/docs/thresholds documents 2 functions', async ({ page }) => {
   ).toHaveCount(1)
 })
 
+test('the legend counts and the chart description agree: 13 Good, 7 Needs improvement, 3 Poor', async ({
+  page,
+}) => {
+  await page.goto('/docs/thresholds')
+
+  const items = page.locator('.ch-legend-item')
+  await expect(items.filter({ hasText: 'Good' })).toContainText('13')
+  await expect(items.filter({ hasText: 'Needs improvement' })).toContainText('7')
+  await expect(items.filter({ hasText: 'Poor' })).toContainText('3')
+
+  await expect(
+    page.getByRole('application', {
+      name: 'Page loads by largest contentful paint, colored by tier',
+    }),
+  ).toHaveAccessibleDescription(/13 are Good, 7 need improvement and 3 are Poor/)
+})
+
 test('a value on a break reads differently with inclusive lower and upper', async ({ page }) => {
   await page.goto('/docs/thresholds')
 
