@@ -1,0 +1,167 @@
+{
+  "versionId": "fixture-time-scales-v1",
+  "version": 1,
+  "locale": "en",
+  "publishedAt": "2026-10-25T00:00:00.000Z",
+  "codeInjection": {},
+  "layout": {
+    "key": "default",
+    "header": null,
+    "footer": null
+  },
+  "pageId": "fixture-time-scales",
+  "title": "Time scales",
+  "slug": "time-scales",
+  "seo": {
+    "metaTitle": "Time scales · tally-charts",
+    "metaDescription": "How tally-charts reads dates: accepted inputs, UTC and local zones, invalid dates that break the line, and toTime and toNumber."
+  },
+  "componentTree": [
+    {
+      "id": "n1",
+      "type": "prose",
+      "props": {
+        "markdown": "`LineChart`, `Area` and the other time-based marks put dates on the x axis. This page covers what counts as a date, what happens to one that is not, and which time zone the axis speaks. Two helpers, `toTime` and `toNumber`, show the rules the charts apply to your data."
+      }
+    },
+    {
+      "id": "n2",
+      "type": "heading",
+      "props": {
+        "text": "Putting dates on the x axis",
+        "level": "2",
+        "anchor": "time-axis"
+      }
+    },
+    {
+      "id": "n3",
+      "type": "prose",
+      "props": {
+        "markdown": "Pass a time scale spec as `x`: `x={{ type: 'time', field: 'date' }}`. `LineChart` takes the same spec; with `Chart` you give it to the `x` prop and draw `Line`, `Band` or `Area` inside. A value can be a `Date`, epoch milliseconds or an ISO 8601 string, and a date-only string such as `'2026-01-05'` is UTC midnight. Rows are sorted by date, so the data does not have to arrive in order."
+      }
+    },
+    {
+      "id": "n4",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "time-scales/invalid-date-gap",
+        "defaultView": "preview"
+      }
+    },
+    {
+      "id": "n5",
+      "type": "prose",
+      "props": {
+        "markdown": "The row `'not a date'` can not be read, so it is skipped and the line breaks instead of joining its neighbours across the gap. A chart prints one warning in development for all the rows it skipped, and the point is not drawn or reachable by pointer or keyboard. An epoch outside the JavaScript `Date` range (±8.64e15 ms) counts as invalid too, and such a date formats as an empty string. See [LineChart](/docs/line-chart) for the series options."
+      }
+    },
+    {
+      "id": "n6",
+      "type": "heading",
+      "props": {
+        "text": "Domain and ticks",
+        "level": "2",
+        "anchor": "domain-and-ticks"
+      }
+    },
+    {
+      "id": "n7",
+      "type": "prose",
+      "props": {
+        "markdown": "The domain is inferred from the data and rounded out to tick boundaries. A single date is padded by a day on each side. An explicit `domain` is kept as given unless you also set `nice: true`, and a domain with a value that is not a date is ignored with a warning. A date outside an explicit domain is skipped just like an invalid one. Ticks snap to calendar units from seconds to decades and are labelled in several scales (\"Jan 2026\", \"Feb\", …, \"2027\"). A tick whose label repeats the one before it is dropped."
+      }
+    },
+    {
+      "id": "n8",
+      "type": "prose",
+      "props": {
+        "markdown": "To choose the labels yourself, give the axis a date format: `'day'`, `'month'`, `'quarter'`, `'year'`, or any `Intl.DateTimeFormatOptions` such as `{ month: 'short', day: 'numeric' }`. In `LineChart` that is `xAxisFormat`, and the tooltip headers and the data table use it too. Labels follow the locale of the `ChartsProvider` (see [Hooks and providers](/docs/hooks-and-providers)); [Formatting](/docs/formatting) covers `createDateFormatter` for the same thing in code."
+      }
+    },
+    {
+      "id": "n9",
+      "type": "heading",
+      "props": {
+        "text": "UTC or local time",
+        "level": "2",
+        "anchor": "zone"
+      }
+    },
+    {
+      "id": "n10",
+      "type": "prose",
+      "props": {
+        "markdown": "`zone` is `'utc'` by default. Ticks and labels then fall on UTC calendar boundaries, so the server and the browser draw the same chart. `'local'` uses the viewer's zone, which can differ between the two and cause a hydration mismatch, so prefer `'utc'` for server rendering."
+      }
+    },
+    {
+      "id": "n11",
+      "type": "callout",
+      "props": {
+        "tone": "warning",
+        "markdown": "**A date-time string without a zone is not UTC.** `'2026-01-01T10:00'` is parsed as the runtime's local time, so the same string gives a different instant on a server in UTC and a laptop in Warsaw. Pass date-only strings (`'2026-01-01'`), strings that end in `Z` or an offset (`'2026-01-01T10:00:00Z'`), `Date`s or epoch milliseconds."
+      }
+    },
+    {
+      "id": "n12",
+      "type": "prose",
+      "props": {
+        "markdown": "`Line`, `Band`, `Area`, `Region`, `Target` (with `x` as a date), `Grid`, `Axis` and `NearestPointer` work on a time scale. `Bars` and `ColumnHighlight` need a band scale, so on a time scale they warn instead of drawing."
+      }
+    },
+    {
+      "id": "n13",
+      "type": "heading",
+      "props": {
+        "text": "toTime and toNumber",
+        "level": "2",
+        "anchor": "helpers"
+      }
+    },
+    {
+      "id": "n14",
+      "type": "prose",
+      "props": {
+        "markdown": "The charts read your data with two small functions, and you can call them yourself to check what a chart will make of a value. Neither is exported from the main entry: import them from `tally-charts/core`, which has no React in it."
+      }
+    },
+    {
+      "id": "n15",
+      "type": "code-block",
+      "props": {
+        "code": "import { toNumber, toTime } from 'tally-charts/core'\n\ntoTime('2026-01-05') // 1767571200000 (UTC midnight)\ntoTime(new Date(0)) // 0\ntoTime('not a date') // undefined\n\ntoNumber('42.5') // 42.5\ntoNumber('') // NaN, not 0\ntoNumber(null) // NaN",
+        "lang": "ts"
+      }
+    },
+    {
+      "id": "n16",
+      "type": "prose",
+      "props": {
+        "markdown": "`toTime` returns epoch milliseconds, or `undefined` when the value is not a date. That covers a `Date` that is invalid, a number outside ±8.64e15, a string that `Date.parse` rejects and any other type. `toNumber` is the strict counterpart for values: a number passes through, a non-blank string is parsed, and everything else (`null`, `undefined`, `''`, booleans, objects) is missing and becomes `NaN` instead of `0`, so a gap in the data does not draw as a zero."
+      }
+    },
+    {
+      "id": "n17",
+      "type": "heading",
+      "props": {
+        "text": "Parameters",
+        "level": "2",
+        "anchor": "parameters"
+      }
+    },
+    {
+      "id": "n18",
+      "type": "props-table",
+      "props": {
+        "symbol": "toTime"
+      }
+    },
+    {
+      "id": "n19",
+      "type": "props-table",
+      "props": {
+        "symbol": "toNumber"
+      }
+    }
+  ]
+}

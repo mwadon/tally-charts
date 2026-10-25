@@ -1427,3 +1427,24 @@ Dodałem strony theming, palettes i dark-mode: 3 fiksturki i 4 przykłady (`them
 - Po `pnpm build` `pnpm --filter docs check:content` kończy się kodem 0 i wypisuje `API coverage: 35/52`.
 - `pnpm --filter docs test`, `pnpm --filter docs typecheck`, `pnpm lint`, `pnpm --filter docs build` i `pnpm --filter docs test:e2e` (darwin, bez --update-snapshots) kończą się kodem 0. `git status` nie pokazuje zmian w `apps/docs/e2e/__screenshots__` ani w `packages/`.
 - PROGRESS.md ma sekcję T28.1 z decyzjami: accessibility jako slug „strony nie ma”, dobór i układ przykładów (vivid z data-ch-theme="light"), next-themes tylko w code-block.
+
+## T28.2 Strony time-scales i formatting (toTime, toNumber, createFormatter, createFormatters, createDateFormatter, fmt, presety)
+Dodałem strony `time-scales` i `formatting`: 2 fiksturki, 3 przykłady i 2 specyfikacje e2e. Bramki: `docs test` (528), `docs typecheck`, `pnpm lint` (0, te same ostrzeżenia CSS), `pnpm build`, `check:content` (0 błędów, `API coverage: 40/52`, na liście brakujących nie ma pięciu symboli), `docs build`, `docs test:e2e` (163, darwin, bez update). `git diff --stat -- packages apps/storybook` i `apps/docs/e2e/__screenshots__` bez zmian.
+
+**Decyzje:**
+- **Bazowe coverage:** backlog podawał 40/52 po T28.1, a zmierzone jest 35/52. Cel to 40/52 (+5), osiągnięty.
+- **Import z `tally-charts/core`:** `toTime`, `toNumber`, `createFormatters` i `createDateFormatter` są tylko w `core`. `PropsTableView` nie pokazuje pakietu, więc import opisują prose i code-block. Przykład `formatting/formatters` importuje `createDateFormatter` z `tally-charts/core` (rozwiązuje się przez exports do dist, bez problemu w vitest i Next), więc fallback na samo `fmt` nie był potrzebny.
+- **Podział rscSafe:** `time-scales/invalid-date-gap` i `formatting/presets` to `rscSafe: true` (presety jako stringi i obiekty, daty ISO jako stringi). `formatting/formatters` ma `'use client'` i `rscSafe: false`, bo daje wykresowi funkcje (`format`, `xAxisFormat`).
+- **Niepoprawna data:** wiersz `'not a date'` między 2026-01-08 a 2026-01-10 (dane date-only, więc UTC). Wykres pomija wiersz i łamie linię (7 z 8 punktów). Dev ostrzega przez `console.warn`, który testy dopuszczają.
+- **Osie `LineChart`:** w kodzie etykiety to `xAxisFormat` / `yAxisFormat`, a `xAxis` / `yAxis` to ticki (plan mówił o `xAxis={{ format }}`). Przykłady i prose używają prawdziwych nazw.
+- **Kolejność w nawigacji:** time-scales i formatting stoją w Guides po palettes, więc `fixtures.test.ts` oczekuje ich przed dark-mode.
+- **`fmt`:** to stała, nie symbol API, więc bez PropsTable. Prose mówi, że to `createFormatters()` z `en-US` i USD.
+- **Slug „strony nie ma”:** nadal `accessibility`, task go nie dotyka.
+
+**Pułapki:**
+- Regiony `Parameters of createFormatter` trafiają też w `createFormatters` (dopasowanie podciągu), więc w e2e trzeba `exact: true`.
+- Callout ma tony `info`, `warning`, `tip` (nie `note`).
+- `gen` zapisuje źródło przykładu, więc po `biome format` przykładów trzeba odpalić `pnpm --filter docs gen`, inaczej `registry.test.ts` failuje.
+
+**Otwarte kwestie:**
+- `createFormatters` nie ma TSDoc ani opisów parametru `options`, a `toNumber` ma parametr `raw` bez opisu, więc ich PropsTable ma puste opisy; zmiana TSDoc wymaga `api:update` i changesetu w `packages`, poza zakresem tego taska.
