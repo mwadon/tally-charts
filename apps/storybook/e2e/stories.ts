@@ -103,3 +103,16 @@ export function channels(color: string): number[] {
   const values = color.match(/[\d.]+/g)?.map(Number) ?? []
   return color.startsWith('color(') ? values.slice(0, 3).map((v) => v * 255) : values.slice(0, 3)
 }
+
+/** WCAG contrast ratio of two computed colors (alpha is ignored). */
+export function contrastOf(a: string, b: string): number {
+  const lum = (c: string) => {
+    const [r = 0, g = 0, bl = 0] = channels(c).map((v) => {
+      const s = v / 255
+      return s <= 0.04045 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4
+    })
+    return 0.2126 * r + 0.7152 * g + 0.0722 * bl
+  }
+  const [hi, lo] = [lum(a), lum(b)].sort((x, y) => y - x) as [number, number]
+  return (hi + 0.05) / (lo + 0.05)
+}
