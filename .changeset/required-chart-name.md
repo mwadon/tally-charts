@@ -54,4 +54,4 @@ type MyBarsProps<D> = BarChartProps<D> & {
 }
 ```
 
-See the migration guide: https://tally-charts.vercel.app/docs/migration-1-0
+See the migration guide: https://tally-charts-docs.vercel.app/docs/migration-1-0

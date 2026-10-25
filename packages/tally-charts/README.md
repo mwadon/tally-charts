@@ -39,12 +39,12 @@ From 1.0 the package follows strict semver for its public surface: the exports o
 and `tally-charts/core`, the `--ch-*` tokens, `data-ch-part`, the `data-ch-*` state and variant
 attributes, and `theme.css`. Everything else (`ch-*` classes, `--_ch-*` variables, the DOM
 structure outside the parts, the wording of built-in strings) can change in any release. The full
-text is at <https://tally-charts.vercel.app/docs/stability>.
+text is at <https://tally-charts-docs.vercel.app/docs/stability>.
 
 ## Links
 
-- Documentation, with every chart, live examples and the API: <https://tally-charts.vercel.app>
-- Moving to 1.0: <https://tally-charts.vercel.app/docs/migration-1-0>
+- Documentation, with every chart, live examples and the API: <https://tally-charts-docs.vercel.app>
+- Moving to 1.0: <https://tally-charts-docs.vercel.app/docs/migration-1-0>
 - Source and issues: <https://github.com/mwadon/tally-charts>
 - Changelog: <https://github.com/mwadon/tally-charts/blob/main/packages/tally-charts/CHANGELOG.md>
 

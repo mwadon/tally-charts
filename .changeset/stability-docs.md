@@ -14,4 +14,4 @@ variables (for example `--_ch-swatch-color`) may change or disappear in any rele
 set them; use the `--ch-*` tokens. Where you need the exact words, pass your own text, such as
 `keyboardHint`, and in tests find a chart by its `title` and role, not by built-in text.
 
-See the migration guide: https://tally-charts.vercel.app/docs/migration-1-0
+See the migration guide: https://tally-charts-docs.vercel.app/docs/migration-1-0
