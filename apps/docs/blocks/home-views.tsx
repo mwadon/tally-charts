@@ -45,23 +45,28 @@ export function HeroView({ eyebrow, title, lede, actions, chart }: HeroViewProps
 }
 
 export interface VisualLanguageViewProps {
+  heading: string
   items: readonly { title: string; text: string }[]
   /** One live chart per item, in the same order. */
   charts: readonly ReactNode[]
 }
 
-export function VisualLanguageView({ items, charts }: VisualLanguageViewProps) {
+export function VisualLanguageView({ heading, items, charts }: VisualLanguageViewProps) {
+  const headingId = useId()
   return (
-    <ul className="card-grid card-grid-4">
-      {items.map((item, i) => (
-        // biome-ignore lint/suspicious/noArrayIndexKey: editors may repeat a title; the position is the identity
-        <li key={i} className="card">
-          {charts[i]}
-          <h3>{item.title}</h3>
-          <p>{item.text}</p>
-        </li>
-      ))}
-    </ul>
+    <section aria-labelledby={headingId}>
+      <h2 id={headingId}>{heading}</h2>
+      <ul className="card-grid card-grid-4">
+        {items.map((item, i) => (
+          // biome-ignore lint/suspicious/noArrayIndexKey: editors may repeat a title; the position is the identity
+          <li key={i} className="card">
+            {charts[i]}
+            <h3>{item.title}</h3>
+            <p>{item.text}</p>
+          </li>
+        ))}
+      </ul>
+    </section>
   )
 }
 

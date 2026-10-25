@@ -831,19 +831,19 @@ tbody th {
 .gallery {
   display: grid;
   gap: 0.75rem;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr);
 }
 
+/* A live dashboard needs a column of at least ~320px, so the gallery is one column on phones.
+   The tile is the size container of the dashboard (`@container ref-tile` in reference.css) and
+   scrolls sideways as a last resort. */
 .gallery-tile {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
   padding: 0.75rem;
-}
-
-.gallery-tile .hatch-field {
-  height: 4rem;
-  border-radius: calc(var(--docs-radius) - 2px);
+  overflow-x: auto;
+  container: ref-tile / inline-size;
 }
 
 .gallery-tile p {

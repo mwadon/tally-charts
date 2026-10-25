@@ -6,7 +6,6 @@ export const SITE = {
   version: `v${pkg.version}`,
   github: 'https://github.com/mwadon/tally-charts',
   npm: 'https://www.npmjs.com/package/tally-charts',
-  hero: 'Opinionated React charts for narrative business dashboards.',
 } as const
 
 export { docHref } from './doc-href'

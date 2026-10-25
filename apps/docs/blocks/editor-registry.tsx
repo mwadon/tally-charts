@@ -111,10 +111,10 @@ function EditorHero({ exampleId, ...rest }: HeroProps) {
   return withExamples([exampleId], ([chart]) => <HeroView {...rest} chart={chart} />)
 }
 
-function EditorVisualLanguage({ items }: VisualLanguageProps) {
+function EditorVisualLanguage({ heading, items }: VisualLanguageProps) {
   return withExamples(
     items.map((item) => item.exampleId),
-    (charts) => <VisualLanguageView items={items} charts={charts} />,
+    (charts) => <VisualLanguageView heading={heading} items={items} charts={charts} />,
   )
 }
 

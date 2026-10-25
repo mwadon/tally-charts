@@ -12,7 +12,158 @@
   "pageId": "fixture-home",
   "title": "tally-charts",
   "slug": "home",
-  "componentTree": [],
+  "componentTree": [
+    {
+      "id": "n1",
+      "type": "hero",
+      "props": {
+        "eyebrow": "React charts",
+        "title": "Opinionated React charts for narrative business dashboards.",
+        "lede": "Bars, lines, waterfalls and runways that say what changed, and whether it is on plan.",
+        "actions": [
+          {
+            "label": "Read the docs",
+            "href": "/docs/line-chart",
+            "primary": true
+          },
+          {
+            "label": "GitHub",
+            "href": "https://github.com/mwadon/tally-charts"
+          }
+        ],
+        "exampleId": "bar-chart/margin-by-week"
+      }
+    },
+    {
+      "id": "n2",
+      "type": "visual-language",
+      "props": {
+        "heading": "A visual language that reads at a glance",
+        "items": [
+          {
+            "title": "Hatched is plan",
+            "text": "Stripes mark a plan, a forecast or a reference.",
+            "exampleId": "visual-language/hatch"
+          },
+          {
+            "title": "Solid is actual",
+            "text": "Filled marks are what really happened.",
+            "exampleId": "visual-language/solid"
+          },
+          {
+            "title": "Pink is loss",
+            "text": "One loud color, saved for what went wrong.",
+            "exampleId": "visual-language/loss"
+          },
+          {
+            "title": "Targets come first",
+            "text": "The goal is drawn on the chart, not in a footnote.",
+            "exampleId": "visual-language/target"
+          }
+        ]
+      }
+    },
+    {
+      "id": "n3",
+      "type": "gallery",
+      "props": {
+        "heading": "Nine reference dashboards",
+        "lede": "Live examples of each dashboard, rendered from the same code you can copy.",
+        "items": [
+          {
+            "exampleId": "reference/01-gross-margin-waterfall",
+            "caption": "Gross margin: weekly result, 12-week trend and what pulls it under target"
+          },
+          {
+            "exampleId": "reference/02-jobs-dot-histogram-table",
+            "caption": "Jobs by margin: one dot per job, colored by band"
+          },
+          {
+            "exampleId": "reference/03-estimate-vs-actual",
+            "caption": "Estimate vs actual: cost lines, result and where the profit went"
+          },
+          {
+            "exampleId": "reference/04-profit-bridge",
+            "caption": "Profit bridge: planned $1,260, kept $400"
+          },
+          {
+            "exampleId": "reference/05-leakage-heatmap",
+            "caption": "Leakage: profit leaked by week, and by branch and cause"
+          },
+          {
+            "exampleId": "reference/06-drilldown-strip-plot",
+            "caption": "Drill-down: from all leakage to the people and jobs behind it"
+          },
+          {
+            "exampleId": "reference/07-forecast",
+            "caption": "Margin outlook: actual through September, forecast to December"
+          },
+          {
+            "exampleId": "reference/08-usage-runway",
+            "caption": "Usage runway: which accounts run out before reset"
+          },
+          {
+            "exampleId": "reference/09-performance",
+            "caption": "Performance: score distribution, pages below threshold and Core Web Vitals"
+          }
+        ]
+      }
+    },
+    {
+      "id": "n4",
+      "type": "install",
+      "props": {
+        "heading": "Install",
+        "command": "npm i tally-charts"
+      }
+    },
+    {
+      "id": "n5",
+      "type": "feature-grid",
+      "props": {
+        "heading": "Built for real dashboards",
+        "items": [
+          {
+            "title": "Accessible by default",
+            "text": "Keyboard navigation, screen reader announcements, a hidden data table and forced-colors support."
+          },
+          {
+            "title": "Server Components",
+            "text": "Charts render on the server and stay light on the client."
+          },
+          {
+            "title": "Themed with tokens",
+            "text": "Every color, stripe and radius is a --ch-* CSS variable you can override."
+          },
+          {
+            "title": "Light and dark",
+            "text": "Follows the system, or force a theme on any ancestor."
+          }
+        ]
+      }
+    },
+    {
+      "id": "n6",
+      "type": "link-row",
+      "props": {
+        "heading": "Keep going",
+        "items": [
+          {
+            "label": "Getting started",
+            "href": "/docs/getting-started"
+          },
+          {
+            "label": "GitHub",
+            "href": "https://github.com/mwadon/tally-charts"
+          },
+          {
+            "label": "npm",
+            "href": "https://www.npmjs.com/package/tally-charts"
+          }
+        ]
+      }
+    }
+  ],
   "seo": {
     "metaTitle": "tally-charts · Opinionated React charts",
     "metaDescription": "Opinionated React charts for narrative business dashboards: bars, lines, waterfalls and runways that say what changed, and whether it is on plan."

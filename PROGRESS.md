@@ -1202,3 +1202,17 @@ Dodano 6 bloków strony głównej w apps/docs/blocks/ (hero, visual-language, ga
 - Blok z nieznanym exampleId (test na jednym bloku) bez APP_ENV pokazuje .block-error z tym id, a przy APP_ENV=production bez draft mode nic nie renderuje
 - pnpm --filter docs test, pnpm --filter docs typecheck i pnpm lint przechodzą
 - git diff nie zawiera zmian w apps/docs/app/page.tsx ani apps/docs/content/home.json
+
+## T26.2 Strona główna z treści (home.json, page.tsx bez sztywnych sekcji, e2e)
+`content/home.json` ma 6 węzłów (n1…n6: hero, visual-language, gallery, install, feature-grid, link-row), `app/page.tsx` renderuje tylko SiteHeader, PreviewNotice, `EditorSwitch`/`CMSPage` i footer. Usunięto `app/_components/visual-language.tsx` i `SITE.hero`. `app/_components/code-block.tsx` zostaje, bo używa go `chart-example.test.tsx`.
+**Decyzje:**
+- D1: `visualLanguageSchema` ma `heading: z.string().min(1)`, a `VisualLanguageView` zawsze renderuje `<section aria-labelledby>` z h2 (jak Gallery i FeatureGrid). Testy: `visual-language.test.tsx` (odrzucenie bez i z pustym heading), `editor-registry.test.tsx`.
+- D2: galeria ma jedną kolumnę poniżej 640 px (design §2 mówił o dwóch, ale żywe dashboardy w nie się nie mieszczą: ~165 px przy 375 px) i 3 kolumny od 640 px. `.gallery-tile` ma `container: ref-tile / inline-size` i `overflow-x: auto` (awaryjny scroller), a `reference.css` ma `@container ref-tile (max-width: 900px)` obok każdego `@media (max-width: 900px)`. Usunięto martwe `.gallery-tile .hatch-field`.
+- D3: eyebrow hero to statyczny tekst „React charts” z fiksturki (wersja jest w headerze, CMS nie interpoluje). `SITE.hero` usunięty, h1 pochodzi z treści.
+- D4: wykresy galerii identyfikuje się po kafelku: caption każdej pozycji w `home.json` to dokładnie `examples[id].title`, a testy sprawdzają 9 `li.gallery-tile` i wykres w każdym. Kolejność nagłówków sekcji to `main > section > h2`, bo dashboardy mają własne h2 (`ref-card-title`) i wykresy o nazwach innych niż `meta.title`.
+**Pułapki:**
+- SSR (`renderToReadableStream`) nie daje `role=application` (plot dostaje go po stronie przeglądarki), więc `app/page.test.tsx` szuka wykresu jako `figure`, a role=application sprawdza e2e.
+- Dashboardy reference mają własne `<header>`, więc `getByRole('banner')` na `/` trafia w wiele elementów; nagłówek strony to `header.site-header`.
+- W teście nie importuj nazwanego `meta` obok `import.meta` (transform vitest przepisuje `import.meta` na zły identyfikator); użyj aliasu.
+**Testy:** `app/page.test.tsx` (SSR, 9 testów), `blocks/visual-language.test.tsx`, `blocks/editor-registry.test.tsx`, `e2e/home.spec.ts` (kolejność h2, galeria 375/1280, 1 kolumna, Copied, brak console.error), `e2e/editor.spec.ts` (`/?_editor=1`).
+**Weryfikacja:** pnpm build, docs gen, docs test (480), docs typecheck, pnpm lint (0 błędów), docs check:content (0 błędów), docs build, docs test:e2e (59) zielone.
