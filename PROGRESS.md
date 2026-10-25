@@ -1798,3 +1798,49 @@ Rozbudowałem stronę LineChart o przykład `underlay` i pełną sekcję klawiat
 **Bramki:** `pnpm build`, `docs test` (633), `docs typecheck`, `pnpm lint` (kod 0, 5 ostrzeżeń i 1 info jak wcześniej), `check:content` (0 błędów, 52/52, także z `--require-coverage`), `docs build`, `docs test:e2e` (290, bez update, port 3100 wolny) przeszły. `git diff --stat -- packages apps/storybook apps/docs/e2e/__screenshots__` jest pusty; `grep Date.now examples/runway-chart` pusty.
 
 **Otwarte kwestie:** liczby w description przykładów (sumy, daty run-outu, godziny blokady) policzyłem skryptem, nic ich nie pilnuje automatycznie.
+
+## ✔ T30.2 Strony line-chart (underlay), heatmap i runway-chart (runwayForecast, kontrolowany activeId) (2026-10-25)
+Dodano strony Heatmap i RunwayChart oraz rozbudowano LineChart. Pokrycie API w `check:content` wynosi 52/52, także z `--require-coverage`. Wszystkie bramki przeszły: build, docs test (633), typecheck, lint (kod 0), docs build i docs test:e2e (290, bez update). `git diff --stat` dla packages, storybooka i screenshotów jest pusty. Zmiany zostają w drzewie roboczym, bez commitów i bez changesetu.
+
+Nowe przykłady:
+- `line-chart/orders-last-year`: `underlay={<Area>}` na osi czasu, rscSafe: true.
+- `heatmap/on-call-pages`: rscSafe: true.
+- `heatmap/trial-conversion`: `totals={false}`, brakująca komórka, `onSelect` + stan, 'use client', rscSafe: false.
+- `runway-chart/api-quotas`: stałe daty ISO, wiersze przez `...runwayForecast`, rscSafe: true.
+- `runway-chart/gpu-budgets`: kontrolowany `activeId`, przyciski poza wykresem, tekst `Active: …`, 'use client', rscSafe: false.
+
+Strony i testy:
+- `content/line-chart.json` zachowuje n1–n12 i dodaje przykład underlay po revenue-forecast, prose o kolejności rysowania (grid → underlay → target/band → serie → osie → children) oraz sekcję klawiatury w zakresie T29.
+- `content/heatmap.json` i `runway-chart.json` mają po 2 przykłady, props-table i sekcje z a11y.md. Runway ma dodatkowo `runwayForecast`.
+- `fixtures.test.ts` oczekuje 22 stron, `check.test.ts` 52/52 oraz nowy test z `--require-coverage`.
+- Testy exit 1 używają `lib/content/__fixtures__/partial`.
+- E2e: `heatmap.spec.ts`, `runway-chart.spec.ts` (w tym test kontrolowanego activeId), `line-chart.spec.ts` (zawężony lokator Preview/Code do pierwszej karty plus test underlay) i `chartRole` w `themeSuite`.
+- PROGRESS.md ma sekcję `## ✔ T30.2` z decyzjami i podsumowaniem 46→49→52/52. CLAUDE.md dostał krótkie notatki o nowych konwencjach.
+**Decyzje i pułapki:**
+- runwayForecast zaimportowany z głównego entry 'tally-charts' jest referencją klientową: wywołanie w przykładzie rscSafe kończy `next build` błędem (testy vitest tego nie wykrywają). W przykładach serwerowych importuj funkcje z 'tally-charts/core'.
+- Nazwa dostępnościowa gridcell w Heatmap to sam tekst komórki („21”, „No data”). „Dallas, Labor, $14.8K” to odczyt czytnika przez nagłówki, więc w e2e sprawdzaj komórkę w wierszu z rowheaderem.
+- Przełącznik Preview/Code też ma role=group o nazwie „View of <title>”, więc lokator grupy przewijanej Heatmapu wymaga exact: true.
+- Heatmap to HTML i CSS bez <svg>; testy render i ssr przykładów musiały to dopuścić.
+- Na stronie z więcej niż jednym chart-example lokatory przycisków Preview/Code trzeba zawęzić do karty (`.chart-example`).
+**Otwarte kwestie:**
+- Liczby w description przykładów (sumy, daty run-outu, godziny blokady, procenty) policzyłem skryptem, nic ich nie pilnuje automatycznie.
+- render.test.tsx i ssr.test.tsx wymagały zmiany wbrew założeniu planu: przykłady heatmap/ nie mają <svg>, więc mayOmitSvg obejmuje teraz prefiks heatmap/.
+- PROGRESS.md na main ma wcześniej zduplikowane sekcje (np. T29.1, T11, T06), poza zakresem tego taska.
+- apps/docs/examples/heatmap/trial-conversion.tsx: Heatmap calls onSelect for every gridcell, including empty ones: onClick in Heatmap.tsx:533, and Enter/Space at :325 when the cell exists, with value NaN. Clicking the 'No data' cell (Events, Starter), which the page prose (n10) points out, therefore shows 'Selected: Events, Starter, NaN%' below the chart.
+**Kryteria:**
+- Istnieje ≥1 nowy apps/docs/examples/line-chart/*.tsx, który przekazuje element (np. <Area>) w prop `underlay`; content/line-chart.json zachowuje węzły n1–n12 (w tym chart-example line-chart/revenue-forecast jako pierwszy) i dodaje chart-example underlay po nim oraz prose z kolejnością rysowania grid → underlay → serie → children.
+- Sekcja „Keyboard and screen readers” w line-chart.json opisuje: jeden tab stop, strzałki, Home/End, Enter/Space przy onSelect, Escape, keyboardHint (zamiana i ""), zapowiedź dosłownie z tabeli docs/a11y.md dla LineChart i ukrytą tabelę danych (dataTable).
+- Istnieją ≥2 apps/docs/examples/heatmap/*.tsx i ≥2 apps/docs/examples/runway-chart/*.tsx z meta jako literałami, z danymi i tytułami innymi niż reference/05, reference/08 i thresholds/heatmap-legend; `pnpm --filter docs gen` kończy się kodem 0.
+- Jeden przykład runway buduje wiersze przez `...runwayForecast({ ..., now })` ze stałymi datami ISO (grep `Date.now` w examples/runway-chart daje 0 wyników).
+- Drugi przykład runway ma 'use client', rscSafe: false, trzyma activeId w useState z onActiveChange, pokazuje aktywny wiersz w tekście poza wykresem i ma kontrolkę (przycisk), która zmienia activeId z zewnątrz.
+- examples/registry.test.ts, render.test.tsx i ssr.test.tsx przechodzą.
+- content/heatmap.json i runway-chart.json przechodzą content/fixtures.test.ts: każda ma ≥2 chart-example, props-table Heatmap/RunwayChart, headingi level '2' „When to use it” i „Keyboard and screen readers”; runway-chart.json ma dodatkowo props-table runwayForecast.
+- Opis Heatmap wymienia: grid, roving tabindex, Ctrl/Cmd+Home/End, PageUp/PageDown, wiersz i kolumnę sum, przewijaną grupę role="group" przy wąskim kontenerze, odczyt „Dallas, Labor, $14.8K”. Opis RunwayChart wymienia: list bez onSelect bez tab stopu, listbox z aria-activedescendant przy onSelect, Up/Down/Home/End/PageUp/PageDown i odczyt wiersza.
+- content/fixtures.test.ts oczekuje 22 dostępnych stron w kolejności nawigacji (…, waffle-columns, line-chart, heatmap, runway-chart, composition, small-pieces, hooks-and-providers).
+- lib/content/check.test.ts: test na content/ oczekuje `fixtures: API coverage: 52/52`, braku 'no PropsTable for' i exit 0, także z --require-coverage. Testy exit 1 (--require-coverage i CHECK_CONTENT_REQUIRE_COVERAGE=1) używają --content-dir z niepełnymi fiksturkami (nowy katalog lib/content/__fixtures__/…) i oczekują 'API coverage: … has no PropsTable'.
+- e2e/heatmap.spec.ts i runway-chart.spec.ts: themeSuite (z rolą grid / list|listbox przez nowy opcjonalny parametr w support.ts, domyślnie 'application'), status 200, link w sidebarze z href /docs/<slug> i aria-current="page", bez .nav-soon, dokładnie 1 region 'Props of Heatmap'/'Props of RunwayChart' (exact), dla runway także 1 region 'Parameters of runwayForecast' (exact), oba przykłady widoczne po roli z a11y.md.
+- runway-chart.spec.ts ma test, w którym kliknięcie przycisku poza wykresem zmienia aktywny wiersz (tekst poza wykresem i stan wiersza/aria-activedescendant w wykresie).
+- line-chart.spec.ts sprawdza widoczność przykładu underlay (application o nazwie z title); istniejące asercje expect w line-chart, editor, preview i routes są bez zmian (dozwolone tylko zawężenie lokatora przycisków Preview/Code do pierwszej karty).
+- Po `pnpm build` `pnpm --filter docs check:content` kończy się kodem 0 i wypisuje `API coverage: 52/52`.
+- pnpm --filter docs test, pnpm --filter docs typecheck, pnpm lint, pnpm --filter docs build i pnpm --filter docs test:e2e (bez --update-snapshots, port 3100 wolny) kończą się kodem 0; `git diff --stat -- packages apps/storybook apps/docs/e2e/__screenshots__` jest pusty.
+- PROGRESS.md ma jedną sekcję `## ✔ T30.2` z decyzjami (rscSafe, chartRole w themeSuite, zawężony lokator, katalog fiksturek dla exit 1) i podsumowaniem T30 (pokrycie 46→49→52/52).
