@@ -2110,3 +2110,20 @@ Poprawki z review (próba 3). (1) Dowód e2e: `pnpm --filter docs test:e2e` po z
 - Baseline'y home-visual i line-chart-visual przechodzą bez `--update-snapshots` albo są odświeżone na darwin i linux.
 - `pnpm --filter docs test`, `pnpm lint` i `pnpm --filter docs typecheck` kończą się kodem 0. `git diff -- packages` jest pusty.
 - PROGRESS.md ma sekcję T34.2 z decyzją: eager z kolejności węzłów przez `markEagerExamples`, prop `eager` poza schematem Zod, hero zawsze SSR. Podaje wartość rootMargin z uzasadnieniem (pozycja drugiej karty przy 1280×800) i sposób liczenia wysokości placeholdera.
+
+## ✔ T34.3 Pomiar Lighthouse (mobile) dla / i /docs/line-chart (2026-10-25)
+Nowe: `apps/docs/scripts/lighthouse.mjs` (`pnpm --filter docs lighthouse`; czyste eksporty `summarize`, `evaluate`, `formatTable`, `reportName`, `THRESHOLDS`, `PAGES`), `scripts/lighthouse.test.ts` (14 testów na minimalnym LHR), devDependencies `lighthouse` 13.5.0 i `chrome-launcher` 1.2.2 (dokładne wersje, lockfile zaktualizowany), `apps/docs/.lighthouse/` w `.gitignore` (raporty HTML i JSON). Punkt w CLAUDE.md (komendy docs). Kod stron, biblioteka i baseline'y wizualne bez zmian (w diffie nie ma PNG, `git diff -- packages` pusty), więc żadna poprawka pod progi nie była potrzebna.
+**Decyzja o warunkach:** mierzymy `http://localhost:3100` na fiksturkach (bez `CMS_BASE_URL`), `pnpm build && APP_ENV=production SITE_URL=http://localhost:3100 pnpm --filter docs build`, potem `APP_ENV=production SITE_URL=http://localhost:3100 pnpm --filter docs start`. Żaden audyt nie jest pomijany i progi nie są obniżone. `APP_ENV=production` włącza indeksowanie: bez niego `pageMetadata` daje noindex, a `robots.txt` `Disallow: /`, co oblewa `is-crawlable` i `robots-txt` (pierwszy pomiar bez tego: SEO 66 na obu stronach, Performance 98/97, Accessibility 100). `SITE_URL` ustawia canonical na mierzony host. **Zmienne muszą być ustawione już przy `docs build`, nie tylko przy `start`**, bo strony, `robots.txt` i canonical są prerenderowane (pierwsza próba z env tylko przy `start` dała nadal noindex). Na fiksturkach nie ma błędów bloków, które `production` ukrywa (pilnuje tego `check:content`). Skrypt nie startuje serwera: bez odpowiedzi na `/` kończy się kodem 1 z komendą startu; gdy oblewa `is-crawlable`, dopisuje podpowiedź o `APP_ENV=production`.
+**Pomiar** (2026-10-25, darwin, Lighthouse 13.5.0, preset mobile z symulowanym throttlingiem, Chromium z Playwright 1.64 = HeadlessChrome 156, `--headless=new`; 3 kolejne przebiegi dały te same wyniki całkowite, LCP ±15 ms):
+
+| Strona | Performance | Accessibility | SEO | LCP | TBT | CLS |
+|---|---|---|---|---|---|---|
+| `/` | 98 | 100 | 100 | 2360 ms | 54 ms | 0.000 |
+| `/docs/line-chart` | 97 | 100 | 100 | 2524 ms | 66 ms | 0.000 |
+
+Progi (Performance ≥ 90, Accessibility 100, SEO ≥ 95) spełnione na obu stronach, skrypt kończy się kodem 0.
+**Pułapki:**
+- Poprzedni `next start` mógł nadal słuchać na 3100 (`pkill -f "next start"` nie zabił procesu `next-server`): sprawdź `lsof -i :3100` i zabij po PID przed przebudową i przed `test:e2e`.
+- Wyniki zależą od maszyny (symulowany throttling), więc liczby z CI/linuxa mogą się różnić; skrypt nie jest w CI.
+**Otwarte kwestie:**
+- Lighthouse nie jest w jobie CI (poza zakresem taska); tylko pomiar lokalny na żądanie.
