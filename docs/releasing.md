@@ -187,3 +187,44 @@ without it.
    npm deprecate tally-charts@0.0.0-stage "Placeholder from staged publishing; use a real version"
    npm view tally-charts@0.0.0-stage deprecated   # prints the message above
    ```
+
+## 10. Docs content (seed) [MAINTAINER]
+
+`pnpm --filter docs seed` copies the pages of `apps/docs/content/*.json` into the glökki tenant and
+publishes them, so the CMS can be the source of the content of the docs site. It talks to the
+glökki MCP server (`$CMS_BASE_URL/api/mcp/mcp`). Run it from your machine, never from the site's
+server or from CI.
+
+Needs, in the environment (see `apps/docs/.env.example`):
+
+- `CMS_BASE_URL`: the address of the glökki CMS.
+- `CMS_ADMIN_API_KEY`: an admin key from glökki, Settings → API Keys, with the scopes
+  `mcp:connect`, `admin:pages:read`, `admin:pages:write` and `admin:pages:publish`. Without it (or
+  without `CMS_BASE_URL`) the script exits with code 1 and names the missing variable, also with
+  `--dry-run`: the plan is computed from what the CMS holds.
+
+Steps:
+
+1. **Sync the block registry**: after every deploy of the docs site that adds or changes blocks,
+   open any page in the glökki visual editor once. glökki works from a stored snapshot of the
+   block registry that only the editor refreshes; until then `add_block` and `publish_page`
+   refuse the block types (`REGISTRY_NOT_SYNCED`, `BLOCK_TYPE_NOT_FOUND`).
+2. **Check the plan**: `pnpm --filter docs seed --dry-run` prints one line per page
+   (`create  /slug`, `update  /slug (blocks, seo)`, `skip    /slug (unchanged)`) and
+   `seed: N create, M update, K skip`. It only reads the CMS.
+3. **Seed**: `pnpm --filter docs seed`. It creates or updates the pages, then publishes each of
+   them, so they show up in the delivery navigation. Publishing is limited to 10 calls a minute per
+   key: the script waits out the limit and goes on, so 18 pages take over a minute.
+4. **Check the content**: `CMS_BASE_URL=… CMS_TENANT=… CMS_API_KEY=… pnpm --filter docs check:content`
+   (after `pnpm build`) validates the pages in the CMS the same way as the fixtures.
+
+Running it again is safe: a page that already matches its fixture (title, the seo fields of the
+fixture, the block types in order and the props of the fixture on top of the defaults of the
+block, exactly) and is published is skipped, and nothing is written. A prop or a seo field that
+was removed from a fixture is removed from the CMS too (a block that holds a removed prop is
+rebuilt). A run that
+broke half way is completed by the next one. Pages in the CMS that have no fixture are skipped
+(`not in fixtures`) and never deleted (so is a page with the slug of a fixture in another locale,
+listed as `/slug [locale]`), and a slug of `content/navigation.json` without a fixture is
+skipped as `no fixture`. The labels, groups and order of the sidebar stay in
+`content/navigation.json`; the seed doesn't touch the menu of the layout.

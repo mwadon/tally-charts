@@ -268,6 +268,40 @@ describe('glökki', () => {
   })
 })
 
+describe('glökki delivery slugs', () => {
+  // The delivery API answers with the slug as stored: a leading `/`.
+  const slashed = () =>
+    vi.fn(async (input: string | URL | Request) => {
+      const { pathname } = new URL(String(input))
+      if (pathname === '/api/v1/delivery/pages/by-slug/line-chart') {
+        return json({ data: { ...page, slug: '/line-chart' } })
+      }
+      if (pathname === '/api/v1/delivery/pages') {
+        const meta = { total: 1, limit: 100, offset: 0 }
+        return json({ data: [{ ...listItem, slug: '/line-chart' }], meta })
+      }
+      if (pathname === '/api/v1/delivery/navigation') {
+        return json({ data: [{ slug: '/line-chart', title: 'LineChart', locale: 'en' }] })
+      }
+      return json({ error: { code: 'NOT_FOUND', message: pathname } }, 404)
+    })
+  const source = () =>
+    createGlokkiSource({
+      baseUrl: 'https://cms.test/',
+      tenant: 'acme',
+      apiKey: 'key-1',
+      navigationConfig: async () => navigationConfig,
+    })
+
+  test('getPage, listPages and getNavigation hand out the slug without the slash', async () => {
+    vi.stubGlobal('fetch', slashed())
+
+    expect(await source().getPage('line-chart')).toEqual(page)
+    expect(await source().listPages()).toEqual([listItem])
+    expect(await source().getNavigation()).toEqual(expectedNavigation)
+  })
+})
+
 describe('getContentSource', () => {
   test('without CMS_BASE_URL it reads the fixtures', () => {
     expect(getContentSource({}).kind).toBe('fixtures')
