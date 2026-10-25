@@ -95,6 +95,16 @@ jobs:
   # Runs without network access to the CMS and without secrets: with no CMS_BASE_URL the docs app
   # reads its pages from the JSON fixtures in apps/docs/content. The Playwright image only
   # provides the browsers.
+  # The home page baselines live in apps/docs/e2e/__screenshots__/{darwin,linux}. CI never writes
+  # them (updateSnapshots is 'none' on CI). To refresh the linux baselines, run this from the repo
+  # root. It regenerates them in a copy of the repo (the host node_modules stays untouched), runs
+  # the suite again without updating, and copies the PNGs out only if that verify run passes:
+  #   docker run --rm -v "$PWD":/src:ro -v "$PWD/apps/docs/e2e/__screenshots__":/out \
+  #     mcr.microsoft.com/playwright:v1.64.0-noble sh -c '
+  #       mkdir /w && cd /src && tar --exclude=node_modules --exclude=.git --exclude=.next --exclude=dist --exclude=storybook-static -cf - . | tar -xf - -C /w &&
+  #       cd /w && corepack enable && pnpm install --frozen-lockfile && pnpm build && pnpm --filter docs build &&
+  #       pnpm --filter docs exec playwright test e2e/home-visual.spec.ts --update-snapshots=all; CI=1 pnpm --filter docs test:e2e &&
+  #       mkdir -p /out/linux && cp -r apps/docs/e2e/__screenshots__/linux/. /out/linux/'
   docs:
     runs-on: ubuntu-latest
     container: mcr.microsoft.com/playwright:v1.64.0-noble
@@ -117,9 +127,11 @@ jobs:
       - run: pnpm --filter docs test:e2e
         env:
           CI: 'true'
-      - name: Upload test results
-        if: failure()
+      - name: Upload screenshots and test results (commit new linux baselines from here)
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: docs-test-results
-          path: apps/docs/test-results
+          path: |
+            apps/docs/e2e/__screenshots__
+            apps/docs/test-results
