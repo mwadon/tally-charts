@@ -201,6 +201,34 @@ describe('glökki', () => {
     }
   })
 
+  test('with preview every fetch is no-store and not tagged, and reads still work', async () => {
+    const source = createGlokkiSource({
+      baseUrl: 'https://cms.test/',
+      tenant: 'acme',
+      apiKey: 'key-1',
+      preview: true,
+      navigationConfig: async () => navigationConfig,
+    })
+    expect(await source.getPage('line-chart')).toEqual(page)
+    await source.getPage('nope')
+    await source.listPages()
+    expect(await source.getNavigation()).toEqual(expectedNavigation)
+
+    expect(fetchMock.mock.calls.length).toBeGreaterThanOrEqual(4)
+    for (const [, init] of fetchMock.mock.calls) {
+      expect(init?.cache).toBe('no-store')
+      expect((init as { next?: unknown }).next).toBeUndefined()
+    }
+  })
+
+  test('without preview the fetches are tagged and have no cache option', async () => {
+    await create().getPage('line-chart')
+
+    const init = fetchMock.mock.calls[0]?.[1]
+    expect(init?.cache).toBeUndefined()
+    expect((init as { next?: { tags?: string[] } }).next?.tags).toEqual(['cms'])
+  })
+
   test('pages through the list until total', async () => {
     fetchMock = deliveryApi(250)
     vi.stubGlobal('fetch', fetchMock)
@@ -251,6 +279,18 @@ describe('getContentSource', () => {
     expect(() => getContentSource({ CMS_BASE_URL: 'https://cms.test', CMS_API_KEY: 'k' })).toThrow(
       'CMS_TENANT',
     )
+  })
+
+  test('with preview and CMS_BASE_URL it is still glökki, without it still fixtures', () => {
+    const env = { CMS_BASE_URL: 'https://cms.test', CMS_TENANT: 'acme', CMS_API_KEY: 'k' }
+    expect(getContentSource(env, true).kind).toBe('cms')
+    expect(getContentSource({}, true).kind).toBe('fixtures')
+  })
+
+  test('fixtures read the same pages with and without preview', async () => {
+    const [plain, preview] = [getContentSource({}), getContentSource({}, true)]
+    expect(await preview.getPage('line-chart')).toEqual(await plain.getPage('line-chart'))
+    expect(await preview.listPages()).toEqual(await plain.listPages())
   })
 
   test('defaults to process.env', () => {

@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { fireEvent, render, screen } from '@testing-library/react'
+import { draftMode } from 'next/headers'
 import { afterEach, expect, test, vi } from 'vitest'
 import { examples } from '../examples.generated'
 import { ChartExampleBlock, chartExampleSchema, exampleIds } from './chart-example'
@@ -8,8 +9,14 @@ import { ChartExampleBlock, chartExampleSchema, exampleIds } from './chart-examp
 const ID = 'line-chart/revenue-forecast'
 const unknown = { exampleId: 'nope/missing', defaultView: 'preview' } as never
 
+vi.mock('next/headers', () => ({ draftMode: vi.fn() }))
+
+const setDraft = (isEnabled: boolean) =>
+  vi.mocked(draftMode).mockResolvedValue({ isEnabled } as never)
+
 afterEach(() => {
   vi.unstubAllEnvs()
+  vi.mocked(draftMode).mockReset()
 })
 
 test('shows the live chart with a Preview / Code toggle', async () => {
@@ -95,6 +102,24 @@ test('an unknown id renders nothing on production', async () => {
   const { container } = render(await ChartExampleBlock(unknown))
 
   expect(container.innerHTML).toBe('')
+})
+
+test('an unknown id renders nothing on production without draft mode', async () => {
+  vi.stubEnv('APP_ENV', 'production')
+  setDraft(false)
+
+  const { container } = render(await ChartExampleBlock(unknown))
+
+  expect(container.innerHTML).toBe('')
+})
+
+test('an unknown id shows a visible error on production in draft mode', async () => {
+  vi.stubEnv('APP_ENV', 'production')
+  setDraft(true)
+
+  const { container } = render(await ChartExampleBlock(unknown))
+
+  expect(container.querySelector('.block-error')?.textContent).toContain('nope/missing')
 })
 
 test('a name from Object.prototype is not an example', async () => {
