@@ -70,7 +70,7 @@ test('navigation.json is valid and its slugs are unique', async () => {
   expect(new Set(all).size).toBe(all.length)
 })
 
-test('the available pages of the navigation are 24, in navigation order', async () => {
+test('the available pages of the navigation are 25, in navigation order', async () => {
   const { groups } = await source.getNavigation()
   const available = groups.flatMap((g) => g.items).filter((i) => i.available)
   expect(available.map((i) => i.slug)).toEqual([
@@ -98,13 +98,48 @@ test('the available pages of the navigation are 24, in navigation order', async 
     'small-pieces',
     'hooks-and-providers',
     'stability',
+    'migration-1-0',
   ])
 })
 
-test('migration-1-0 is the only slug of the navigation without a page', async () => {
+test('no item of the navigation is unavailable', async () => {
   const { groups } = await source.getNavigation()
   const unavailable = groups.flatMap((g) => g.items).filter((i) => !i.available)
-  expect(unavailable.map((i) => i.slug)).toEqual(['migration-1-0'])
+  expect(unavailable.map((i) => i.slug)).toEqual([])
+})
+
+test('the navigation has every slug of F15 except home', async () => {
+  const { groups } = await source.getNavigation()
+  const all = groups.flatMap((g) => g.items.map((i) => i.slug))
+  const f15 = [
+    'getting-started',
+    'composition',
+    'theming',
+    'palettes',
+    'time-scales',
+    'formatting',
+    'thresholds',
+    'accessibility',
+    'server-components',
+    'dark-mode',
+    'bar-chart',
+    'comparison-bars',
+    'ranked-bars',
+    'waterfall-chart',
+    'bridge-chart',
+    'dot-histogram',
+    'strip-plot',
+    'waffle-columns',
+    'line-chart',
+    'heatmap',
+    'runway-chart',
+    'small-pieces',
+    'hooks-and-providers',
+    'stability',
+    'migration-1-0',
+  ]
+  expect(f15).toHaveLength(25)
+  expect(all).toEqual(expect.arrayContaining(f15))
 })
 
 /** The text of the prose, heading, callout and code-block blocks of a page, in order. */
@@ -193,3 +228,64 @@ test.each(['accessibility', 'stability'])(
     expect(all).not.toMatch(/\]\((?!https?:|\/docs\/|#)/)
   },
 )
+
+test('migration-1-0 lists four breaking changes with code before and an example after', async () => {
+  const { page, blocks, headings, after, all } = await pageText('migration-1-0')
+
+  expect(page?.title).toBe('Migration to 1.0')
+  expect(page?.seo.metaTitle).toBe('Migration to 1.0 · tally-charts')
+  expect(headings('2')).toEqual(['Breaking changes', 'Additive changes'])
+
+  const start = blocks.findIndex((n) => n.type === 'heading' && n.props.text === 'Breaking changes')
+  const end = blocks.findIndex((n) => n.type === 'heading' && n.props.text === 'Additive changes')
+  const sections: ComponentNode[][] = []
+  for (const node of blocks.slice(start + 1, end)) {
+    if (node.type === 'heading') {
+      expect(['2', '3']).toContain(node.props.level)
+      sections.push([])
+    } else sections.at(-1)?.push(node)
+  }
+  expect(sections.length).toBeGreaterThanOrEqual(4)
+  for (const section of sections) {
+    const before = section.filter(
+      (n) => n.type === 'code-block' && n.props.filename === 'Before (0.9)',
+    )
+    expect(before.length).toBeGreaterThanOrEqual(1)
+    const examples = section.filter((n) => n.type === 'chart-example')
+    expect(examples.length).toBeGreaterThanOrEqual(1)
+    for (const e of examples) expect(String(e.props.exampleId)).toMatch(/^migration\//)
+  }
+
+  const breaking = after('Breaking changes')
+  expect(breaking).toContain('RankedBars: pass `fill="hatch"` to keep the old look')
+  for (const phrase of [
+    'fill="hatch"',
+    'aria-labelledby',
+    'BarChartProps<D> &',
+    'Pick',
+    'Omit',
+    '& ChartName',
+    'keyboardHint',
+    '](/docs/stability)',
+  ]) {
+    expect(breaking, phrase).toContain(phrase)
+  }
+
+  const additive = after('Additive changes')
+  for (const phrase of [
+    'underlay',
+    '](/docs/line-chart)',
+    'createDateFormatter',
+    'tally-charts/core',
+    'DateFormatOptions',
+    'DateFormatSpec',
+    'DateFormatter',
+    '](/docs/formatting)',
+    'Press Enter to select.',
+    'onSelect',
+    'selectable: false',
+  ]) {
+    expect(additive, phrase).toContain(phrase)
+  }
+  expect(all).not.toMatch(/\]\((?!https?:|\/docs\/|#)/)
+})
