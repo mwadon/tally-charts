@@ -1,0 +1,158 @@
+{
+  "versionId": "fixture-theming-v1",
+  "version": 1,
+  "locale": "en",
+  "publishedAt": "2026-10-25T00:00:00.000Z",
+  "codeInjection": {},
+  "layout": {
+    "key": "default",
+    "header": null,
+    "footer": null
+  },
+  "pageId": "fixture-theming",
+  "title": "Theming",
+  "slug": "theming",
+  "seo": {
+    "metaTitle": "Theming · tally-charts",
+    "metaDescription": "Style tally-charts with the --ch-* tokens, the data-ch-part attribute and the data-ch-* state attributes; force a theme on any element."
+  },
+  "componentTree": [
+    {
+      "id": "n1",
+      "type": "prose",
+      "props": {
+        "markdown": "Every color, size and motion setting of a chart is a CSS custom property called `--ch-<name>`, a token. Import `tally-charts/theme.css` once and the tokens are defined for the light and the dark theme; change one on any element and every chart below it follows. This page lists the tokens, shows how to aim at a single part of a chart, and explains how to force a theme on part of the page."
+      }
+    },
+    {
+      "id": "n2",
+      "type": "heading",
+      "props": {
+        "text": "Tokens",
+        "level": "2",
+        "anchor": "tokens"
+      }
+    },
+    {
+      "id": "n3",
+      "type": "prose",
+      "props": {
+        "markdown": "The theme tokens change between the light and the dark theme. The values are read from `theme.css`, so the table is always the shipped one. Default values can be tuned in a minor release, for example to keep a contrast ratio; the names and their meaning are stable."
+      }
+    },
+    {
+      "id": "n4",
+      "type": "token-table",
+      "props": {
+        "group": "theme"
+      }
+    },
+    {
+      "id": "n5",
+      "type": "prose",
+      "props": {
+        "markdown": "The shared tokens have one value for both themes: sizes, hatching, motion and the sequential ramp."
+      }
+    },
+    {
+      "id": "n6",
+      "type": "token-table",
+      "props": {
+        "group": "shared"
+      }
+    },
+    {
+      "id": "n7",
+      "type": "heading",
+      "props": {
+        "text": "Overriding tokens",
+        "level": "2",
+        "anchor": "overriding-tokens"
+      }
+    },
+    {
+      "id": "n8",
+      "type": "prose",
+      "props": {
+        "markdown": "Tokens are inherited, so a `style` on a container (or a rule in your own stylesheet) reaches every chart inside it. A token can be set to a color, a number or another token: below, `--ch-accent` is pointed at `--ch-loss`, and `--ch-radius` and `--ch-hatch-gap` are plain numbers. The chart on the left is untouched."
+      }
+    },
+    {
+      "id": "n9",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "theming/token-overrides",
+        "defaultView": "preview"
+      }
+    },
+    {
+      "id": "n10",
+      "type": "prose",
+      "props": {
+        "markdown": "Colors that follow the theme belong in a token or in `var(--ch-*)`, not in a fixed hex value, or the chart will look wrong in the other theme. The `--ch-seq-1` to `--ch-seq-5` tokens are computed from `--ch-seq-base` and the `--ch-seq-mix-*` tokens, so steer those instead of overriding the computed ones."
+      }
+    },
+    {
+      "id": "n11",
+      "type": "heading",
+      "props": {
+        "text": "Parts and state attributes",
+        "level": "2",
+        "anchor": "parts"
+      }
+    },
+    {
+      "id": "n12",
+      "type": "prose",
+      "props": {
+        "markdown": "To change something a token does not cover, select the part with `[data-ch-part=\"…\"]`, for example `tooltip` or `callout-stem`. The part names are stable. The classes `ch-*` and the `--_ch-*` variables are private and can change in any release, so never select those.\n\nThe state and variant attributes are stable too, names and values:\n\n- `data-ch-tone`: the tone of a mark or a piece (`accent`, `accent-soft`, `loss`, `warn`, `gain` or `neutral`).\n- `data-ch-fill`: how a mark is filled (`solid`, `hatch` or `hatch-fade`).\n- `data-ch-active`: set on the mark the pointer or the keyboard is on.\n- `data-ch-dimmed`: set on the marks that are not the active one.\n- `data-ch-direction`: the way a bar grows (`up`, `down`, `left` or `right`).\n- `data-ch-theme`: `light` or `dark`, set by you on an ancestor.\n- `data-ch-palette`: the palette, set by you on an ancestor.\n- `data-ch-seq-tone`: the tone whose ramp a sequential scale uses.\n- `data-ch-level`: the step (a number) of a mark in a stepped scale, for example a heatmap cell."
+      }
+    },
+    {
+      "id": "n13",
+      "type": "code-block",
+      "props": {
+        "code": "/* Stable: a part, a state attribute and tokens. */\n[data-ch-part=\"tooltip\"] {\n  --ch-tooltip-bg: #111;\n  border-radius: 4px;\n}\n\n[data-ch-part=\"bar\"][data-ch-active=\"true\"] {\n  opacity: 0.9;\n}\n\n/* Fragile: a class and a private variable. */\n.ch-tooltip {\n  --_ch-swatch-color: red;\n}",
+        "lang": "css"
+      }
+    },
+    {
+      "id": "n14",
+      "type": "prose",
+      "props": {
+        "markdown": "When there is no part for what you want to change, prefer a token. If neither exists, that is a gap in the public surface and worth an issue, not a reason to reach for a class."
+      }
+    },
+    {
+      "id": "n15",
+      "type": "heading",
+      "props": {
+        "text": "Forcing a theme",
+        "level": "2",
+        "anchor": "forcing-a-theme"
+      }
+    },
+    {
+      "id": "n16",
+      "type": "prose",
+      "props": {
+        "markdown": "Charts follow `prefers-color-scheme` until an ancestor sets `data-ch-theme=\"light\"` or `data-ch-theme=\"dark\"`; the attribute wins over the system setting, and a nested one wins over an outer one. That makes a dark panel on a light page a single attribute. Give the panel the theme's own `--ch-surface` and `--ch-ink` so the box matches the chart."
+      }
+    },
+    {
+      "id": "n17",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "theming/nested-dark",
+        "defaultView": "preview"
+      }
+    },
+    {
+      "id": "n18",
+      "type": "prose",
+      "props": {
+        "markdown": "Next: [Palettes](/docs/palettes) swaps three of the tone colors, and [Dark mode](/docs/dark-mode) connects the theme to a toggle in your app."
+      }
+    }
+  ]
+}

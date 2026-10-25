@@ -1,0 +1,144 @@
+{
+  "versionId": "fixture-palettes-v1",
+  "version": 1,
+  "locale": "en",
+  "publishedAt": "2026-10-25T00:00:00.000Z",
+  "codeInjection": {},
+  "layout": {
+    "key": "default",
+    "header": null,
+    "footer": null
+  },
+  "pageId": "fixture-palettes",
+  "title": "Palettes",
+  "slug": "palettes",
+  "seo": {
+    "metaTitle": "Palettes · tally-charts",
+    "metaDescription": "data-ch-palette=\"vivid\" restores the brighter light colors of the warn, gain and neutral tokens. Light only; here are the swatches and the limits."
+  },
+  "componentTree": [
+    {
+      "id": "n1",
+      "type": "prose",
+      "props": {
+        "markdown": "A palette is a named set of values for some of the color tokens. The default palette is tuned so that marks keep their contrast on the light and the dark surface. There is one other, `vivid`, which restores the brighter light colors that the library used before 0.6b for three tokens: `--ch-warn`, `--ch-gain` and `--ch-neutral`."
+      }
+    },
+    {
+      "id": "n2",
+      "type": "heading",
+      "props": {
+        "text": "Choosing a palette",
+        "level": "2",
+        "anchor": "choosing-a-palette"
+      }
+    },
+    {
+      "id": "n3",
+      "type": "prose",
+      "props": {
+        "markdown": "Set `data-ch-palette=\"vivid\"` on `<html>`, on any ancestor of a chart, or on the element that also has `data-ch-theme`."
+      }
+    },
+    {
+      "id": "n4",
+      "type": "code-block",
+      "props": {
+        "code": "<html lang=\"en\" data-ch-palette=\"vivid\">\n  <body>{children}</body>\n</html>",
+        "lang": "tsx",
+        "filename": "app/layout.tsx"
+      }
+    },
+    {
+      "id": "n5",
+      "type": "prose",
+      "props": {
+        "markdown": "Your own `--ch-*` overrides on a descendant still win over the palette. Everything that is not one of the three tokens is unchanged."
+      }
+    },
+    {
+      "id": "n6",
+      "type": "heading",
+      "props": {
+        "text": "Swatches",
+        "level": "2",
+        "anchor": "swatches"
+      }
+    },
+    {
+      "id": "n7",
+      "type": "prose",
+      "props": {
+        "markdown": "The default palette, with the contrast of each color against `--ch-surface` of the same theme:"
+      }
+    },
+    {
+      "id": "n8",
+      "type": "palette-swatches",
+      "props": {
+        "palette": "default"
+      }
+    },
+    {
+      "id": "n9",
+      "type": "prose",
+      "props": {
+        "markdown": "The vivid palette changes `--ch-warn`, `--ch-gain` and `--ch-neutral` in the light theme only:"
+      }
+    },
+    {
+      "id": "n10",
+      "type": "palette-swatches",
+      "props": {
+        "palette": "vivid"
+      }
+    },
+    {
+      "id": "n11",
+      "type": "heading",
+      "props": {
+        "text": "Side by side",
+        "level": "2",
+        "anchor": "side-by-side"
+      }
+    },
+    {
+      "id": "n12",
+      "type": "prose",
+      "props": {
+        "markdown": "Both panels below are pinned to the light theme, because the palette does not apply to the dark one, and both have a `--ch-surface` background. The panel on the right also has `data-ch-palette=\"vivid\"`, on the same element as `data-ch-theme`. The chart uses the gain, neutral and warn tones."
+      }
+    },
+    {
+      "id": "n13",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "palettes/vivid",
+        "defaultView": "preview"
+      }
+    },
+    {
+      "id": "n14",
+      "type": "heading",
+      "props": {
+        "text": "Limits",
+        "level": "2",
+        "anchor": "limits"
+      }
+    },
+    {
+      "id": "n15",
+      "type": "prose",
+      "props": {
+        "markdown": "- **Light only.** Where the effective theme is dark (`data-ch-theme=\"dark\"` or a dark system preference) the tokens are the normal dark ones, so a visitor in dark mode sees no difference.\n- **Forced colors win.** In Windows high contrast mode the tokens stay system colors, whatever the palette.\n- **Nesting.** A `data-ch-theme=\"dark\"` element nested inside a light one, with a bare palette element below it, gets vivid colors in a dark region. Put the attribute on `<html>` or on the themed element itself to avoid it.\n- **Contrast.** The three vivid colors are below 3:1 against the light surface (warn 2.0:1, gain 2.9:1, neutral 2.4:1), so marks in these tones are harder to see than by default. Do not rely on the color alone to tell marks apart."
+      }
+    },
+    {
+      "id": "n16",
+      "type": "prose",
+      "props": {
+        "markdown": "See [Theming](/docs/theming) for the tokens and [Dark mode](/docs/dark-mode) for the theme attribute."
+      }
+    }
+  ]
+}

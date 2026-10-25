@@ -1,0 +1,133 @@
+{
+  "versionId": "fixture-dark-mode-v1",
+  "version": 1,
+  "locale": "en",
+  "publishedAt": "2026-10-25T00:00:00.000Z",
+  "codeInjection": {},
+  "layout": {
+    "key": "default",
+    "header": null,
+    "footer": null
+  },
+  "pageId": "fixture-dark-mode",
+  "title": "Dark mode",
+  "slug": "dark-mode",
+  "seo": {
+    "metaTitle": "Dark mode · tally-charts",
+    "metaDescription": "Charts follow prefers-color-scheme and can be forced with data-ch-theme. How to connect the attribute to next-themes or to your own provider."
+  },
+  "componentTree": [
+    {
+      "id": "n1",
+      "type": "prose",
+      "props": {
+        "markdown": "Dark mode works without any code: `tally-charts/theme.css` defines the tokens for both themes, and the charts use the dark ones when the visitor's system prefers it (`prefers-color-scheme: dark`). To follow a toggle in your app instead, set `data-ch-theme=\"light\"` or `data-ch-theme=\"dark\"` on `<html>` or on any ancestor of a chart. The attribute wins over the system setting, and without it the system setting decides."
+      }
+    },
+    {
+      "id": "n2",
+      "type": "heading",
+      "props": {
+        "text": "Forcing a theme",
+        "level": "2",
+        "anchor": "forcing-a-theme"
+      }
+    },
+    {
+      "id": "n3",
+      "type": "prose",
+      "props": {
+        "markdown": "The attribute works on any element, not only on `<html>`. Both panels below are pinned, so they look the same whatever the visitor's setting is:"
+      }
+    },
+    {
+      "id": "n4",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "dark-mode/side-by-side",
+        "defaultView": "preview"
+      }
+    },
+    {
+      "id": "n5",
+      "type": "heading",
+      "props": {
+        "text": "Class-based dark mode",
+        "level": "2",
+        "anchor": "class-based"
+      }
+    },
+    {
+      "id": "n6",
+      "type": "prose",
+      "props": {
+        "markdown": "An app whose dark mode is a class (`.dark`, as with Tailwind and shadcn) has to set the attribute too. **The class alone does not reach the tokens**, because the tokens look at `data-ch-theme` and at the system setting, not at class names."
+      }
+    },
+    {
+      "id": "n7",
+      "type": "heading",
+      "props": {
+        "text": "With next-themes",
+        "level": "2",
+        "anchor": "next-themes"
+      }
+    },
+    {
+      "id": "n8",
+      "type": "prose",
+      "props": {
+        "markdown": "Tell `ThemeProvider` to write both: the class for your own styles and the attribute for the charts. `suppressHydrationWarning` on `<html>` is needed because the provider sets the attribute before React hydrates."
+      }
+    },
+    {
+      "id": "n9",
+      "type": "code-block",
+      "props": {
+        "code": "import { ThemeProvider } from 'next-themes'\nimport 'tally-charts/theme.css'\n\nexport default function RootLayout({ children }: { children: React.ReactNode }) {\n  return (\n    <html lang=\"en\" suppressHydrationWarning>\n      <body>\n        <ThemeProvider attribute={['class', 'data-ch-theme']}>{children}</ThemeProvider>\n      </body>\n    </html>\n  )\n}",
+        "lang": "tsx",
+        "filename": "app/layout.tsx"
+      }
+    },
+    {
+      "id": "n10",
+      "type": "callout",
+      "props": {
+        "tone": "info",
+        "markdown": "**next-themes is not a dependency of tally-charts.** Install it yourself (`npm i next-themes`) if you use this recipe."
+      }
+    },
+    {
+      "id": "n11",
+      "type": "heading",
+      "props": {
+        "text": "With your own provider",
+        "level": "2",
+        "anchor": "own-provider"
+      }
+    },
+    {
+      "id": "n12",
+      "type": "prose",
+      "props": {
+        "markdown": "Set `document.documentElement.dataset.chTheme = resolvedTheme` wherever your code toggles the class, and render the same `data-ch-theme` on `<html>` on the server, for example from a cookie, so the first paint is in the right theme and nothing flashes."
+      }
+    },
+    {
+      "id": "n13",
+      "type": "code-block",
+      "props": {
+        "code": "import { cookies } from 'next/headers'\nimport 'tally-charts/theme.css'\n\nexport default async function RootLayout({ children }: { children: React.ReactNode }) {\n  const stored = (await cookies()).get('theme')?.value\n  const theme = stored === 'light' || stored === 'dark' ? stored : undefined\n\n  return (\n    // No cookie yet: no attribute, so the charts follow the system setting.\n    <html lang=\"en\" className={theme} data-ch-theme={theme}>\n      <body>{children}</body>\n    </html>\n  )\n}\n\n// In the client code that toggles your class, set the attribute with it:\n//   document.documentElement.classList.toggle('dark', resolvedTheme === 'dark')\n//   document.documentElement.dataset.chTheme = resolvedTheme",
+        "lang": "tsx",
+        "filename": "app/layout.tsx"
+      }
+    },
+    {
+      "id": "n14",
+      "type": "prose",
+      "props": {
+        "markdown": "See [Theming](/docs/theming) for the tokens and [Palettes](/docs/palettes) for the vivid palette, which is light only."
+      }
+    }
+  ]
+}

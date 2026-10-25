@@ -70,11 +70,14 @@ test('navigation.json is valid and its slugs are unique', async () => {
   expect(new Set(all).size).toBe(all.length)
 })
 
-test('getting-started, line-chart, composition, small-pieces and hooks-and-providers are the only available pages in the navigation', async () => {
+test('getting-started, theming, palettes, dark-mode, line-chart, composition, small-pieces and hooks-and-providers are the only available pages in the navigation', async () => {
   const { groups } = await source.getNavigation()
   const available = groups.flatMap((g) => g.items).filter((i) => i.available)
   expect(available.map((i) => i.slug)).toEqual([
     'getting-started',
+    'theming',
+    'palettes',
+    'dark-mode',
     'line-chart',
     'composition',
     'small-pieces',

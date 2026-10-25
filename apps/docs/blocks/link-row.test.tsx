@@ -10,7 +10,7 @@ beforeEach(() => {
 
 const items = [
   { label: 'Getting started', href: '/docs/getting-started' },
-  { label: 'Theming', href: '/docs/theming' },
+  { label: 'Accessibility', href: '/docs/accessibility' },
   { label: 'LineChart', href: '/docs/line-chart#props' },
   { label: 'GitHub', href: 'https://github.com/example/repo' },
 ]
@@ -20,8 +20,8 @@ test('a docs page that does not exist yet is disabled, the others are links', as
 
   expect(screen.getByRole('heading', { level: 2, name: 'Keep going' })).toBeTruthy()
   const soon = container.querySelector('span.nav-soon[aria-disabled="true"]')
-  expect(soon?.textContent).toBe('Theming')
-  expect(screen.queryByRole('link', { name: 'Theming' })).toBeNull()
+  expect(soon?.textContent).toBe('Accessibility')
+  expect(screen.queryByRole('link', { name: 'Accessibility' })).toBeNull()
   expect(screen.getByRole('link', { name: 'Getting started' }).getAttribute('href')).toBe(
     '/docs/getting-started',
   )
