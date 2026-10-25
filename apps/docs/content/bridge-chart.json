@@ -107,6 +107,13 @@
       }
     },
     {
+      "id": "n19",
+      "type": "prose",
+      "props": {
+        "markdown": "What a step leaks (or gains) is drawn as a hatched cap on its column. The `callout` pill is lifted clear of any column labels it reaches over."
+      }
+    },
+    {
       "id": "n12",
       "type": "heading",
       "props": {

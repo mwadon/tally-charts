@@ -107,6 +107,13 @@
       }
     },
     {
+      "id": "n20",
+      "type": "prose",
+      "props": {
+        "markdown": "Columns never get narrower than their name or `--ch-heatmap-min-cell`; below that the grid scrolls sideways."
+      }
+    },
+    {
       "id": "n12",
       "type": "heading",
       "props": {

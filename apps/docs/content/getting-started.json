@@ -158,7 +158,7 @@
       "id": "n18",
       "type": "prose",
       "props": {
-        "markdown": "Browse the [LineChart](/docs/line-chart) page for trends, forecasts and targets. [Composition](/docs/composition) shows how to build your own chart from `Chart` and its building blocks, [Small pieces](/docs/small-pieces) covers `Stat`, `Meter`, `Legend` and the other HTML pieces, and [Hooks and providers](/docs/hooks-and-providers) covers locale, currency and custom marks. Or read the [package README](https://github.com/mwadon/tally-charts#readme) for the full list of charts and building blocks."
+        "markdown": "Browse the [LineChart](/docs/line-chart) page for trends, forecasts and targets. [Composition](/docs/composition) shows how to build your own chart from `Chart` and its building blocks, [Small pieces](/docs/small-pieces) covers `Stat`, `Meter`, `Legend` and the other HTML pieces, and [Hooks and providers](/docs/hooks-and-providers) covers locale, currency and custom marks. Every chart has its own page in the sidebar."
       }
     }
   ]

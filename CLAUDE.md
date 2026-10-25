@@ -43,6 +43,7 @@ Opis produktu i zakres: SPEC.md. Stan prac i decyzje: PROGRESS.md.
 - Każda nowa funkcja ma testy.
 - Bez sekretów w repo; konfiguracja przez zmienne środowiskowe (.env.example).
 - Commity i gałęzie robi orkiestrator, nie agent.
+- Nowy publiczny token `--ch-*` trzeba dopisać do `TOKENS` w `surface.test.ts` i opisać na stronie theming (`apps/docs/content/theming.json`; tokeny spoza `theme.css` jawnie z nazwy, nie zakresem), inaczej failuje `apps/docs/content/tokens.test.ts`. README paczki jest krótką wizytówką (≤ ~120 linii, linki absolutne), a treść idzie na stronę docs.
 - Każdy PR zmieniający `packages/tally-charts` ma changeset (`pnpm changeset`, katalog `.changeset`).
 - Zmiana łamiąca publiczne API ma changeset `major` z notatką migracyjną: fragment kodu „przed” i „po”.
 - Baseline'y wizualne są per platforma w `apps/storybook/e2e/__screenshots__/{darwin,linux}`. Darwin: `pnpm --filter storybook-app exec playwright test --update-snapshots=all`. Linux wyłącznie komendą docker z komentarza nad jobem `e2e` w `.github/workflows/ci.yml` (nie kopiuj jej tutaj). CI nigdy nie zapisuje baseline'ów.

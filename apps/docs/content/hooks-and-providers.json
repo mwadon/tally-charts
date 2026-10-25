@@ -68,7 +68,7 @@
       "id": "n7",
       "type": "prose",
       "props": {
-        "markdown": "When none of the building blocks in [Composition](/docs/composition) draws what you need, write a component and put it inside `Chart`. `useChart()` returns the `x` and `y` scales and the size of the plot, `useFormat()` returns formatters in the provider's locale, and `useRegisterPoints()` tells the chart where your points are."
+        "markdown": "When none of the building blocks in [Composition](/docs/composition) draws what you need, write a component and put it inside `Chart`. `useChart()` returns the size, the margins, the data, the number formatter, the active point and the `x` and `y` scales (narrow them on `kind`: `'linear'`, `'band'`, `'point'` or `'time'`), `useFormat()` returns formatters in the provider's locale, and `useRegisterPoints()` tells the chart where your points are."
       }
     },
     {
@@ -93,6 +93,30 @@
       "props": {
         "tone": "tip",
         "markdown": "**Memoize the points you register.** `useRegisterPoints(points)` registers again every time the array changes identity, so build it in `useMemo` with the scales and formatter as dependencies. Each point needs a unique `id`, an `index`, the `datum`, a position in plot pixels (`x`, `y`), a `label` for screen readers and the tooltip `segments`. Hooks cannot run in a Server Component, so a file that uses any of them starts with `'use client'`."
+      }
+    },
+    {
+      "id": "n16",
+      "type": "heading",
+      "props": {
+        "text": "Several React roots on one page",
+        "level": "2",
+        "anchor": "react-roots"
+      }
+    },
+    {
+      "id": "n17",
+      "type": "prose",
+      "props": {
+        "markdown": "Pattern ids, for hatching and gradients, come from React's `useId`, which is only unique within one root. When charts render in separate roots (islands, micro-frontends), two charts can end up with the same pattern id. Give each chart its own `chartId`. `Chart`, the high-level charts and `Heatmap` take it."
+      }
+    },
+    {
+      "id": "n18",
+      "type": "code-block",
+      "props": {
+        "code": "<BarChart chartId=\"margin-chart\" data={weeks} x=\"week\" y=\"margin\" title=\"Margin by week\" />",
+        "lang": "tsx"
       }
     },
     {

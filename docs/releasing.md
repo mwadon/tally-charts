@@ -318,6 +318,8 @@ command); it holds no secret and no value of any variable.
    (`grep -l 'tally-charts.vercel.app' .changeset/*.md` lists three of them). The production URL of
    the project must be exactly `https://tally-charts.vercel.app`. If it is another one:
    - replace the address in those changesets (a PR that changes no file in `packages/`),
+   - replace it in `homepage` in `packages/tally-charts/package.json` and in the links of
+     `packages/tally-charts/README.md` (this does change `packages/`, so add a changeset),
    - set `SITE_URL` to the new address in Production and Preview,
    - update the address in `PROGRESS.md` and `CLAUDE.md` where it is mentioned,
    - redeploy the project so the new `SITE_URL` takes effect.

@@ -106,6 +106,13 @@
       }
     },
     {
+      "id": "n19",
+      "type": "prose",
+      "props": {
+        "markdown": "When the dots are crowded they shrink, down to a minimum size (`minRadius`), and then the chart warns in development."
+      }
+    },
+    {
       "id": "n12",
       "type": "heading",
       "props": {

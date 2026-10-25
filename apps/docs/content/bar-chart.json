@@ -107,6 +107,13 @@
       }
     },
     {
+      "id": "n18",
+      "type": "prose",
+      "props": {
+        "markdown": "`x` is the category and `y` the value in both orientations: `orientation=\"horizontal\"` only puts the categories on the left."
+      }
+    },
+    {
       "id": "n12",
       "type": "heading",
       "props": {

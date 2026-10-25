@@ -9,7 +9,7 @@
     "url": "git+https://github.com/mwadon/tally-charts.git",
     "directory": "packages/tally-charts"
   },
-  "homepage": "https://github.com/mwadon/tally-charts#readme",
+  "homepage": "https://tally-charts.vercel.app",
   "bugs": "https://github.com/mwadon/tally-charts/issues",
   "keywords": [
     "react",

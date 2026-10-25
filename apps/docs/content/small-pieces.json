@@ -63,6 +63,13 @@
       }
     },
     {
+      "id": "n31",
+      "type": "prose",
+      "props": {
+        "markdown": "Colored text in the small pieces, such as a toned value, mixes the tone with `--ch-ink` so that it stays readable. `--ch-tone-text-mix` is the share of the tone in that mix, 55% by default; see [Theming](/docs/theming)."
+      }
+    },
+    {
       "id": "n7",
       "type": "heading",
       "props": {
@@ -95,6 +102,13 @@
       }
     },
     {
+      "id": "n30",
+      "type": "prose",
+      "props": {
+        "markdown": "`ShareBar` draws one bar split by `value / total`, in the order of `segments`, with a list of the parts underneath (\"2,711 · 46%\"). `legendValue` is `'both'`, `'value'` or `'percent'`, and `legend={false}` keeps only the bar. A `total` larger than the sum of the parts leaves the rest as empty track.\n\n- The percents in the list add up to 100.\n- A part that rounds to 0% reads \"<1%\" and stays visible in the bar as a 3px sliver.\n- Segments without a `tone` take `accent`, `accent-soft`, `warn`, `neutral` and `gain` in turn, and never `loss`: pink is only ever chosen explicitly."
+      }
+    },
+    {
       "id": "n11",
       "type": "heading",
       "props": {
@@ -107,7 +121,7 @@
       "id": "n12",
       "type": "prose",
       "props": {
-        "markdown": "`Legend` is a list of swatches next to a chart. Each item picks a `tone` and a `shape` (`bar`, `dot`, `line` or `band`), and a line can be `dashed`. `TooltipPill` is the segmented pill inside a `Tooltip`; the `content` function returns one for the hovered or focused point."
+        "markdown": "`Legend` is a list of swatches next to a chart. Each item picks a `tone` and a `shape` (`bar`, `dot`, `line` or `band`), and a line can be `dashed`. `TooltipPill` is the segmented pill inside a `Tooltip`; the `content` function returns one for the hovered or focused point. A `line` swatch takes `marker: 'dot'` or `'ring'` for the points of the series, and a `band` swatch shows the soft fill of a `Band`."
       }
     },
     {

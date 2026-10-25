@@ -62,6 +62,29 @@
       }
     },
     {
+      "id": "n19",
+      "type": "heading",
+      "props": {
+        "text": "Tokens without a default in theme.css",
+        "level": "3",
+        "anchor": "tokens-without-default"
+      }
+    },
+    {
+      "id": "n20",
+      "type": "prose",
+      "props": {
+        "markdown": "These tokens are public too, but `theme.css` does not declare them for every chart, so they are not in the tables above. Set them on any element to change the charts below it.\n\n- `--ch-zone-marker`: the color of the `ZoneMeter` marker.\n- `--ch-seq-base`: the base color of the sequential ramp. It defaults to `--ch-loss`.\n- `--ch-seq-mix-1`, `--ch-seq-mix-2`, `--ch-seq-mix-3`, `--ch-seq-mix-4` and `--ch-seq-mix-5`: the share of the base color in each level.\n- `--ch-seq-1`, `--ch-seq-2`, `--ch-seq-3`, `--ch-seq-4` and `--ch-seq-5`: the five levels, computed from the base and the mixes on every chart, legend and heatmap. Read them, but steer them with the base and the mixes, because overriding them has no effect.\n- `--ch-heatmap-cell-height`: the height of a `Heatmap` cell. Default `44px`.\n- `--ch-heatmap-min-cell`: the narrowest a `Heatmap` column gets before the grid scrolls sideways. Default `56px`."
+      }
+    },
+    {
+      "id": "n21",
+      "type": "prose",
+      "props": {
+        "markdown": "`data-ch-seq-tone=\"<tone>\"` on an ancestor picks that tone's base and its shares for the current theme. `Heatmap`'s `tone` prop sets it for you. The attribute must sit on, or below, the element that sets `data-ch-theme`, or the ramp is computed in the outer theme."
+      }
+    },
+    {
       "id": "n7",
       "type": "heading",
       "props": {
@@ -89,7 +112,7 @@
       "id": "n10",
       "type": "prose",
       "props": {
-        "markdown": "Colors that follow the theme belong in a token or in `var(--ch-*)`, not in a fixed hex value, or the chart will look wrong in the other theme. The `--ch-seq-1` to `--ch-seq-5` tokens are computed from `--ch-seq-base` and the `--ch-seq-mix-*` tokens, so steer those instead of overriding the computed ones."
+        "markdown": "Colors that follow the theme belong in a token or in `var(--ch-*)`, not in a fixed hex value, or the chart will look wrong in the other theme. The `--ch-seq-1` to `--ch-seq-5` tokens are computed from `--ch-seq-base` and the `--ch-seq-mix-*` tokens, so steer those instead of overriding the computed ones.\n\nColored text (row and value labels, bridge notes, waffle group labels, pill values) mixes the tone with `--ch-ink`, so that it stays readable on the surface. `--ch-tone-text-mix` is the share of the tone in that mix: 55% by default. Raise it for more color, lower it for more contrast."
       }
     },
     {
