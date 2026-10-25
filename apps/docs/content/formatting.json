@@ -1,0 +1,175 @@
+{
+  "versionId": "fixture-formatting-v1",
+  "version": 1,
+  "locale": "en",
+  "publishedAt": "2026-10-25T00:00:00.000Z",
+  "codeInjection": {},
+  "layout": {
+    "key": "default",
+    "header": null,
+    "footer": null
+  },
+  "pageId": "fixture-formatting",
+  "title": "Formatting",
+  "slug": "formatting",
+  "seo": {
+    "metaTitle": "Formatting · tally-charts",
+    "metaDescription": "Number presets, preset options and functions, axis formats, and createFormatter, createFormatters and createDateFormatter with a locale and a currency."
+  },
+  "componentTree": [
+    {
+      "id": "n1",
+      "type": "prose",
+      "props": {
+        "markdown": "Every chart prop that shows a number takes a `format`. This page lists the presets, shows how axes and tooltips use them, and covers the functions you call yourself: `createFormatter`, `createFormatters` and `createDateFormatter`."
+      }
+    },
+    {
+      "id": "n2",
+      "type": "heading",
+      "props": {
+        "text": "Presets",
+        "level": "2",
+        "anchor": "presets"
+      }
+    },
+    {
+      "id": "n3",
+      "type": "prose",
+      "props": {
+        "markdown": "`format` takes a preset name, a preset with options, or a function of the number. The six presets are:\n\n- `'currency'`: the currency in the provider's locale, no decimals by default (`$18,350`).\n- `'currency-compact'`: the same with a short suffix and three significant digits (`$1.84M`).\n- `'percent'`: values are percentage points, so `34` is `34%`; one decimal by default.\n- `'pts'`: percentage points as a difference, always signed (`+0.6 pts`).\n- `'number'`: a plain localized number with at most one decimal. This is the default.\n- `'hours'`: a number followed by `h` (`126.5 h`).\n\nThe object form `{ preset: 'percent', digits: 0, signed: true }` sets the fraction digits and whether positive values show a `+`. A function gets the number and returns the text, and replaces the preset altogether."
+      }
+    },
+    {
+      "id": "n4",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "formatting/presets",
+        "defaultView": "preview"
+      }
+    },
+    {
+      "id": "n5",
+      "type": "prose",
+      "props": {
+        "markdown": "Presets and objects are plain values, so this example renders in a Server Component. Locale and currency come from the nearest `ChartsProvider`, `en-US` and `USD` without one; see [Hooks and providers](/docs/hooks-and-providers)."
+      }
+    },
+    {
+      "id": "n6",
+      "type": "heading",
+      "props": {
+        "text": "Axes",
+        "level": "2",
+        "anchor": "axes"
+      }
+    },
+    {
+      "id": "n7",
+      "type": "prose",
+      "props": {
+        "markdown": "Axes take the same presets and objects, a date format on a time axis, or a function of the tick. The tick is an `AxisValue`: a number on a value axis, the category on a category axis and a `Date` on a time axis. When every tick on an axis is a whole number, `'percent'` and `'pts'` drop their decimals (`0%`, not `0.0%`).\n\n`axis` and `axisFormat` mean the only axis of a chart. `LineChart` has two, so it takes `xAxis` and `yAxis` for the ticks and `xAxisFormat` and `yAxisFormat` for the labels; the value axis follows `format` unless `yAxisFormat` is set. A category axis (the `axisFormat` of `BarChart`) takes only a function of the category: a preset or a date format there is ignored, with a warning."
+      }
+    },
+    {
+      "id": "n8",
+      "type": "heading",
+      "props": {
+        "text": "Formatters in code",
+        "level": "2",
+        "anchor": "formatters"
+      }
+    },
+    {
+      "id": "n9",
+      "type": "prose",
+      "props": {
+        "markdown": "`createFormatter(spec, options)` builds the function a preset stands for. Use it when you need the text yourself or a locale that differs from the provider's. `createDateFormatter` does the same for dates, from epoch milliseconds to a string, in `'day'`, `'month'`, `'quarter'`, `'year'`, `'auto'` or any `Intl.DateTimeFormatOptions`. Build both once, outside the component."
+      }
+    },
+    {
+      "id": "n10",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "formatting/formatters",
+        "defaultView": "preview"
+      }
+    },
+    {
+      "id": "n11",
+      "type": "prose",
+      "props": {
+        "markdown": "A formatter is a function, and a function can not be passed from a Server Component to a client one. A file that gives one to a chart starts with `'use client'`; a file that uses only string and object presets does not need it."
+      }
+    },
+    {
+      "id": "n12",
+      "type": "callout",
+      "props": {
+        "tone": "info",
+        "markdown": "**Functions need a client component.** `format={euros}` and `xAxisFormat={(tick) => …}` are functions, so the example above is marked `'use client'`. `format=\"currency\"` and `format={{ preset: 'percent', digits: 0 }}` are plain data and work in a Server Component."
+      }
+    },
+    {
+      "id": "n13",
+      "type": "heading",
+      "props": {
+        "text": "fmt and createFormatters",
+        "level": "2",
+        "anchor": "fmt"
+      }
+    },
+    {
+      "id": "n14",
+      "type": "prose",
+      "props": {
+        "markdown": "`createFormatters(options)` returns one formatter per preset: `currency`, `currencyCompact`, `percent`, `pts`, `number` and `hours`. `fmt` is `createFormatters()` with the default locale `en-US` and the currency `USD`, ready to use: `fmt.currency(18350)` is `$18,350`. For another locale make your own set with `createFormatters({ locale: 'de-DE', currency: 'EUR' })`. Inside a chart, `useFormat()` gives you the set for the provider's locale."
+      }
+    },
+    {
+      "id": "n15",
+      "type": "prose",
+      "props": {
+        "markdown": "`createFormatters` and `createDateFormatter` are exported from `tally-charts/core` only, which has no React in it. `createFormatter` and `fmt` come from both `tally-charts` and `tally-charts/core`."
+      }
+    },
+    {
+      "id": "n16",
+      "type": "code-block",
+      "props": {
+        "code": "import { fmt } from 'tally-charts'\nimport { createDateFormatter, createFormatters } from 'tally-charts/core'\n\nfmt.percent(34) // \"34.0%\"\n\nconst de = createFormatters({ locale: 'de-DE', currency: 'EUR' })\nde.currency(18350) // \"18.350 €\"\n\ncreateDateFormatter('month', { locale: 'de-DE' })(Date.UTC(2026, 5, 1)) // \"Juni 2026\"",
+        "lang": "ts"
+      }
+    },
+    {
+      "id": "n17",
+      "type": "heading",
+      "props": {
+        "text": "Parameters",
+        "level": "2",
+        "anchor": "parameters"
+      }
+    },
+    {
+      "id": "n18",
+      "type": "props-table",
+      "props": {
+        "symbol": "createFormatter"
+      }
+    },
+    {
+      "id": "n19",
+      "type": "props-table",
+      "props": {
+        "symbol": "createFormatters"
+      }
+    },
+    {
+      "id": "n20",
+      "type": "props-table",
+      "props": {
+        "symbol": "createDateFormatter"
+      }
+    }
+  ]
+}
