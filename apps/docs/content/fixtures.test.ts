@@ -70,7 +70,7 @@ test('navigation.json is valid and its slugs are unique', async () => {
   expect(new Set(all).size).toBe(all.length)
 })
 
-test('getting-started, theming, palettes, time-scales, formatting, thresholds, server-components, dark-mode, bar-chart, comparison-bars, ranked-bars, waterfall-chart, bridge-chart, dot-histogram, strip-plot, waffle-columns, line-chart, heatmap, runway-chart, composition, small-pieces and hooks-and-providers are the only available pages in the navigation', async () => {
+test('the available pages of the navigation are 24, in navigation order', async () => {
   const { groups } = await source.getNavigation()
   const available = groups.flatMap((g) => g.items).filter((i) => i.available)
   expect(available.map((i) => i.slug)).toEqual([
@@ -80,6 +80,7 @@ test('getting-started, theming, palettes, time-scales, formatting, thresholds, s
     'time-scales',
     'formatting',
     'thresholds',
+    'accessibility',
     'server-components',
     'dark-mode',
     'bar-chart',
@@ -96,5 +97,99 @@ test('getting-started, theming, palettes, time-scales, formatting, thresholds, s
     'composition',
     'small-pieces',
     'hooks-and-providers',
+    'stability',
   ])
 })
+
+test('migration-1-0 is the only slug of the navigation without a page', async () => {
+  const { groups } = await source.getNavigation()
+  const unavailable = groups.flatMap((g) => g.items).filter((i) => !i.available)
+  expect(unavailable.map((i) => i.slug)).toEqual(['migration-1-0'])
+})
+
+/** The text of the prose, heading, callout and code-block blocks of a page, in order. */
+async function pageText(slug: string) {
+  const page = await source.getPage(slug)
+  const blocks = [...walk(page?.componentTree ?? [])]
+  const text = (n: ComponentNode) => {
+    const props = n.props as Record<string, string>
+    return props.markdown ?? props.text ?? props.code ?? ''
+  }
+  return {
+    page,
+    blocks,
+    all: blocks.map(text).join('\n'),
+    headings: (level: string) =>
+      blocks.filter((n) => n.type === 'heading' && n.props.level === level).map(text),
+    after: (heading: string) => {
+      const start = blocks.findIndex((n) => n.type === 'heading' && n.props.text === heading)
+      const rest = blocks.slice(start + 1)
+      const end = rest.findIndex((n) => n.type === 'heading' && n.props.level === '2')
+      return (end === -1 ? rest : rest.slice(0, end)).map(text).join('\n')
+    },
+  }
+}
+
+test('accessibility has the sections of docs/a11y.md and every known limit', async () => {
+  const { page, headings, after } = await pageText('accessibility')
+
+  expect(page?.title).toBe('Accessibility')
+  expect(page?.seo.metaTitle).toBe('Accessibility · tally-charts')
+  expect(headings('2')).toEqual([
+    'What CI checks',
+    'Keyboard model',
+    'What a screen reader gets',
+    'Decorative on purpose',
+    'The vivid palette',
+    'Known limits',
+    'Manual checklist',
+  ])
+
+  const limits = after('Known limits')
+  for (const phrase of [
+    'pointer-events: auto',
+    '1.4.13',
+    'aria-hidden',
+    'lower-inclusive',
+    'heatmapLevel',
+    'RunwayChart',
+    'planned for 1.x',
+  ]) {
+    expect(limits, phrase).toContain(phrase)
+  }
+  expect(limits.split('\n').filter((line) => line.startsWith('- '))).toHaveLength(13)
+})
+
+test('stability states the semver promise, what is public and what is not', async () => {
+  const { page, headings, after, all } = await pageText('stability')
+
+  expect(page?.title).toBe('Stability')
+  expect(page?.seo.metaTitle).toBe('Stability · tally-charts')
+  expect(headings('2')).toEqual([
+    'The promise',
+    'Public API',
+    'Not public',
+    'Styling that survives upgrades',
+    'Known limits in 1.0',
+  ])
+
+  expect(all).toMatch(/strict \[semantic versioning\]\(https:\/\/semver\.org\) from 1\.0\.0/)
+  for (const phrase of ['tally-charts/core', '--ch-*', 'data-ch-part', 'data-ch-*', 'theme.css']) {
+    expect(after('Public API'), phrase).toContain(phrase)
+  }
+  for (const phrase of ['ch-*', '--_ch-*', '--_ch-swatch-color', 'i18n', 'size', 'DOM structure']) {
+    expect(after('Not public'), phrase).toContain(phrase)
+  }
+  expect(after('Styling that survives upgrades')).toContain('[data-ch-part')
+  expect(all).toContain('](/docs/accessibility')
+})
+
+test.each(['accessibility', 'stability'])(
+  '%s links to docs pages by slug, not to files of the repo',
+  async (slug) => {
+    const { all } = await pageText(slug)
+    expect(all).not.toMatch(/\]\(\.{1,2}\//)
+    expect(all).not.toMatch(/\]\([^)]*\.md[)#]/)
+    expect(all).not.toMatch(/\]\((?!https?:|\/docs\/|#)/)
+  },
+)

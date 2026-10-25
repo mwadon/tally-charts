@@ -187,8 +187,12 @@ beforeAll(async () => {
   navigation = await loadNavigationConfig(realDir)
 })
 
-async function run(cms: FakeCms, pages = fixtures, { dryRun = false } = {}) {
-  const plan = planSeed(pages, navigation, await readRemote(cms, pages))
+async function run(
+  cms: FakeCms,
+  pages = fixtures,
+  { dryRun = false, navigation: config = navigation } = {},
+) {
+  const plan = planSeed(pages, config, await readRemote(cms, pages))
   await applySeed(cms, plan, { dryRun })
   return plan
 }
@@ -308,38 +312,41 @@ describe('--dry-run', () => {
 })
 
 describe('pages that are not fixtures', () => {
+  // A slug of the navigation that has no fixture, whatever content/ holds.
+  const withoutFixture = { label: 'Not a fixture', slug: 'not-a-fixture' }
+  const extended = (): NavigationConfig => ({
+    groups: [...navigation.groups, { label: 'Extra', items: [withoutFixture] }],
+  })
+
   test('a page only in the CMS is skipped and never removed, a navigation slug without a fixture too', async () => {
     const cms = new FakeCms()
     cms.seed('/written-in-the-cms', { nodes: [{ id: 'x', type: 'prose', props: {} }] })
-    const withoutFixture = navigation.groups
-      .flatMap((g) => g.items)
-      .find((item) => !fixtures.some((f) => f.slug === item.slug))
-    expect(withoutFixture, 'navigation.json lists a slug without a fixture').toBeDefined()
+    expect(fixtures.some((f) => f.slug === withoutFixture.slug)).toBe(false)
 
-    const plan = await run(cms)
+    const plan = await run(cms, fixtures, { navigation: extended() })
 
     expect(where(plan, '/written-in-the-cms')).toMatchObject({
       kind: 'skip',
       reasons: ['not in fixtures'],
     })
-    expect(where(plan, `/${withoutFixture?.slug}`)).toMatchObject({
+    expect(where(plan, `/${withoutFixture.slug}`)).toMatchObject({
       kind: 'skip',
       reasons: ['no fixture'],
     })
     expect(formatPlan(plan)).toContain('skip    /written-in-the-cms (not in fixtures)')
-    expect(formatPlan(plan)).toContain(`skip    /${withoutFixture?.slug} (no fixture)`)
+    expect(formatPlan(plan)).toContain(`skip    /${withoutFixture.slug} (no fixture)`)
     expect([...cms.pages.values()].some((p) => p.slug === '/written-in-the-cms')).toBe(true)
     expect(cms.calls).not.toContain('removeBlock')
   })
 
   test('a navigation slug that is a CMS page without a fixture is listed once, as "no fixture"', async () => {
     const cms = new FakeCms()
-    cms.seed('/accessibility')
+    cms.seed('/not-a-fixture')
 
-    const plan = await run(cms, fixtures, { dryRun: true })
+    const plan = await run(cms, fixtures, { dryRun: true, navigation: extended() })
 
-    expect(plan.filter((a) => a.slug === '/accessibility')).toHaveLength(1)
-    expect(where(plan, '/accessibility')?.reasons).toEqual(['no fixture'])
+    expect(plan.filter((a) => a.slug === '/not-a-fixture')).toHaveLength(1)
+    expect(where(plan, '/not-a-fixture')?.reasons).toEqual(['no fixture'])
   })
 })
 

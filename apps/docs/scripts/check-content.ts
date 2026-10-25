@@ -1,7 +1,8 @@
 /**
- * `pnpm --filter docs check:content [--content-dir <dir>] [--require-coverage]`: validates the
- * pages of the fixtures (and of glökki, when `CMS_BASE_URL` is set). Needs `pnpm build`: the
- * examples import `tally-charts` from `dist`.
+ * `pnpm --filter docs check:content [--content-dir <dir>]`: validates the pages of the fixtures
+ * (and of glökki, when `CMS_BASE_URL` is set). A public symbol without a PropsTable is an error.
+ * `--require-coverage` and `CHECK_CONTENT_REQUIRE_COVERAGE` are still accepted and change nothing.
+ * Needs `pnpm build`: the examples import `tally-charts` from `dist`.
  */
 import path from 'node:path'
 import { parseArgs } from 'node:util'
@@ -18,14 +19,11 @@ const { values } = parseArgs({
   },
 })
 
-const requireCoverage =
-  values['require-coverage'] ||
-  ['1', 'true'].includes(process.env.CHECK_CONTENT_REQUIRE_COVERAGE ?? '')
 const contentDir = values['content-dir'] ? path.resolve(values['content-dir']) : undefined
 
 let reports: Awaited<ReturnType<typeof checkSources>>
 try {
-  reports = await checkSources(selectSources(process.env, contentDir), { requireCoverage })
+  reports = await checkSources(selectSources(process.env, contentDir), { requireCoverage: true })
 } catch (error) {
   console.error(`check:content: ${error instanceof Error ? error.message : String(error)}`)
   process.exit(1)

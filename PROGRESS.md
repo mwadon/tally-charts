@@ -1844,3 +1844,17 @@ Strony i testy:
 - Po `pnpm build` `pnpm --filter docs check:content` kończy się kodem 0 i wypisuje `API coverage: 52/52`.
 - pnpm --filter docs test, pnpm --filter docs typecheck, pnpm lint, pnpm --filter docs build i pnpm --filter docs test:e2e (bez --update-snapshots, port 3100 wolny) kończą się kodem 0; `git diff --stat -- packages apps/storybook apps/docs/e2e/__screenshots__` jest pusty.
 - PROGRESS.md ma jedną sekcję `## ✔ T30.2` z decyzjami (rscSafe, chartRole w themeSuite, zawężony lokator, katalog fiksturek dla exit 1) i podsumowaniem T30 (pokrycie 46→49→52/52).
+
+## ✔ T31.1 Strony accessibility i stability, testy „strony nie ma” na kontrolowanych danych, pokrycie API jako fail (2026-10-25)
+Dodano strony Accessibility (z `docs/a11y.md`, 7 sekcji H2, wszystkie punkty Known limits) i Stability (z `docs/stability.md`), oddzielono testy stanu „strony nie ma” od zawartości `content/` i uczyniono brak pokrycia API błędem w `check:content`. Zmiany zostają w drzewie roboczym, bez commitów i bez changesetu (packages bez zmian).
+
+**Decyzje:**
+- **nav-soon na kontrolowanych danych:** `layout.test.tsx`, `link-row.test.tsx` i `ssr.test.tsx` mockują `lib/content` (`getContentSource` zwraca nawigację z `lib/content/__fixtures__/navigation.ts`, w której niedostępny jest slug `coming-soon`; reszta modułu z `importOriginal`). `seed.test.ts` rozszerza prawdziwą nawigację o grupę z slugiem `not-a-fixture` (helper `run` dostał opcję `navigation`). Dodanie kolejnych fiksturek nie wymaga już zmian w tych testach. `page.test.tsx` i `e2e/routes.spec.ts` nie używają `accessibility` jako slugu „brak”.
+- **Pokrycie domyślnie jako fail:** `scripts/check-content.ts` zawsze przekazuje `requireCoverage: true`; `--require-coverage` i `CHECK_CONTENT_REQUIRE_COVERAGE` są akceptowane, ale nic nie zmieniają. `checkPages` zostaje z domyślnym `requireCoverage = false` (API biblioteczne używane przez testy jednostkowe). Job `docs` w CI bez zmian (uruchamia `check:content` bez flagi).
+- **Teksty:** nagłówki H2 accessibility to dokładnie nazwy sekcji `a11y.md`; „(before each release)” przeniesiono do prose pod nagłówkiem „Manual checklist”. Podsekcje H3 mają unikalne anchory (`keyboard-charts`, `sr-heatmap`, …). Treść listy i tabel jest przeniesiona 1:1 w blokach `prose`.
+- **Linki:** link GitHub do `README#styling` zamieniono na `/docs/theming`, a do `a11y.md#known-limits` na `/docs/accessibility#known-limits` (check:content sprawdza slug). Zostaje absolutny URL GitHub do `packages/tally-charts/api` i `semver.org`. Test w `fixtures.test.ts` zabrania linków względnych i do `*.md` w obu stronach.
+- **Known limits:** `docs/a11y.md` ma w tej sekcji 13 punktów (plan mówił o 14), wszystkie są na stronie; test sprawdza 13.
+- **Test broken:** `check:content` na `__fixtures__/broken` zgłasza teraz także brak pokrycia (51 symboli bez PropsTable), więc „5 errors in 2 pages” stało się „56”. Test sprawdza pięć komunikatów o blokach, dokładnie 5 linii błędów spoza `API coverage:` i obecność błędów pokrycia, bez sztywnej liczby zależnej od liczby symboli API.
+- **Dostępne strony:** 24, w kolejności nawigacji (accessibility po thresholds, stability po hooks-and-providers). Jedyny niedostępny slug to `migration-1-0`.
+
+**Testy:** `content/fixtures.test.ts` (lista 24 stron, jedyny niedostępny slug, nagłówki i frazy obu stron, brak linków do repo), `lib/content/check.test.ts` (exit 1 bez flag na `partial`), `e2e/accessibility.spec.ts`, `e2e/stability.spec.ts`.

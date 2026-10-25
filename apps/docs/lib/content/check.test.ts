@@ -281,7 +281,11 @@ describe('the CLI', () => {
     expect(stderr).toContain('broken › bad-link (prose): link /docs/does-not-exist')
     expect(stderr).toContain('broken › bad-symbol (props-table): symbol "NoSuchSymbol"')
     expect(stderr).toContain('broken › bad-type (carousel): unknown block type "carousel"')
-    expect(stderr).toContain('check:content: 5 errors in 2 pages')
+    expect(stderr).toMatch(/check:content: \d+ errors in 2 pages/)
+    // The broken pages have no PropsTables, so coverage adds an error per symbol; the rest is these five.
+    const errorLines = stderr.split('\n').filter((line) => line.startsWith('fixtures: '))
+    expect(errorLines.filter((line) => !line.includes('API coverage:'))).toHaveLength(5)
+    expect(errorLines.some((line) => line.includes('API coverage:'))).toBe(true)
   }, 60_000)
 
   test('exits 0 on content/ and reports full coverage', () => {
@@ -301,10 +305,11 @@ describe('the CLI', () => {
   }, 60_000)
 
   test.each([
+    [undefined, {}],
     ['--require-coverage', {}],
     [undefined, { CHECK_CONTENT_REQUIRE_COVERAGE: '1' }],
   ])(
-    'exits 1 with missing symbols when coverage is required (%s)',
+    'exits 1 with missing symbols, by default and when coverage is asked for (%s, %j)',
     (flag, env) => {
       const args = ['--content-dir', 'lib/content/__fixtures__/partial', ...(flag ? [flag] : [])]
       const result = spawnSync(tsx, ['scripts/check-content.ts', ...args], {

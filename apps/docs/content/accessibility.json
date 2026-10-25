@@ -1,0 +1,254 @@
+{
+  "versionId": "fixture-accessibility-v1",
+  "version": 1,
+  "locale": "en",
+  "publishedAt": "2026-10-25T00:00:00.000Z",
+  "codeInjection": {},
+  "layout": {
+    "key": "default",
+    "header": null,
+    "footer": null
+  },
+  "pageId": "fixture-accessibility",
+  "title": "Accessibility",
+  "slug": "accessibility",
+  "seo": {
+    "metaTitle": "Accessibility · tally-charts",
+    "metaDescription": "What tally-charts does for keyboard and screen-reader users: the keyboard model, what is announced, what CI checks, what is decorative on purpose and the known limits."
+  },
+  "componentTree": [
+    {
+      "id": "n1",
+      "type": "prose",
+      "props": {
+        "markdown": "tally-charts aims at WCAG 2.2 AA. This page describes what the library does for keyboard and screen-reader users, what it checks automatically, what is decorative on purpose, and what is still checked by hand before a release. The names on this page are part of the public API described in [Stability](/docs/stability)."
+      }
+    },
+    {
+      "id": "n2",
+      "type": "heading",
+      "props": {
+        "text": "What CI checks",
+        "level": "2",
+        "anchor": "what-ci-checks"
+      }
+    },
+    {
+      "id": "n3",
+      "type": "prose",
+      "props": {
+        "markdown": "- **axe** (`@axe-core/playwright` 4.13.0) with the `wcag2a`, `wcag2aa`, `wcag21a`, `wcag21aa`, `wcag22aa` and `best-practice` tags on every Storybook story, in the light and the dark theme. Zero violations is the gate.\n- **Rendered text contrast**: axe reports SVG text as \"incomplete\", so an e2e test measures every text run the library renders against the pixels behind it, at rest and with a point active: 4.5:1, or 3:1 for large text.\n- **Token contrast** (unit tests on `theme.css`): toned text at 4.5:1 on the surface and the tooltip, every mark at 3:1 (the soft accent through its outline), and every sequential level (6 tones × 2 themes × 5 levels) with its cell text at 4.5:1, neighbouring levels 1.3:1 apart and the top level at 3:1 against the surface.\n- **Reflow** at 320 CSS px (the width a 1280px window has at 400% zoom): no story scrolls the page sideways; no SVG text overlaps other text in its chart or leaves the viewport; and heatmap cells and headers, legend labels and pills don't clip their text. The heatmap may scroll inside its own container.\n- **Forced colors** (Chromium emulation): HTML marks keep visible fills, heatmap levels differ by border, chart text follows the system text color, and focus rings stay visible.\n- **Keyboard**: focus, arrow keys, Home/End, Enter, Escape and the announcements, per chart."
+      }
+    },
+    {
+      "id": "n4",
+      "type": "heading",
+      "props": {
+        "text": "Keyboard model",
+        "level": "2",
+        "anchor": "keyboard-model"
+      }
+    },
+    {
+      "id": "n5",
+      "type": "heading",
+      "props": {
+        "text": "Charts",
+        "level": "3",
+        "anchor": "keyboard-charts"
+      }
+    },
+    {
+      "id": "n6",
+      "type": "prose",
+      "props": {
+        "markdown": "Everything built on `<Chart>`.\n\n- A chart is one tab stop: the element with `role=\"application\"` and `aria-roledescription=\"chart\"` inside the `<figure>`. A `<Chart>` whose marks register no points (only lines, areas or a grid) is not a tab stop.\n- Tabbing in shows the first point: its tooltip appears and it is announced. A click that focuses the chart doesn't.\n- ←/→ (and ↑/↓) move to the previous or next point; Home and End go to the first and last. Charts whose points form stacks or rows move in two dimensions: DotHistogram walks bins with ←/→ and stacks with ↑/↓; StripPlot walks a row with ←/→ and changes rows with ↑/↓.\n- Enter or Space selects the active point when the chart has `onSelect`.\n- Escape clears the active point. It is only consumed when something is active, so an enclosing dialog still closes. Escape also closes a tooltip opened by hovering, wherever focus is, and the pointer can move onto a hover tooltip without closing it (WCAG 1.4.13).\n- The widget is described by the chart's `description` and a hint: \"Use arrow keys to move between points, Home and End for first and last, Escape to clear.\", plus \" Press Enter to select.\" with `onSelect`, but only while the active point (the first one, before any is active) can be selected: a point with `selectable: false` never promises Enter. `keyboardHint` replaces it as is (to translate it); `keyboardHint=\"\"` turns it off."
+      }
+    },
+    {
+      "id": "n7",
+      "type": "heading",
+      "props": {
+        "text": "RunwayChart",
+        "level": "3",
+        "anchor": "keyboard-runway-chart"
+      }
+    },
+    {
+      "id": "n8",
+      "type": "prose",
+      "props": {
+        "markdown": "- Without `onSelect` the rows are a plain `list` of `listitem`s: there is no tab stop and no keys.\n- With `onSelect` the rows container is a `listbox` and one tab stop. The focused row is `aria-activedescendant`; real focus stays on the container. Tabbing in resumes at the existing cursor (set by earlier keys or a click), else the selected row, else the first. Hovering a row highlights it but does not move the cursor; pressing a row moves the cursor there, and a click that focuses the list does not scroll it. The cursor follows its row by id when `rows` change; if that row is gone it falls back to the first row.\n- Up and Down move one row, Home and End go to the first and last, PageUp and PageDown move five. Enter or Space selects the focused row. Escape clears the active row, and is only consumed when one is active. Keys with Alt, Ctrl or Cmd pass through."
+      }
+    },
+    {
+      "id": "n9",
+      "type": "heading",
+      "props": {
+        "text": "Heatmap",
+        "level": "3",
+        "anchor": "keyboard-heatmap"
+      }
+    },
+    {
+      "id": "n10",
+      "type": "prose",
+      "props": {
+        "markdown": "- The grid is one tab stop (a roving `tabindex`), on the first data cell until another cell had focus.\n- Arrow keys move one cell, Home and End to the start and end of the row, Ctrl+Home and Ctrl+End (or Cmd) to the first and last cell of the grid, PageUp and PageDown five rows.\n- The column totals row and the row total column are cells too: arrow keys reach them, and focusing one clears the active cell. Enter or Space selects a data cell with `onSelect`; on a total it does nothing.\n- Escape clears the active cell, only when one is active.\n- In a container too narrow for the columns, the grid scrolls sideways inside a `role=\"group\"` named after the title (\"Heatmap\" without one), which then becomes a tab stop of its own so keyboard users can scroll it. There are then two tab stops: the scroll region first, then the grid."
+      }
+    },
+    {
+      "id": "n11",
+      "type": "heading",
+      "props": {
+        "text": "What a screen reader gets",
+        "level": "2",
+        "anchor": "what-a-screen-reader-gets"
+      }
+    },
+    {
+      "id": "n12",
+      "type": "heading",
+      "props": {
+        "text": "Charts",
+        "level": "3",
+        "anchor": "sr-charts"
+      }
+    },
+    {
+      "id": "n13",
+      "type": "prose",
+      "props": {
+        "markdown": "- `figure`, named by `title` or by the element `aria-labelledby` points at (one of the two is required in the types, and `aria-labelledby` wins when both are set), and described by `description`.\n- Inside it, the chart widget (`application`, role description \"chart\"), with the same name and the description plus the keyboard hint. Screen readers switch to focus mode there, so the arrow keys reach the chart.\n- An `aria-live=\"polite\"` region that announces each point the keyboard moves to: \"{series}, {n} of {total}, {label}\". The position counts within the point's series, and the series is left out when there is only one.\n- A visually hidden data table after the widget, outside it, so browse mode reads it: captioned with the title (or `dataTable.caption`), with column headers, the first column as row headers, and \"no value\" for empty cells.\n- The SVG and the HTML overlay (tooltips and callouts) are `aria-hidden`. A pinned callout says nothing to a screen reader: put the same facts in the title, the description or the data.\n\n| Chart | Announcement, from the Storybook stories |\n|---|---|\n| BarChart, `<Chart>` + `Bars` | \"1 of 12, Jul 6, 37.5%\" |\n| ComparisonBars | \"1 of 6, Labor, plan $640, actual $1,060, +$420\" |\n| RankedBars | \"1 of 5, Labor overruns, $31.2K\"; with `meta`: \"1 of 5, Tyler Brooks, $2.6K, 9 jobs\" |\n| WaterfallChart | \"2 of 7, Labor overruns, −1.6 pts · $7.7K, running total 36.4%\" |\n| BridgeChart | \"2 of 5, After discount, $1,000, −$260 discount\" |\n| DotHistogram (`toneBy` thresholds) | \"Critical, 1 of 6, #5600, 3.1%\" |\n| StripPlot | \"Estimated, 1 of 29, #5900, 5.2 h\" |\n| WaffleColumns | \"1 of 8, Aug 3, $9.8K\" |\n| LineChart | \"9 of 9, Dec, 36.0% on the current path, 37.6% with changes\" |\n| LineChart on a time axis | \"1 of 90, Jan 1, 2026, 32.0% Margin this quarter\" |\n\nA mark's `ariaLabel` (or a chart's own text) is the `{label}` part; the chart adds the series and the position around it."
+      }
+    },
+    {
+      "id": "n14",
+      "type": "heading",
+      "props": {
+        "text": "Heatmap",
+        "level": "3",
+        "anchor": "sr-heatmap"
+      }
+    },
+    {
+      "id": "n15",
+      "type": "prose",
+      "props": {
+        "markdown": "A `grid` named by `title` or `aria-labelledby` and described by `description`. The first row holds the column headers: the corner, named by `rowLabel` (default: the `row` field in sentence case), the column names and, with `totals` (on by default), a \"Total\" header (`totalLabel`). With `totals`, the next row is the column totals, headed by `totalLabel`, and ends with the grand total. Every data row starts with its row header and, with `totals`, ends with its total. A cell reads as its value with its row and column header, e.g. \"Dallas, Labor, $14.8K\"; a missing value reads \"No data\"."
+      }
+    },
+    {
+      "id": "n16",
+      "type": "heading",
+      "props": {
+        "text": "RunwayChart",
+        "level": "3",
+        "anchor": "sr-runway-chart"
+      }
+    },
+    {
+      "id": "n17",
+      "type": "prose",
+      "props": {
+        "markdown": "A `list` (or, with `onSelect`, a `listbox`) named by `title` or `aria-labelledby` and described by `description`. Each row is announced by its label followed by its status, e.g. \"Work account Runs out Fri 03:24 Resets Mon 09:21\"; with `onSelect` each is an `option` with `aria-selected`, named from those two parts. The strips, the time axis and the legend swatches are hidden from assistive technology (the legend text is read): the per-account detail (name, detail text, run-out, reset, projected share at reset, status) is in the hidden data table, and the status text carries the same facts. Icons are hidden. A custom `status` replaces the text that is read; a string also becomes the table's Status, and `null` leaves the row with its label only. A disconnected row reads \"Disconnected\".\n\n**Forced colors.** Level cells become steps of the text colour (`CanvasText` at rising fill opacity) with `CanvasText` outlines; the locked hatch stays visible; empty cells are outlined; the runs-out dot is `Highlight`; the selected row has a dashed `CanvasText` outline and the keyboard-focused row a solid `Highlight` outline. The \"reset\" label is drawn only to the right of the reset tick, with a halo in the surface colour, and is omitted when it would not fit; the status says the same."
+      }
+    },
+    {
+      "id": "n18",
+      "type": "heading",
+      "props": {
+        "text": "Small pieces",
+        "level": "3",
+        "anchor": "sr-small-pieces"
+      }
+    },
+    {
+      "id": "n19",
+      "type": "prose",
+      "props": {
+        "markdown": "- `Meter`: `role=\"meter\"` with `aria-valuemin`, `aria-valuemax`, `aria-valuenow` and an `aria-valuetext` such as \"34.0%, target 38.0%\".\n- `RangeMeter`: `role=\"img\"` named \"{label}: {value} against {reference}\".\n- `ShareBar`: with the list, a group named by `label`; the bar is hidden and each row reads \"Internal links 2,711 46%\" (the middle dot is hidden). Without it (`legend={false}`) there is no group: the bar is `role=\"img\"` named \"{label}: Internal links 46% (2,711), Search 34% (1,968), …\". Numbers use the `format` prop.\n- `ZoneMeter`: `role=\"meter\"` with `aria-valuemin`, `aria-valuemax` and `aria-valuenow` (pinned to the range) and an `aria-valuetext` such as \"4.1 s, Poor\"; above the range \"6.4 s, above 6.0 s, Poor\", below it \"-1.0 s, below 0.0 s, Good\", and \"No data\" for a missing value (the value and the range end are formatted with the same `format`). The break labels under the track are hidden.\n- `Delta`: the arrow is hidden; a visually hidden \"Up\", \"Down\" or \"No change\" precedes the value.\n- `Legend`: a list; swatches are hidden.\n- `Stat`, `InlineBar`, `DotCount`, `TooltipPill`: their text."
+      }
+    },
+    {
+      "id": "n20",
+      "type": "heading",
+      "props": {
+        "text": "Decorative on purpose",
+        "level": "2",
+        "anchor": "decorative-on-purpose"
+      }
+    },
+    {
+      "id": "n21",
+      "type": "prose",
+      "props": {
+        "markdown": "These carry no information that isn't also available as text, in the tooltip or in the data table, so they keep their low contrast (WCAG 1.4.11 applies to what is needed to understand the content):\n\n- grid lines and row dividers;\n- bar, meter and inline-bar tracks, the bar of a `ShareBar` that has its list, and the tick labels of a `ZoneMeter` (the value text already names the zone);\n- the light tint between hatch stripes, and the faded end of `hatch-fade` bars;\n- soft dots (the faded non-peak periods in WaffleColumns): any dot drawn soft is decorative emphasis and gets no 3:1 outline;\n- dimmed marks while another one is active;\n- bands (a likely range), regions (forecast shading) and the column highlight;\n- dotted connectors between waterfall steps;\n- the dashed border of an empty heatmap cell, and the glow on its top cell."
+      }
+    },
+    {
+      "id": "n22",
+      "type": "heading",
+      "props": {
+        "text": "The vivid palette",
+        "level": "2",
+        "anchor": "the-vivid-palette"
+      }
+    },
+    {
+      "id": "n23",
+      "type": "prose",
+      "props": {
+        "markdown": "`data-ch-palette=\"vivid\"` (opt-in, light theme only) restores the brighter pre-0.6b `--ch-warn`, `--ch-gain` and `--ch-neutral`. They give up the 3:1 non-text contrast the default tokens keep. Against the light surface `#fafafa`:\n\n| Token | Default | Vivid |\n|---|---|---|\n| `--ch-warn` | `#be802f` 3.18:1 | `#f1a23b` 2.02:1 |\n| `--ch-gain` | `#22a363` 3.10:1 | `#23a866` 2.93:1 |\n| `--ch-neutral` | `#8e8e95` 3.12:1 | `#a3a3ab` 2.40:1 |\n\nNone of the three reaches 3:1 (WCAG 1.4.11), so a mark in one of these tones can be hard to see for low-vision users. Use the palette only where the data is also carried by text, labels or the data table, or where the marks are outlined. Toned text keeps its 4.5:1 (it is mixed with the ink), and the dark theme and forced colors are unchanged. CI checks the text and axe on the Vivid BarChart story; the 3:1 token tests cover the default palette only."
+      }
+    },
+    {
+      "id": "n24",
+      "type": "heading",
+      "props": {
+        "text": "Known limits",
+        "level": "2",
+        "anchor": "known-limits"
+      }
+    },
+    {
+      "id": "n25",
+      "type": "prose",
+      "props": {
+        "markdown": "- In forced colors, the gaps between `ShareBar` segments and between `ZoneMeter` zones keep the parts apart. Segments and zones keep distinct system colors (`forced-color-adjust: none`), and the `ZoneMeter` marker uses `Highlight`.\n- Forced colors are verified only in Chromium's emulation. Windows with a real high-contrast theme (Edge, Firefox) should be checked by hand.\n- No screen reader runs in CI. The checklist below is run by hand before a release.\n- Font sizes are in px: browser zoom scales them, but a user's default font size has no effect. Zoom itself isn't tested; 320 CSS px, the width a 1280px window has at 400% zoom, passes the reflow test.\n- Row labels cut with an ellipsis keep the full text in an SVG `<title>`, but chart text takes no pointer events (so labels never block the bars under them), so browsers don't show it on hover. The tooltip and the data table have the full text.\n- In a very narrow chart, BridgeChart shows only some column totals and no notes, and a pinned pill can take three lines. The tooltip and the data table have everything.\n- `data-ch-seq-tone` must sit on, or below, the element that sets `data-ch-theme`. If it sits above a theme boundary, the ramp is computed in the outer theme.\n- ComparisonBars chooses its layout from the measured width. On a server-rendered page a narrow screen first renders columns at the 640px default and switches to stacked after hydration. To avoid the jump, pass `initialWidth` or an explicit `layout`.\n- At very narrow widths an axis may keep only its first label. Every value stays reachable through the tooltip and the data table.\n- Hatched marks (`hatch` fill) and the soft accent get their 1px outline in both themes: on bars, on accent-soft dots that aren't drawn soft, and on legend swatches.\n- Screen readers differ in how they enter and announce `role=\"application\"`. The checklist covers VoiceOver; NVDA and JAWS should be checked the same way.\n- A hover tooltip has `pointer-events: auto`, so the pointer can rest on it (WCAG 1.4.13: hoverable). While it's visible it covers the hit areas of neighboring points under it; to reach a covered point, move the pointer off the tooltip or use the keyboard. Custom tooltip content (`content` render prop) is rendered into the chart's overlay, which is `aria-hidden`, so a screen reader doesn't read it. What it announces comes from the live region and the data table, and interactive elements in custom content can't be reached with the keyboard. Accepted under WCAG 1.4.13. Pinned callouts are click-through.\n- Heatmap `breaks` (and `heatmapLevel`) and RunwayChart `breaks` are lower-inclusive only: a value equal to an edge falls into the higher level. `thresholds()` has `inclusive: 'upper'`; these two have no such option yet. An `inclusive` option is planned for 1.x."
+      }
+    },
+    {
+      "id": "n26",
+      "type": "heading",
+      "props": {
+        "text": "Manual checklist",
+        "level": "2",
+        "anchor": "manual-checklist"
+      }
+    },
+    {
+      "id": "n27",
+      "type": "prose",
+      "props": {
+        "markdown": "Before each release:\n\n1. Run `pnpm test:e2e`; it must pass (axe, contrast, reflow, forced colors, keyboard).\n2. In Storybook, Tab through `Reference/Estimate vs actual`, `Reference/Drill columns`, `Reference/Where it leaks` and `Reference/Margin outlook` with the keyboard only: every chart is one tab stop, the first point and its tooltip appear on focus, arrows, Home, End, Enter and Escape work, and the focus ring is visible.\n3. Hover a bar in `Reference/Last 12 weeks`, press Escape: the tooltip closes.\n4. Zoom the browser to 400% (or a 320px-wide window) on every reference story: nothing overlaps, the page doesn't scroll sideways, and the heatmap scrolls inside its card.\n5. On Windows, turn on a high-contrast theme and look at the same stories in Edge.\n6. Run the VoiceOver script below in Safari on macOS (VO = Control+Option)."
+      }
+    },
+    {
+      "id": "n28",
+      "type": "heading",
+      "props": {
+        "text": "VoiceOver script",
+        "level": "3",
+        "anchor": "voiceover-script"
+      }
+    },
+    {
+      "id": "n29",
+      "type": "prose",
+      "props": {
+        "markdown": "Open each story with `iframe.html?id=…&viewMode=story` so only the story is on the page. The wording below is what the library provides; VoiceOver's own words for roles (\"web application\", \"chart\") and its pauses vary by version. A step passes when the same information comes in the same order.\n\n**LineChart: `reference-margin-outlook--light`**\n\n1. VO+Right to the chart. Expected: \"Margin outlook, figure\" (or similar), then the description \"Margin reaches 36.0% by December on the current path and 37.6% with your changes, still under the 38% target.\"\n2. Tab into the chart. Expected: \"Margin outlook, chart\" with the description and \"Use arrow keys to move between points, Home and End for first and last, Escape to clear.\", then \"1 of 9, Apr, 32.9% Actual\".\n3. Press →. Expected: \"2 of 9, May, 34.2% Actual\".\n4. Press End. Expected: \"9 of 9, Dec, 36.0% on the current path, 37.6% with changes\".\n5. Press Escape, then VO+Right past the chart. Expected: the table \"Margin outlook\" with columns \"Month, Actual, Current path, With your changes, Likely range\"; row \"Apr\" reads \"32.9%\" then \"no value\" three times.\n\n**RankedBars: `reference-drill-columns--light`**\n\n1. Tab to the first chart. Expected: \"Leakage by cause, chart\", \"Use arrow keys to move between points, Home and End for first and last, Escape to clear. Press Enter to select.\", then \"1 of 5, Labor overruns, $31.2K\".\n2. Press ↓. Expected: \"2 of 5, Material variance, $18.7K\".\n3. Press Enter. Expected: the row gets the selection highlight and the story's output reads \"Selected cause: Material variance\".\n4. Tab to the last chart. Expected: \"1 of 5, Tyler Brooks, $2.6K, 9 jobs\".\n\n**Heatmap: `reference-where-it-leaks--light`**\n\n1. Tab into the grid. Expected: \"Profit leaked by branch and cause, grid\" (or \"table\"), the description, then \"Dallas, Labor, $14.8K\" (row, column, value; VoiceOver may add the position).\n2. Press →. Expected: \"Materials, $7.9K\".\n3. Press ↑. Expected: the column total, \"Total, Materials, $18.7K\".\n4. Press Ctrl+End. Expected: \"Houston, Total, $21.9K\".\n5. Press Ctrl+Home. Expected: \"Total, Labor, $31.2K\".\n6. Press ↓ to \"$14.8K\" and Enter. Expected: \"Selected: Dallas · Labor\" in the story's output.\n7. Shrink the window to 320px wide and Tab from the grid backwards: the scroller is a stop of its own, \"Profit leaked by branch and cause, group\"; with VO, Shift+scroll or arrow keys scroll it."
+      }
+    }
+  ]
+}
