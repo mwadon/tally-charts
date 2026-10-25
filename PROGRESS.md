@@ -210,3 +210,43 @@ Ostatnie uwagi: zobacz .crew/backlog.json (lastNote).
 **Otwarte kwestie:**
 - Raport API ma duży diff (kolejność pól w aliasach typów jest źródłowa, nie alfabetyczna jak w interfejsach), ale bez zmian znaczenia.
 - Strona migracji w docs to F23 (jeszcze nie istnieje); changeset zawiera notatkę przed/po.
+
+## ✔ T07 Wymagana nazwa wykresu w typach: title albo aria-labelledby (F3) (2026-10-25)
+`Chart` i 11 wykresów wysokiego poziomu wymagają teraz w typach `title` albo `aria-labelledby`. Wszystkie bramki z planu przechodzą, w tym `pnpm test:e2e` (303 testy, bez `--update-snapshots`, bez zmienionych PNG).
+
+- **Typ `ChartName`:** to dokładnie unia ze SPEC §5.1, eksportowana z `index.ts` i widoczna w `api/tally-charts.api.md`. `ChartProps` i `*Props` jedenastu wykresów to teraz `type … = ChartName & …`. `ChartPassThroughProps` nie ma już `title`. `{...chart}` kompiluje się bez rzutowań i bez helpera.
+- **Nazwa widżetu:** przy obu propach nazwę widżetu daje element wskazany przez `aria-labelledby`, a `title` zostaje domyślnym caption tabeli danych. Dotyczy figure, `role="application"`, gridu Heatmap oraz list/listbox RunwayChart. W Heatmap, gdy plansza się przewija, grupa dostaje `aria-labelledby` zamiast `aria-label`.
+- **Ostrzeżenia dev:** teksty bez zmian, warunek to `DEV && !title && !labelledBy`.
+- **Testy:** `types.test.ts` ma `describe('chart name')` z `@ts-expect-error` dla wszystkich 12 komponentów oraz wariantami z samym `title` i samym `aria-labelledby`. Nowe testy zachowania są w `Chart.test.tsx`, `BarChart.test.tsx`, `Heatmap.test.tsx` i `RunwayChart.test.tsx` (lista niżej).
+- **Naprawione wywołania bez nazwy:** testy w `src/**` dostały `title="Test chart"`, a testy ostrzeżeń mają `@ts-expect-error`. Jedyna story bez nazwy, Performance (RankedBars), używa teraz `aria-labelledby` wskazującego nagłówek „Below threshold” (dodałem mu `id`). `apps/docs` kompilowało się bez zmian.
+- **Dokumentacja:** README (sekcja Accessibility i tabela RunwayChart), `docs/a11y.md`, `.changeset/required-chart-name.md` (major, migracja przed/po, w tym `interface … extends` → `type … = … & {…}`) oraz sekcja T07 z decyzjami D1–D5 w PROGRESS.md.
+- **Weryfikacja:**
+  - `pnpm lint` daje te same 4 ostrzeżenia i 1 info co wcześniej.
+  - `pnpm typecheck` przechodzi dla całego monorepo.
+  - `pnpm test` (1052) i `pnpm --filter docs test` (28) przechodzą.
+  - Przechodzą `pnpm build`, `api:check`, `pnpm size` i `check:dev-strip`.
+  - W `api:update` zmieniły się tylko ChartName, aliasy typów i ChartPassThroughProps; `core.api.md` bez zmian.
+  - Kontrola negatywna: po usunięciu dyrektywy dla RunwayChartProps `tsc` pada.
+**Decyzje i pułapki:**
+- Pick i Omit na unii zwijają dyskryminant, więc ChartName musi być w intersekcji na zewnątrz Omit. Rest `...chart` z takiego typu przekazuje się do <Chart> bez rzutowania.
+- Partial<UnionProps> zachowuje się luźno przy spreadzie: helpery testowe z `{...props}` i `title: undefined` kompilują się bez dyrektyw.
+- Przy @ts-expect-error błąd o brakującej nazwie jest raportowany na pierwszej linii wywołania z obiektem, więc dyrektywa musi stać tuż nad nią.
+- Na macOS (BSD sed) używaj `sed -i ''`; wieloznakowe wyrażenia z `|` w ERE zawodzą, do edycji lepiej Python albo Edit.
+- pnpm typecheck w monorepo kompiluje docs przez paths do src, więc widzi nowe typy bez wcześniejszego buildu.
+**Otwarte kwestie:**
+- Raport API ma duży diff, bo aliasy typów zachowują kolejność pól ze źródła (interfejsy były sortowane alfabetycznie). Znaczenie bez zmian.
+- Strona migracji w docs (F23) nadal nie istnieje; notatka przed/po jest tylko w changesecie.
+- pnpm lint nadal zgłasza 4 ostrzeżenia i 1 info istniejące przed T07 (noImportantStyles w theme.css, deprecated pole w biome.json).
+- packages/tally-charts/src/react/Chart.tsx: `nameId = labelledBy ?? (title ? titleId : undefined)` uses `??`, so `aria-labelledby=""` alongside `title="X"` sets an empty aria-labelledby: the title is ignored, the chart is unnamed, and there is no warning (`!title` is false). The same applies in Heatmap.tsx:193 and RunwayChart.tsx:175, and in Heatmap the scroll-group gets aria-labelledby="" instead of aria-label.
+- packages/tally-charts/src/react/charts/Heatmap.tsx: The new branch for an overflowing heatmap (scroll-group with aria-labelledby instead of aria-label) has no test.
+- .size-limit (pnpm size): The main bundle is at 12.99 kB of a 13 kB limit: practically no headroom, so the next small change will break size.
+**Kryteria:**
+- `src/types.test.ts` ma 12 przypadków z `// @ts-expect-error` dla ChartProps, BarChartProps, ComparisonBarsProps, RankedBarsProps, WaterfallChartProps, BridgeChartProps, DotHistogramProps, StripPlotProps, WaffleColumnsProps, LineChartProps, HeatmapProps i RunwayChartProps bez `title` i bez `aria-labelledby`. Warianty z samym `title` i z samym `aria-labelledby` kompilują się bez dyrektyw. `pnpm --filter tally-charts typecheck` przechodzi, a usunięcie dowolnej dyrektywy `@ts-expect-error` powoduje błąd typów.
+- Publiczny typ `ChartName` = `{ title: string; 'aria-labelledby'?: string } | { title?: undefined; 'aria-labelledby': string }` jest eksportowany z `tally-charts` i widoczny w `api/tally-charts.api.md`.
+- Istniejący test 'warns once when the figure has no title…' w `Chart.test.tsx` przechodzi, a teksty ostrzeżeń się nie zmieniły. Nowe testy potwierdzają, że przy samym `aria-labelledby` Chart, Heatmap i RunwayChart nie ostrzegają. `pnpm --filter tally-charts check:dev-strip` przechodzi.
+- Testy unit z `<h2 id=…>` i `aria-labelledby`: `getByRole('application', { name })` i `getByRole('figure', { name })` dla Chart, `getByRole('application', { name })` dla BarChart, `getByRole('grid', { name })` dla Heatmap, `getByRole('list', { name })` dla RunwayChart zwracają element z nazwą wskazanego nagłówka. Przy podanych obu propach nazwa pochodzi z `aria-labelledby`.
+- `pnpm typecheck` (cały monorepo: biblioteka z testami, storybook stories, apps/docs) oraz `pnpm lint`, `pnpm test`, `pnpm --filter docs test` przechodzą.
+- Po `pnpm build` przechodzi `pnpm --filter tally-charts api:check` z zaktualizowanym `api/tally-charts.api.md` (`core.api.md` bez zmian). Przechodzi też `pnpm size`.
+- `pnpm test:e2e` przechodzi bez `--update-snapshots`, a `git status` nie pokazuje zmienionych PNG.
+- Istnieje `.changeset/*.md` z `'tally-charts': major`, z notatką migracyjną i fragmentami kodu Before/After (dodanie `title` albo `aria-labelledby`, oraz `interface … extends XxxProps` → `type … = XxxProps & {…}`).
+- README biblioteki (sekcja Accessibility) opisuje wymóg `title` albo `aria-labelledby`, a PROGRESS.md zapisuje decyzje D1–D5 z planu.
