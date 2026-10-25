@@ -34,7 +34,7 @@ const phrases = [
   'RunwayChart `cell`',
   'RunwayChart `breaks`',
   'RunwayChart shows at most 200 cells',
-  'RunwayChart has a duplicate row id',
+  'RunwayChart has duplicate row ids',
   'announce an unnamed list',
   'RunwayChart dropped a projection point',
   'RunwayChart sorted the projection',
