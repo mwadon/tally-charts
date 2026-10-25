@@ -26,6 +26,25 @@ export function collectErrors(page: Page) {
   return errors
 }
 
+/** The blocks that mount their chart when they come near the viewport (`LazyMount`). */
+const LAZY_CARDS = '.chart-example, .gallery-tile, .card-grid li.card'
+
+/**
+ * Scrolls every card with a lazily mounted chart into view and waits until each has its chart,
+ * then returns to the top. Call it before an assertion about a chart below the fold.
+ */
+export async function revealCharts(page: Page) {
+  const cards = page.locator(LAZY_CARDS)
+  const count = await cards.count()
+  for (let i = 0; i < count; i++) {
+    const card = cards.nth(i)
+    await card.scrollIntoViewIfNeeded()
+    // The code panel of a card is hidden and has no placeholder, so only the shown one counts.
+    await expect(card.locator('[data-lazy-placeholder]:visible')).toHaveCount(0)
+  }
+  await page.evaluate(() => window.scrollTo(0, 0))
+}
+
 export function themeSuite(spec: PageSpec) {
   const role = spec.chartRole ?? 'application'
   for (const theme of Object.keys(SURFACE) as Theme[]) {
@@ -43,6 +62,7 @@ export function themeSuite(spec: PageSpec) {
           expect(response?.status()).toBe(200)
 
           await expect(page.getByRole('heading', { level: 1, name: spec.h1 })).toBeVisible()
+          await revealCharts(page)
           const chart = page.getByRole(role, { name: spec.chart })
           await expect(chart).toBeVisible()
           // Only the application widget wraps the SVG; a grid or a list has its own markup.
@@ -66,6 +86,7 @@ export function themeSuite(spec: PageSpec) {
       test('does not scroll horizontally', async ({ page }) => {
         const errors = collectErrors(page)
         await page.goto(spec.path)
+        await revealCharts(page)
         await expect(page.getByRole(role, { name: spec.chart })).toBeVisible()
 
         const sizes = await page.evaluate(() => ({

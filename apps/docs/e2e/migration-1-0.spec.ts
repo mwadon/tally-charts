@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { themeSuite } from './support'
+import { revealCharts, themeSuite } from './support'
 
 test('/docs/migration-1-0 is a page, and the sidebar links to it', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 })
@@ -18,6 +18,7 @@ test('/docs/migration-1-0 has the breaking and additive sections, with an exampl
   page,
 }) => {
   await page.goto('/docs/migration-1-0')
+  await revealCharts(page)
 
   await expect(page.getByRole('heading', { level: 2, name: /^Breaking changes/ })).toBeVisible()
   await expect(page.getByRole('heading', { level: 2, name: /^Additive changes/ })).toBeVisible()

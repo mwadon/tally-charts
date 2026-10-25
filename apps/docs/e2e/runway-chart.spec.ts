@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { themeSuite } from './support'
+import { revealCharts, themeSuite } from './support'
 
 const FIRST = 'API quotas: which keys run out before they reset'
 const SECOND = 'GPU hours per team, with the highlighted row controlled from outside'
@@ -38,6 +38,7 @@ test('/docs/runway-chart documents RunwayChart and runwayForecast once each', as
 
 test('the first example is a list, the second a listbox', async ({ page }) => {
   await page.goto('/docs/runway-chart')
+  await revealCharts(page)
 
   await expect(page.getByRole('list', { name: FIRST })).toBeVisible()
   await expect(page.getByRole('listbox', { name: SECOND })).toBeVisible()
@@ -53,6 +54,7 @@ test('a row reads as its label and status', async ({ page }) => {
 
 test('a button outside the chart moves the active row', async ({ page }) => {
   await page.goto('/docs/runway-chart')
+  await revealCharts(page)
 
   const listbox = page.getByRole('listbox', { name: SECOND })
   const status = page.getByText(/^Active: /)
@@ -81,6 +83,7 @@ test('a button outside the chart moves the active row', async ({ page }) => {
 
 test('the keyboard moves the active row and the text outside follows', async ({ page }) => {
   await page.goto('/docs/runway-chart')
+  await revealCharts(page)
 
   const listbox = page.getByRole('listbox', { name: SECOND })
   await listbox.focus()

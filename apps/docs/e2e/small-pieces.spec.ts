@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { themeSuite } from './support'
+import { revealCharts, themeSuite } from './support'
 
 themeSuite({
   name: 'small-pieces',
@@ -44,6 +44,7 @@ test('/docs/small-pieces has a props table for each of the ten pieces', async ({
 
 test('the examples render their pieces as HTML, with accessible names', async ({ page }) => {
   await page.goto('/docs/small-pieces')
+  await revealCharts(page)
 
   // kpi-row
   await expect(page.getByText('Gross margin', { exact: true })).toBeVisible()
@@ -66,6 +67,7 @@ test('the examples render their pieces as HTML, with accessible names', async ({
 test('the legend names the chart series, and the tooltip is a segmented pill', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 900 })
   await page.goto('/docs/small-pieces')
+  await revealCharts(page)
 
   const chart = page.getByRole('application', { name: 'Orders against plan, by month' })
   await expect(page.locator('.ch-legend').getByText('Plan', { exact: true })).toBeVisible()

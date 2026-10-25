@@ -616,6 +616,18 @@ tbody th {
   margin-bottom: 0;
 }
 
+/* `LazyMount` with `wideMinHeight` reserves `var(--lazy-min-height)`: the narrow value, and from the
+   width at which the gallery goes from one column to two (764 px) the wide one. */
+[data-lazy-wide] {
+  --lazy-min-height: var(--lazy-min-height-narrow);
+}
+
+@media (min-width: 764px) {
+  [data-lazy-wide] {
+    --lazy-min-height: var(--lazy-min-height-wide);
+  }
+}
+
 /* ---------- ChartExample ---------- */
 .chart-example {
   margin: 0 0 1rem;

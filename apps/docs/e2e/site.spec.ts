@@ -3,7 +3,7 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
-import { collectErrors, type Theme } from './support'
+import { collectErrors, revealCharts, type Theme } from './support'
 
 interface Navigation {
   groups: { items: { slug: string }[] }[]
@@ -38,6 +38,9 @@ for (const theme of THEMES) {
         await expect(page.getByRole('heading', { level: 1 }).first()).toBeVisible()
         // Hydration and lazily loaded charts must have settled before axe looks at the DOM.
         await page.waitForLoadState('networkidle')
+        // Charts below the fold mount on scroll; axe has to see them too.
+        await revealCharts(page)
+        await page.waitForLoadState('networkidle')
 
         const results = await new AxeBuilder({ page })
           .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
@@ -63,7 +66,8 @@ test.describe('site, 320 px', () => {
       await page.goto(path)
       await expect(page.getByRole('heading', { level: 1 }).first()).toBeVisible()
       await page.waitForLoadState('networkidle')
-      // Lazily loaded charts further down must be in place before the width is measured.
+      // Lazily mounted charts further down must be in place before the width is measured.
+      await revealCharts(page)
       await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
       await page.waitForLoadState('networkidle')
 

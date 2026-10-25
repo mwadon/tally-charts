@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { themeSuite } from './support'
+import { revealCharts, themeSuite } from './support'
 
 themeSuite({
   name: 'strip-plot',
@@ -29,6 +29,7 @@ test('/docs/strip-plot documents the StripPlot props once', async ({ page }) => 
 
 test('the page shows both StripPlot examples', async ({ page }) => {
   await page.goto('/docs/strip-plot')
+  await revealCharts(page)
 
   await expect(
     page.getByRole('application', { name: 'Days to deliver, promised against actual' }),

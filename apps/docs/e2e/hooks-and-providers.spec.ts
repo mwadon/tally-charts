@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { themeSuite } from './support'
+import { revealCharts, themeSuite } from './support'
 
 themeSuite({
   name: 'hooks-and-providers',
@@ -50,6 +50,7 @@ test('the charts inside the provider format numbers as de-DE and EUR', async ({ 
 
 test('the custom mark announces its registered points from the keyboard', async ({ page }) => {
   await page.goto('/docs/hooks-and-providers')
+  await revealCharts(page)
 
   const chart = page.getByRole('application', {
     name: 'Average order value by month, as lollipops',

@@ -161,7 +161,8 @@
       "type": "chart-example",
       "props": {
         "exampleId": "thresholds/heatmap-legend",
-        "defaultView": "preview"
+        "defaultView": "preview",
+        "height": 484
       }
     },
     {

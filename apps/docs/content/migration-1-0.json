@@ -303,7 +303,8 @@
       "type": "chart-example",
       "props": {
         "exampleId": "line-chart/orders-last-year",
-        "defaultView": "preview"
+        "defaultView": "preview",
+        "height": 292
       }
     },
     {
@@ -360,7 +361,8 @@
       "type": "chart-example",
       "props": {
         "exampleId": "migration/select-hint",
-        "defaultView": "preview"
+        "defaultView": "preview",
+        "height": 294
       }
     }
   ]

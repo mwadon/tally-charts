@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { themeSuite } from './support'
+import { revealCharts, themeSuite } from './support'
 
 themeSuite({
   name: 'waffle-columns',
@@ -31,6 +31,7 @@ test('/docs/waffle-columns documents the WaffleColumns props once', async ({ pag
 
 test('the page shows both WaffleColumns examples', async ({ page }) => {
   await page.goto('/docs/waffle-columns')
+  await revealCharts(page)
 
   await expect(page.getByRole('application', { name: 'Newsletter signups per week' })).toBeVisible()
   await expect(

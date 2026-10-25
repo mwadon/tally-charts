@@ -76,7 +76,8 @@
       "type": "chart-example",
       "props": {
         "exampleId": "hooks-and-providers/custom-mark",
-        "defaultView": "preview"
+        "defaultView": "preview",
+        "height": 292
       }
     },
     {

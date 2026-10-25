@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { themeSuite } from './support'
+import { revealCharts, themeSuite } from './support'
 
 themeSuite({
   name: 'theming',
@@ -31,6 +31,7 @@ test('the token tables list the theme and the shared tokens', async ({ page }) =
 
 test('the override example changes the accent, and the nested panel is dark', async ({ page }) => {
   await page.goto('/docs/theming')
+  await revealCharts(page)
 
   await expect(
     page.getByRole('application', { name: 'Revenue by month, overridden tokens' }),

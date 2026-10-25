@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { themeSuite } from './support'
+import { revealCharts, themeSuite } from './support'
 
 themeSuite({
   name: 'waterfall-chart',
@@ -31,6 +31,7 @@ test('/docs/waterfall-chart documents the WaterfallChart props once', async ({ p
 
 test('the page shows both WaterfallChart examples', async ({ page }) => {
   await page.goto('/docs/waterfall-chart')
+  await revealCharts(page)
 
   await expect(page.getByRole('application', { name: 'Cash position, March' })).toBeVisible()
   await expect(

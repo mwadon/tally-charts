@@ -83,7 +83,8 @@
       "type": "chart-example",
       "props": {
         "exampleId": "composition/line-area-band",
-        "defaultView": "preview"
+        "defaultView": "preview",
+        "height": 312
       }
     },
     {
@@ -122,7 +123,8 @@
       "type": "chart-example",
       "props": {
         "exampleId": "composition/bridge-connector",
-        "defaultView": "preview"
+        "defaultView": "preview",
+        "height": 312
       }
     },
     {

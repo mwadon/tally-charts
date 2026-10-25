@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import { revealCharts } from './support'
 
 // The viewports of docs/superpowers/specs/assets/docs-site/shots.mjs.
 const VIEWPORTS = { 1280: { width: 1280, height: 1400 }, 375: { width: 375, height: 812 } }
@@ -17,7 +18,8 @@ for (const [width, viewport] of Object.entries(VIEWPORTS)) {
 
       test('matches the baseline', async ({ page }) => {
         await page.goto(`/?theme=${theme}`)
-        // The gallery charts may mount on scroll, so visit every tile before the screenshot.
+        // The charts below the fold mount on scroll, so visit every card before the screenshot.
+        await revealCharts(page)
         const tiles = page.locator('.gallery-tile')
         await expect(tiles).toHaveCount(9)
         for (let i = 0; i < 9; i++) {

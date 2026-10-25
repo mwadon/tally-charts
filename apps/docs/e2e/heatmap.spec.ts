@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { themeSuite } from './support'
+import { revealCharts, themeSuite } from './support'
 
 const FIRST = 'On-call pages by team and shift'
 const SECOND = 'Trial-to-paid conversion by channel and plan'
@@ -33,6 +33,7 @@ test('/docs/heatmap documents the Heatmap props once', async ({ page }) => {
 
 test('the page shows both Heatmap examples as grids', async ({ page }) => {
   await page.goto('/docs/heatmap')
+  await revealCharts(page)
 
   await expect(page.getByRole('grid', { name: FIRST })).toBeVisible()
   await expect(page.getByRole('grid', { name: SECOND })).toBeVisible()
@@ -40,6 +41,7 @@ test('the page shows both Heatmap examples as grids', async ({ page }) => {
 
 test('each cell sits under its row header, and a missing value reads No data', async ({ page }) => {
   await page.goto('/docs/heatmap')
+  await revealCharts(page)
 
   const platform = page.getByRole('grid', { name: FIRST }).getByRole('row', { name: /^Platform / })
   await expect(platform.getByRole('rowheader', { name: 'Platform' })).toBeVisible()
@@ -51,6 +53,7 @@ test('each cell sits under its row header, and a missing value reads No data', a
 
 test('selecting a cell of the second example shows it outside the grid', async ({ page }) => {
   await page.goto('/docs/heatmap')
+  await revealCharts(page)
 
   const grid = page.getByRole('grid', { name: SECOND })
   await grid

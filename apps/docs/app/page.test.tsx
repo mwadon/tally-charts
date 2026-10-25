@@ -90,8 +90,26 @@ test('the gallery has a tile per reference dashboard, captioned with the example
   tiles.forEach((tile, i) => {
     const id = items[i] as keyof typeof examples
     expect(within(tile).getByText(examples[id].title, { selector: 'p' })).toBeTruthy()
-    expect(within(tile).getAllByRole('figure')[0]?.querySelector('svg')).not.toBeNull()
+    // Below the fold: the chart mounts near the viewport, so the server sends a placeholder.
+    expect(tile.querySelector('[data-lazy-placeholder]')).not.toBeNull()
+    expect(tile.querySelector('svg')).toBeNull()
   })
+})
+
+test('each gallery tile reserves the height of its own dashboard, narrow and wide', async () => {
+  const body = await renderHome()
+
+  const placeholders = [
+    ...body.querySelectorAll<HTMLElement>('li.gallery-tile [data-lazy-placeholder]'),
+  ]
+  expect(placeholders).toHaveLength(9)
+  const narrow = placeholders.map((el) => el.style.getPropertyValue('--lazy-min-height-narrow'))
+  const wide = placeholders.map((el) => el.style.getPropertyValue('--lazy-min-height-wide'))
+  // Dashboards are 400 to 2200 px tall, so a single height for every tile would be wrong.
+  expect(new Set(narrow).size).toBeGreaterThan(5)
+  expect(narrow).not.toContain('1600px')
+  for (const value of [...narrow, ...wide]) expect(value).toMatch(/^\d+px$/)
+  for (const el of placeholders) expect(el.hasAttribute('data-lazy-wide')).toBe(true)
 })
 
 test('the visual language cards have a mini chart each', async () => {
@@ -99,7 +117,11 @@ test('the visual language cards have a mini chart each', async () => {
 
   const section = body.querySelectorAll('main > section')[1] as HTMLElement
   expect(section.querySelectorAll('li.card')).toHaveLength(4)
-  expect(within(section).getAllByRole('figure')).toHaveLength(4)
+  const cards = [...section.querySelectorAll<HTMLElement>('li.card')]
+  for (const card of cards) {
+    expect(card.querySelector('[data-lazy-placeholder]')).not.toBeNull()
+    expect(card.querySelector('svg')).toBeNull()
+  }
 })
 
 test('the Install section has a copy button and a status', async () => {

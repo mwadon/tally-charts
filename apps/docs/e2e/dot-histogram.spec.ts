@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { themeSuite } from './support'
+import { revealCharts, themeSuite } from './support'
 
 themeSuite({
   name: 'dot-histogram',
@@ -31,6 +31,7 @@ test('/docs/dot-histogram documents the DotHistogram props once', async ({ page 
 
 test('the page shows both DotHistogram examples', async ({ page }) => {
   await page.goto('/docs/dot-histogram')
+  await revealCharts(page)
 
   await expect(
     page.getByRole('application', { name: 'Hours to the first reply, one dot per ticket' }),
