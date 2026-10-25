@@ -205,6 +205,14 @@ Needs, in the environment (see `apps/docs/.env.example`):
 
 Steps:
 
+0. **Create the tenant and the keys** (once, in glökki):
+   - Tenant with the slug `tally-charts`. That value goes to `CMS_TENANT` and
+     `NEXT_PUBLIC_CMS_TENANT` (§11, and `check:content` below).
+   - A **delivery key** with the scope `delivery:read`. It goes to `CMS_API_KEY`: on Vercel (§11)
+     and in the `check:content` command below. It can only read published pages.
+   - An **admin key** with the scopes `mcp:connect`, `admin:pages:read`, `admin:pages:write` and
+     `admin:pages:publish`. It goes to `CMS_ADMIN_API_KEY`, only on the maintainer's machine (never
+     to Vercel or CI).
 1. **Sync the block registry**: after every deploy of the docs site that adds or changes blocks,
    open any page in the glökki visual editor once. glökki works from a stored snapshot of the
    block registry that only the editor refreshes; until then `add_block` and `publish_page`
@@ -214,9 +222,16 @@ Steps:
    `seed: N create, M update, K skip`. It only reads the CMS.
 3. **Seed**: `pnpm --filter docs seed`. It creates or updates the pages, then publishes each of
    them, so they show up in the delivery navigation. Publishing is limited to 10 calls a minute per
-   key: the script waits out the limit and goes on, so 18 pages take over a minute.
-4. **Check the content**: `CMS_BASE_URL=… CMS_TENANT=… CMS_API_KEY=… pnpm --filter docs check:content`
-   (after `pnpm build`) validates the pages in the CMS the same way as the fixtures.
+   key: the script waits out the limit and goes on, so the 26 pages (the fixtures in
+   `apps/docs/content/*.json`, without `navigation.json`) take about 3 minutes.
+4. **Check that nothing is left to do**: run `pnpm --filter docs seed --dry-run` again. Expect
+   `seed: 0 create, 0 update, 26 skip`.
+5. **Check the content**:
+   `CMS_BASE_URL=… CMS_TENANT=tally-charts CMS_API_KEY=… pnpm --filter docs check:content`
+   (after `pnpm build`) validates the pages in the CMS the same way as the fixtures. Expect exit 0,
+   no errors in the `cms:` report and `API coverage: 52/52`.
+6. **Webhook**: set it up after the site is on Vercel and its URL is known, following §11 steps 4–5
+   (`POST https://<domain>/api/revalidate`, check with `curl`, change visible within 60 s).
 
 Running it again is safe: a page that already matches its fixture (title, the seo fields of the
 fixture, the block types in order and the props of the fixture on top of the defaults of the
