@@ -1172,3 +1172,33 @@ Dodano 6 bloków w `apps/docs/blocks/` (każdy ze schematem Zod i `defineBlock`)
 **Otwarte kwestie:**
 - T26.2 musi podmienić `app/page.tsx` i `content/home.json` oraz usunąć `app/_components/visual-language.tsx` (dane zduplikowane w przykładach).
 - Gallery/VisualLanguage z wieloma wykresami: nieznany id w jednym elemencie chowa cały blok (zgodnie z ChartExample), nie tylko kafelek.
+
+## ✔ T26.1 Bloki strony głównej: Hero, VisualLanguage, Gallery, Install, FeatureGrid, LinkRow ze schematami i testami (2026-10-25)
+Dodano 6 bloków strony głównej w apps/docs/blocks/ (hero, visual-language, gallery, install, feature-grid, link-row). Każdy ma schemat Zod i defineBlock. Listy mają fieldType 'array', a exampleId przechodzi przez z.enum(exampleIds). Dodano 4 przykłady examples/visual-language/{hatch,solid,loss,target}.tsx (rscSafe, bez 'use client', dane z app/_components/visual-language.tsx). Bloki są zarejestrowane w blockRegistry, blockSchemas i editor-registry.tsx (14 typów w tej samej kolejności). Widoki są w blocks/home-views.tsx, bo moduły bloków ciągną Shiki i next/headers, których klientowy edytor nie może importować. Ładowanie wykresów robi blocks/load-example.tsx, a nieznany exampleId daje blockError() w miejscu całego bloku. LinkRow wyłącza /docs/<slug> z available:false jako span.nav-soon[aria-disabled], a edytor zawsze renderuje link (z komentarzem). Install używa CodeBlock lang bash, a command ma domyślnie 'npm i tally-charts'. Kategoria nowych bloków to 'home', zadeklarowana w createBlockRegistry razem z 'content'. app/page.tsx i content/home.json bez zmian. Zaktualizowano CLAUDE.md i PROGRESS.md. Sprawdzone: docs gen, docs test (473, zielone), docs typecheck, pnpm lint (exit 0, tylko wcześniejsze ostrzeżenia CSS), docs build, docs check:content (0 błędów).
+**Decyzje i pułapki:**
+- Moduł bloku, który importuje chart-example (Shiki) albo block-error (next/headers), nie może być importowany przez klientowy editor-registry. Wspólny widok trzeba trzymać w osobnym module bez kodu serwerowego (home-views.tsx).
+- useId działa w Server Components, więc widoki wspólne dla serwera i edytora mogą z niego korzystać do aria-labelledby.
+- createBlockRegistry przyjmuje wolne klucze kategorii, ale bez opcji categories CMS zna tylko swoje pięć. Nowa kategoria wymaga deklaracji obok 'content'.
+- Dla pól z .default() propsy komponentu przychodzą z CMS bez parsowania, więc typ propsów to z.input, a domyślną wartość trzeba mieć też w destrukturyzacji.
+- BSD sed na macOS wymaga sed -i '' i przerywa łańcuch &&. Do edycji lepiej używać pythona -I albo Edit.
+**Otwarte kwestie:**
+- T26.2 musi podmienić app/page.tsx i content/home.json na nowe bloki i usunąć app/_components/visual-language.tsx, bo jego dane są zduplikowane w examples/visual-language/*.
+- Gallery i VisualLanguage: nieznany exampleId w jednym elemencie chowa cały blok (zgodnie z ChartExample), nie tylko kafelek.
+- Kategoria 'home' wymagała zadeklarowania categories w createBlockRegistry. Nie sprawdzono, jak CMS glökki pokazuje taką kategorię w pickerze, bo nie ma dostępu do instancji.
+- Wyglądu nowych bloków nie sprawdzałem w przeglądarce, bo żadna strona jeszcze ich nie używa. Pokrycie to testy jsdom i SSR oraz ręczne sprawdzenie, że useId istnieje w buildzie react-server.
+- Próba porównania ostrzeżeń lint z czystym drzewem przez git stash została odrzucona, więc nie zweryfikowałem tym sposobem, że ostrzeżenia CSS są sprzed zmian. Dotyczą plików, których nie ruszałem (globals.css, theme.css).
+- apps/docs/blocks/link-row.tsx: LinkRow wywołuje getContentSource() bez flagi preview, więc w draft mode dostępność stron bierze z nawigacji opublikowanej, nie z wersji roboczej. Strony korzystają z getContentSource(process.env, isEnabled). W podglądzie szkicu link do nowo dodanej, jeszcze nieopublikowanej strony będzie wyłączony.
+- apps/docs/lib/content/check.ts: check:content (c) sprawdza linki /docs/<slug> tylko w prose i callout, a (b) sprawdza exampleId tylko dla chart-example. Pole href w hero.actions i link-row.items nie jest więc walidowane. Nieznany exampleId w nowych blokach łapie z.enum w (a), więc dotyczy to tylko hrefów.
+**Kryteria:**
+- Istnieją apps/docs/blocks/{hero,visual-language,gallery,install,feature-grid,link-row}.tsx, a każdy eksportuje schemat Zod (heroSchema itd.) i blok z defineBlock o type: hero, visual-language, gallery, install, feature-grid, link-row
+- blockRegistry.getTypes(), Object.keys(blockSchemas) i [...editorRegistry.keys()] to te same 14 typów w tej samej kolejności, a blocks/registry.test.ts i blocks/editor-registry.test.tsx (zaktualizowane z 8 do 14) przechodzą
+- Każdy defaultProps nowego bloku przechodzi parseBlockProps (istniejący test 'every defaultProps passes its own schema')
+- Schematy mają pola zgodne z backlogiem: exampleId przez z.enum(exampleIds), a pola list (actions, items) mają w block.fields fieldType 'array' z niepustym items. Test sprawdza to co najmniej dla jednego bloku
+- Install: heroSchema-podobny installSchema.parse({ heading: 'Install' }).command === 'npm i tally-charts'. Render ma przycisk o nazwie pasującej do /^Copy code/ i element role=status
+- Pliki examples/visual-language/{hatch,solid,loss,target}.tsx mają rscSafe: true, nie mają 'use client', a `pnpm --filter docs gen` kończy się kodem 0. examples/render.test.tsx i examples/ssr.test.tsx obejmują je bez zmian w tych testach
+- Testy Hero, VisualLanguage i Gallery z poprawnymi propsami znajdują nagłówki i teksty z propsów oraz getByRole('application', { name: examples[id].title })
+- Każdy nowy blok ma co najmniej 2 przypadki, w których parseBlockProps(type, props).success === false (np. nieznany exampleId, brak wymaganego pola, pusta lista)
+- LinkRow z fixturami: href /docs/getting-started (available: false) renderuje span.nav-soon[aria-disabled=true] bez linku, a /docs/line-chart i href zewnętrzny renderują <a>. Wersja w editor-registry zawsze renderuje <a> i ma komentarz z uzasadnieniem
+- Blok z nieznanym exampleId (test na jednym bloku) bez APP_ENV pokazuje .block-error z tym id, a przy APP_ENV=production bez draft mode nic nie renderuje
+- pnpm --filter docs test, pnpm --filter docs typecheck i pnpm lint przechodzą
+- git diff nie zawiera zmian w apps/docs/app/page.tsx ani apps/docs/content/home.json
