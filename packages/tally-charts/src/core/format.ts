@@ -70,6 +70,17 @@ function validDigits(digits: number | undefined): number | undefined {
     : undefined
 }
 
+/**
+ * A formatter for numbers: one of the presets, `{ preset, digits, signed }` or your own function.
+ *
+ * @param spec - What to write: a preset name (`'currency'`, `'currency-compact'`, `'percent'`,
+ * `'pts'`, `'number'`, `'hours'`), an object with `preset`, `digits` and `signed`, or a function,
+ * which is returned as is. Default: `'number'`.
+ * @param options - `locale` (default `en-US`), `currency` (default `USD`) and `signed`, which
+ * shows a plus sign for positive values and wins over the spec.
+ * @returns A function from a number to text. It returns an empty string for a value that is not
+ * finite.
+ */
 export function createFormatter(
   spec: FormatSpec = 'number',
   options: FormatOptions = {},

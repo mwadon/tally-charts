@@ -23,7 +23,8 @@
     "reportTempFolder": "<projectFolder>/temp/api/"
   },
   "docModel": {
-    "enabled": false
+    "enabled": true,
+    "apiJsonFilePath": "<projectFolder>/temp/api/tally-charts.api.json"
   },
   "dtsRollup": {
     "enabled": false

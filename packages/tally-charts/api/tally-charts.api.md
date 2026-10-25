@@ -371,7 +371,7 @@ export interface ConnectorProps {
     toInset?: number;
 }
 
-// @public (undocumented)
+// @public
 export function createFormatter(spec?: FormatSpec, options?: FormatOptions): Formatter;
 
 // @public

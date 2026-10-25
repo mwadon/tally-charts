@@ -35,7 +35,7 @@ export interface BandScaleSpec<D> {
 // @public
 export function createDateFormatter(spec?: DateFormatSpec, input?: DateFormatOptions): DateFormatter;
 
-// @public (undocumented)
+// @public
 export function createFormatter(spec?: FormatSpec, options?: FormatOptions): Formatter;
 
 // @public (undocumented)
