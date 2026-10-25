@@ -191,6 +191,16 @@ a:hover {
   white-space: nowrap;
 }
 
+/* ---------- Preview banner ---------- */
+/* The SDK banner has an inline `position: fixed`, which only !important can undo. */
+.preview-banner-slot {
+  grid-column: 1 / -1;
+}
+
+.preview-banner-slot > [role="alert"] {
+  position: static !important;
+}
+
 /* ---------- Header ---------- */
 .site-header {
   position: sticky;

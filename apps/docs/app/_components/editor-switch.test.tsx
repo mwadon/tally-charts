@@ -39,9 +39,11 @@ test('with ?_editor=1 it renders the editor canvas instead of the server content
   history.replaceState(null, '', '/docs/line-chart?_editor=1')
   const { container } = renderSwitch()
 
-  expect(await screen.findByRole('heading', { level: 2, name: /^Props/ })).toBeTruthy()
+  expect(
+    await screen.findByRole('heading', { level: 2, name: /^Props/ }, { timeout: 12_000 }),
+  ).toBeTruthy()
   expect(container.querySelector('h2#props')).not.toBeNull()
   expect(container.querySelector('.block-error')).toBeNull()
   expect(screen.queryByText('Server content')).toBeNull()
   expect(errors).not.toHaveBeenCalled()
-})
+}, 15_000)

@@ -1,4 +1,4 @@
-import { CMSPage, PreviewBanner } from '@glokki-cms/react'
+import { CMSPage } from '@glokki-cms/react'
 import type { Metadata } from 'next'
 import { draftMode } from 'next/headers'
 import { notFound } from 'next/navigation'
@@ -8,6 +8,7 @@ import { getContentSource } from '../lib/content'
 import { pageMetadata } from '../lib/metadata'
 import { CodeBlock, Tok } from './_components/code-block'
 import { EditorSwitch } from './_components/editor-switch'
+import { PreviewNotice } from './_components/preview-notice'
 import { SiteHeader } from './_components/site-header'
 import { VisualLanguage } from './_components/visual-language'
 import { SITE } from './_content/navigation'
@@ -50,7 +51,7 @@ export default async function Home() {
 
   return (
     <>
-      {isEnabled ? <PreviewBanner /> : null}
+      {isEnabled ? <PreviewNotice /> : null}
       <SiteHeader />
       <main id="main" className="home">
         <section className="hero" aria-labelledby="hero-title">

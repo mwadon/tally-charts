@@ -1,4 +1,4 @@
-import { CMSPage, PreviewBanner } from '@glokki-cms/react'
+import { CMSPage } from '@glokki-cms/react'
 import type { Metadata } from 'next'
 import { draftMode } from 'next/headers'
 import { notFound } from 'next/navigation'
@@ -7,6 +7,7 @@ import { componentRegistry } from '../../../blocks/registry'
 import { getContentSource } from '../../../lib/content'
 import { pageMetadata } from '../../../lib/metadata'
 import { EditorSwitch } from '../../_components/editor-switch'
+import { PreviewNotice } from '../../_components/preview-notice'
 import { TocColumn, TocInline } from '../../_components/toc'
 import { docHref } from '../../_content/navigation'
 
@@ -46,7 +47,7 @@ export default async function DocPage({ params }: Props) {
 
   return (
     <div className="doc-body">
-      {isEnabled ? <PreviewBanner /> : null}
+      {isEnabled ? <PreviewNotice /> : null}
       <TocInline items={toc} />
       <article className="doc">
         {group ? <p className="eyebrow">{group.label}</p> : null}

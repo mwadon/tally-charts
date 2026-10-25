@@ -2,11 +2,17 @@
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
+import { createClient } from '@glokki-cms/sdk'
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import { createFixtureSource } from './fixtures'
 import { createGlokkiSource } from './glokki'
 import { getContentSource } from './index'
 import type { ContentSource, DeliveryPage, Navigation } from './types'
+
+vi.mock('@glokki-cms/sdk', async (importOriginal) => {
+  const sdk = await importOriginal<typeof import('@glokki-cms/sdk')>()
+  return { ...sdk, createClient: vi.fn(sdk.createClient) }
+})
 
 const page: DeliveryPage = {
   pageId: 'p1',
@@ -96,6 +102,7 @@ beforeEach(async () => {
   await writeFile(path.join(dir, 'navigation.json'), JSON.stringify(navigationConfig))
   fetchMock = deliveryApi()
   vi.stubGlobal('fetch', fetchMock)
+  vi.mocked(createClient).mockClear()
 })
 
 afterEach(async () => {
@@ -285,6 +292,46 @@ describe('getContentSource', () => {
     const env = { CMS_BASE_URL: 'https://cms.test', CMS_TENANT: 'acme', CMS_API_KEY: 'k' }
     expect(getContentSource(env, true).kind).toBe('cms')
     expect(getContentSource({}, true).kind).toBe('fixtures')
+  })
+
+  describe('glökki reads through the client', () => {
+    const env = { CMS_BASE_URL: 'https://cms.test', CMS_TENANT: 'acme', CMS_API_KEY: 'k' }
+    const readEverything = async (preview?: boolean) => {
+      const source = getContentSource(env, preview)
+      expect((await source.getPage('line-chart'))?.slug).toBe('line-chart')
+      await source.getPage('nope')
+      await source.listPages()
+    }
+
+    test('with preview the client is created with preview: true and every fetch is no-store', async () => {
+      await readEverything(true)
+
+      expect(createClient).toHaveBeenCalledTimes(1)
+      expect(vi.mocked(createClient).mock.calls[0]?.[0]).toMatchObject({
+        baseUrl: 'https://cms.test',
+        tenantSlug: 'acme',
+        preview: true,
+      })
+      expect(fetchMock.mock.calls.length).toBeGreaterThanOrEqual(3)
+      for (const [, init] of fetchMock.mock.calls) {
+        expect(init?.cache).toBe('no-store')
+        expect((init as { next?: unknown }).next).toBeUndefined()
+      }
+    })
+
+    test.each([
+      ['no flag', undefined],
+      ['preview false', false],
+    ])('with %s the client is not in preview and every fetch is tagged cms', async (_n, flag) => {
+      await readEverything(flag)
+
+      expect(vi.mocked(createClient).mock.calls[0]?.[0]).not.toHaveProperty('preview', true)
+      expect(fetchMock.mock.calls.length).toBeGreaterThanOrEqual(3)
+      for (const [, init] of fetchMock.mock.calls) {
+        expect(init?.cache).toBeUndefined()
+        expect((init as { next?: { tags?: string[] } }).next?.tags).toEqual(['cms'])
+      }
+    })
   })
 
   test('fixtures read the same pages with and without preview', async () => {
