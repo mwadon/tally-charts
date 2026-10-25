@@ -9702,7 +9702,7 @@
           "overloadIndex": 1,
           "parameters": [
             {
-              "parameterName": "{ data, x, series, band, forecastFrom, target, domain, format, yAxis, yAxisFormat, xAxis, xAxisFormat, grid, radius, dataTable, tooltip, margin, height, children, onSelect, onActiveChange, ...chart }",
+              "parameterName": "{ data, x, series, band, forecastFrom, target, domain, format, yAxis, yAxisFormat, xAxis, xAxisFormat, grid, underlay, radius, dataTable, tooltip, margin, height, children, onSelect, onActiveChange, ...chart }",
               "parameterTypeTokenRange": {
                 "startIndex": 0,
                 "endIndex": 0
@@ -9893,7 +9893,16 @@
             },
             {
               "kind": "Content",
-              "text": "<D>;\n}"
+              "text": "<D>;\n  underlay?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ReactNode",
+              "canonicalReference": "@types/react!React.ReactNode:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n}"
             },
             {
               "kind": "Content",
@@ -9917,7 +9926,7 @@
           ],
           "typeTokenRange": {
             "startIndex": 1,
-            "endIndex": 35
+            "endIndex": 37
           }
         },
         {

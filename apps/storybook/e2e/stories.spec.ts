@@ -1,10 +1,10 @@
 import AxeBuilder from '@axe-core/playwright'
 import { expect, test } from '@playwright/test'
-import { channels, contrastOf, open, STORIES, THEMELESS, WIDE_STORIES } from './stories'
+import { channels, contrastOf, open, STORIES, THEMELESS, VIEWPORTS } from './stories'
 
 for (const id of STORIES) {
   test(`${id} matches its screenshot`, async ({ page }) => {
-    const viewport = WIDE_STORIES[id]
+    const viewport = VIEWPORTS[id]
     if (viewport) await page.setViewportSize(viewport)
     await open(page, id)
     await expect(page).toHaveScreenshot(`${id}.png`, { fullPage: true })
