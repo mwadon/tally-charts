@@ -1,0 +1,4207 @@
+{
+  "metadata": {
+    "toolPackage": "@microsoft/api-extractor",
+    "toolVersion": "7.59.3",
+    "schemaVersion": 1011,
+    "oldestForwardsCompatibleVersion": 1001,
+    "tsdocConfig": {
+      "$schema": "https://developer.microsoft.com/json-schemas/tsdoc/v0/tsdoc.schema.json",
+      "noStandardTags": true,
+      "tagDefinitions": [
+        {
+          "tagName": "@alpha",
+          "syntaxKind": "modifier"
+        },
+        {
+          "tagName": "@beta",
+          "syntaxKind": "modifier"
+        },
+        {
+          "tagName": "@defaultValue",
+          "syntaxKind": "block"
+        },
+        {
+          "tagName": "@decorator",
+          "syntaxKind": "block",
+          "allowMultiple": true
+        },
+        {
+          "tagName": "@deprecated",
+          "syntaxKind": "block"
+        },
+        {
+          "tagName": "@eventProperty",
+          "syntaxKind": "modifier"
+        },
+        {
+          "tagName": "@example",
+          "syntaxKind": "block",
+          "allowMultiple": true
+        },
+        {
+          "tagName": "@experimental",
+          "syntaxKind": "modifier"
+        },
+        {
+          "tagName": "@inheritDoc",
+          "syntaxKind": "inline"
+        },
+        {
+          "tagName": "@internal",
+          "syntaxKind": "modifier"
+        },
+        {
+          "tagName": "@label",
+          "syntaxKind": "inline"
+        },
+        {
+          "tagName": "@link",
+          "syntaxKind": "inline",
+          "allowMultiple": true
+        },
+        {
+          "tagName": "@override",
+          "syntaxKind": "modifier"
+        },
+        {
+          "tagName": "@packageDocumentation",
+          "syntaxKind": "modifier"
+        },
+        {
+          "tagName": "@param",
+          "syntaxKind": "block",
+          "allowMultiple": true
+        },
+        {
+          "tagName": "@privateRemarks",
+          "syntaxKind": "block"
+        },
+        {
+          "tagName": "@public",
+          "syntaxKind": "modifier"
+        },
+        {
+          "tagName": "@readonly",
+          "syntaxKind": "modifier"
+        },
+        {
+          "tagName": "@remarks",
+          "syntaxKind": "block"
+        },
+        {
+          "tagName": "@returns",
+          "syntaxKind": "block"
+        },
+        {
+          "tagName": "@sealed",
+          "syntaxKind": "modifier"
+        },
+        {
+          "tagName": "@see",
+          "syntaxKind": "block"
+        },
+        {
+          "tagName": "@throws",
+          "syntaxKind": "block",
+          "allowMultiple": true
+        },
+        {
+          "tagName": "@typeParam",
+          "syntaxKind": "block",
+          "allowMultiple": true
+        },
+        {
+          "tagName": "@virtual",
+          "syntaxKind": "modifier"
+        },
+        {
+          "tagName": "@jsx",
+          "syntaxKind": "block"
+        },
+        {
+          "tagName": "@jsxRuntime",
+          "syntaxKind": "block"
+        },
+        {
+          "tagName": "@jsxFrag",
+          "syntaxKind": "block"
+        },
+        {
+          "tagName": "@jsxImportSource",
+          "syntaxKind": "block"
+        },
+        {
+          "tagName": "@betaDocumentation",
+          "syntaxKind": "modifier"
+        },
+        {
+          "tagName": "@internalRemarks",
+          "syntaxKind": "block"
+        },
+        {
+          "tagName": "@preapproved",
+          "syntaxKind": "modifier"
+        }
+      ],
+      "supportForTags": {
+        "@alpha": true,
+        "@beta": true,
+        "@defaultValue": true,
+        "@decorator": true,
+        "@deprecated": true,
+        "@eventProperty": true,
+        "@example": true,
+        "@experimental": true,
+        "@inheritDoc": true,
+        "@internal": true,
+        "@label": true,
+        "@link": true,
+        "@override": true,
+        "@packageDocumentation": true,
+        "@param": true,
+        "@privateRemarks": true,
+        "@public": true,
+        "@readonly": true,
+        "@remarks": true,
+        "@returns": true,
+        "@sealed": true,
+        "@see": true,
+        "@throws": true,
+        "@typeParam": true,
+        "@virtual": true,
+        "@betaDocumentation": true,
+        "@internalRemarks": true,
+        "@preapproved": true
+      },
+      "reportUnsupportedHtmlElements": false
+    }
+  },
+  "kind": "Package",
+  "canonicalReference": "tally-charts!",
+  "docComment": "",
+  "name": "tally-charts",
+  "preserveMemberOrder": false,
+  "members": [
+    {
+      "kind": "EntryPoint",
+      "canonicalReference": "tally-charts!",
+      "name": "",
+      "preserveMemberOrder": false,
+      "members": [
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "tally-charts!Accessor:type",
+          "docComment": "/**\n * A field name or a function reading a value from a datum.\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "type Accessor<D, V> = "
+            },
+            {
+              "kind": "Content",
+              "text": "(keyof D & string) | ((d: D, i: number) => V)"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "Accessor",
+          "typeParameters": [
+            {
+              "typeParameterName": "D",
+              "constraintTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              },
+              "defaultTypeTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              }
+            },
+            {
+              "typeParameterName": "V",
+              "constraintTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              },
+              "defaultTypeTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              }
+            }
+          ],
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 2
+          }
+        },
+        {
+          "kind": "Interface",
+          "canonicalReference": "tally-charts!BandScale:interface",
+          "docComment": "/**\n * Categories to bands: `scale(category)` is the band's start in px.\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "interface BandScale "
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "BandScale",
+          "preserveMemberOrder": false,
+          "members": [
+            {
+              "kind": "CallSignature",
+              "canonicalReference": "tally-charts!BandScale:call(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "(value: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "number | undefined"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "value",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                }
+              ]
+            },
+            {
+              "kind": "MethodSignature",
+              "canonicalReference": "tally-charts!BandScale#bandwidth:member(1)",
+              "docComment": "/**\n * Width of one band in px.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "bandwidth(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "number"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [],
+              "name": "bandwidth"
+            },
+            {
+              "kind": "MethodSignature",
+              "canonicalReference": "tally-charts!BandScale#domain:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "domain(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [],
+              "name": "domain"
+            },
+            {
+              "kind": "MethodSignature",
+              "canonicalReference": "tally-charts!BandScale#range:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "range(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "[number, number]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [],
+              "name": "range"
+            },
+            {
+              "kind": "MethodSignature",
+              "canonicalReference": "tally-charts!BandScale#step:member(1)",
+              "docComment": "/**\n * Distance between the starts of neighbouring bands in px.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "step(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "number"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [],
+              "name": "step"
+            }
+          ],
+          "extendsTokenRanges": []
+        },
+        {
+          "kind": "Interface",
+          "canonicalReference": "tally-charts!BandScaleSpec:interface",
+          "docComment": "",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "interface BandScaleSpec<D> "
+            }
+          ],
+          "releaseTag": "Public",
+          "typeParameters": [
+            {
+              "typeParameterName": "D",
+              "constraintTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              },
+              "defaultTypeTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              }
+            }
+          ],
+          "name": "BandScaleSpec",
+          "preserveMemberOrder": false,
+          "members": [
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!BandScaleSpec#domain:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "domain?: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "readonly (string | number)[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "domain",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!BandScaleSpec#field:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "field?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Accessor",
+                  "canonicalReference": "tally-charts!Accessor:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<D, string | number>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "field",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!BandScaleSpec#padding:member",
+              "docComment": "/**\n * Inner padding between bands, 0–1. Default 0.2.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "padding?: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "number"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "padding",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!BandScaleSpec#paddingOuter:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "paddingOuter?: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "number"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "paddingOuter",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!BandScaleSpec#type:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "type: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "'band'"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "type",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            }
+          ],
+          "extendsTokenRanges": []
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "tally-charts!createDateFormatter:function(1)",
+          "docComment": "/**\n * A formatter for single dates: tooltip headers, announcements and data-table cells.\n *\n * @param spec - How to write the date: a preset (`'day'`, `'month'`, `'quarter'`, `'year'`),\n * `'auto'` or any `Intl.DateTimeFormatOptions`. Default: `'auto'`.\n *\n * @param options - `locale` (default `en-US`), `zone` (default `'utc'`) and `step`, the typical\n * distance between the dates in ms (default: one day). With `'auto'` the step picks the fields\n * that tell the dates apart: the time under a day, the day under four weeks, the month under a\n * year, else the year.\n *\n * @returns A function from epoch milliseconds to text. It returns an empty string for a date that\n * is not valid (`NaN`, or a value outside the `Date` range).\n *\n * @example\n * ```ts\n * import { createDateFormatter } from 'tally-charts/core'\n *\n * const month = createDateFormatter('month', { locale: 'en-US' })\n * month(Date.UTC(2026, 0, 15)) // \"Jan 2026\"\n * month(Number.NaN) // \"\"\n * ```\n *\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "declare function createDateFormatter(spec?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "DateFormatSpec",
+              "canonicalReference": "tally-charts!DateFormatSpec:type"
+            },
+            {
+              "kind": "Content",
+              "text": ", input?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "DateFormatOptions",
+              "canonicalReference": "tally-charts!DateFormatOptions:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Reference",
+              "text": "DateFormatter",
+              "canonicalReference": "tally-charts!DateFormatter:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "returnTypeTokenRange": {
+            "startIndex": 5,
+            "endIndex": 6
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "spec",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isOptional": true
+            },
+            {
+              "parameterName": "{ locale, zone, step }",
+              "parameterTypeTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              },
+              "isOptional": true
+            },
+            {
+              "parameterName": "input",
+              "parameterTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "isOptional": true
+            }
+          ],
+          "name": "createDateFormatter"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "tally-charts!createFormatter:function(1)",
+          "docComment": "/**\n * A formatter for numbers: one of the presets, `{ preset, digits, signed }` or your own function.\n *\n * @param spec - What to write: a preset name (`'currency'`, `'currency-compact'`, `'percent'`,\n * `'pts'`, `'number'`, `'hours'`), an object with `preset`, `digits` and `signed`, or a function,\n * which is returned as is. Default: `'number'`.\n *\n * @param options - `locale` (default `en-US`), `currency` (default `USD`) and `signed`, which\n * shows a plus sign for positive values and wins over the spec.\n *\n * @returns A function from a number to text. It returns an empty string for a value that is not\n * finite.\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "declare function createFormatter(spec?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "FormatSpec",
+              "canonicalReference": "tally-charts!FormatSpec:type"
+            },
+            {
+              "kind": "Content",
+              "text": ", options?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "FormatOptions",
+              "canonicalReference": "tally-charts!FormatOptions:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Reference",
+              "text": "Formatter",
+              "canonicalReference": "tally-charts!Formatter:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "returnTypeTokenRange": {
+            "startIndex": 5,
+            "endIndex": 6
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "spec",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isOptional": true
+            },
+            {
+              "parameterName": "options",
+              "parameterTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "isOptional": true
+            }
+          ],
+          "name": "createFormatter"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "tally-charts!createFormatters:function(1)",
+          "docComment": "",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "declare function createFormatters(options?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "LocaleOptions",
+              "canonicalReference": "tally-charts!LocaleOptions:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Reference",
+              "text": "Formatters",
+              "canonicalReference": "tally-charts!Formatters:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "returnTypeTokenRange": {
+            "startIndex": 3,
+            "endIndex": 4
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "options",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isOptional": true
+            }
+          ],
+          "name": "createFormatters"
+        },
+        {
+          "kind": "Interface",
+          "canonicalReference": "tally-charts!DateFormatOptions:interface",
+          "docComment": "/**\n * Options of `createDateFormatter`.\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "interface DateFormatOptions "
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "DateFormatOptions",
+          "preserveMemberOrder": false,
+          "members": [
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!DateFormatOptions#locale:member",
+              "docComment": "/**\n * Default `en-US`, or the `ChartsProvider` locale through `useFormat()`.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "locale?: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "locale",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!DateFormatOptions#step:member",
+              "docComment": "/**\n * Typical distance between the values in ms. `'auto'` writes the fields that tell such values\n * apart: the time under a day, the day under four weeks, the month under a year, else the\n * year. Default: one day.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "step?: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "number"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "step",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!DateFormatOptions#zone:member",
+              "docComment": "/**\n * Default 'utc'.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "zone?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TimeZone",
+                  "canonicalReference": "tally-charts!TimeZone:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "zone",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            }
+          ],
+          "extendsTokenRanges": []
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "tally-charts!DateFormatSpec:type",
+          "docComment": "/**\n * How dates are written: `'auto'` (the default on a time axis), a preset, or any\n * `Intl.DateTimeFormatOptions`. `'day'` is \"Jan 5, 2026\", `'month'` \"Jan 2026\", `'quarter'`\n * \"Q1 2026\" and `'year'` \"2026\".\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "type DateFormatSpec = "
+            },
+            {
+              "kind": "Content",
+              "text": "'auto' | 'day' | 'month' | 'quarter' | 'year' | "
+            },
+            {
+              "kind": "Reference",
+              "text": "Intl.DateTimeFormatOptions",
+              "canonicalReference": "!Intl.DateTimeFormatOptions:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "DateFormatSpec",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          }
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "tally-charts!DateFormatter:type",
+          "docComment": "/**\n * Formats one date, given in epoch ms. Non-finite values give an empty string.\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "type DateFormatter = "
+            },
+            {
+              "kind": "Content",
+              "text": "(ms: number) => string"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "DateFormatter",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 2
+          }
+        },
+        {
+          "kind": "Variable",
+          "canonicalReference": "tally-charts!DEFAULT_CURRENCY:var",
+          "docComment": "",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "DEFAULT_CURRENCY = "
+            },
+            {
+              "kind": "Content",
+              "text": "\"USD\""
+            }
+          ],
+          "initializerTokenRange": {
+            "startIndex": 1,
+            "endIndex": 2
+          },
+          "isReadonly": true,
+          "releaseTag": "Public",
+          "name": "DEFAULT_CURRENCY",
+          "variableTypeTokenRange": {
+            "startIndex": 0,
+            "endIndex": 0
+          }
+        },
+        {
+          "kind": "Variable",
+          "canonicalReference": "tally-charts!DEFAULT_LOCALE:var",
+          "docComment": "",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "DEFAULT_LOCALE = "
+            },
+            {
+              "kind": "Content",
+              "text": "\"en-US\""
+            }
+          ],
+          "initializerTokenRange": {
+            "startIndex": 1,
+            "endIndex": 2
+          },
+          "isReadonly": true,
+          "releaseTag": "Public",
+          "name": "DEFAULT_LOCALE",
+          "variableTypeTokenRange": {
+            "startIndex": 0,
+            "endIndex": 0
+          }
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "tally-charts!Fill:type",
+          "docComment": "",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "type Fill = "
+            },
+            {
+              "kind": "Content",
+              "text": "'solid' | 'hatch' | 'hatch-fade'"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "Fill",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 2
+          }
+        },
+        {
+          "kind": "Variable",
+          "canonicalReference": "tally-charts!fmt:var",
+          "docComment": "/**\n * Preset formatters with the default locale (`en-US`, USD).\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "fmt: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Formatters",
+              "canonicalReference": "tally-charts!Formatters:interface"
+            }
+          ],
+          "isReadonly": true,
+          "releaseTag": "Public",
+          "name": "fmt",
+          "variableTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 2
+          }
+        },
+        {
+          "kind": "Interface",
+          "canonicalReference": "tally-charts!FormatOptions:interface",
+          "docComment": "",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "interface FormatOptions extends "
+            },
+            {
+              "kind": "Reference",
+              "text": "LocaleOptions",
+              "canonicalReference": "tally-charts!LocaleOptions:interface"
+            },
+            {
+              "kind": "Content",
+              "text": " "
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "FormatOptions",
+          "preserveMemberOrder": false,
+          "members": [
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!FormatOptions#signed:member",
+              "docComment": "/**\n * Show an explicit `+` on positive values. Defaults to true for `pts`.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "signed?: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "boolean"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "signed",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            }
+          ],
+          "extendsTokenRanges": [
+            {
+              "startIndex": 1,
+              "endIndex": 2
+            }
+          ]
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "tally-charts!FormatPreset:type",
+          "docComment": "",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "type FormatPreset = "
+            },
+            {
+              "kind": "Content",
+              "text": "'currency' | 'currency-compact' | 'percent' | 'pts' | 'number' | 'hours'"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "FormatPreset",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 2
+          }
+        },
+        {
+          "kind": "Interface",
+          "canonicalReference": "tally-charts!FormatPresetSpec:interface",
+          "docComment": "/**\n * A preset with options, resolved with the `ChartsProvider` locale and currency.\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "interface FormatPresetSpec "
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "FormatPresetSpec",
+          "preserveMemberOrder": false,
+          "members": [
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!FormatPresetSpec#digits:member",
+              "docComment": "/**\n * Fraction digits, a whole number from 0 to 20: exact for currency, percent and pts; the most\n * shown for number, hours and currency-compact. Default: the preset's own.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "digits?: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "number"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "digits",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!FormatPresetSpec#preset:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "preset: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "FormatPreset",
+                  "canonicalReference": "tally-charts!FormatPreset:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "preset",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!FormatPresetSpec#signed:member",
+              "docComment": "/**\n * Show `+` on positive values. Default: true for pts, false otherwise.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "signed?: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "boolean"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "signed",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            }
+          ],
+          "extendsTokenRanges": []
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "tally-charts!FormatSpec:type",
+          "docComment": "",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "type FormatSpec = "
+            },
+            {
+              "kind": "Reference",
+              "text": "FormatPreset",
+              "canonicalReference": "tally-charts!FormatPreset:type"
+            },
+            {
+              "kind": "Content",
+              "text": " | "
+            },
+            {
+              "kind": "Reference",
+              "text": "FormatPresetSpec",
+              "canonicalReference": "tally-charts!FormatPresetSpec:interface"
+            },
+            {
+              "kind": "Content",
+              "text": " | ((value: number) => string)"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "FormatSpec",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 5
+          }
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "tally-charts!Formatter:type",
+          "docComment": "",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "type Formatter = "
+            },
+            {
+              "kind": "Content",
+              "text": "(value: number) => string"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "Formatter",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 2
+          }
+        },
+        {
+          "kind": "Interface",
+          "canonicalReference": "tally-charts!Formatters:interface",
+          "docComment": "",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "interface Formatters "
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "Formatters",
+          "preserveMemberOrder": false,
+          "members": [
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!Formatters#currency:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "currency: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Formatter",
+                  "canonicalReference": "tally-charts!Formatter:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "currency",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!Formatters#currencyCompact:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "currencyCompact: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Formatter",
+                  "canonicalReference": "tally-charts!Formatter:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "currencyCompact",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!Formatters#hours:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "hours: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Formatter",
+                  "canonicalReference": "tally-charts!Formatter:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "hours",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!Formatters#number:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "number: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Formatter",
+                  "canonicalReference": "tally-charts!Formatter:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "number",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!Formatters#percent:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "percent: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Formatter",
+                  "canonicalReference": "tally-charts!Formatter:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "percent",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!Formatters#pts:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "pts: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Formatter",
+                  "canonicalReference": "tally-charts!Formatter:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "pts",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            }
+          ],
+          "extendsTokenRanges": []
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "tally-charts!heatmapLevel:function(1)",
+          "docComment": "/**\n * The sequential level (1–5) a `Heatmap` with these `breaks` paints `value` with, or 0 for a\n * missing or non-numeric value. Use it to keep a standalone `Legend` in step with custom breaks.\n * Breaks are cleaned the way Heatmap cleans them: sorted, deduplicated, at most four.\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "declare function heatmapLevel(value: "
+            },
+            {
+              "kind": "Content",
+              "text": "unknown"
+            },
+            {
+              "kind": "Content",
+              "text": ", breaks: "
+            },
+            {
+              "kind": "Content",
+              "text": "readonly number[]"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Reference",
+              "text": "SeqLevel",
+              "canonicalReference": "tally-charts!SeqLevel:type"
+            },
+            {
+              "kind": "Content",
+              "text": " | 0"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "returnTypeTokenRange": {
+            "startIndex": 5,
+            "endIndex": 7
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "value",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isOptional": false
+            },
+            {
+              "parameterName": "breaks",
+              "parameterTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "isOptional": false
+            }
+          ],
+          "name": "heatmapLevel"
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "tally-charts!Id:type",
+          "docComment": "",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "type Id = "
+            },
+            {
+              "kind": "Content",
+              "text": "string | number"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "Id",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 2
+          }
+        },
+        {
+          "kind": "Interface",
+          "canonicalReference": "tally-charts!LinearScale:interface",
+          "docComment": "/**\n * A minimal linear scale. d3-scale's scaleLinear is avoided: it costs ~7.6 KB gzipped.\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "interface LinearScale "
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "LinearScale",
+          "preserveMemberOrder": false,
+          "members": [
+            {
+              "kind": "CallSignature",
+              "canonicalReference": "tally-charts!LinearScale:call(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "(value: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "number"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "number"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "value",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                }
+              ]
+            },
+            {
+              "kind": "MethodSignature",
+              "canonicalReference": "tally-charts!LinearScale#domain:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "domain(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "[number, number]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [],
+              "name": "domain"
+            },
+            {
+              "kind": "MethodSignature",
+              "canonicalReference": "tally-charts!LinearScale#range:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "range(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "[number, number]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [],
+              "name": "range"
+            },
+            {
+              "kind": "MethodSignature",
+              "canonicalReference": "tally-charts!LinearScale#ticks:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "ticks(count?: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "number"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "number[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "count",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": true
+                }
+              ],
+              "name": "ticks"
+            }
+          ],
+          "extendsTokenRanges": []
+        },
+        {
+          "kind": "Interface",
+          "canonicalReference": "tally-charts!LinearScaleSpec:interface",
+          "docComment": "",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "interface LinearScaleSpec<D> "
+            }
+          ],
+          "releaseTag": "Public",
+          "typeParameters": [
+            {
+              "typeParameterName": "D",
+              "constraintTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              },
+              "defaultTypeTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              }
+            }
+          ],
+          "name": "LinearScaleSpec",
+          "preserveMemberOrder": false,
+          "members": [
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!LinearScaleSpec#domain:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "domain?: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "readonly [number, number]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "domain",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!LinearScaleSpec#field:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "field?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Accessor",
+                  "canonicalReference": "tally-charts!Accessor:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<D, number>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "field",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!LinearScaleSpec#nice:member",
+              "docComment": "/**\n * Round an inferred domain to tick values. Default true; explicit domains are never niced.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "nice?: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "boolean"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "nice",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!LinearScaleSpec#type:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "type?: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "'linear'"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "type",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!LinearScaleSpec#zero:member",
+              "docComment": "/**\n * Include zero in an inferred domain. Default true.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "zero?: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "boolean"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "zero",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            }
+          ],
+          "extendsTokenRanges": []
+        },
+        {
+          "kind": "Interface",
+          "canonicalReference": "tally-charts!LocaleOptions:interface",
+          "docComment": "",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "interface LocaleOptions "
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "LocaleOptions",
+          "preserveMemberOrder": false,
+          "members": [
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!LocaleOptions#currency:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "currency?: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "currency",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!LocaleOptions#locale:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "locale?: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "locale",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            }
+          ],
+          "extendsTokenRanges": []
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "tally-charts!PerItem:type",
+          "docComment": "/**\n * A constant or a per-item function.\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "type PerItem<D, V> = "
+            },
+            {
+              "kind": "Content",
+              "text": "V | ((d: D, i: number, all: readonly D[]) => V)"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "PerItem",
+          "typeParameters": [
+            {
+              "typeParameterName": "D",
+              "constraintTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              },
+              "defaultTypeTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              }
+            },
+            {
+              "typeParameterName": "V",
+              "constraintTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              },
+              "defaultTypeTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              }
+            }
+          ],
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 2
+          }
+        },
+        {
+          "kind": "Interface",
+          "canonicalReference": "tally-charts!PointScale:interface",
+          "docComment": "/**\n * Categories to points: `scale(category)` is the point's position in px.\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "interface PointScale "
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "PointScale",
+          "preserveMemberOrder": false,
+          "members": [
+            {
+              "kind": "CallSignature",
+              "canonicalReference": "tally-charts!PointScale:call(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "(value: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "number | undefined"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "value",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                }
+              ]
+            },
+            {
+              "kind": "MethodSignature",
+              "canonicalReference": "tally-charts!PointScale#bandwidth:member(1)",
+              "docComment": "/**\n * Always 0: points have no width.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "bandwidth(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "number"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [],
+              "name": "bandwidth"
+            },
+            {
+              "kind": "MethodSignature",
+              "canonicalReference": "tally-charts!PointScale#domain:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "domain(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [],
+              "name": "domain"
+            },
+            {
+              "kind": "MethodSignature",
+              "canonicalReference": "tally-charts!PointScale#range:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "range(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "[number, number]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [],
+              "name": "range"
+            },
+            {
+              "kind": "MethodSignature",
+              "canonicalReference": "tally-charts!PointScale#step:member(1)",
+              "docComment": "/**\n * Distance between neighbouring points in px.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "step(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "number"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [],
+              "name": "step"
+            }
+          ],
+          "extendsTokenRanges": []
+        },
+        {
+          "kind": "Interface",
+          "canonicalReference": "tally-charts!PointScaleSpec:interface",
+          "docComment": "",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "interface PointScaleSpec<D> "
+            }
+          ],
+          "releaseTag": "Public",
+          "typeParameters": [
+            {
+              "typeParameterName": "D",
+              "constraintTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              },
+              "defaultTypeTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              }
+            }
+          ],
+          "name": "PointScaleSpec",
+          "preserveMemberOrder": false,
+          "members": [
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!PointScaleSpec#domain:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "domain?: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "readonly (string | number)[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "domain",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!PointScaleSpec#field:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "field?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Accessor",
+                  "canonicalReference": "tally-charts!Accessor:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<D, string | number>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "field",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!PointScaleSpec#padding:member",
+              "docComment": "/**\n * Space before the first and after the last point, as a share of one step, 0–1. Default 0.5.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "padding?: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "number"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "padding",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!PointScaleSpec#type:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "type: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "'point'"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "type",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            }
+          ],
+          "extendsTokenRanges": []
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "tally-charts!ResolvedScale:type",
+          "docComment": "/**\n * A chart axis's scale, as `useChart()` reports it. Narrow on `kind` to use `scale`.\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "type ResolvedScale = "
+            },
+            {
+              "kind": "Content",
+              "text": "{\n  kind: 'linear';\n  scale: "
+            },
+            {
+              "kind": "Reference",
+              "text": "LinearScale",
+              "canonicalReference": "tally-charts!LinearScale:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n} | {\n  kind: 'band';\n  scale: "
+            },
+            {
+              "kind": "Reference",
+              "text": "BandScale",
+              "canonicalReference": "tally-charts!BandScale:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n} | {\n  kind: 'point';\n  scale: "
+            },
+            {
+              "kind": "Reference",
+              "text": "PointScale",
+              "canonicalReference": "tally-charts!PointScale:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n} | {\n  kind: 'time';\n  scale: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TimeScale",
+              "canonicalReference": "tally-charts!TimeScale:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n}"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "ResolvedScale",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 10
+          }
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "tally-charts!runwayForecast:function(1)",
+          "docComment": "/**\n * Where an allowance is heading at a steady pace: when it runs out, how long it then stays\n * locked, and how much is used at reset. Spread the result into a `RunwayChart` row.\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "declare function runwayForecast(input: "
+            },
+            {
+              "kind": "Reference",
+              "text": "RunwayForecastInput",
+              "canonicalReference": "tally-charts!RunwayForecastInput:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Reference",
+              "text": "RunwayForecast",
+              "canonicalReference": "tally-charts!RunwayForecast:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "returnTypeTokenRange": {
+            "startIndex": 3,
+            "endIndex": 4
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "input",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isOptional": false
+            }
+          ],
+          "name": "runwayForecast"
+        },
+        {
+          "kind": "Interface",
+          "canonicalReference": "tally-charts!RunwayForecast:interface",
+          "docComment": "/**\n * What {@link runwayForecast} returns; spread it into a `RunwayChart` row.\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "interface RunwayForecast "
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "RunwayForecast",
+          "preserveMemberOrder": false,
+          "members": [
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!RunwayForecast#elapsed:member",
+              "docComment": "/**\n * Share of the window elapsed at `now`, 0–1.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "elapsed: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "number"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "elapsed",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!RunwayForecast#lockedMs:member",
+              "docComment": "/**\n * From `runsOutAt` to `resetAt` in ms, or 0.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "lockedMs: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "number"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "lockedMs",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!RunwayForecast#paceRatio:member",
+              "docComment": "/**\n * The pace over the even pace, 1 / (resetAt − windowStart). 1.0 reads \"1.0x even\".\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "paceRatio: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "number"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "paceRatio",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!RunwayForecast#projection:member",
+              "docComment": "/**\n * `[now, used]`, then a straight line at the pace to `runsOutAt` (used 1) or to `resetAt`.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "projection: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "RunwayPoint",
+                  "canonicalReference": "tally-charts!RunwayPoint:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "projection",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!RunwayForecast#resetAt:member",
+              "docComment": "/**\n * The input's `resetAt` as a Date (an invalid Date when the input was invalid).\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "resetAt: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Date",
+                  "canonicalReference": "!Date:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "resetAt",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!RunwayForecast#runsOutAt:member",
+              "docComment": "/**\n * When the projection reaches 1 before `resetAt`; undefined if it does not.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "runsOutAt?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Date",
+                  "canonicalReference": "!Date:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "runsOutAt",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!RunwayForecast#usedAtReset:member",
+              "docComment": "/**\n * Projected share at `resetAt`, uncapped (0.53 reads \"~53% at reset\").\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "usedAtReset: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "number"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "usedAtReset",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            }
+          ],
+          "extendsTokenRanges": []
+        },
+        {
+          "kind": "Interface",
+          "canonicalReference": "tally-charts!RunwayForecastInput:interface",
+          "docComment": "/**\n * What {@link runwayForecast} needs to know about one allowance.\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "interface RunwayForecastInput "
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "RunwayForecastInput",
+          "preserveMemberOrder": false,
+          "members": [
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!RunwayForecastInput#now:member",
+              "docComment": "/**\n * The moment `used` was read.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "now: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TimeInput",
+                  "canonicalReference": "tally-charts!TimeInput:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "now",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!RunwayForecastInput#pace:member",
+              "docComment": "/**\n * Share of the allowance used per day: `0.113` is 11.3 percentage points a day. Default: the\n * observed pace, used / (now − windowStart) in days.\n *\n * @example\n * ```ts\n * // 40% used, 5% a day from here: runs out 12 days after now unless it resets first.\n * runwayForecast({ used: 0.4, pace: 0.05, windowStart, resetAt, now })\n * ```\n *\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "pace?: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "number"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "pace",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!RunwayForecastInput#resetAt:member",
+              "docComment": "/**\n * When the allowance resets and the window ends.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "resetAt: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TimeInput",
+                  "canonicalReference": "tally-charts!TimeInput:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "resetAt",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!RunwayForecastInput#used:member",
+              "docComment": "/**\n * Share of the allowance used so far, 0–1 (may exceed 1).\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "used: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "number"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "used",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!RunwayForecastInput#windowStart:member",
+              "docComment": "/**\n * When the current window began: the observed pace is measured from here.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "windowStart: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TimeInput",
+                  "canonicalReference": "tally-charts!TimeInput:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "windowStart",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            }
+          ],
+          "extendsTokenRanges": []
+        },
+        {
+          "kind": "Interface",
+          "canonicalReference": "tally-charts!RunwayPoint:interface",
+          "docComment": "/**\n * A projected share of the allowance at a moment.\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "interface RunwayPoint "
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "RunwayPoint",
+          "preserveMemberOrder": false,
+          "members": [
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!RunwayPoint#at:member",
+              "docComment": "/**\n * The moment.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "at: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Date",
+                  "canonicalReference": "!Date:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "at",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!RunwayPoint#used:member",
+              "docComment": "/**\n * Cumulative share of the allowance used by then, 0–1.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "used: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "number"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "used",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            }
+          ],
+          "extendsTokenRanges": []
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "tally-charts!ScaleSpec:type",
+          "docComment": "",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "type ScaleSpec<D> = "
+            },
+            {
+              "kind": "Reference",
+              "text": "LinearScaleSpec",
+              "canonicalReference": "tally-charts!LinearScaleSpec:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "<D> | "
+            },
+            {
+              "kind": "Reference",
+              "text": "BandScaleSpec",
+              "canonicalReference": "tally-charts!BandScaleSpec:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "<D> | "
+            },
+            {
+              "kind": "Reference",
+              "text": "PointScaleSpec",
+              "canonicalReference": "tally-charts!PointScaleSpec:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "<D> | "
+            },
+            {
+              "kind": "Reference",
+              "text": "TimeScaleSpec",
+              "canonicalReference": "tally-charts!TimeScaleSpec:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "<D>"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "ScaleSpec",
+          "typeParameters": [
+            {
+              "typeParameterName": "D",
+              "constraintTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              },
+              "defaultTypeTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              }
+            }
+          ],
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 9
+          }
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "tally-charts!SeqLevel:type",
+          "docComment": "/**\n * A step on the sequential scale, `--ch-seq-1` (lightest) to `--ch-seq-5` (darkest).\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "type SeqLevel = "
+            },
+            {
+              "kind": "Content",
+              "text": "1 | 2 | 3 | 4 | 5"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "SeqLevel",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 2
+          }
+        },
+        {
+          "kind": "Interface",
+          "canonicalReference": "tally-charts!ThresholdBin:interface",
+          "docComment": "",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "interface ThresholdBin "
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "ThresholdBin",
+          "preserveMemberOrder": false,
+          "members": [
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!ThresholdBin#label:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "label: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "label",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!ThresholdBin#max:member",
+              "docComment": "/**\n * Upper bound; Infinity for the last bin.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "max: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "number"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "max",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!ThresholdBin#min:member",
+              "docComment": "/**\n * Lower bound; -Infinity for the first bin. A bin is `[min, max)`, or `(min, max]` with `inclusive: 'upper'`.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "min: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "number"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "min",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!ThresholdBin#tone:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "tone: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Tone",
+                  "canonicalReference": "tally-charts!Tone:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "tone",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            }
+          ],
+          "extendsTokenRanges": []
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "tally-charts!ThresholdInclusive:type",
+          "docComment": "/**\n * Which edge of a bin holds a value equal to a break: 'lower' (default) or 'upper'.\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "type ThresholdInclusive = "
+            },
+            {
+              "kind": "Content",
+              "text": "'lower' | 'upper'"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "ThresholdInclusive",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 2
+          }
+        },
+        {
+          "kind": "Interface",
+          "canonicalReference": "tally-charts!ThresholdLegendItem:interface",
+          "docComment": "",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "interface ThresholdLegendItem "
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "ThresholdLegendItem",
+          "preserveMemberOrder": false,
+          "members": [
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!ThresholdLegendItem#count:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "count: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "number"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "count",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!ThresholdLegendItem#label:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "label: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "label",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!ThresholdLegendItem#tone:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "tone: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Tone",
+                  "canonicalReference": "tally-charts!Tone:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "tone",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            }
+          ],
+          "extendsTokenRanges": []
+        },
+        {
+          "kind": "Interface",
+          "canonicalReference": "tally-charts!ThresholdOptions:interface",
+          "docComment": "",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "interface ThresholdOptions "
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "ThresholdOptions",
+          "preserveMemberOrder": false,
+          "members": [
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!ThresholdOptions#inclusive:member",
+              "docComment": "/**\n * 'lower' (default): a value on a break falls in the bin above it. 'upper': in the bin below,\n * as Core Web Vitals tiers count (an LCP of 2.5 s is Good).\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "inclusive?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "ThresholdInclusive",
+                  "canonicalReference": "tally-charts!ThresholdInclusive:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "inclusive",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            }
+          ],
+          "extendsTokenRanges": []
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "tally-charts!thresholds:function(1)",
+          "docComment": "/**\n * Threshold categories. By default bins are `[min, max)`: values below `breaks[0]` are bin 0 and\n * values at or above the last break are the last bin. With `inclusive: 'upper'` bins are\n * `(min, max]`: bin 0 runs up to and including `breaks[0]`, the last bin is above the last break.\n * A malformed spec is a programmer error and throws.\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "declare function thresholds(breaks: "
+            },
+            {
+              "kind": "Content",
+              "text": "readonly number[]"
+            },
+            {
+              "kind": "Content",
+              "text": ", tones: "
+            },
+            {
+              "kind": "Content",
+              "text": "readonly "
+            },
+            {
+              "kind": "Reference",
+              "text": "Tone",
+              "canonicalReference": "tally-charts!Tone:type"
+            },
+            {
+              "kind": "Content",
+              "text": "[]"
+            },
+            {
+              "kind": "Content",
+              "text": ", labels: "
+            },
+            {
+              "kind": "Content",
+              "text": "readonly string[]"
+            },
+            {
+              "kind": "Content",
+              "text": ", options?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ThresholdOptions",
+              "canonicalReference": "tally-charts!ThresholdOptions:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Reference",
+              "text": "Thresholds",
+              "canonicalReference": "tally-charts!Thresholds:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "returnTypeTokenRange": {
+            "startIndex": 11,
+            "endIndex": 12
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "breaks",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isOptional": false
+            },
+            {
+              "parameterName": "tones",
+              "parameterTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 6
+              },
+              "isOptional": false
+            },
+            {
+              "parameterName": "labels",
+              "parameterTypeTokenRange": {
+                "startIndex": 7,
+                "endIndex": 8
+              },
+              "isOptional": false
+            },
+            {
+              "parameterName": "options",
+              "parameterTypeTokenRange": {
+                "startIndex": 9,
+                "endIndex": 10
+              },
+              "isOptional": true
+            }
+          ],
+          "name": "thresholds"
+        },
+        {
+          "kind": "Interface",
+          "canonicalReference": "tally-charts!Thresholds:interface",
+          "docComment": "",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "interface Thresholds "
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "Thresholds",
+          "preserveMemberOrder": false,
+          "members": [
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!Thresholds#bins:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "bins: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "readonly "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "ThresholdBin",
+                  "canonicalReference": "tally-charts!ThresholdBin:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "bins",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 4
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!Thresholds#inclusive:member",
+              "docComment": "/**\n * The edge that holds a value on a break; `thresholds()` always sets it, and missing means\n * 'lower'. With `bins`, plain data a Server Component can pass.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "inclusive?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "ThresholdInclusive",
+                  "canonicalReference": "tally-charts!ThresholdInclusive:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "inclusive",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "MethodSignature",
+              "canonicalReference": "tally-charts!Thresholds#indexOf:member(1)",
+              "docComment": "/**\n * Bin index for a value, or -1 when it is missing or not a number.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "indexOf(value: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "unknown"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "number"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "value",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                }
+              ],
+              "name": "indexOf"
+            },
+            {
+              "kind": "MethodSignature",
+              "canonicalReference": "tally-charts!Thresholds#legend:member(1)",
+              "docComment": "/**\n * Legend entries with counts, ready for `<Legend shape=\"dot\" items={…} />`.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "legend(values: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "readonly unknown[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "readonly "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "ThresholdLegendItem",
+                  "canonicalReference": "tally-charts!ThresholdLegendItem:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 6
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "values",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                }
+              ],
+              "name": "legend"
+            },
+            {
+              "kind": "MethodSignature",
+              "canonicalReference": "tally-charts!Thresholds#toneOf:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "toneOf(value: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "unknown"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Tone",
+                  "canonicalReference": "tally-charts!Tone:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | undefined"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 5
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "value",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                }
+              ],
+              "name": "toneOf"
+            }
+          ],
+          "extendsTokenRanges": []
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "tally-charts!TimeInput:type",
+          "docComment": "/**\n * A point in time: a `Date`, epoch milliseconds, or an ISO 8601 string.\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "type TimeInput = "
+            },
+            {
+              "kind": "Reference",
+              "text": "Date",
+              "canonicalReference": "!Date:interface"
+            },
+            {
+              "kind": "Content",
+              "text": " | number | string"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "TimeInput",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          }
+        },
+        {
+          "kind": "Interface",
+          "canonicalReference": "tally-charts!TimeScale:interface",
+          "docComment": "/**\n * Epoch milliseconds to pixels, with ticks on calendar boundaries.\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "interface TimeScale "
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "TimeScale",
+          "preserveMemberOrder": false,
+          "members": [
+            {
+              "kind": "CallSignature",
+              "canonicalReference": "tally-charts!TimeScale:call(1)",
+              "docComment": "/**\n * Epoch ms → px.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "(value: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "number"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "number"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "value",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                }
+              ]
+            },
+            {
+              "kind": "MethodSignature",
+              "canonicalReference": "tally-charts!TimeScale#domain:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "domain(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "[number, number]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [],
+              "name": "domain"
+            },
+            {
+              "kind": "MethodSignature",
+              "canonicalReference": "tally-charts!TimeScale#invert:member(1)",
+              "docComment": "/**\n * px → epoch ms.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "invert(px: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "number"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "number"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "px",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": false
+                }
+              ],
+              "name": "invert"
+            },
+            {
+              "kind": "MethodSignature",
+              "canonicalReference": "tally-charts!TimeScale#range:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "range(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "[number, number]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [],
+              "name": "range"
+            },
+            {
+              "kind": "MethodSignature",
+              "canonicalReference": "tally-charts!TimeScale#ticks:member(1)",
+              "docComment": "/**\n * Tick values in epoch ms, about `count` of them (default 5), on calendar boundaries.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "ticks(count?: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "number"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "number[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "count",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  },
+                  "isOptional": true
+                }
+              ],
+              "name": "ticks"
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!TimeScale#zone:member",
+              "docComment": "/**\n * The zone the ticks and labels follow.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "readonly zone: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TimeZone",
+                  "canonicalReference": "tally-charts!TimeZone:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": true,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "zone",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            }
+          ],
+          "extendsTokenRanges": []
+        },
+        {
+          "kind": "Interface",
+          "canonicalReference": "tally-charts!TimeScaleSpec:interface",
+          "docComment": "",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "interface TimeScaleSpec<D> "
+            }
+          ],
+          "releaseTag": "Public",
+          "typeParameters": [
+            {
+              "typeParameterName": "D",
+              "constraintTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              },
+              "defaultTypeTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              }
+            }
+          ],
+          "name": "TimeScaleSpec",
+          "preserveMemberOrder": false,
+          "members": [
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!TimeScaleSpec#domain:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "domain?: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "readonly ["
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TimeInput",
+                  "canonicalReference": "tally-charts!TimeInput:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TimeInput",
+                  "canonicalReference": "tally-charts!TimeInput:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "domain",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 6
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!TimeScaleSpec#field:member",
+              "docComment": "/**\n * Dates as `Date`, epoch ms or ISO strings; values `toTime` rejects are skipped.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "field?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Accessor",
+                  "canonicalReference": "tally-charts!Accessor:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<D, "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TimeInput",
+                  "canonicalReference": "tally-charts!TimeInput:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "field",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 5
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!TimeScaleSpec#nice:member",
+              "docComment": "/**\n * Round the domain out to tick interval boundaries. Default true for an inferred domain and\n * false for an explicit one.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "nice?: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "boolean"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "nice",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!TimeScaleSpec#type:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "type: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "'time'"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "type",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!TimeScaleSpec#zone:member",
+              "docComment": "/**\n * Default 'utc', which renders the same on the server and the client.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "zone?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "TimeZone",
+                  "canonicalReference": "tally-charts!TimeZone:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "zone",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            }
+          ],
+          "extendsTokenRanges": []
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "tally-charts!TimeZone:type",
+          "docComment": "/**\n * The calendar ticks and labels follow. `'utc'` renders the same on the server and the client.\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "type TimeZone = "
+            },
+            {
+              "kind": "Content",
+              "text": "'utc' | 'local'"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "TimeZone",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 2
+          }
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "tally-charts!Tone:type",
+          "docComment": "",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "type Tone = "
+            },
+            {
+              "kind": "Content",
+              "text": "(typeof "
+            },
+            {
+              "kind": "Reference",
+              "text": "TONES",
+              "canonicalReference": "tally-charts!TONES:var"
+            },
+            {
+              "kind": "Content",
+              "text": ")[number]"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "Tone",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 4
+          }
+        },
+        {
+          "kind": "Variable",
+          "canonicalReference": "tally-charts!TONES:var",
+          "docComment": "",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "TONES: "
+            },
+            {
+              "kind": "Content",
+              "text": "readonly [\"accent\", \"accent-soft\", \"loss\", \"warn\", \"gain\", \"neutral\"]"
+            }
+          ],
+          "isReadonly": true,
+          "releaseTag": "Public",
+          "name": "TONES",
+          "variableTypeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 2
+          }
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "tally-charts!toNumber:function(1)",
+          "docComment": "/**\n * Strict numbers from data: numbers pass through and non-blank strings are parsed. Everything\n * else (null, undefined, '', booleans, objects) is missing and becomes NaN instead of 0.\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "declare function toNumber(raw: "
+            },
+            {
+              "kind": "Content",
+              "text": "unknown"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Content",
+              "text": "number"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "returnTypeTokenRange": {
+            "startIndex": 3,
+            "endIndex": 4
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "raw",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isOptional": false
+            }
+          ],
+          "name": "toNumber"
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "tally-charts!toTime:function(1)",
+          "docComment": "/**\n * Epoch milliseconds from a `Date`, a number within the Date range (±8.64e15), or a string\n * `Date.parse` accepts (so a date-only ISO string is UTC midnight). Anything else, or an invalid\n * date, is `undefined`.\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "declare function toTime(value: "
+            },
+            {
+              "kind": "Content",
+              "text": "unknown"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Content",
+              "text": "number | undefined"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "returnTypeTokenRange": {
+            "startIndex": 3,
+            "endIndex": 4
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "value",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "isOptional": false
+            }
+          ],
+          "name": "toTime"
+        }
+      ]
+    }
+  ]
+}
