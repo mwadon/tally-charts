@@ -2560,3 +2560,7 @@ Gate [MAINTAINER] pozostaje otwarty, więc nie spełniłem kryteriów wymagając
 - Nie ma nagłówka `## ✔ Q1-03.2`
 - `git diff --stat -- packages apps .changeset scripts` jest pusty, a DOCS_URL bez zmian
 - `pnpm lint` i `pnpm test:scripts` kończą się kodem 0
+
+## ⛔ Q1-04 [MAINTAINER] Rzeczywiste zamknięcie T35 i T36: tenant glökki, seed, Vercel i webhook — ZABLOKOWANY
+Q1-04 pozostaje ⛔: to bramka [MAINTAINER], a strony, tenanta glökki ani webhooka nie ma. Agent nie ma dostępu do glökki ani Vercela, więc nie wpisał żadnych potwierdzeń. W tej próbie poprawiłem tylko uwagę review w PROGRESS.md: sekcja ⛔ Q1-04 nie zapowiada już `## ✔ Q1-04`. Raport orkiestratora ma iść jako `### Raport próby agenta Q1-04 (…)` pod tą sekcją. Nagłówek `##` zmieni na ✔ dopiero maintainer, razem z T35/T36. Zakończone wcześniej porządki zostały: podnagłówki `###` zamiast ✔ T35/T36, checklista T36 z DOCS_URL i ścieżką alternatywną z Q1-03.2, oraz sekcja Q1-04 z krokami a–g i formatami linii w bloku kodu. Sprawdzone: brak `## ✔ T35/T36`, dwa nagłówki `## ⛔ T35/T36`, brak linii `T3[56] potwierdzony:` z prawdziwymi danymi, brak `## ✔ Q1-04`, `pnpm lint` exit 0, a `git diff --stat` dla packages, apps, .changeset, scripts i docs jest pusty.
+Ostatnie uwagi: zobacz .crew/backlog.json (lastNote).
