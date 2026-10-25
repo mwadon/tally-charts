@@ -37,7 +37,7 @@ function renderEditor(componentTree: ComponentNode[] = tree) {
 test('the editor registry covers exactly the block types of the server registry, in order', () => {
   const types = blockRegistry.getTypes()
 
-  expect(types).toHaveLength(8)
+  expect(types).toHaveLength(14)
   expect([...editorRegistry.keys()]).toEqual(types)
   for (const component of editorRegistry.values()) expect(component).toBeDefined()
 })
@@ -113,4 +113,49 @@ test('an unknown example or symbol is always a visible error', () => {
 
   const boxes = [...container.querySelectorAll('.block-error')].map((box) => box.textContent)
   expect(boxes).toEqual(['Unknown example: nope', 'Unknown symbol: NotASymbol'])
+})
+
+test('the home page blocks render in the editor: the chart is live and a link is always a link', async () => {
+  const { container } = renderEditor([
+    {
+      id: 'h1',
+      type: 'hero',
+      props: {
+        title: 'Charts',
+        lede: 'Lede',
+        actions: [{ label: 'Docs', href: '/docs/getting-started', primary: true }],
+        exampleId: 'bar-chart/margin-by-week',
+      },
+    },
+    {
+      id: 'l1',
+      type: 'link-row',
+      props: { heading: 'Keep going', items: [{ label: 'Soon', href: '/docs/getting-started' }] },
+    },
+    { id: 'i1', type: 'install', props: { heading: 'Install' } },
+  ] as unknown as ComponentNode[])
+
+  expect(await screen.findByRole('application', { name: /Margin by week/ })).toBeTruthy()
+  expect(screen.getByRole('heading', { level: 1, name: 'Charts' })).toBeTruthy()
+  expect(screen.getByRole('link', { name: 'Soon' }).getAttribute('href')).toBe(
+    '/docs/getting-started',
+  )
+  expect(container.querySelector('.nav-soon')).toBeNull()
+  expect(screen.getByRole('region', { name: 'bash' }).textContent).toBe('npm i tally-charts')
+  expect(container.querySelector('.block-error')).toBeNull()
+  expect(errors).not.toHaveBeenCalled()
+})
+
+test('a home page block with an unknown example is a visible error in the editor', () => {
+  const { container } = renderEditor([
+    {
+      id: 'v1',
+      type: 'visual-language',
+      props: { items: [{ title: 'a', text: 'b', exampleId: 'nope/missing' }] },
+    },
+    { id: 'g1', type: 'gallery', props: { heading: 'G', items: [{ exampleId: 'nope/also' }] } },
+  ] as unknown as ComponentNode[])
+
+  const boxes = [...container.querySelectorAll('.block-error')].map((box) => box.textContent)
+  expect(boxes).toEqual(['Unknown example: nope/missing', 'Unknown example: nope/also'])
 })

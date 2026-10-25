@@ -10,9 +10,17 @@ const types = [
   'props-table',
   'token-table',
   'palette-swatches',
+  'hero',
+  'visual-language',
+  'gallery',
+  'install',
+  'feature-grid',
+  'link-row',
 ]
 
-test('the registry has the eight content blocks, in order', () => {
+const homeTypes = new Set(types.slice(8))
+
+test('the registry has the eight content blocks and the six home page blocks, in order', () => {
   expect(blockRegistry.getTypes()).toEqual(types)
   for (const type of types) expect(blockRegistry.getComponent(type)).toBeDefined()
 })
@@ -24,8 +32,12 @@ test('serialized definitions survive JSON and have fields for every block', () =
   expect(definitions.map((d) => d.type)).toEqual(types)
   for (const d of definitions) {
     expect(d.fields.length).toBeGreaterThan(0)
-    expect(d.category).toBe('content')
+    expect(d.category).toBe(homeTypes.has(d.type) ? 'home' : 'content')
   }
+})
+
+test('the registry declares the categories its blocks use', () => {
+  expect(blockRegistry.getCategories()?.map((c) => c.key)).toEqual(['content', 'home'])
 })
 
 test('every defaultProps passes its own schema', () => {
@@ -49,7 +61,7 @@ test('an unknown type is an error, also for names from Object.prototype', () => 
   }
 })
 
-test('componentRegistry maps each of the eight types to its component', () => {
+test('componentRegistry maps each of the fourteen types to its component', () => {
   expect([...componentRegistry.keys()]).toEqual(types)
   for (const type of types)
     expect(componentRegistry.get(type)).toBe(blockRegistry.getComponent(type))
