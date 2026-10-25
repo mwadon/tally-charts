@@ -22,7 +22,9 @@ export default function ProviderLocale() {
   return (
     <ChartsProvider locale="de-DE" currency="EUR">
       <div style={{ display: 'grid', gap: '1.5rem' }}>
+        {/* md, not the default lg: the 72 px value is 314 px wide in linux fonts and overflows a 320 px screen. */}
         <Stat
+          size="md"
           label="Revenue in June"
           value={18350}
           format="currency"
