@@ -1899,3 +1899,42 @@ Dodałem stronę `content/migration-1-0.json` (4 zmiany łamiące, 3 addytywne),
 - **Nawigacja:** wszystkie 25 slugów F15 jest dostępnych, żaden item nie ma `available: false`. CLAUDE.md nie mówi już, że `migration-1-0` jest niedostępny.
 - **Nazwa wykresu w `chart-labelledby`:** nagłówek to „Weekly margin”, żeby nazwa nie kolidowała z tytułem „Margin by week” z `chart-title` (`getByRole` dopasowuje podciąg).
 - Sekcja Additive używa też istniejącego przykładu `line-chart/orders-last-year` (underlay).
+
+## ✔ T31.2 Strona migration-1-0 z przykładami w examples/migration i link w changesetach (2026-10-25)
+Dodałem stronę docs `migration-1-0` i siedem przykładów „po” w `apps/docs/examples/migration/`. Wszystkie bramki przeszły z kodem 0: `pnpm build`, `gen`, docs `typecheck`, docs `test` (659), `check:content` (`fixtures: API coverage: 52/52`, 26 stron, 0 błędów), `pnpm lint` (te same ostrzeżenia co wcześniej), `pnpm --filter docs build` i docs `test:e2e` (302, port 3100 wolny, bez update). `git diff --stat -- packages apps/storybook apps/docs/e2e/__screenshots__` jest pusty.
+
+**Strona `content/migration-1-0.json`:**
+- **Breaking changes:** cztery nagłówki H3, każdy z code-blockiem `Before (0.9)`, zdaniem „After:” i chart-example z `migration/…`.
+  - RankedBars z `fill="hatch"` i zdaniem „RankedBars: pass `fill="hatch"` to keep the old look”.
+  - Wymagany `title` albo `aria-labelledby`, kod `type … = BarChartProps<D> & {…}` zamiast `interface extends` i callout o `Pick`/`Omit` z `& ChartName`.
+  - Niepoprawna data przerywa linię w `Area` i `LineChart`, „po” to filtrowanie wierszy.
+  - Wbudowane stringi nie są API: własny `keyboardHint`, rada, by w testach nie szukać po wbudowanym tekście, i link `/docs/stability`.
+- **Additive changes:** `underlay` (link `/docs/line-chart` i istniejący przykład `line-chart/orders-last-year`), `createDateFormatter` z `tally-charts/core` i typami `DateFormatOptions`/`DateFormatSpec`/`DateFormatter` (link `/docs/formatting`, przykład `migration/date-formatter`) oraz „Press Enter to select.” tylko przy `onSelect` i `selectable !== false` (przykład `migration/select-hint`).
+
+**Przykłady:** `ranked-bars-hatch`, `chart-title`, `chart-labelledby`, `invalid-dates`, `keyboard-hint`, `date-formatter` (wszystkie `rscSafe: true`) i `select-hint` (`'use client'`, `rscSafe: false`). `chart-labelledby` zawiera alias `type MyBarsProps<D> = BarChartProps<D> & {…}` i wrapper, więc typecheck go sprawdza.
+
+**Pozostałe zmiany:**
+- `.changeset/ranked-bars-solid-fill.md`, `required-chart-name.md` i `line-breaks-on-invalid-date.md` dostały linię z `https://tally-charts.vercel.app/docs/migration-1-0`. `grep -l 'docs/migration-1-0' .changeset/*.md` zwraca dokładnie te 3 pliki.
+- `CLAUDE.md` nie mówi już, że `migration-1-0` jest niedostępny.
+- `PROGRESS.md` ma sekcję T31.2 z decyzjami.
+
+Zmiany zostają w drzewie roboczym, bez commitów.
+**Decyzje i pułapki:**
+- `getByRole(..., { name })` w Playwrightcie dopasowuje podciąg, więc dwa wykresy o nazwach ‘Margin by week’ i ‘Margin by week, …’ kolidują (strict mode). Nazwy przykładów na jednej stronie muszą się różnić tak, by żadna nie zawierała drugiej.
+- Na macOS `sed -i` wymaga argumentu `''`; złożenie komend przez `&&` po nieudanym sed po cichu pomija resztę łańcucha, więc po takim błędzie sprawdź `git status`.
+- Przykład rscSafe może używać `createDateFormatter` z `tally-charts/core` na serwerze, o ile do propsów nie trafia funkcja (wynik trafia do `description` jako string).
+**Otwarte kwestie:**
+- Domena https://tally-charts.vercel.app w changesetach to założenie; maintainer ma ją zweryfikować przy F17 (razem z SITE_URL i homepage z F18).
+- pnpm lint nadal wypisuje 5 ostrzeżeń i 1 info (m.in. `transition: none !important` w CSS), kod wyjścia 0; nie dotyczy tego taska.
+- apps/docs/content/migration-1-0.json: Code-block n25 z filename 'After, Area' (`<Area data={rows.filter(...)} x="date" y="orders" />`) to kod „po”, którego nie sprawdza typecheck (SPEC F23: każdy przykład „po” to plik w examples/migration). Do tego `Area` to mark, który działa tylko w `<Chart>`, więc ten fragment skopiowany wprost nic nie narysuje. Podobnie n18 ('After', alias typu) i n31 ('After, in a test'), ale n18 powtarza kod sprawdzany w chart-labelledby.tsx.
+- apps/docs/examples/migration/chart-labelledby.tsx: Wrapper przekazuje `data-accent` do BarChart, ale BarChart/Chart nie przekazują nieznanych propsów do DOM (Chart.tsx nie ma rest spreadu), więc `accent` po cichu nic nie robi. Przykład uczy rozszerzać typ, a pokazuje prop, który nie działa.
+**Kryteria:**
+- apps/docs/content/migration-1-0.json istnieje: title 'Migration to 1.0', seo.metaTitle 'Migration to 1.0 · tally-charts', headingi level '2' 'Breaking changes' i 'Additive changes'. Pod 'Breaking changes' są 4 zmiany, każda z headingiem level '2' lub '3', blokiem code-block z kodem 0.9 (filename 'Before (0.9)') i co najmniej jednym chart-example z exampleId 'migration/…': (1) RankedBars z fill="hatch" i zdaniem 'RankedBars: pass `fill="hatch"` to keep the old look'; (2) przykład z title, przykład z aria-labelledby wskazującym na nagłówek, kod `type … = BarChartProps<D> & {…}` zamiast `interface extends` i ostrzeżenie o Pick/Omit z `& ChartName`; (3) filtrowanie wierszy z niepoprawną datą (Area i LineChart); (4) własny keyboardHint, rada, żeby w testach nie szukać po wbudowanym tekście, i link /docs/stability. Sprawdza to test w content/fixtures.test.ts
+- Sekcja 'Additive changes' opisuje underlay w LineChart (link /docs/line-chart albo przykład), createDateFormatter z 'tally-charts/core' z nazwami DateFormatOptions, DateFormatSpec i DateFormatter (link /docs/formatting albo przykład) oraz podpowiedź 'Press Enter to select.' tylko przy onSelect i selectable !== false (przykład migration/select-hint z 'use client' i rscSafe false). Test w fixtures.test.ts sprawdza te frazy
+- Każdy przykład „po” to plik apps/docs/examples/migration/*.tsx z literałowym `meta` (id 'migration/<nazwa>') i default exportem, rysujący <svg>. Pliki rscSafe importują funkcje biblioteki tylko z 'tally-charts/core'. `pnpm --filter docs gen` i `pnpm --filter docs typecheck` kończą się kodem 0. examples/registry.test.ts, render.test.tsx i ssr.test.tsx przechodzą
+- Wszystkie linki /docs/* na stronie wskazują istniejące slugi. Po `pnpm build` `pnpm --filter docs check:content` kończy się kodem 0 i wypisuje 'fixtures: API coverage: 52/52'
+- .changeset/ranked-bars-solid-fill.md, required-chart-name.md i line-breaks-on-invalid-date.md zawierają 'https://tally-charts.vercel.app/docs/migration-1-0'. `grep -l 'docs/migration-1-0' .changeset/*.md` zwraca dokładnie te 3 pliki. PROGRESS.md zapisuje domenę jako założenie do weryfikacji przez maintainera przy F17
+- content/fixtures.test.ts oczekuje 25 dostępnych stron w kolejności nawigacji (migration-1-0 po stability), żadnego itemu z available: false oraz tego, że nawigacja zawiera wszystkie slugi F15 poza home
+- e2e/migration-1-0.spec.ts: status 200, h1 'Migration to 1.0', link w nav 'Documentation' z href /docs/migration-1-0 i aria-current='page', 0 elementów .nav-soon w sidebarze, widoczne headingi level 2 /^Breaking changes/ i /^Additive changes/, co najmniej jeden przykład „po” widoczny jako role application o nazwie z jego title (z svg)
+- pnpm build, pnpm --filter docs test, pnpm --filter docs typecheck, pnpm lint, pnpm --filter docs build i pnpm --filter docs test:e2e (port 3100 wolny, bez --update-snapshots) kończą się kodem 0. `git diff --stat -- packages apps/storybook apps/docs/e2e/__screenshots__` jest pusty
+- PROGRESS.md ma sekcję T31.2 z decyzjami: URL https://tally-charts.vercel.app w changesetach jako założenie dla F17, „przed” tylko jako code-block, etykiety Before/After przez filename i prose bez zmiany schematów bloków. CLAUDE.md nie twierdzi już, że migration-1-0 jest niedostępny
