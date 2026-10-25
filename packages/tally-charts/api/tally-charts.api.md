@@ -721,6 +721,7 @@ export type LineChartProps<D> = ChartName & Omit<ChartPassThroughProps<D>, 'aspe
     radius?: number;
     dataTable?: boolean | DataTableOptions;
     tooltip?: ChartTooltip<D>;
+    underlay?: ReactNode;
 };
 
 // @public (undocumented)

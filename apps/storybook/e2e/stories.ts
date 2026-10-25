@@ -20,6 +20,7 @@ export const STORIES = [
   'reference-gross-margin--light',
   'reference-gross-margin--dark',
   'primitives-small-pieces--default',
+  'primitives-small-pieces--edge-cases',
   'reference-why-it-is-under-target--light',
   'reference-why-it-is-under-target--dark',
   'reference-profit-bridge--light',
@@ -50,10 +51,13 @@ export const STORIES = [
   'charts-runwaychart--states-dark',
   'charts-runwaychart--stacked-light',
   'charts-runwaychart--stacked-dark',
+  'charts-linechart--underlay-light',
+  'charts-linechart--underlay-dark',
 ]
 
-// Stories whose reference layout needs more room than the default 800px viewport.
-export const WIDE_STORIES: Record<string, { width: number; height: number }> = {
+// Stories that need a viewport other than the default 800px: wide references plus the 320px edge cases.
+export const VIEWPORTS: Record<string, { width: number; height: number }> = {
+  'primitives-small-pieces--edge-cases': { width: 320, height: 640 },
   'reference-drill-columns--light': { width: 1280, height: 600 },
   'reference-drill-columns--dark': { width: 1280, height: 600 },
   'reference-profit-bridge--light': { width: 1280, height: 720 },

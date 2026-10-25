@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { type ReactNode, useMemo } from 'react'
 import { resolveAccessor } from '../../core/accessor'
 import { createDateFormatter, isDateFormat } from '../../core/date'
 import type { FormatSpec, Formatter } from '../../core/format'
@@ -122,6 +122,11 @@ export type LineChartProps<D> = ChartName &
      * content for a point (`point.datum` is your row). Default true.
      */
     tooltip?: ChartTooltip<D>
+    /**
+     * Marks drawn under the series, above the grid, e.g. an `<Area>` on a time axis. `children`
+     * stay above the series.
+     */
+    underlay?: ReactNode
   }
 
 interface LineRow<D> {
@@ -234,6 +239,7 @@ export function LineChart<D>({
   xAxis = 'all',
   xAxisFormat,
   grid = true,
+  underlay,
   radius = 4,
   dataTable = true,
   tooltip = true,
@@ -409,6 +415,7 @@ export function LineChart<D>({
     >
       {regionFrom !== undefined ? <Region from={regionFrom} /> : null}
       {grid ? <Grid ticks={yAxis === 'none' ? 'all' : yAxis} /> : null}
+      {underlay}
       {targetSpec ? (
         <Target y={targetSpec.value} label={targetSpec.label} labelPosition="start" />
       ) : null}

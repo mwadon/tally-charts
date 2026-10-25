@@ -194,7 +194,8 @@ Domyślny fill w RankedBars to teraz 'solid' (kod `fill ?? 'solid'` i TSDoc "Def
 - Przechodzą `pnpm lint`, `pnpm typecheck`, `pnpm size` i `pnpm --filter tally-charts check:dev-strip`.
 - README (punkt `RankedBars`) podaje domyślny `solid` i `fill="hatch"` jako opcję, a PROGRESS.md zapisuje decyzję o jawnym `fill="hatch"` w stories zamiast regeneracji baseline'ów.
 
-## ⛔ T06 LineChart: prop underlay pod seriami (F2) — ZABLOKOWANY
+## ✔ T06 LineChart: prop underlay pod seriami (F2) — domknięty w Q1-01
+Domknięcie: patrz sekcja Q1-01 (kod i baseline'y linux weszły na main przez port łatek).
 Poprawiłem uwagę minor z review: opis dostępności story LineChart podawał „about 62” na koniec serii, a dane dają około 67, więc jest „about 67”. Piksele się nie zmieniają. Dopisałem też do PROGRESS.md (sekcja T06) stan próby 3 z Dockerem. Nie udało mi się wygenerować baseline'ów linux `charts-linechart--underlay-{light,dark}.png`. Dopóki ich nie będzie, job `e2e` na CI padnie na tych 2 stories. Docker Desktop nadal zwraca `input/output error`: `docker info` pokazuje błąd na blobie w `/var/lib/desktop-containerd`, a `docker pull mcr.microsoft.com/playwright:v1.64.0-noble` pada na zapisie `meta.db`. Wolnego miejsca na dysku jest już 2,2 GiB, więc to nie sam brak miejsca. Uszkodzony jest wewnętrzny store Dockera. Naprawa to restart albo reset danych Docker Desktop, który kasuje obrazy i kontenery właściciela, więc tego nie robiłem. Linuxa nie generowałem inną drogą, zgodnie z planem. Po zmianie przeszły `pnpm format`, `pnpm lint` (te same 4 ostrzeżenia i 1 info) i `pnpm typecheck`. Testów, buildu i e2e nie uruchamiałem ponownie, bo zmiana dotyczy tylko tekstu opisu story i PROGRESS.md. Po poprzedniej próbie przechodziły test (1044), build, `api:check`, size, `check:dev-strip` i e2e na darwin (313).
 Ostatnie uwagi: zobacz .crew/backlog.json (lastNote).
 
@@ -251,7 +252,8 @@ Ostatnie uwagi: zobacz .crew/backlog.json (lastNote).
 - Istnieje `.changeset/*.md` z `'tally-charts': major`, z notatką migracyjną i fragmentami kodu Before/After (dodanie `title` albo `aria-labelledby`, oraz `interface … extends XxxProps` → `type … = XxxProps & {…}`).
 - README biblioteki (sekcja Accessibility) opisuje wymóg `title` albo `aria-labelledby`, a PROGRESS.md zapisuje decyzje D1–D5 z planu.
 
-## ⛔ T06 LineChart: prop underlay pod seriami (F2) — ZABLOKOWANY
+## ✔ T06 LineChart: prop underlay pod seriami (F2) — domknięty w Q1-01
+Domknięcie: patrz sekcja Q1-01 (kod i baseline'y linux weszły na main przez port łatek).
 Nie wygenerowałem baseline'ów linux, więc task jest niedomknięty. Kod `underlay` był już w gałęzi (commit 8129a40), wbrew planowi tech leada, który zakładał, że go nie ma. Docker nadal jest uszkodzony: `docker info` działa, ale `docker pull` pada na `input/output error` przy zapisie `meta.db` w `/var/lib/desktop-containerd`. Obrazu Playwrighta nie da się pobrać, więc komenda z ci.yml nie ruszy. Naprawa to reset danych Docker Desktop, który skasowałby kontenery właściciela (m.in. działający `foundation-postgres-1`), więc go nie robiłem. PNG linux nie da się wygenerować na darwin, bo renderowanie fontów się różni.
 
 W tej próbie zmieniłem dwie rzeczy:
@@ -345,8 +347,8 @@ Wyniki bramek:
 - Istnieje .changeset/*.md z 'tally-charts': patch, a PROGRESS.md ma sekcję T09.1 z decyzjami
 - Przechodzą pnpm lint, pnpm typecheck, pnpm test, pnpm build, api:check (bez zmian w packages/tally-charts/api), pnpm size i check:dev-strip; pnpm test:e2e przechodzi bez --update-snapshots, a git status nie pokazuje nowych ani zmienionych plików PNG
 
-## ⛔ T09.2 ZoneMeter: baseline wizualny przy 320 px (darwin + linux) — ZABLOKOWANY
-Task T09.2 pozostaje ZABLOKOWANY na części linux. Nie powstał `linux/primitives-small-pieces--edge-cases.png`, więc job `e2e` w CI padnie na brakującym baseline'ie. Część darwin i zmiany w kodzie są gotowe i zacommitowane w poprzednich próbach: story w STORIES, mapa VIEWPORTS z wpisem 320×640, usunięty duplikat axe, poprawione komentarze, darwin PNG 320×640. W tej próbie ponowiłem `docker image ls` i `docker pull mcr.microsoft.com/playwright:v1.64.0-noble`. Oba padły z `input/output error` w store Docker Desktop (`blob sha256:dc2d74b2…` i `meta.db`). Nie resetowałem Docker Desktop i nie generowałem linuxa inną drogą. Doprecyzowałem treść błędu w sekcji T09.2 w PROGRESS.md, jedynej zmianie w drzewie roboczym w tej próbie. Defekt ZoneMeter z uwagi minor dopisałem do pamięciowego backlogu 1.0 (`tally-charts-1-0-backlog.md`, poza repo).
+## ✔ T09.2 ZoneMeter: baseline wizualny przy 320 px (darwin + linux) — domknięty w Q1-01
+Domknięcie: patrz sekcja Q1-01 (baseline linux wygenerowany, gdy Docker znów działał). Poniżej historia blokady: task był ZABLOKOWANY na części linux. Nie powstał `linux/primitives-small-pieces--edge-cases.png`, więc job `e2e` w CI padnie na brakującym baseline'ie. Część darwin i zmiany w kodzie są gotowe i zacommitowane w poprzednich próbach: story w STORIES, mapa VIEWPORTS z wpisem 320×640, usunięty duplikat axe, poprawione komentarze, darwin PNG 320×640. W tej próbie ponowiłem `docker image ls` i `docker pull mcr.microsoft.com/playwright:v1.64.0-noble`. Oba padły z `input/output error` w store Docker Desktop (`blob sha256:dc2d74b2…` i `meta.db`). Nie resetowałem Docker Desktop i nie generowałem linuxa inną drogą. Doprecyzowałem treść błędu w sekcji T09.2 w PROGRESS.md, jedynej zmianie w drzewie roboczym w tej próbie. Defekt ZoneMeter z uwagi minor dopisałem do pamięciowego backlogu 1.0 (`tally-charts-1-0-backlog.md`, poza repo).
 Ostatnie uwagi: zobacz .crew/backlog.json (lastNote).
 
 ## T10 Niepoprawna data w serii przerywa linię; thinTicks zachowuje wyróżniony tick (F6)
@@ -1666,3 +1668,16 @@ Naprawiłem blokujący problem z review (major). Delivery API glökki zwraca slu
 - `.env.example` opisuje `CMS_ADMIN_API_KEY` (pusty, z komentarzem o scope'ach), a `env-example.test.ts` wymaga 9 zmiennych.
 - `docs/releasing.md` ma sekcję o seedzie treści docs: zmienne, scope'y klucza, synchronizacja rejestru bloków przez otwarcie edytora, `--dry-run`, potem seed i `check:content` na CMS. CLAUDE.md ma linię o `pnpm --filter docs seed`, a PROGRESS.md decyzje D1–D6.
 - `pnpm --filter docs test`, `pnpm --filter docs typecheck`, `pnpm lint` i `pnpm typecheck` przechodzą.
+
+## ✔ Q1-01 Odblokowanie F2 i F5: underlay w LineChart i baseline'y linux (2026-10-25)
+Przeniosłem na main gotową pracę z `crew/T06` i `crew/T09.2`, której blokował uszkodzony Docker. Docker działa, obraz `mcr.microsoft.com/playwright:v1.64.0-noble` jest lokalnie, więc baseline'y linux powstały komendą z komentarza nad jobem `e2e` w ci.yml (kod 0, jej przebieg weryfikacyjny przeszedł: 333 testy).
+**Decyzje:**
+- D1. Port łatek zamiast merge gałęzi: `crew/T06` i `crew/T09.2` są mocno w tyle za main (diff ma 348 plików). Łatki wyciągnąłem przez `git diff 8129a40^ c27b514` i `git diff 58a3858^ 75a580d` (tylko `packages`, `apps/storybook`, `.changeset`) i zaaplikowałem w drzewie roboczym. PROGRESS.md z gałęzi pominąłem. `stories.spec.ts` i `SmallPieces.stories.tsx` (po zmianach na main) wymagały ręcznej zmiany tylko `WIDE_STORIES` → `VIEWPORTS`; reszta łatek weszła czysto.
+- D2. `WIDE_STORIES` → `VIEWPORTS` (`e2e/stories.ts`, `stories.spec.ts`): mapa obejmuje teraz też viewport 320×640 dla `primitives-small-pieces--edge-cases`, więc stara nazwa była myląca.
+- D3. Rozmiar LineChart po dodaniu `underlay`: 13194 B gzip (było 13193 B), limit 14 kB. Destrukturyzacja `underlay` stoi zaraz po `grid` (ta pozycja dawała lepszy gzip w T06).
+- D4. Darwin PNG są bajt w bajt takie same jak na gałęziach (`cmp`), ale i tak powstały od nowa przebiegiem `--update-snapshots=all`, a potem `pnpm test:e2e` bez update przeszedł (333).
+- D5. `api/tally-charts.api.md` zyskał `underlay?: ReactNode;` w `LineChartProps`, `api/tally-charts.api.json` odświeżony przez `api:update`, `core.api.md` bez zmian. Changeset `.changeset/line-chart-underlay.md` (`minor`).
+**Otwarte kwestie:**
+- Znany defekt kolizji ticków ZoneMeter przy 256 px (długie etykiety końców i breaki 200/500; opis w komentarzu `EdgeCasesStory`) zostaje otwarty. Baseline 320 px celowo używa jednego breaka (450), żeby go nie utrwalać.
+- `pnpm lint` daje 5 ostrzeżeń (plan mówił o 4), wszystkie w plikach CSS spoza tego taska (`apps/docs/app/globals.css`, `theme.css`), jak w T32.
+**Weryfikacja:** `pnpm format`, `pnpm lint`, `pnpm typecheck`, `pnpm test` (1155), `pnpm build`, `api:check`, `pnpm size`, `check:treeshake`, `check:dev-strip`, `check:dts`, `pnpm test:e2e` (333, darwin, bez update), `pnpm --filter docs test` i `check:content` (0 błędów) przechodzą. W `__screenshots__` git pokazuje tylko 6 nowych PNG (3 darwin, 3 linux), żadnych zmienionych.

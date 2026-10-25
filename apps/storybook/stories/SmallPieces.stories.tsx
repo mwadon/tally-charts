@@ -89,11 +89,14 @@ function SmallPieces() {
   )
 }
 
-// Narrow container with a 0.1% share and zone, and end labels as wide as the meter allows. Not in
-// STORIES: e2e/small-pieces.spec.ts measures it instead of comparing a screenshot.
+// Narrow container with a 0.1% share and zone, and end labels as wide as the meter allows. Has a
+// 320px baseline in e2e/stories.ts; e2e/small-pieces.spec.ts measures the widths at 800px and 320px.
+// The long-labels meter has one break (450) that fits between the end labels: with the 200 and 500
+// breaks and longer labels, ticks collide with the end labels at 256px (known defect, see
+// PROGRESS.md T09.2), and the baseline must not lock that overlap in.
 function EdgeCasesStory() {
   return (
-    <div className="card piece-grid" style={{ width: 320 }}>
+    <div className="card piece-grid" style={{ width: '100%', maxWidth: 320 }}>
       <div data-testid="rare-share">
         <ShareBar
           label="Rare share"
@@ -116,10 +119,10 @@ function EdgeCasesStory() {
         <ZoneMeter
           label="Response time"
           value={350}
-          zones={inpZones}
+          zones={thresholds([450], ['gain', 'loss'], ['Good', 'Poor'])}
           max={1000}
           minLabel="0 ms (fast)"
-          maxLabel="1000 ms or more"
+          maxLabel="Over 1000 ms"
         />
       </div>
       <div data-testid="no-data">

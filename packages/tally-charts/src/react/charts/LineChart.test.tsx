@@ -1,5 +1,6 @@
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
+import { Area } from '../marks/Area'
 import { LineChart, type LineChartProps, type LineSeries } from './LineChart'
 
 type Month = {
@@ -681,5 +682,61 @@ describe('<LineChart> on a time axis', () => {
       activeId: '2026-03-29T22:30:00.000Z',
     })
     expect(tooltip(container)).toHaveTextContent(/^Mar 30, 202633\.0%Actual$/)
+  })
+})
+
+describe('<LineChart> underlay', () => {
+  // The children of the plot's <g>: grid, underlay, lines, axes, then the caller's children.
+  const plotParts = (container: HTMLElement) => {
+    const first = container.querySelector('[data-ch-part="grid"]') as Element
+    return [...(first.parentElement as Element).children]
+  }
+  const indexOf = (kids: Element[], match: (el: Element) => boolean) => kids.findIndex(match)
+
+  it('draws the underlay after the grid, before the series, with children last', () => {
+    const { container } = renderTimeLines({
+      underlay: <g data-testid="under" />,
+      children: <g data-testid="over" />,
+    })
+    const kids = plotParts(container)
+    const grid = indexOf(kids, (el) => el.getAttribute('data-ch-part') === 'grid')
+    const under = indexOf(kids, (el) => el.getAttribute('data-testid') === 'under')
+    const line = indexOf(kids, (el) => el.getAttribute('data-ch-part') === 'line-group')
+    const over = indexOf(kids, (el) => el.getAttribute('data-testid') === 'over')
+    expect(grid).toBeGreaterThanOrEqual(0)
+    expect(under).toBe(grid + 1)
+    expect(line).toBeGreaterThan(under)
+    expect(over).toBeGreaterThan(line)
+    expect(over).toBe(kids.length - 1)
+  })
+
+  it('draws a real Area under the line paths on a time axis', () => {
+    const { container } = renderTimeLines({
+      underlay: <Area<Reading> data={readings} x="at" y="actual" />,
+    })
+    const kids = plotParts(container)
+    const area = indexOf(kids, (el) => el.getAttribute('data-ch-part') === 'area-group')
+    const line = indexOf(kids, (el) => el.getAttribute('data-ch-part') === 'line-group')
+    expect(kids[0]?.getAttribute('data-ch-part')).toBe('grid')
+    expect(area).toBe(1)
+    expect(line).toBeGreaterThan(area)
+    const path = container.querySelector('[data-ch-part="area"]') as Element
+    const linePath = container.querySelector('[data-ch-part="line"]') as Element
+    expect(path.compareDocumentPosition(linePath) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
+
+  it('renders the same DOM without underlay, with undefined, or with null', () => {
+    // A fixed chartId keeps React's per-mount useId out of the markup.
+    const plain = renderTimeLines({ chartId: 'same' })
+    const html = plain.container.innerHTML
+    const kinds = plotParts(plain.container).map((el) => el.getAttribute('data-ch-part'))
+    plain.unmount()
+    const undef = renderTimeLines({ chartId: 'same', underlay: undefined })
+    expect(undef.container.innerHTML).toBe(html)
+    undef.unmount()
+    const nil = renderTimeLines({ chartId: 'same', underlay: null })
+    expect(nil.container.innerHTML).toBe(html)
+    expect(plotParts(nil.container).map((el) => el.getAttribute('data-ch-part'))).toEqual(kinds)
+    expect(kinds.slice(0, 2)).toEqual(['grid', 'line-group'])
   })
 })
