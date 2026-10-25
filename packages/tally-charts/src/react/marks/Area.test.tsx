@@ -69,16 +69,56 @@ describe('<Area>', () => {
     expect(path(container)).toHaveAttribute('data-ch-tone', 'loss')
   })
 
-  it('skips missing values and draws nothing with fewer than two points', () => {
+  it('breaks at missing values and draws nothing with fewer than two points', () => {
     const { container, unmount } = renderArea({}, [
       { k: 'a', v: 100 },
       { k: 'b', v: null },
       { k: 'c', v: 0 },
     ])
-    expect(path(container)).toHaveAttribute('d', 'M50,0L250,100L250,100L50,100Z')
+    expect(path(container)).toBeNull()
     unmount()
     const single = renderArea({}, [{ k: 'a', v: 10 }])
     expect(path(single.container)).toBeNull()
+  })
+
+  it('breaks into one shape per run at a missing value', () => {
+    const { container } = renderArea({}, [
+      { k: 'a', v: 100 },
+      { k: 'b', v: 50 },
+      { k: 'c', v: null },
+      { k: 'd', v: 0 },
+      { k: 'e', v: 20 },
+    ])
+    // 60px bands: a, b | d, e.
+    expect(path(container)).toHaveAttribute(
+      'd',
+      'M30,0L90,50L90,100L30,100ZM210,100L270,80L270,100L210,100Z',
+    )
+  })
+
+  it('does not join a pair of bands across a missing value when filling the gaps', () => {
+    const { container } = render(
+      <Chart<Row>
+        title="Test chart"
+        data={[
+          { k: 'a', v: 100 },
+          { k: 'b', v: 50 },
+          { k: 'c', v: null },
+          { k: 'd', v: 0 },
+        ]}
+        width={400}
+        height={100}
+        margin={{ top: 0, right: 0, bottom: 0, left: 0 }}
+        x={{ type: 'band', field: 'k', padding: 0.5 }}
+        y={{ field: 'v', domain: [0, 100] }}
+        animate={false}
+      >
+        <Area<Row> between />
+      </Chart>,
+    )
+    // Only the a–b gap: the pairs b–c and c–d each touch the missing value.
+    expect(path(container)?.getAttribute('d')?.match(/M/g)).toHaveLength(1)
+    expect(path(container)).toHaveAttribute('d', 'M57.14,0L114.29,50L114.29,100L57.14,100Z')
   })
 
   it('warns and draws nothing without a band x and a linear y', () => {

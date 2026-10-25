@@ -12,7 +12,7 @@ export interface BandPoint {
 }
 
 /** Runs of consecutive points that pass `complete`; any other point ends the current run. */
-function runs<P>(points: readonly P[], complete: (p: P) => boolean): P[][] {
+export function runs<P>(points: readonly P[], complete: (p: P) => boolean): P[][] {
   const out: P[][] = []
   let run: P[] = []
   for (const p of points) {

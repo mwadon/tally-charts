@@ -328,6 +328,32 @@ describe('<LineChart>', () => {
     warn.mockRestore()
   })
 
+  it('breaks the lines and the band at a missing x in the middle', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const full = (month: string, v: number): Month => ({
+      month,
+      actual: v,
+      path: null,
+      changes: null,
+      low: v - 1,
+      high: v + 1,
+    })
+    const { container } = renderLines({
+      data: [full('Jun', 34), full('Jul', 32), full('', 39), full('Aug', 33), full('Sep', 35)],
+      series: [series[0] as LineSeries<Month>],
+    })
+    // Four months at x 50, 150, 250, 350.
+    expect(pathOf(groups(container)[0] as Element)).toHaveAttribute(
+      'd',
+      'M50,60L150,80M250,70L350,50',
+    )
+    expect(parts(container, 'band')[0]?.getAttribute('d')?.match(/M/g)).toHaveLength(2)
+    expect(container.innerHTML).not.toContain('NaN')
+    expect(warn).toHaveBeenCalledTimes(1)
+    expect(warn.mock.calls[0]?.[0]).toContain('missing x value at index 2')
+    warn.mockRestore()
+  })
+
   it('warns once about repeated series ids and still draws every series', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     const error = vi.spyOn(console, 'error').mockImplementation(() => {})
@@ -434,11 +460,106 @@ describe('<LineChart> on a time axis', () => {
       ],
     })
     const [plan, actual] = groups(container)
-    expect(pathOf(actual)).toHaveAttribute('d', 'M0,60L100,80')
+    // The invalid dates follow Jan 4 and Jan 1 in data order, so the actuals (Jan 1, Jan 2) are
+    // cut apart: their dots show, but no line joins them. The plan (Jan 2, Jan 4) is intact.
+    expect(pathOf(actual)).toBeNull()
+    expect(
+      [...actual.querySelectorAll('[data-ch-part="line-dot"]')].map((d) => d.getAttribute('cx')),
+    ).toEqual(['0', '100'])
     expect(pathOf(plan)).toHaveAttribute('d', 'M100,80L300,50')
+    expect(container.innerHTML).not.toContain('NaN')
     expect(warn).toHaveBeenCalledTimes(2)
     expect(warn.mock.calls[0]?.[0]).toContain('not a date at index 1')
     expect(warn.mock.calls[1]?.[0]).toContain('repeated x value "2026-01-02T00:00:00.000Z"')
+  })
+
+  describe('with an invalid date in the middle of the data', () => {
+    const at = (day: number) => `2026-01-0${day}`
+    const gappy: Reading[] = [
+      { at: at(1), actual: 34, plan: null },
+      { at: at(2), actual: 32, plan: null },
+      { at: 'soon', actual: 39, plan: null },
+      { at: at(3), actual: 33, plan: null },
+      { at: at(4), actual: 35, plan: null },
+    ]
+    const render2 = () =>
+      renderTimeLines({
+        data: gappy,
+        series: [{ id: 'actual', label: 'Actual', value: 'actual' }],
+        band: { low: (r) => (r.actual ?? 0) - 1, high: (r) => (r.actual ?? 0) + 1 },
+      })
+
+    it('breaks every line and the band in two, with one warning', () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+      const { container } = render2()
+      const [actual] = groups(container)
+      expect(pathOf(actual as Element)).toHaveAttribute('d', 'M0,60L100,80M200,70L300,50')
+      expect(parts(container, 'line-dot')).toHaveLength(4)
+      const band = parts(container, 'band')[0]?.getAttribute('d') ?? ''
+      expect(band.match(/M/g)).toHaveLength(2)
+      expect(band.match(/Z/g)).toHaveLength(2)
+      expect(container.innerHTML).not.toContain('NaN')
+      expect(warn).toHaveBeenCalledTimes(1)
+      expect(warn.mock.calls[0]?.[0]).toContain('not a date at index 2')
+    })
+
+    it('breaks each series of a multi-series chart', () => {
+      const { container } = renderTimeLines({
+        data: gappy.map((r) => ({ ...r, plan: r.actual })),
+        series: readingSeries,
+      })
+      const [plan, actual] = groups(container)
+      for (const group of [plan, actual]) {
+        expect(
+          pathOf(group as Element)
+            ?.getAttribute('d')
+            ?.match(/M/g),
+        ).toHaveLength(2)
+      }
+    })
+
+    it('steps the keyboard over the skipped row and registers only the valid dates', () => {
+      render2()
+      const chart = screen.getByRole('application', { name: 'Readings' })
+      fireEvent.keyDown(chart, { key: 'Home' })
+      fireEvent.keyDown(chart, { key: 'ArrowRight' })
+      expect(live(document.body)).toBe('2 of 4, Jan 2, 2026, 32.0% Actual')
+      fireEvent.keyDown(chart, { key: 'ArrowRight' })
+      expect(live(document.body)).toBe('3 of 4, Jan 3, 2026, 33.0% Actual')
+      fireEvent.keyDown(chart, { key: 'End' })
+      expect(live(document.body)).toBe('4 of 4, Jan 4, 2026, 35.0% Actual')
+      const rows = within(screen.getByRole('table', { name: 'Readings' })).getAllByRole('row')
+      expect(rows.map((row) => row.firstElementChild?.textContent)).toEqual([
+        'At',
+        'Jan 1, 2026',
+        'Jan 2, 2026',
+        'Jan 3, 2026',
+        'Jan 4, 2026',
+      ])
+    })
+
+    it('does not break when the invalid date leads the data', () => {
+      const { container } = renderTimeLines({
+        data: [{ at: 'soon', actual: 39, plan: null }, ...gappy.filter((r) => r.at !== 'soon')],
+        series: [{ id: 'actual', label: 'Actual', value: 'actual' }],
+      })
+      expect(pathOf(groups(container)[0] as Element)).toHaveAttribute(
+        'd',
+        'M0,60L100,80L200,70L300,50',
+      )
+    })
+
+    it('does not break at a repeated date', () => {
+      const { container } = renderTimeLines({
+        data: [
+          ...gappy.filter((r) => r.at !== 'soon').slice(0, 2),
+          gappy[1] as Reading,
+          gappy[3] as Reading,
+        ],
+        series: [{ id: 'actual', label: 'Actual', value: 'actual' }],
+      })
+      expect(pathOf(groups(container)[0] as Element)).toHaveAttribute('d', 'M0,60L100,80L200,70')
+    })
   })
 
   it('steps the keyboard through out-of-order data in date order', () => {
@@ -513,6 +634,7 @@ describe('<LineChart> on a time axis', () => {
     const [plan, actual] = groups(container)
     expect(pathOf(actual)).toHaveAttribute('d', 'M0,60L100,80')
     expect(pathOf(plan)).toHaveAttribute('d', 'M100,80L300,50')
+    expect(container.innerHTML).not.toContain('NaN')
     expect(warn).toHaveBeenCalledTimes(1)
     expect(warn.mock.calls[0]?.[0]).toContain('not a date at index 3')
   })

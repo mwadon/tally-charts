@@ -82,7 +82,7 @@
     "path": "dist/index.js",
     "import": "{ LineChart }",
     "ignore": ["react", "react-dom"],
-    "limit": "13.2 KB",
+    "limit": "13.5 KB",
     "gzip": true
   },
   {

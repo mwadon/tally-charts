@@ -10,6 +10,8 @@ export interface Tick {
   position: number
   label: string
   anchor: TickAnchor
+  /** Start and end of the tick's band, when it has width. See `thinTicks`. */
+  bounds?: readonly [number, number]
 }
 
 /**
@@ -108,19 +110,39 @@ export function fits(ticks: readonly Tick[], measure: MeasureTick): boolean {
 /**
  * Drops labels until they stop overlapping: every other, every fourth, …, then only the ends,
  * and only the first when even the ends would overlap.
+ *
+ * `keep` is the index in `ticks` of a label that must survive, e.g. an emphasized one. At every
+ * step it stays and the labels that would overlap it go, except the first, which also stays. The
+ * last resorts are the first and the kept label, then the kept label alone. With `keep`, those
+ * two are pinned to the outer edges of their bands (`bounds`), where a label has the most room.
  */
-export function thinTicks(ticks: readonly Tick[], measure: MeasureTick = estimateWidth): Tick[] {
+export function thinTicks(
+  ticks: readonly Tick[],
+  measure: MeasureTick = estimateWidth,
+  { keep }: { keep?: number } = {},
+): Tick[] {
   if (ticks.length <= 1 || fits(ticks, measure)) return [...ticks]
+  const pinned = keep === undefined ? undefined : ticks[keep]
   for (let step = 2; step < ticks.length; step *= 2) {
-    const kept = ticks.filter((_, i) => i % step === 0)
+    const kept = ticks.filter(
+      (tick, i) =>
+        i === keep || (i % step === 0 && (i === 0 || !pinned || fits([tick, pinned], measure))),
+    )
     if (kept.length > 2 && fits(kept, measure)) return kept
   }
   const first = ticks[0]
   const last = ticks[ticks.length - 1]
   if (!first || !last) return []
-  const ends: Tick[] = [
-    { ...first, anchor: 'start' },
-    { ...last, anchor: 'end' },
-  ]
-  return fits(ends, measure) ? ends : [{ ...first, anchor: 'start' }]
+  // Without `keep` the labels stay at their band centres, as they always did.
+  const pin = (tick: Tick, anchor: 'start' | 'end'): Tick => ({
+    ...tick,
+    anchor,
+    position:
+      (keep === undefined ? undefined : tick.bounds?.[anchor === 'start' ? 0 : 1]) ?? tick.position,
+  })
+  const start = pin(first, 'start')
+  const other = pinned && keep !== 0 ? pinned : last
+  const ends: Tick[] = [start, other === last ? pin(last, 'end') : other]
+  if (fits(ends, measure)) return ends
+  return pinned && keep !== 0 ? [pinned] : [start]
 }

@@ -1,3 +1,4 @@
+import { useId } from 'react'
 import { resolveAccessor, toFieldGetter } from '../../core/accessor'
 import { bandPath } from '../../core/line'
 import type { Accessor, Tone } from '../../core/types'
@@ -20,7 +21,8 @@ export interface BandProps<D> {
 /** A soft area between `low` and `high` at each category or date, e.g. a likely range. Gaps break it. */
 export function Band<D>({ data, x, low, high, tone = 'accent' }: BandProps<D>) {
   const ctx = useChartContext('Band')
-  const scales = seriesScales(ctx, 'Band')
+  const id = useId()
+  const scales = seriesScales(ctx, 'Band', id)
   if (!scales) return null
   const getX = toFieldGetter(x) ?? ctx.x.field
   if (!getX) {

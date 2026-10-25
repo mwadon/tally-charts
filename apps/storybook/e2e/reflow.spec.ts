@@ -63,3 +63,17 @@ for (const id of [...STORIES, 'reference-last-12-weeks--selectable']) {
     expect(results.violations).toEqual([])
   })
 }
+
+// Thinning the bottom axis keeps the highlighted label: BridgeChart marks its last column.
+test('reference-profit-bridge--light keeps its first and highlighted axis labels at 320px', async ({
+  page,
+}) => {
+  await open(page, 'reference-profit-bridge--light')
+  const labels = page.locator(
+    '#storybook-root [data-ch-part="axis"][data-ch-side="bottom"] [data-ch-part="axis-label"]',
+  )
+  await expect(labels.filter({ hasText: 'Planned profit' })).toHaveCount(1)
+  const actual = labels.filter({ hasText: 'Actual profit' })
+  await expect(actual).toHaveCount(1)
+  await expect(actual).toHaveAttribute('data-ch-active', 'true')
+})

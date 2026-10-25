@@ -1,3 +1,4 @@
+import { useId } from 'react'
 import { toFieldGetter } from '../../core/accessor'
 import { linePath } from '../../core/line'
 import { round2 } from '../../core/path'
@@ -41,7 +42,8 @@ export function Line<D>({
   radius = 4,
 }: LineProps<D>) {
   const ctx = useChartContext('Line')
-  const scales = seriesScales(ctx, 'Line')
+  const id = useId()
+  const scales = seriesScales(ctx, 'Line', id)
   if (!scales) return null
   const getX = toFieldGetter(x) ?? ctx.x.field
   const getY = toFieldGetter(y) ?? ctx.y.field
