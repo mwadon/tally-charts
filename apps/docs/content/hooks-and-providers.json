@@ -1,0 +1,135 @@
+{
+  "versionId": "fixture-hooks-and-providers-v1",
+  "version": 1,
+  "locale": "en",
+  "publishedAt": "2026-10-25T00:00:00.000Z",
+  "codeInjection": {},
+  "layout": {
+    "key": "default",
+    "header": null,
+    "footer": null
+  },
+  "pageId": "fixture-hooks-and-providers",
+  "title": "Hooks and providers",
+  "slug": "hooks-and-providers",
+  "seo": {
+    "metaTitle": "Hooks and providers · tally-charts",
+    "metaDescription": "ChartsProvider sets the locale and currency; useChart, useFormat and useRegisterPoints let you draw your own marks."
+  },
+  "componentTree": [
+    {
+      "id": "n1",
+      "type": "prose",
+      "props": {
+        "markdown": "`BarChart` and `LineChart` read their number formats from a provider, and a mark of your own can do the same. This page covers `ChartsProvider`, which sets the locale and currency for everything inside it, and the three hooks you need to draw something the library does not: `useChart`, `useFormat` and `useRegisterPoints`."
+      }
+    },
+    {
+      "id": "n2",
+      "type": "heading",
+      "props": {
+        "text": "ChartsProvider",
+        "level": "2",
+        "anchor": "charts-provider"
+      }
+    },
+    {
+      "id": "n3",
+      "type": "prose",
+      "props": {
+        "markdown": "Put `ChartsProvider` once near the top of the page. `locale` is a BCP 47 tag and `currency` an ISO 4217 code. Every chart, `Stat`, `Meter` and axis below it formats numbers, dates and currency that way, so the same data reads naturally for each audience. Without a provider the defaults are `en-US` and `USD`."
+      }
+    },
+    {
+      "id": "n4",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "hooks-and-providers/provider-locale",
+        "defaultView": "preview"
+      }
+    },
+    {
+      "id": "n5",
+      "type": "prose",
+      "props": {
+        "markdown": "The `Stat` and both charts share one provider: thousands are separated with a dot, the decimal separator is a comma and the euro sign follows the number. Nothing is passed to the charts except `format=\"currency\"`. The props are plain values, so this example also renders in a Server Component; see [Getting started](/docs/getting-started) for the charts used here and [LineChart](/docs/line-chart) for series."
+      }
+    },
+    {
+      "id": "n6",
+      "type": "heading",
+      "props": {
+        "text": "Custom marks",
+        "level": "2",
+        "anchor": "custom-marks"
+      }
+    },
+    {
+      "id": "n7",
+      "type": "prose",
+      "props": {
+        "markdown": "When none of the building blocks in [Composition](/docs/composition) draws what you need, write a component and put it inside `Chart`. `useChart()` returns the `x` and `y` scales and the size of the plot, `useFormat()` returns formatters in the provider's locale, and `useRegisterPoints()` tells the chart where your points are."
+      }
+    },
+    {
+      "id": "n8",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "hooks-and-providers/custom-mark",
+        "defaultView": "preview"
+      }
+    },
+    {
+      "id": "n9",
+      "type": "prose",
+      "props": {
+        "markdown": "Lollipops are not a built-in mark. `Lollipops` reads the scales with `useChart()`, labels each point with a formatter from `useFormat()`, and registers the points. That registration is what makes `NearestPointer` find them under the pointer, `Tooltip` show them and the arrow keys walk them. Focus the chart and press `Home` to hear the first one."
+      }
+    },
+    {
+      "id": "n10",
+      "type": "callout",
+      "props": {
+        "tone": "tip",
+        "markdown": "**Memoize the points you register.** `useRegisterPoints(points)` registers again every time the array changes identity, so build it in `useMemo` with the scales and formatter as dependencies. Each point needs a unique `id`, an `index`, the `datum`, a position in plot pixels (`x`, `y`), a `label` for screen readers and the tooltip `segments`. Hooks cannot run in a Server Component, so a file that uses any of them starts with `'use client'`."
+      }
+    },
+    {
+      "id": "n11",
+      "type": "heading",
+      "props": {
+        "text": "Props",
+        "level": "2",
+        "anchor": "props"
+      }
+    },
+    {
+      "id": "n12",
+      "type": "props-table",
+      "props": {
+        "symbol": "ChartsProvider"
+      }
+    },
+    {
+      "id": "n13",
+      "type": "props-table",
+      "props": {
+        "symbol": "useChart"
+      }
+    },
+    {
+      "id": "n14",
+      "type": "props-table",
+      "props": {
+        "symbol": "useFormat"
+      }
+    },
+    {
+      "id": "n15",
+      "type": "props-table",
+      "props": {
+        "symbol": "useRegisterPoints"
+      }
+    }
+  ]
+}

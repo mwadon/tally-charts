@@ -12,10 +12,19 @@ afterEach(() => {
   errors.mockRestore()
 })
 
+// Charts draw an <svg>. The small pieces (Stat, Meter, Legend…) are plain HTML and CSS, so their
+// examples may have none, but they must still render something.
+const mayOmitSvg = (id: string) => id.startsWith('small-pieces/')
+
 test.each(Object.values(examples))('$id renders in jsdom without errors', async (entry) => {
   const { default: Example } = await entry.load()
   const { container } = render(<Example />)
 
-  expect(container.querySelector('svg')).not.toBeNull()
+  if (mayOmitSvg(entry.id)) {
+    expect(container.firstElementChild).not.toBeNull()
+    expect(container.textContent).not.toBe('')
+  } else {
+    expect(container.querySelector('svg')).not.toBeNull()
+  }
   expect(errors).not.toHaveBeenCalled()
 })

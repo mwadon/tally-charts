@@ -21,10 +21,15 @@ test('there is at least one rscSafe and one non-rscSafe example', () => {
   expect(all.length - safe.length).toBeGreaterThan(0)
 })
 
-test.each(safe)('$id (rscSafe) renders to an HTML string with an svg', async (entry) => {
+// Charts draw an <svg>. The small pieces (Stat, Meter, Legend…) are plain HTML and CSS, so their
+// examples may have none, but they must still render some HTML.
+const mayOmitSvg = (id: string) => id.startsWith('small-pieces/')
+
+test.each(safe)('$id (rscSafe) renders to an HTML string', async (entry) => {
   const { default: Example } = await entry.load()
   const html = renderToString(<Example />)
 
-  expect(html).toContain('<svg')
+  if (mayOmitSvg(entry.id)) expect(html).not.toBe('')
+  else expect(html).toContain('<svg')
   expect(errors).not.toHaveBeenCalled()
 })

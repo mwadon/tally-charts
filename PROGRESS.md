@@ -1342,3 +1342,22 @@ Poprawiono trzy uwagi z review. (1) bridge-connector.tsx ma teraz jedną warstw�
 - Po `pnpm build` `pnpm --filter docs check:content` kończy się kodem 0 i raportuje pokrycie API 21/52 (wcześniej 2/52).
 - `pnpm --filter docs test`, `pnpm --filter docs typecheck`, `pnpm lint`, `pnpm --filter docs build` i `pnpm --filter docs test:e2e` (bez update snapshotów, darwin) kończą się kodem 0. `git diff --stat -- packages apps/storybook` jest pusty, changeset niepotrzebny.
 - PROGRESS.md ma sekcję T27.2 z decyzjami (podział prymitywów na przykłady, `'use client'` dla Dots/DataTable, zmiana symbolu w check.test).
+
+## ✔ T27.3 Strony small-pieces i hooks-and-providers (2026-10-25)
+Dodano strony Small pieces i Hooks and providers: fiksturki `apps/docs/content/small-pieces.json` (10 bloków `props-table`, 3 `chart-example`) i `hooks-and-providers.json` (4 bloki `props-table`, 2 `chart-example`, callout o `'use client'` i memoizacji punktów), 3 przykłady w `examples/small-pieces/` i 2 w `examples/hooks-and-providers/`. Blok „Next steps” w `getting-started.json` linkuje do `/docs/composition`, `/docs/small-pieces` i `/docs/hooks-and-providers` (asercja w `e2e/getting-started.spec.ts`). Nowe `e2e/small-pieces.spec.ts` i `e2e/hooks-and-providers.spec.ts`. Pokrycie API w `check:content` to 35/52 (wcześniej 21/52), 0 błędów.
+**Reguła svg (render.test.tsx i ssr.test.tsx):** wykresy muszą mieć `svg` (`<svg` w SSR). Przykłady o id `small-pieces/*` mogą go nie mieć (`mayOmitSvg`), ale muszą wyrenderować niepusty element z tekstem (render.test) albo niepusty HTML (ssr.test). Brak `console.error` obowiązuje wszystkie.
+**Decyzje:**
+- Podział komponentów: `kpi-row` (rscSafe) = Stat, Delta, InlineBar, DotCount; `meters` (rscSafe) = Meter, RangeMeter, ZoneMeter (`zones` jako zwykły obiekt `{ bins, inclusive }`), ShareBar z `legend`; `legend-and-tooltip` (`'use client'`, `rscSafe: false`) = Chart z Bars i Line, Legend, Tooltip z `content` zwracającym TooltipPill. `provider-locale` (rscSafe) = ChartsProvider `de-DE`/EUR wokół Stat, BarChart i LineChart (z Legend); `custom-mark` (`'use client'`) = własny znacznik „lollipop” z `useChart()`, `useFormat()` i `useRegisterPoints()` na punktach z `useMemo`, w ChartsProvider `en-GB`/GBP.
+- `'use client'` mają tylko `legend-and-tooltip` (funkcja `content`) i `custom-mark` (hooki). Pozostałe nie mają funkcji w propsach ani hooków, a komponenty z `useFormat()` siedzą w głównym wpisie z `'use client'`, więc działają w Server Component.
+- Backlog mówił „32 symbole T27”, a po rachunku jest ich 33 (Chart + 18 prymitywów + 10 małych komponentów + ChartsProvider + 3 hooki). Za kryterium przyjęto zbiór 33 nazw: po tasku 35/52 to 33 symbole T27 i 2 z T27.1 (BarChart, LineChart). Na liście brakujących nie ma żadnego z nich.
+- Hook bez parametrów (`useChart`, `useFormat`) nie ma tabeli: `PropsTableView` pisze „X has no parameters.” i „Returns …”, bez regionu. Hook z parametrami ma region „Parameters of …”. Dlatego na stronie hooków e2e liczy 2 regiony (`Props of ChartsProvider`, `Parameters of useRegisterPoints`) i dwa zdania zamiast „4 × Props of …”. Bloki `props-table` są 4, jak w kryterium.
+- Tabela w `kpi-row` jest w przewijalnym regionie (`role=region`, `tabIndex=0`), bo przy 320 px nie mieści się w szerokości strony (test „does not scroll horizontally” z `themeSuite`).
+- Lollipopy z `custom-mark`: id punktu to miesiąc, pozycje w pikselach wykresu (`x.scale`, `y.scale`), a `activeId` z `useChart()` powiększa aktywny znacznik. Test e2e: fokus, `Home` ogłasza „1 of 6, Jan, £48”, `End` „6 of 6”.
+- Linki wewnętrzne w nowych stronach tylko do getting-started, line-chart i composition oraz do siebie nawzajem.
+- `fixtures.test.ts`: dostępne strony getting-started, line-chart, composition, small-pieces, hooks-and-providers. `check.test.ts`: pierwszy brakujący symbol przy `--require-coverage` nadal `BridgeChart` (bez zmian).
+- Przed e2e na porcie 3100 nasłuchiwał stary `next-server` tego repo (serwował nieaktualny build); zatrzymany, bo Playwright użyłby go zamiast świeżego `next start`.
+**Otwarte kwestie:**
+- Pokrycie API to 35/52, reszta w T31.
+- Funkcje `useChart`/`useFormat` nie mają parametrów, więc ich bloki to tylko zdanie i typ zwracany; opis pól zwracanych obiektów (`ChartContextValue`, `UseFormatResult`) nie jest nigdzie rozpisany na stronie.
+- Props `ChartsProvider` i `useRegisterPoints` nie mają opisów w TSDoc (kolumna Description pokazuje „—”). Poza zakresem (pakiet bez zmian).
+- Baseline'y `home-*.png` bez zmian (home nie linkuje do nowych stron).

@@ -1,0 +1,242 @@
+{
+  "versionId": "fixture-small-pieces-v1",
+  "version": 1,
+  "locale": "en",
+  "publishedAt": "2026-10-25T00:00:00.000Z",
+  "codeInjection": {},
+  "layout": {
+    "key": "default",
+    "header": null,
+    "footer": null
+  },
+  "pageId": "fixture-small-pieces",
+  "title": "Small pieces",
+  "slug": "small-pieces",
+  "seo": {
+    "metaTitle": "Small pieces · tally-charts",
+    "metaDescription": "Stat, Delta, Meter, RangeMeter, ZoneMeter, InlineBar, DotCount, ShareBar, Legend and TooltipPill: the HTML pieces around your charts."
+  },
+  "componentTree": [
+    {
+      "id": "n1",
+      "type": "prose",
+      "props": {
+        "markdown": "The small pieces are the numbers and meters around your charts: a headline figure, a progress bar, a count of dots, a legend. They are plain HTML and CSS with no `<svg>`, they read the same `--ch-*` tokens as the charts, and you can use them anywhere on a page, in a table cell or a dashboard card, without a `Chart` around them."
+      }
+    },
+    {
+      "id": "n2",
+      "type": "prose",
+      "props": {
+        "markdown": "The only two that belong with a chart are `Legend`, which explains what a chart's colors and shapes mean, and `TooltipPill`, which is what a `Tooltip` shows. Numbers are formatted with the locale and currency of the nearest `ChartsProvider`, see [Hooks and providers](/docs/hooks-and-providers)."
+      }
+    },
+    {
+      "id": "n3",
+      "type": "heading",
+      "props": {
+        "text": "Numbers and table cells",
+        "level": "2",
+        "anchor": "kpi-row"
+      }
+    },
+    {
+      "id": "n4",
+      "type": "prose",
+      "props": {
+        "markdown": "`Stat` is a headline number with a label, a change and a caption. `Delta` is the change: an arrow and the size of the move, colored by whether it is good news (`good=\"down\"` for cost). `InlineBar` and `DotCount` fit in a table cell: a bar against a scale with an optional target tick, and a count drawn as dots."
+      }
+    },
+    {
+      "id": "n5",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "small-pieces/kpi-row",
+        "defaultView": "preview"
+      }
+    },
+    {
+      "id": "n6",
+      "type": "prose",
+      "props": {
+        "markdown": "Every element that carries meaning has text for screen readers. `Delta` says \"Up\" or \"Down\" before the number, `InlineBar` gets an accessible name from its `label`, and `DotCount` keeps the full count readable even when it draws fewer dots than `max`. None of the props are functions, so this example also renders in a Server Component."
+      }
+    },
+    {
+      "id": "n7",
+      "type": "heading",
+      "props": {
+        "text": "Meters and shares",
+        "level": "2",
+        "anchor": "meters"
+      }
+    },
+    {
+      "id": "n8",
+      "type": "prose",
+      "props": {
+        "markdown": "`Meter` shows progress toward a target. `RangeMeter` puts the actual value and the plan on one track, with a hatched gap between them. `ZoneMeter` colors the track in zones, here good, needs work and poor, and marks the value. `ShareBar` splits a whole into parts and lists them underneath."
+      }
+    },
+    {
+      "id": "n9",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "small-pieces/meters",
+        "defaultView": "preview"
+      }
+    },
+    {
+      "id": "n10",
+      "type": "prose",
+      "props": {
+        "markdown": "`ZoneMeter` takes the zones as `{ bins, inclusive }`, which is the shape `thresholds()` returns, so you can pass its result straight in or write the plain object, as here, when the page is a Server Component. Each meter has a `label` that becomes its accessible name."
+      }
+    },
+    {
+      "id": "n11",
+      "type": "heading",
+      "props": {
+        "text": "Legend and tooltip",
+        "level": "2",
+        "anchor": "legend-and-tooltip"
+      }
+    },
+    {
+      "id": "n12",
+      "type": "prose",
+      "props": {
+        "markdown": "`Legend` is a list of swatches next to a chart. Each item picks a `tone` and a `shape` (`bar`, `dot`, `line` or `band`), and a line can be `dashed`. `TooltipPill` is the segmented pill inside a `Tooltip`; the `content` function returns one for the hovered or focused point."
+      }
+    },
+    {
+      "id": "n13",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "small-pieces/legend-and-tooltip",
+        "defaultView": "preview"
+      }
+    },
+    {
+      "id": "n14",
+      "type": "prose",
+      "props": {
+        "markdown": "`content` is a function, so this example is a client file. Hover a bar or focus the chart and use the arrow keys to see the pill."
+      }
+    },
+    {
+      "id": "n15",
+      "type": "callout",
+      "props": {
+        "tone": "info",
+        "markdown": "**No `<svg>` in these.** The small pieces are built from `div` and `span` elements, so they work in any layout, print cleanly and need no size. Only a chart needs a width and a height."
+      }
+    },
+    {
+      "id": "n16",
+      "type": "heading",
+      "props": {
+        "text": "Props",
+        "level": "2",
+        "anchor": "props"
+      }
+    },
+    {
+      "id": "n17",
+      "type": "heading",
+      "props": {
+        "text": "Numbers",
+        "level": "3",
+        "anchor": "numbers"
+      }
+    },
+    {
+      "id": "n18",
+      "type": "props-table",
+      "props": {
+        "symbol": "Stat"
+      }
+    },
+    {
+      "id": "n19",
+      "type": "props-table",
+      "props": {
+        "symbol": "Delta"
+      }
+    },
+    {
+      "id": "n20",
+      "type": "props-table",
+      "props": {
+        "symbol": "InlineBar"
+      }
+    },
+    {
+      "id": "n21",
+      "type": "props-table",
+      "props": {
+        "symbol": "DotCount"
+      }
+    },
+    {
+      "id": "n22",
+      "type": "heading",
+      "props": {
+        "text": "Meters",
+        "level": "3",
+        "anchor": "meters"
+      }
+    },
+    {
+      "id": "n23",
+      "type": "props-table",
+      "props": {
+        "symbol": "Meter"
+      }
+    },
+    {
+      "id": "n24",
+      "type": "props-table",
+      "props": {
+        "symbol": "RangeMeter"
+      }
+    },
+    {
+      "id": "n25",
+      "type": "props-table",
+      "props": {
+        "symbol": "ZoneMeter"
+      }
+    },
+    {
+      "id": "n26",
+      "type": "props-table",
+      "props": {
+        "symbol": "ShareBar"
+      }
+    },
+    {
+      "id": "n27",
+      "type": "heading",
+      "props": {
+        "text": "Legend and tooltip",
+        "level": "3",
+        "anchor": "legend-and-tooltip"
+      }
+    },
+    {
+      "id": "n28",
+      "type": "props-table",
+      "props": {
+        "symbol": "Legend"
+      }
+    },
+    {
+      "id": "n29",
+      "type": "props-table",
+      "props": {
+        "symbol": "TooltipPill"
+      }
+    }
+  ]
+}

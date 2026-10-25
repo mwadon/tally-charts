@@ -31,3 +31,12 @@ test('the home page links to Getting started', async ({ page }) => {
   )
   await expect(row.locator('.nav-soon')).toHaveCount(0)
 })
+
+test('Next steps links to the composition, small pieces and hooks pages', async ({ page }) => {
+  await page.goto('/docs/getting-started')
+
+  const main = page.getByRole('main')
+  for (const href of ['/docs/composition', '/docs/small-pieces', '/docs/hooks-and-providers']) {
+    await expect(main.locator(`a[href="${href}"]`)).toHaveCount(1)
+  }
+})
