@@ -43,7 +43,8 @@ test('the sections follow home.json', async ({ page }) => {
   )
 })
 
-for (const width of [375, 1280]) {
+// One width from every column-count band of the gallery, including the tablet range.
+for (const width of [320, 375, 640, 768, 900, 1024, 1280]) {
   test.describe(`gallery, ${width} px`, () => {
     test.use({ viewport: { width, height: 900 } })
 
@@ -62,14 +63,22 @@ for (const width of [375, 1280]) {
   })
 }
 
-test('the gallery is one column at 375 px', async ({ page }) => {
-  await page.setViewportSize({ width: 375, height: 800 })
-  await page.goto('/')
-  const columns = await page
-    .locator('.gallery')
-    .evaluate((el) => getComputedStyle(el).gridTemplateColumns.split(' ').length)
-  expect(columns).toBe(1)
-})
+// Columns follow the width (tile of at least 22rem): 1 on phones and narrow tablets, 2, then 3.
+for (const [width, expected] of [
+  [375, 1],
+  [640, 1],
+  [768, 2],
+  [1280, 3],
+] as const) {
+  test(`the gallery has ${expected} column(s) at ${width} px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 800 })
+    await page.goto('/')
+    const columns = await page
+      .locator('.gallery')
+      .evaluate((el) => getComputedStyle(el).gridTemplateColumns.split(' ').length)
+    expect(columns).toBe(expected)
+  })
+}
 
 test('Copy in the Install section says Copied', async ({ page, context }) => {
   await context.grantPermissions(['clipboard-read', 'clipboard-write'])

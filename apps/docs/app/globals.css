@@ -831,12 +831,13 @@ tbody th {
 .gallery {
   display: grid;
   gap: 0.75rem;
-  grid-template-columns: minmax(0, 1fr);
+  /* A live dashboard needs a tile of at least ~22rem, so the column count follows the width:
+     one column on phones and narrow tablets, two and then three as the page widens. */
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr));
 }
 
-/* A live dashboard needs a column of at least ~320px, so the gallery is one column on phones.
-   The tile is the size container of the dashboard (`@container ref-tile` in reference.css) and
-   scrolls sideways as a last resort. */
+/* The tile is the size container of the dashboard (`@container ref-tile` in reference.css) and
+   scrolls sideways only as a last resort. */
 .gallery-tile {
   display: flex;
   flex-direction: column;
@@ -894,10 +895,6 @@ tbody th {
   .home,
   .site-footer {
     padding-inline: 1.5rem;
-  }
-
-  .gallery {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .card-grid-4 {
