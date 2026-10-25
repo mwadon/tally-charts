@@ -1,0 +1,155 @@
+{
+  "versionId": "fixture-waterfall-chart-v1",
+  "version": 1,
+  "locale": "en",
+  "publishedAt": "2026-10-25T00:00:00.000Z",
+  "codeInjection": {},
+  "layout": {
+    "key": "default",
+    "header": null,
+    "footer": null
+  },
+  "pageId": "fixture-waterfall-chart",
+  "title": "WaterfallChart",
+  "slug": "waterfall-chart",
+  "seo": {
+    "metaTitle": "WaterfallChart · tally-charts",
+    "metaDescription": "Horizontal steps from a starting value to a calculated end: what added to it and what took away. Hatched start, solid end, dotted connectors."
+  },
+  "componentTree": [
+    {
+      "id": "n1",
+      "type": "prose",
+      "props": {
+        "markdown": "A walk from one value to another in horizontal rows: a start, one row per change, and an end that the chart works out for you. Each step is a bar floating between the running total before and after it."
+      }
+    },
+    {
+      "id": "n2",
+      "type": "heading",
+      "props": {
+        "text": "When to use it",
+        "level": "2",
+        "anchor": "when-to-use"
+      }
+    },
+    {
+      "id": "n3",
+      "type": "prose",
+      "props": {
+        "markdown": "Use `WaterfallChart` to explain a difference: why cash fell over a month, which drivers moved margin between two quarters, what pulls a result under its target. You pass the `start` and the `steps` (signed changes); the end row is the sum, labeled “Total” unless you set `end={{ label }}`. The start is hatched (`startTone`, neutral by default) and the end is solid (`endTone`, accent), so the eye reads “from” and “to”. Dotted connectors link each bar to the next, and `connectors={false}` removes them. `stepLabel` rewrites the text on the right of a step, for example to add the money behind a percentage change. The domain does not force zero, so a small change stays readable; set `domain` to zoom in further.\n\nIf you would rather see the running totals as vertical columns, with a cap showing each change and a note under it, use [BridgeChart](/docs/bridge-chart). A waterfall shows the changes, a bridge shows the totals they lead to."
+      }
+    },
+    {
+      "id": "n4",
+      "type": "heading",
+      "props": {
+        "text": "Import",
+        "level": "2",
+        "anchor": "install"
+      }
+    },
+    {
+      "id": "n5",
+      "type": "code-block",
+      "props": {
+        "code": "npm i tally-charts",
+        "lang": "bash"
+      }
+    },
+    {
+      "id": "n6",
+      "type": "code-block",
+      "props": {
+        "code": "import { WaterfallChart } from 'tally-charts'\nimport 'tally-charts/theme.css'",
+        "lang": "tsx",
+        "filename": "app/cash.tsx"
+      }
+    },
+    {
+      "id": "n7",
+      "type": "heading",
+      "props": {
+        "text": "Examples",
+        "level": "2",
+        "anchor": "examples"
+      }
+    },
+    {
+      "id": "n8",
+      "type": "prose",
+      "props": {
+        "markdown": "`format` takes a preset, here `currency-compact` with one digit, so every total and the axis share it. `start` and `end` carry your own labels, and the steps mix gains and losses. All props are plain data."
+      }
+    },
+    {
+      "id": "n9",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "waterfall-chart/cash-flow",
+        "defaultView": "preview"
+      }
+    },
+    {
+      "id": "n10",
+      "type": "prose",
+      "props": {
+        "markdown": "`stepLabel` writes the text on the right of each step from the step itself, here the change in points and the money behind it from `meta`. `domain` zooms in and `connectors={false}` drops the dotted lines. A function prop means this example is a client component."
+      }
+    },
+    {
+      "id": "n11",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "waterfall-chart/margin-drivers",
+        "defaultView": "preview"
+      }
+    },
+    {
+      "id": "n12",
+      "type": "heading",
+      "props": {
+        "text": "Props",
+        "level": "2",
+        "anchor": "props"
+      }
+    },
+    {
+      "id": "n13",
+      "type": "props-table",
+      "props": {
+        "symbol": "WaterfallChart"
+      }
+    },
+    {
+      "id": "n14",
+      "type": "heading",
+      "props": {
+        "text": "Keyboard and screen readers",
+        "level": "2",
+        "anchor": "keyboard"
+      }
+    },
+    {
+      "id": "n15",
+      "type": "prose",
+      "props": {
+        "markdown": "`WaterfallChart` is built on `Chart`, so it follows the same keyboard model as the other charts: it is a single tab stop, and tabbing in shows the first row with its tooltip and announces it. Arrow keys move to the previous or next row, `Home` and `End` jump to the first and last, `Enter` or `Space` selects the active row when the chart has `onSelect`, and `Esc` clears the active row. `Esc` is only consumed when a row is active, so an enclosing dialog still closes. The widget’s description ends with a keyboard hint (“Use arrow keys to move between points, Home and End for first and last, Escape to clear.”, plus “Press Enter to select.” with `onSelect`); `keyboardHint` replaces it, for example to translate it, and `keyboardHint=\"\"` turns it off."
+      }
+    },
+    {
+      "id": "n16",
+      "type": "prose",
+      "props": {
+        "markdown": "Screen readers get the chart title and description, then an announcement for each row the keyboard moves to. A step reads “2 of 7, Labor overruns, −1.6 pts · $7.7K, running total 36.4%”: its position, label, the step text (your `stepLabel`, or the signed change in `format`) and the running total after it. The start and end read as “1 of 7, Target, 38.0%”, without a running total. A visually hidden data table with the columns Item, Change and Total follows the chart; `dataTable` renames the caption and headers, or turns it off."
+      }
+    },
+    {
+      "id": "n17",
+      "type": "prose",
+      "props": {
+        "markdown": "The full model is in the [accessibility guide](https://github.com/mwadon/tally-charts/blob/main/docs/a11y.md)."
+      }
+    }
+  ]
+}

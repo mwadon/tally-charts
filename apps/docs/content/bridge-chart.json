@@ -1,0 +1,162 @@
+{
+  "versionId": "fixture-bridge-chart-v1",
+  "version": 1,
+  "locale": "en",
+  "publishedAt": "2026-10-25T00:00:00.000Z",
+  "codeInjection": {},
+  "layout": {
+    "key": "default",
+    "header": null,
+    "footer": null
+  },
+  "pageId": "fixture-bridge-chart",
+  "title": "BridgeChart",
+  "slug": "bridge-chart",
+  "seo": {
+    "metaTitle": "BridgeChart · tally-charts",
+    "metaDescription": "Vertical columns of running totals joined by an area, each with a cap for the change and a short note. The last column is highlighted."
+  },
+  "componentTree": [
+    {
+      "id": "n1",
+      "type": "prose",
+      "props": {
+        "markdown": "A bridge in vertical columns: the start, then a column for the running total after each change. Each column carries a cap for the change that led to it, the new total above and a short note below."
+      }
+    },
+    {
+      "id": "n2",
+      "type": "heading",
+      "props": {
+        "text": "When to use it",
+        "level": "2",
+        "anchor": "when-to-use"
+      }
+    },
+    {
+      "id": "n3",
+      "type": "prose",
+      "props": {
+        "markdown": "Use `BridgeChart` when the totals matter as much as the changes: a quote that shrinks to the profit you kept, a budget that is spent down in stages. Each column is a running total, so a reader can see what was left after every step. The cap on a column marks the change (loss or gain), `note` names it (“−$260 discount”), and a gradient area joins the totals (`area={false}` removes it). The last column is solid and emphasized; `highlightLast={false}` keeps it as hatched as the rest. A `callout` pins a pill above the last column for the headline numbers, such as “$400 kept | 12.3% margin”.\n\nIf you want one row per change that ends in a calculated total, use [WaterfallChart](/docs/waterfall-chart). A bridge shows the totals, a waterfall shows the changes between them."
+      }
+    },
+    {
+      "id": "n4",
+      "type": "heading",
+      "props": {
+        "text": "Import",
+        "level": "2",
+        "anchor": "install"
+      }
+    },
+    {
+      "id": "n5",
+      "type": "code-block",
+      "props": {
+        "code": "npm i tally-charts",
+        "lang": "bash"
+      }
+    },
+    {
+      "id": "n6",
+      "type": "code-block",
+      "props": {
+        "code": "import { BridgeChart } from 'tally-charts'\nimport 'tally-charts/theme.css'",
+        "lang": "tsx",
+        "filename": "app/profit.tsx"
+      }
+    },
+    {
+      "id": "n7",
+      "type": "heading",
+      "props": {
+        "text": "Examples",
+        "level": "2",
+        "anchor": "examples"
+      }
+    },
+    {
+      "id": "n8",
+      "type": "prose",
+      "props": {
+        "markdown": "Every step has a `note`, the short word that follows the change. `highlightLast={false}` keeps the last column hatched like the others, for a result that is not the point of the chart."
+      }
+    },
+    {
+      "id": "n9",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "bridge-chart/quote-to-cash",
+        "defaultView": "preview"
+      }
+    },
+    {
+      "id": "n10",
+      "type": "prose",
+      "props": {
+        "markdown": "`callout` is an array of segments, so it stays serializable: the pill sits above the last column, which is solid by default (`highlightLast`)."
+      }
+    },
+    {
+      "id": "n11",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "bridge-chart/job-profit",
+        "defaultView": "preview"
+      }
+    },
+    {
+      "id": "n12",
+      "type": "heading",
+      "props": {
+        "text": "Props",
+        "level": "2",
+        "anchor": "props"
+      }
+    },
+    {
+      "id": "n13",
+      "type": "props-table",
+      "props": {
+        "symbol": "BridgeChart"
+      }
+    },
+    {
+      "id": "n14",
+      "type": "heading",
+      "props": {
+        "text": "Keyboard and screen readers",
+        "level": "2",
+        "anchor": "keyboard"
+      }
+    },
+    {
+      "id": "n15",
+      "type": "prose",
+      "props": {
+        "markdown": "`BridgeChart` is built on `Chart`, so it follows the same keyboard model as the other charts: it is a single tab stop, and tabbing in shows the first column with its tooltip and announces it. Arrow keys move to the previous or next column, `Home` and `End` jump to the first and last, `Enter` or `Space` selects the active column when the chart has `onSelect`, and `Esc` clears the active column. `Esc` is only consumed when a column is active, so an enclosing dialog still closes. The widget’s description ends with a keyboard hint (“Use arrow keys to move between points, Home and End for first and last, Escape to clear.”, plus “Press Enter to select.” with `onSelect`); `keyboardHint` replaces it, for example to translate it, and `keyboardHint=\"\"` turns it off."
+      }
+    },
+    {
+      "id": "n16",
+      "type": "prose",
+      "props": {
+        "markdown": "Screen readers get the chart title and description, then an announcement for each column the keyboard moves to, in the form “2 of 5, After discount, $1,000, −$260 discount”: its position, label, running total and the change with its note. A visually hidden data table with the columns Column, Change and Total follows the chart; `dataTable` renames the caption and headers, or turns it off."
+      }
+    },
+    {
+      "id": "n17",
+      "type": "prose",
+      "props": {
+        "markdown": "The SVG and the HTML overlay are `aria-hidden`, so a `callout` says nothing to a screen reader. Put the same facts in the `title`, the `description` or the notes, as the job-profit example does with the profit kept. In a very narrow chart `BridgeChart` shows only some column totals and no notes, and a pinned pill can take three lines; the tooltip and the data table still have everything."
+      }
+    },
+    {
+      "id": "n18",
+      "type": "prose",
+      "props": {
+        "markdown": "The full model is in the [accessibility guide](https://github.com/mwadon/tally-charts/blob/main/docs/a11y.md)."
+      }
+    }
+  ]
+}
