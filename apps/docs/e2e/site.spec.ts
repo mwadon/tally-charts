@@ -55,6 +55,76 @@ for (const theme of THEMES) {
   })
 }
 
+test.describe('site, 320 px', () => {
+  test.use({ viewport: { width: 320, height: 812 } })
+
+  for (const path of PAGES) {
+    test(`${path} at 320 px does not scroll horizontally`, async ({ page }) => {
+      await page.goto(path)
+      await expect(page.getByRole('heading', { level: 1 }).first()).toBeVisible()
+      await page.waitForLoadState('networkidle')
+      // Lazily loaded charts further down must be in place before the width is measured.
+      await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight))
+      await page.waitForLoadState('networkidle')
+
+      const measure = () =>
+        page.evaluate(() => {
+          const width = document.documentElement.clientWidth
+          const wide = [...document.querySelectorAll('body *')]
+            .filter((el) => el.getBoundingClientRect().right > width + 0.5)
+            .map((el) => {
+              const cls = typeof el.className === 'string' && el.className ? `.${el.className}` : ''
+              return `${el.tagName.toLowerCase()}${cls} right=${Math.round(el.getBoundingClientRect().right)} "${(el.textContent ?? '').trim().slice(0, 40)}"`
+            })
+          return {
+            root: [document.documentElement.scrollWidth, width],
+            body: [document.body.scrollWidth, document.body.clientWidth],
+            wide: wide.slice(0, 15),
+          }
+        })
+      const sizes = await measure()
+      // The list of elements sticking out is the diagnosis when this fails on another platform.
+      expect(sizes.wide.length > 0 && sizes.root[0]! > sizes.root[1]! ? sizes.wide : []).toEqual([])
+      expect(sizes.root[0]).toBeLessThanOrEqual(sizes.root[1] ?? 0)
+      expect(sizes.body[0]).toBeLessThanOrEqual(sizes.body[1] ?? 0)
+    })
+  }
+})
+
+test.describe('skip link', () => {
+  test.use({ viewport: { width: 1280, height: 900 } })
+
+  for (const path of ['/', '/docs/line-chart']) {
+    test(`${path}: the first Tab reaches the skip link and Enter moves to #main`, async ({
+      page,
+    }) => {
+      await page.goto(path)
+      await expect(page.getByRole('heading', { level: 1 }).first()).toBeVisible()
+      await page.waitForLoadState('networkidle')
+
+      await page.keyboard.press('Tab')
+      const skip = page.locator('.skip-link')
+      await expect(skip).toBeFocused()
+      await expect(skip).toBeInViewport()
+      const outline = await skip.evaluate((el) => {
+        const cs = getComputedStyle(el)
+        return { style: cs.outlineStyle, width: Number.parseFloat(cs.outlineWidth) }
+      })
+      expect(outline.style).not.toBe('none')
+      expect(outline.width).toBeGreaterThanOrEqual(2)
+
+      await page.keyboard.press('Enter')
+      await expect
+        .poll(() =>
+          page.evaluate(
+            () => location.hash === '#main' || !!document.activeElement?.closest('#main'),
+          ),
+        )
+        .toBe(true)
+    })
+  }
+})
+
 test.describe('internal links', () => {
   test('every internal link answers 200 and every #id points at an element', async ({
     page,
