@@ -49,7 +49,7 @@ const options = (fetch: typeof globalThis.fetch, sleep = vi.fn(async () => {})) 
   sleep,
 })
 
-const page = { id: 'p1', slug: '/a', title: 'A', status: 'published' }
+const page = { id: 'p1', slug: '/a', title: 'A', locale: 'en', status: 'published' }
 
 describe('the handshake', () => {
   test('initializes once, then sends the session id and the bearer key with every call', async () => {
@@ -94,6 +94,52 @@ describe('the responses', () => {
     })
 
     await expect(createGlokkiMcpClient(options(fetch)).listPages()).resolves.toEqual([page])
+  })
+
+  test('reads CRLF events, data split over lines, comments and keep-alives', async () => {
+    const { fetch } = mockServer((_name, _args, sent) => {
+      const id = sent.at(-1)?.body.id
+      const text = JSON.stringify(toolResult({ total: 1, pages: [page] }).result, null, 1)
+      const head = `{"jsonrpc":"2.0","id":${id},"result":`
+      const lines = `${head}${text}}`.split('\n').map((line) => `data: ${line}`)
+      return new Response(
+        [': keep-alive', 'data:', 'data: not json', '', 'id: 7', ...lines, '', ''].join('\r\n'),
+        { headers: { 'content-type': 'text/event-stream' } },
+      )
+    })
+
+    await expect(createGlokkiMcpClient(options(fetch)).listPages()).resolves.toEqual([page])
+  })
+
+  test('a stream without the answer to the request is an error', async () => {
+    const { fetch } = mockServer(
+      () =>
+        new Response('data: {"jsonrpc":"2.0","id":99,"result":{}}\n\n', {
+          headers: { 'content-type': 'text/event-stream' },
+        }),
+    )
+
+    await expect(createGlokkiMcpClient(options(fetch)).listPages()).rejects.toThrow(
+      /no response to request/,
+    )
+  })
+
+  test('getBlockDefaults reads defaultProps from get_block_schema', async () => {
+    const { fetch, sent } = mockServer((name) =>
+      json({
+        jsonrpc: '2.0',
+        id: 1,
+        ...toolResult(name === 'get_block_schema' ? { type: 'prose', defaultProps: { a: 1 } } : {}),
+      }),
+    )
+
+    const defaults = await createGlokkiMcpClient(options(fetch)).getBlockDefaults('prose')
+
+    expect(defaults).toEqual({ a: 1 })
+    expect(sent.at(-1)?.body.params).toEqual({
+      name: 'get_block_schema',
+      arguments: { type: 'prose' },
+    })
   })
 
   test('pages through search_pages until the total', async () => {

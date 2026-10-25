@@ -7,6 +7,7 @@ export interface RemotePage {
   id: string
   slug: string
   title: string
+  locale: string
   /**
    * glökki's page status. Editing a published page sets it back to `draft` (the live version
    * keeps being served), so `published` means "live and no unpublished changes".
@@ -36,6 +37,8 @@ export interface Written {
 export interface SeedClient {
   listPages(): Promise<RemotePage[]>
   getPage(pageId: string): Promise<RemoteDetail>
+  /** The `defaultProps` the server puts in every new block of `type` (`get_block_schema`). */
+  getBlockDefaults(type: string): Promise<Record<string, unknown>>
   createPage(args: {
     title: string
     slug: string
@@ -70,6 +73,8 @@ export type SeedKind = 'create' | 'update' | 'skip'
 export interface SeedAction {
   /** The slug in the CMS: `/` + the slug of the fixture (`home` is `/home`). */
   slug: string
+  /** Only for a CMS page of another locale than the fixture with the same slug. */
+  locale?: string
   kind: SeedKind
   /**
    * `update`: what differs (`title`, `seo`, `blocks`, `unpublished`). `skip`: why (`unchanged`,
@@ -78,15 +83,27 @@ export interface SeedAction {
   reasons: string[]
   fixture?: DeliveryPage
   remote?: RemoteDetail
+  /**
+   * `update` with `blocks`: the props to merge into each block, in order, or `null` when the
+   * tree has to be removed and added again.
+   */
+  patches?: Record<string, unknown>[] | null
 }
 
-/** What is already in the CMS: every page, and the full page for each one that has a fixture. */
+/**
+ * What is already in the CMS: every page, the full page for each one that has a fixture (keyed by
+ * `remoteKey`), and the `defaultProps` of the block types of the fixtures.
+ */
 export interface RemoteState {
   pages: RemotePage[]
   details: ReadonlyMap<string, RemoteDetail>
+  defaults: ReadonlyMap<string, Record<string, unknown>>
 }
 
 export const cmsSlug = (fixtureSlug: string) => `/${fixtureSlug}`
+
+/** A page is its slug and its locale: `search_pages` lists every locale. */
+export const remoteKey = (slug: string, locale: string) => `${locale}\n${slug}`
 
 /** The pages of `<dir>/*.json`, sorted by slug. */
 export async function readFixtures(dir?: string): Promise<DeliveryPage[]> {
@@ -102,12 +119,23 @@ export async function readRemote(
   fixtures: readonly DeliveryPage[],
 ): Promise<RemoteState> {
   const pages = await client.listPages()
-  const wanted = new Set(fixtures.map((fixture) => cmsSlug(fixture.slug)))
+  const wanted = new Set(
+    fixtures.map((fixture) => remoteKey(cmsSlug(fixture.slug), fixture.locale)),
+  )
   const details = new Map<string, RemoteDetail>()
   for (const page of pages) {
-    if (wanted.has(page.slug)) details.set(page.slug, await client.getPage(page.id))
+    const key = remoteKey(page.slug, page.locale)
+    if (wanted.has(key)) details.set(key, await client.getPage(page.id))
   }
-  return { pages, details }
+
+  const defaults = new Map<string, Record<string, unknown>>()
+  for (const fixture of fixtures) {
+    if (!details.has(remoteKey(cmsSlug(fixture.slug), fixture.locale))) continue
+    for (const { type } of fixture.componentTree) {
+      if (!defaults.has(type)) defaults.set(type, await client.getBlockDefaults(type))
+    }
+  }
+  return { pages, details, defaults }
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -126,9 +154,20 @@ function deepEqual(a: unknown, b: unknown): boolean {
   return Object.is(a, b)
 }
 
-/** Every key of `want` is in `have` with an equal value; extra keys of `have` are ignored. */
-function covers(have: Record<string, unknown>, want: Record<string, unknown>) {
-  return Object.entries(want).every(([key, value]) => deepEqual(have[key], value))
+/**
+ * What a block must change to hold `want` (the props of the fixture) on top of the `defaults` the
+ * server adds. `patch` is the shallow merge that gets there; `rebuild` is set when `have` holds a
+ * key that is neither in the fixture nor in the defaults: a merge cannot remove it.
+ */
+function diffProps(
+  have: Record<string, unknown>,
+  want: Record<string, unknown>,
+  defaults: Record<string, unknown>,
+) {
+  const full = { ...defaults, ...want }
+  const patch = Object.fromEntries(Object.entries(full).filter(([k, v]) => !deepEqual(have[k], v)))
+  const rebuild = Object.keys(have).some((key) => !(key in full))
+  return { patch, rebuild }
 }
 
 function assertFlat(fixture: DeliveryPage) {
@@ -137,31 +176,50 @@ function assertFlat(fixture: DeliveryPage) {
   }
 }
 
-const sameTypes = (fixture: DeliveryPage, remote: RemoteDetail) =>
-  fixture.componentTree.length === remote.componentTree.length &&
-  fixture.componentTree.every((node, i) => node.type === remote.componentTree[i]?.type)
+const sameTypes = (fixture: DeliveryPage, nodes: readonly RemoteNode[]) =>
+  fixture.componentTree.length === nodes.length &&
+  fixture.componentTree.every((node, i) => node.type === nodes[i]?.type)
+
+/** Per block of the fixture: the patch to apply, or `null` when the tree has to be rebuilt. */
+function blockPatches(
+  fixture: DeliveryPage,
+  nodes: readonly RemoteNode[],
+  defaults: ReadonlyMap<string, Record<string, unknown>>,
+): Record<string, unknown>[] | null {
+  if (!sameTypes(fixture, nodes)) return null
+  const patches: Record<string, unknown>[] = []
+  for (const [i, node] of fixture.componentTree.entries()) {
+    const { patch, rebuild } = diffProps(
+      (nodes[i] as RemoteNode).props,
+      node.props,
+      defaults.get(node.type) ?? {},
+    )
+    if (rebuild) return null
+    patches.push(patch)
+  }
+  return patches
+}
 
 /**
- * Ignoring the node ids (the server mints them) and the keys the server adds from `defaultProps`:
- * a page is in order when the title, the seo fields of the fixture, the block types in order and
- * every prop of the fixture match, and it is published with no unpublished changes. Anything
- * else would never let a second run come out empty.
+ * Ignoring the node ids (the server mints them): a page is in order when the title and the seo
+ * match, the block types match in order, every block holds exactly the props of the fixture on
+ * top of the `defaultProps` the server added, and it is published with no unpublished changes.
+ * A prop or a seo field that is gone from the fixture counts as a difference; the defaults are
+ * what makes a second run come out empty.
  */
-function differences(fixture: DeliveryPage, remote: RemoteDetail): string[] {
+function differences(
+  fixture: DeliveryPage,
+  remote: RemoteDetail,
+  defaults: ReadonlyMap<string, Record<string, unknown>>,
+): { reasons: string[]; patches: Record<string, unknown>[] | null } {
   const reasons: string[] = []
   if (fixture.title !== remote.title) reasons.push('title')
-  if (!covers(remote.seo, fixture.seo as Record<string, unknown>)) reasons.push('seo')
-  if (
-    !sameTypes(fixture, remote) ||
-    !fixture.componentTree.every((node, i) =>
-      covers(remote.componentTree[i]?.props ?? {}, node.props),
-    )
-  ) {
-    reasons.push('blocks')
-  }
+  if (!deepEqual(remote.seo, fixture.seo)) reasons.push('seo')
+  const patches = blockPatches(fixture, remote.componentTree, defaults)
+  if (!patches || patches.some((patch) => Object.keys(patch).length > 0)) reasons.push('blocks')
   // Only a page that differs in content is published as part of the update; this one is on its own.
   if (reasons.length === 0 && remote.status !== 'published') reasons.push('unpublished')
-  return reasons
+  return { reasons, patches }
 }
 
 /**
@@ -176,46 +234,54 @@ export function planSeed(
 ): SeedAction[] {
   const actions: SeedAction[] = []
   const planned = new Set<string>()
+  const slugs = new Set<string>()
 
   for (const fixture of [...fixtures].sort((a, b) => a.slug.localeCompare(b.slug))) {
     assertFlat(fixture)
     const slug = cmsSlug(fixture.slug)
-    planned.add(slug)
-    const detail = remote.details.get(slug)
+    planned.add(remoteKey(slug, fixture.locale))
+    slugs.add(slug)
+    const detail = remote.details.get(remoteKey(slug, fixture.locale))
     if (!detail) {
       actions.push({ slug, kind: 'create', reasons: [], fixture })
       continue
     }
-    const reasons = differences(fixture, detail)
+    const { reasons, patches } = differences(fixture, detail, remote.defaults)
     actions.push(
       reasons.length > 0
-        ? { slug, kind: 'update', reasons, fixture, remote: detail }
+        ? { slug, kind: 'update', reasons, fixture, remote: detail, patches }
         : { slug, kind: 'skip', reasons: ['unchanged'], fixture, remote: detail },
     )
   }
 
+  const noFixture = new Set<string>()
   for (const group of navigation.groups) {
     for (const item of group.items) {
       const slug = cmsSlug(item.slug)
-      if (planned.has(slug)) continue
-      planned.add(slug)
+      if (slugs.has(slug) || noFixture.has(slug)) continue
+      noFixture.add(slug)
       actions.push({ slug, kind: 'skip', reasons: ['no fixture'] })
     }
   }
 
   for (const page of remote.pages) {
-    if (planned.has(page.slug)) continue
-    planned.add(page.slug)
-    actions.push({ slug: page.slug, kind: 'skip', reasons: ['not in fixtures'] })
+    if (planned.has(remoteKey(page.slug, page.locale)) || noFixture.has(page.slug)) continue
+    actions.push({
+      slug: page.slug,
+      // Same slug as a fixture, other locale: say which page is meant.
+      ...(slugs.has(page.slug) ? { locale: page.locale } : {}),
+      kind: 'skip',
+      reasons: ['not in fixtures'],
+    })
   }
   return actions
 }
 
 /** `create  /slug`, `update  /slug (blocks, seo)`, `skip    /slug (unchanged)` and a summary. */
 export function formatPlan(plan: readonly SeedAction[]): string {
-  const lines = plan.map(({ kind, slug, reasons }) => {
+  const lines = plan.map(({ kind, slug, locale, reasons }) => {
     const why = reasons.length > 0 ? ` (${reasons.join(', ')})` : ''
-    return `${kind.padEnd(8)}${slug}${why}`
+    return `${kind.padEnd(8)}${slug}${locale ? ` [${locale}]` : ''}${why}`
   })
   const count = (kind: SeedKind) => plan.filter((action) => action.kind === kind).length
   lines.push(`seed: ${count('create')} create, ${count('update')} update, ${count('skip')} skip`)
@@ -223,8 +289,8 @@ export function formatPlan(plan: readonly SeedAction[]): string {
 }
 
 /**
- * Writes what `reasons` names, in this order: the tree (patched when the block types match,
- * otherwise removed and added again), the title, the seo. Each write feeds its token to the next.
+ * Writes what `reasons` names, in this order: the tree (patched with `patches`, or removed and
+ * added again when that is `null`), the title, the seo. Each write feeds its token to the next.
  */
 async function writeContent(
   client: SeedClient,
@@ -232,24 +298,21 @@ async function writeContent(
   from: string,
   fixture: DeliveryPage,
   remoteNodes: readonly RemoteNode[],
+  patches: Record<string, unknown>[] | null,
   reasons: ReadonlySet<string>,
 ): Promise<void> {
   let updatedAt = from
 
   if (reasons.has('blocks')) {
-    const sameShape =
-      remoteNodes.length === fixture.componentTree.length &&
-      remoteNodes.every((node, i) => node.type === fixture.componentTree[i]?.type)
-    if (sameShape) {
-      for (const [i, node] of fixture.componentTree.entries()) {
-        const current = remoteNodes[i] as RemoteNode
-        if (covers(current.props, node.props)) continue
+    if (patches) {
+      for (const [i, propsPatch] of patches.entries()) {
+        if (Object.keys(propsPatch).length === 0) continue
         updatedAt = (
           await client.updateBlockProps({
             pageId,
             expectedUpdatedAt: updatedAt,
-            nodeId: current.id,
-            propsPatch: node.props,
+            nodeId: (remoteNodes[i] as RemoteNode).id,
+            propsPatch,
           })
         ).updatedAt
       }
@@ -314,7 +377,7 @@ export async function applySeed(
       pageId = created.id
       const reasons = new Set(['blocks'])
       if (Object.keys(fixture.seo).length > 0) reasons.add('seo')
-      await writeContent(client, pageId, created.updatedAt, fixture, [], reasons)
+      await writeContent(client, pageId, created.updatedAt, fixture, [], null, reasons)
     } else {
       const remote = action.remote as RemoteDetail
       pageId = remote.id
@@ -324,6 +387,7 @@ export async function applySeed(
         remote.updatedAt,
         action.fixture as DeliveryPage,
         remote.componentTree,
+        action.patches ?? null,
         new Set(action.reasons),
       )
     }

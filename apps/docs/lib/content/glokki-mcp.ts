@@ -34,6 +34,7 @@ const pageRowSchema = z.looseObject({
   id: z.string(),
   slug: z.string(),
   title: z.string(),
+  locale: z.string(),
   status: z.string(),
 })
 const searchSchema = z.looseObject({ total: z.number(), pages: z.array(pageRowSchema) })
@@ -43,6 +44,9 @@ const detailSchema = pageRowSchema.extend({
     z.looseObject({ id: z.string(), type: z.string(), props: z.record(z.string(), z.unknown()) }),
   ),
   seo: z.record(z.string(), z.unknown()).nullable(),
+})
+const blockSchemaSchema = z.looseObject({
+  defaultProps: z.record(z.string(), z.unknown()).nullish(),
 })
 const writtenSchema = z.looseObject({ updatedAt: z.string() })
 const createdSchema = writtenSchema.extend({ id: z.string() })
@@ -61,16 +65,36 @@ function toolRetryAfter(text: string): number | null {
   }
 }
 
+/** The `data` of each event of an SSE stream: lines joined by `\n`, comments and other fields dropped. */
+function sseData(body: string): string[] {
+  const events: string[][] = []
+  let lines: string[] = []
+  for (const line of body.split(/\r\n|\r|\n/)) {
+    if (line === '') {
+      if (lines.length > 0) events.push(lines)
+      lines = []
+    } else if (line.startsWith('data:')) {
+      lines.push(line.slice('data:'.length).replace(/^ /, ''))
+    }
+  }
+  if (lines.length > 0) events.push(lines)
+  return events.map((event) => event.join('\n'))
+}
+
 /** The message of a streamable HTTP response: a JSON body or an SSE stream with the answer to `id`. */
 function parseMessage(body: string, contentType: string, id: number) {
-  const json = contentType.includes('text/event-stream')
-    ? body
-        .split('\n')
-        .filter((line) => line.startsWith('data:'))
-        .map((line) => JSON.parse(line.slice('data:'.length)) as { id?: unknown })
-        .find((message) => message.id === id)
-    : (JSON.parse(body) as unknown)
-  return rpcMessageSchema.parse(json)
+  if (!contentType.includes('text/event-stream')) return rpcMessageSchema.parse(JSON.parse(body))
+  for (const data of sseData(body)) {
+    let json: unknown
+    try {
+      json = JSON.parse(data)
+    } catch {
+      continue // not a JSON-RPC message (a keep-alive, a priming event)
+    }
+    const message = rpcMessageSchema.safeParse(json)
+    if (message.success && message.data.id === id) return message.data
+  }
+  throw new Error(`no response to request ${id} in the event stream: ${body.slice(0, 300)}`)
 }
 
 /**
@@ -194,6 +218,10 @@ export function createGlokkiMcpClient({
     async getPage(pageId) {
       const page = await call('get_page', { pageId }, detailSchema)
       return { ...page, seo: page.seo ?? {} } satisfies RemoteDetail
+    },
+    async getBlockDefaults(type) {
+      const schema = await call('get_block_schema', { type }, blockSchemaSchema)
+      return schema.defaultProps ?? {}
     },
     createPage: (args) => call('create_page', args, createdSchema),
     addBlock: (args) => written('add_block', args),

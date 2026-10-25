@@ -12,6 +12,10 @@ import type { ContentSource, DeliveryPage, DeliveryPageListItem } from './types'
 export const CMS_TAG = 'cms'
 const PAGE_SIZE = 100
 
+// glökki stores and delivers a slug with a leading `/` (`/home`); the site and the fixtures use it
+// without (`home`). A slug that arrives without one is left alone.
+const bare = <T>(slug: T): T => (typeof slug === 'string' ? (slug.replace(/^\//, '') as T) : slug)
+
 interface GlokkiOptions {
   baseUrl: string
   tenant: string
@@ -46,7 +50,7 @@ export function createGlokkiSource({
     const items: DeliveryPageListItem[] = []
     for (;;) {
       const { data, meta } = await client.pages.list({ limit: PAGE_SIZE, offset: items.length })
-      items.push(...data)
+      items.push(...data.map((item) => ({ ...item, slug: bare(item.slug) })))
       if (data.length === 0 || items.length >= meta.total) return items
     }
   }
@@ -59,7 +63,7 @@ export function createGlokkiSource({
       if (!slugPattern.test(slug)) return null
       const page = await client.pages.getBySlug(slug)
       if (!page) return null
-      const parsed = deliveryPageSchema.safeParse(page)
+      const parsed = deliveryPageSchema.safeParse({ ...page, slug: bare(page.slug) })
       if (!parsed.success)
         throw new Error(`glökki page "${slug}": ${z.prettifyError(parsed.error)}`)
       return parsed.data as unknown as DeliveryPage
@@ -67,7 +71,7 @@ export function createGlokkiSource({
     listPages,
     async getNavigation() {
       const [config, published] = await Promise.all([navigationConfig(), client.navigation.get()])
-      const slugs = new Set(published.map((item) => item.slug))
+      const slugs = new Set(published.map((item) => bare(item.slug)))
       return withAvailability(config, (slug) => slugs.has(slug))
     },
   }

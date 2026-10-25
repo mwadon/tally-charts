@@ -219,9 +219,12 @@ Steps:
    (after `pnpm build`) validates the pages in the CMS the same way as the fixtures.
 
 Running it again is safe: a page that already matches its fixture (title, the seo fields of the
-fixture, the block types in order and every prop of the fixture; keys that glökki adds from the
-defaults of the block are ignored) and is published is skipped, and nothing is written. A run that
+fixture, the block types in order and the props of the fixture on top of the defaults of the
+block, exactly) and is published is skipped, and nothing is written. A prop or a seo field that
+was removed from a fixture is removed from the CMS too (a block that holds a removed prop is
+rebuilt). A run that
 broke half way is completed by the next one. Pages in the CMS that have no fixture are skipped
-(`not in fixtures`) and never deleted, and a slug of `content/navigation.json` without a fixture is
+(`not in fixtures`) and never deleted (so is a page with the slug of a fixture in another locale,
+listed as `/slug [locale]`), and a slug of `content/navigation.json` without a fixture is
 skipped as `no fixture`. The labels, groups and order of the sidebar stay in
 `content/navigation.json`; the seed doesn't touch the menu of the layout.

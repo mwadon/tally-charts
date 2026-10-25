@@ -1,6 +1,7 @@
 // @vitest-environment node
 import path from 'node:path'
-import { beforeAll, describe, expect, test } from 'vitest'
+import { afterEach, beforeAll, describe, expect, test, vi } from 'vitest'
+import { createGlokkiSource } from './glokki'
 import { loadNavigationConfig, type NavigationConfig } from './navigation-config'
 import {
   applySeed,
@@ -31,6 +32,7 @@ interface Stored {
   id: string
   slug: string
   title: string
+  locale: string
   status: 'draft' | 'published'
   updatedAt: number
   nodes: { id: string; type: string; props: Record<string, unknown> }[]
@@ -76,6 +78,7 @@ class FakeCms implements SeedClient {
       id,
       slug,
       title: slug,
+      locale: 'en',
       status: 'published',
       updatedAt: 1,
       nodes: [],
@@ -86,10 +89,11 @@ class FakeCms implements SeedClient {
 
   async listPages(): Promise<RemotePage[]> {
     this.calls.push('listPages')
-    return [...this.pages.values()].map(({ id, slug, title, status }) => ({
+    return [...this.pages.values()].map(({ id, slug, title, locale, status }) => ({
       id,
       slug,
       title,
+      locale,
       status,
     }))
   }
@@ -105,10 +109,24 @@ class FakeCms implements SeedClient {
     })
   }
 
-  async createPage({ title, slug }: { title: string; slug: string }) {
+  async getBlockDefaults() {
+    this.calls.push('getBlockDefaults')
+    return { fromDefaults: true }
+  }
+
+  async createPage({ title, slug, locale }: { title: string; slug: string; locale: string }) {
     this.calls.push('createPage')
     const id = `page-${++this.ids}`
-    this.pages.set(id, { id, slug, title, status: 'draft', updatedAt: 1, nodes: [], seo: {} })
+    this.pages.set(id, {
+      id,
+      slug,
+      title,
+      locale,
+      status: 'draft',
+      updatedAt: 1,
+      nodes: [],
+      seo: {},
+    })
     return { id, updatedAt: '1' }
   }
 
@@ -117,7 +135,7 @@ class FakeCms implements SeedClient {
     page.nodes.push({
       id: `node-${++this.ids}`,
       type: args.type,
-      props: { ...structuredClone(args.props), fromDefaults: true },
+      props: { fromDefaults: true, ...structuredClone(args.props) },
     })
     return this.touch(page)
   }
@@ -149,7 +167,7 @@ class FakeCms implements SeedClient {
 
   async updateSeo(args: { pageId: string; expectedUpdatedAt: string; seo: object }) {
     const page = this.edit(args.pageId, args.expectedUpdatedAt, 'updateSeo')
-    page.seo = { ...page.seo, ...structuredClone(args.seo) }
+    page.seo = structuredClone(args.seo) as Record<string, unknown>
     return this.touch(page)
   }
 
@@ -371,6 +389,168 @@ describe('a changed tree', () => {
   })
 })
 
+describe('what is gone from a fixture', () => {
+  const heading = (p: DeliveryPage) =>
+    defined(p.componentTree.find((n) => n.type === 'heading' && 'anchor' in n.props))
+
+  test('a removed prop is removed from the CMS by rebuilding the tree, then the run is empty', async () => {
+    const cms = new FakeCms()
+    await run(cms)
+    cms.calls.length = 0
+    const pages = changed('theming', (p) => void delete heading(p).props.anchor)
+
+    const plan = await run(cms, pages)
+
+    expect(where(plan, '/theming')).toMatchObject({ kind: 'update', reasons: ['blocks'] })
+    expect(cms.calls).toContain('removeBlock')
+    const anchors = (nodes: { props: object }[]) => nodes.filter((n) => 'anchor' in n.props).length
+    const theming = defined(pages.find((p) => p.slug === 'theming'))
+    expect(anchors(stored(cms, '/theming').nodes)).toBe(anchors(theming.componentTree))
+    expect(anchors(theming.componentTree)).toBeGreaterThan(0)
+
+    cms.calls.length = 0
+    expect(kinds(await run(cms, pages))).toEqual(plan.map(() => 'skip'))
+    expect(cms.writes()).toEqual([])
+  })
+
+  test('a removed seo field is removed from the CMS, then the run is empty', async () => {
+    const cms = new FakeCms()
+    await run(cms)
+    cms.calls.length = 0
+    const pages = changed('theming', (p) => {
+      p.seo = { metaTitle: p.seo.metaTitle }
+    })
+
+    const plan = await run(cms, pages)
+
+    expect(where(plan, '/theming')).toMatchObject({ kind: 'update', reasons: ['seo'] })
+    expect(stored(cms, '/theming').seo).toEqual({
+      metaTitle: fixtures.find((f) => f.slug === 'theming')?.seo.metaTitle,
+    })
+
+    cms.calls.length = 0
+    await run(cms, pages)
+    expect(cms.writes()).toEqual([])
+  })
+
+  test('a default changed in the CMS is patched back without rebuilding the tree', async () => {
+    const cms = new FakeCms()
+    await run(cms)
+    defined(stored(cms, '/theming').nodes[0]).props.fromDefaults = false
+    cms.calls.length = 0
+
+    const plan = await run(cms)
+
+    expect(where(plan, '/theming')).toMatchObject({ kind: 'update', reasons: ['blocks'] })
+    expect(cms.writes()).toEqual(['updateBlockProps', 'publishPage'])
+    expect(defined(stored(cms, '/theming').nodes[0]).props.fromDefaults).toBe(true)
+  })
+})
+
+describe('locales', () => {
+  test('a page of another locale with the same slug is neither read as the fixture nor touched', async () => {
+    const cms = new FakeCms()
+    cms.seed('/home', {
+      locale: 'pl',
+      title: 'Start',
+      nodes: [{ id: 'x', type: 'prose', props: {} }],
+    })
+    const pl = defined([...cms.pages.values()][0])
+
+    const plan = await run(cms)
+
+    expect(plan.filter((a) => a.slug === '/home').map((a) => [a.kind, a.locale])).toEqual([
+      ['create', undefined],
+      ['skip', 'pl'],
+    ])
+    expect(formatPlan(plan)).toContain('skip    /home [pl] (not in fixtures)')
+    expect(pl).toMatchObject({ title: 'Start', status: 'published', updatedAt: 1 })
+    expect(stored(cms, '/home')).toBeDefined()
+    expect(cms.pages.size).toBe(fixtures.length + 1)
+  })
+})
+
+describe('the CMS as a content source', () => {
+  afterEach(() => vi.unstubAllGlobals())
+
+  /** The delivery API of glökki as it answers: slugs with a leading `/`. */
+  function deliveryOf(cms: FakeCms) {
+    const published = () => [...cms.pages.values()].filter((p) => p.status === 'published')
+    const json = (body: unknown, status = 200) =>
+      new Response(JSON.stringify(body), {
+        status,
+        headers: { 'content-type': 'application/json' },
+      })
+    return vi.fn(async (input: string | URL | Request) => {
+      const { pathname } = new URL(String(input))
+      if (pathname === '/api/v1/delivery/navigation') {
+        return json({
+          data: published().map((p) => ({ slug: p.slug, title: p.title, locale: p.locale })),
+        })
+      }
+      if (pathname === '/api/v1/delivery/pages') {
+        const data = published().map((p) => ({
+          pageId: p.id,
+          versionId: 'v1',
+          version: 1,
+          title: p.title,
+          slug: p.slug,
+          locale: p.locale,
+          publishedAt: '2026-10-25T00:00:00.000Z',
+        }))
+        return json({ data, meta: { total: data.length, limit: 100, offset: 0 } })
+      }
+      const bySlug = '/api/v1/delivery/pages/by-slug'
+      if (pathname.startsWith(`${bySlug}/`)) {
+        const page = published().find((p) => p.slug === pathname.slice(bySlug.length))
+        if (!page) return json({ error: { code: 'NOT_FOUND', message: 'No such page' } }, 404)
+        return json({
+          data: {
+            pageId: page.id,
+            versionId: 'v1',
+            version: 1,
+            title: page.title,
+            slug: page.slug,
+            componentTree: page.nodes,
+            seo: page.seo,
+            codeInjection: {},
+            locale: page.locale,
+            publishedAt: '2026-10-25T00:00:00.000Z',
+            layout: { key: 'default', header: null, footer: null },
+          },
+        })
+      }
+      return json({ error: { code: 'NOT_FOUND', message: pathname } }, 404)
+    })
+  }
+
+  test('after a seed every page of navigation.json with a fixture is available and readable', async () => {
+    const cms = new FakeCms()
+    await run(cms)
+    vi.stubGlobal('fetch', deliveryOf(cms))
+    const source = createGlokkiSource({
+      baseUrl: 'https://cms.test',
+      tenant: 'docs',
+      apiKey: 'k',
+      navigationConfig: async () => navigation,
+    })
+
+    const items = (await source.getNavigation()).groups.flatMap((g) => g.items)
+    for (const item of items) {
+      expect(item.available, item.slug).toBe(fixtures.some((f) => f.slug === item.slug))
+    }
+
+    for (const fixture of fixtures) {
+      const page = await source.getPage(fixture.slug)
+      expect(page?.slug).toBe(fixture.slug)
+      expect(page?.title).toBe(fixture.title)
+    }
+    expect((await source.listPages()).map((p) => p.slug).sort()).toEqual(
+      fixtures.map((f) => f.slug).sort(),
+    )
+  })
+})
+
 describe('a page with unpublished changes', () => {
   test('is updated with a publish and nothing else', async () => {
     const cms = new FakeCms()
@@ -392,7 +572,7 @@ test('a fixture with nested blocks is refused', async () => {
     firstNode(p).children = [{ id: 'c', type: 'prose', props: {} }]
   })
 
-  expect(() => planSeed(pages, navigation, { pages: [], details: new Map() })).toThrow(
-    /home: nested blocks/,
-  )
+  expect(() =>
+    planSeed(pages, navigation, { pages: [], details: new Map(), defaults: new Map() }),
+  ).toThrow(/home: nested blocks/)
 })
