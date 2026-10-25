@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test'
+import { revealCharts } from './support'
 
 // Titles of the two chart examples on content/line-chart.json.
 const CHARTS = [
@@ -19,7 +20,8 @@ for (const theme of ['light', 'dark'] as const) {
 
     test('matches the baseline', async ({ page }) => {
       await page.goto(`/docs/line-chart?theme=${theme}`)
-      // The charts may mount on scroll, so visit every card before the screenshot.
+      // The charts mount on scroll, so visit every card before the screenshot.
+      await revealCharts(page)
       const cards = page.locator('.chart-example')
       await expect(cards).toHaveCount(2)
       for (let i = 0; i < 2; i++) {

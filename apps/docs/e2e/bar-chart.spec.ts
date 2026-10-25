@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { themeSuite } from './support'
+import { revealCharts, themeSuite } from './support'
 
 themeSuite({
   name: 'bar-chart',
@@ -29,6 +29,7 @@ test('/docs/bar-chart documents the BarChart props once', async ({ page }) => {
 
 test('the page has both examples: a server-safe chart and a selectable one', async ({ page }) => {
   await page.goto('/docs/bar-chart')
+  await revealCharts(page)
 
   await expect(
     page.getByRole('application', { name: 'Margin by week, last 6 weeks' }),

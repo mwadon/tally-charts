@@ -59,6 +59,17 @@ describe('the LineChart page', () => {
     expect(out).toContain('Props of LineChart')
   })
 
+  test('the first chart card is in the server HTML, the second is a placeholder', async () => {
+    const out = await html('line-chart')
+    const cards = out.split('class="chart-example"').slice(1)
+
+    expect(cards).toHaveLength(2)
+    expect(cards[0]).toContain('<svg')
+    expect(cards[0]).not.toContain('data-lazy-placeholder')
+    expect(cards[1]).toContain('data-lazy-placeholder')
+    expect(cards[1]).not.toContain('Monthly revenue')
+  })
+
   test('has the table of contents in both forms, linking to the h2 anchors', async () => {
     const out = await html('line-chart')
 

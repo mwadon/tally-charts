@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { themeSuite } from './support'
+import { revealCharts, themeSuite } from './support'
 
 themeSuite({
   name: 'composition',
@@ -25,6 +25,7 @@ test('/docs/composition shows all four examples and a props table for Chart and 
   page,
 }) => {
   await page.goto('/docs/composition')
+  await revealCharts(page)
 
   await expect(page.locator('[data-ch-root]')).toHaveCount(4)
   await expect(page.getByRole('region', { name: /^Props of / })).toHaveCount(19)
@@ -32,6 +33,7 @@ test('/docs/composition shows all four examples and a props table for Chart and 
 
 test('the bridge is announced in x order, with the change of each step', async ({ page }) => {
   await page.goto('/docs/composition')
+  await revealCharts(page)
   const chart = page.getByRole('application', { name: 'Profit bridge from Q2 to Q3' })
   const live = page.locator('[data-ch-root]').filter({ has: chart }).locator('[aria-live="polite"]')
   await chart.focus()

@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { tabTo, themeSuite } from './support'
+import { revealCharts, tabTo, themeSuite } from './support'
 
 const CHART = 'Monthly revenue, actual and forecast'
 
@@ -38,6 +38,7 @@ test('the toggle swaps the live chart for the source and back', async ({ page })
 
 test('the underlay example is a chart on the page', async ({ page }) => {
   await page.goto('/docs/line-chart')
+  await revealCharts(page)
 
   await expect(
     page.getByRole('application', {

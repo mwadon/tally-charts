@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { fireEvent, render, screen } from '@testing-library/react'
 import { draftMode } from 'next/headers'
+import { renderToReadableStream } from 'react-dom/server'
 import { afterEach, expect, test, vi } from 'vitest'
 import { examples } from '../examples.generated'
 import { ChartExampleBlock, chartExampleSchema, exampleIds } from './chart-example'
@@ -25,6 +26,38 @@ test('shows the live chart with a Preview / Code toggle', async () => {
   expect(screen.getByRole('application', { name: examples[ID].title })).toBeTruthy()
   expect(screen.getByRole('button', { name: 'Preview' }).getAttribute('aria-pressed')).toBe('true')
   expect(screen.getByRole('button', { name: 'Code' }).getAttribute('aria-pressed')).toBe('false')
+})
+
+async function renderToHtml(element: React.ReactNode) {
+  const stream = await renderToReadableStream(element)
+  await stream.allReady
+  return await new Response(stream).text()
+}
+
+test('in the server HTML an eager card has the chart and the others a placeholder', async () => {
+  const props = { exampleId: ID, defaultView: 'preview' } as const
+
+  const eager = await renderToHtml(await ChartExampleBlock({ ...props, eager: true }))
+  expect(eager).toContain('<svg')
+  expect(eager).not.toContain('data-lazy-placeholder')
+
+  const lazy = await renderToHtml(await ChartExampleBlock(props))
+  expect(lazy).toContain('data-lazy-placeholder')
+  expect(lazy).not.toContain('<svg')
+})
+
+test('the placeholder is as tall as the content area of the panel', async () => {
+  const props = { exampleId: ID, defaultView: 'preview' } as const
+
+  const standard = await renderToHtml(await ChartExampleBlock(props))
+  expect(standard).toContain('style="min-height:16rem"')
+
+  const tall = await renderToHtml(await ChartExampleBlock({ ...props, height: 400 }))
+  expect(tall).toContain('style="min-height:368px"')
+})
+
+test('eager is not part of the schema', () => {
+  expect(Object.keys(chartExampleSchema.shape)).not.toContain('eager')
 })
 
 test('Code shows the exact source of the example file, with a copy button', async () => {

@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { themeSuite } from './support'
+import { revealCharts, themeSuite } from './support'
 
 themeSuite({
   name: 'formatting',
@@ -38,6 +38,7 @@ test('/docs/formatting documents 3 functions', async ({ page }) => {
 
 test('the chart announces euros from createFormatter, in German', async ({ page }) => {
   await page.goto('/docs/formatting')
+  await revealCharts(page)
 
   const chart = page.getByRole('application', {
     name: 'Revenue by month, formatted with createFormatter and createDateFormatter',

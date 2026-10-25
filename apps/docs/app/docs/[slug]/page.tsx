@@ -5,6 +5,7 @@ import { notFound } from 'next/navigation'
 import { collectToc } from '../../../blocks/heading'
 import { componentRegistry } from '../../../blocks/registry'
 import { getContentSource } from '../../../lib/content'
+import { markEagerExamples } from '../../../lib/content/eager'
 import { pageMetadata } from '../../../lib/metadata'
 import { EditorSwitch } from '../../_components/editor-switch'
 import { PreviewNotice } from '../../_components/preview-notice'
@@ -53,7 +54,10 @@ export default async function DocPage({ params }: Props) {
         {group ? <p className="eyebrow">{group.label}</p> : null}
         <h1>{page.title}</h1>
         <EditorSwitch componentTree={page.componentTree} pageSlug={docHref(slug)}>
-          <CMSPage componentTree={page.componentTree} registry={componentRegistry} />
+          <CMSPage
+            componentTree={markEagerExamples(page.componentTree)}
+            registry={componentRegistry}
+          />
         </EditorSwitch>
       </article>
       <TocColumn items={toc} />

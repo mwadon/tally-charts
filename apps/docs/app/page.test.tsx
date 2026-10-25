@@ -90,7 +90,9 @@ test('the gallery has a tile per reference dashboard, captioned with the example
   tiles.forEach((tile, i) => {
     const id = items[i] as keyof typeof examples
     expect(within(tile).getByText(examples[id].title, { selector: 'p' })).toBeTruthy()
-    expect(within(tile).getAllByRole('figure')[0]?.querySelector('svg')).not.toBeNull()
+    // Below the fold: the chart mounts near the viewport, so the server sends a placeholder.
+    expect(tile.querySelector('[data-lazy-placeholder]')).not.toBeNull()
+    expect(tile.querySelector('svg')).toBeNull()
   })
 })
 
@@ -99,7 +101,11 @@ test('the visual language cards have a mini chart each', async () => {
 
   const section = body.querySelectorAll('main > section')[1] as HTMLElement
   expect(section.querySelectorAll('li.card')).toHaveLength(4)
-  expect(within(section).getAllByRole('figure')).toHaveLength(4)
+  const cards = [...section.querySelectorAll<HTMLElement>('li.card')]
+  for (const card of cards) {
+    expect(card.querySelector('[data-lazy-placeholder]')).not.toBeNull()
+    expect(card.querySelector('svg')).toBeNull()
+  }
 })
 
 test('the Install section has a copy button and a status', async () => {

@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { themeSuite } from './support'
+import { revealCharts, themeSuite } from './support'
 
 themeSuite({
   name: 'comparison-bars',
@@ -33,6 +33,7 @@ test('the page has both examples: costs with good down and revenue with good up'
   page,
 }) => {
   await page.goto('/docs/comparison-bars')
+  await revealCharts(page)
 
   await expect(page.getByRole('application', { name: 'Job costs, plan vs actual' })).toBeVisible()
   await expect(

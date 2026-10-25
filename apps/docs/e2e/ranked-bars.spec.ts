@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test'
-import { themeSuite } from './support'
+import { revealCharts, themeSuite } from './support'
 
 themeSuite({
   name: 'ranked-bars',
@@ -33,6 +33,7 @@ test('the page has the solid default and the hatch plan as two RankedBars charts
   page,
 }) => {
   await page.goto('/docs/ranked-bars')
+  await revealCharts(page)
 
   await expect(page.getByRole('application', { name: 'Cost overruns by category' })).toBeVisible()
   await expect(page.getByRole('application', { name: 'Planned hours by technician' })).toBeVisible()
