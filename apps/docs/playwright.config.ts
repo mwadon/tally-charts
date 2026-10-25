@@ -6,7 +6,8 @@ export default defineConfig({
   // Baselines are per platform. Regenerate them with
   // `pnpm --filter docs exec playwright test --update-snapshots=all` (darwin, after
   // `pnpm build && pnpm --filter docs build`; linux via the docker command above the `docs` job in
-  // .github/workflows/ci.yml) and commit them.
+  // .github/workflows/ci.yml, which updates both visual specs, home-visual and line-chart-visual) and
+  // commit them.
   snapshotPathTemplate: '{testDir}/__screenshots__/{platform}/{arg}{ext}',
   // Locally, a new screenshot gets a baseline on first run; CI must fail on a missing one instead.
   updateSnapshots: process.env.CI ? 'none' : 'missing',
