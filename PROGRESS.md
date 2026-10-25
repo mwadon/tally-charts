@@ -1888,3 +1888,14 @@ Dodałem strony docs Accessibility i Stability, przeniosłem testy „strony nie
 - Nowe e2e/accessibility.spec.ts i e2e/stability.spec.ts: status 200, link w sidebarze z href /docs/<slug> i aria-current='page' bez .nav-soon, h1 z tytułem, widoczny heading 'Known limits' (accessibility) i 'Not public' (stability)
 - pnpm build, pnpm --filter docs test, pnpm --filter docs typecheck, pnpm lint, pnpm --filter docs build i pnpm --filter docs test:e2e (port 3100 wolny, bez update) kończą się kodem 0. `git diff --stat -- packages apps/storybook apps/docs/e2e/__screenshots__` jest pusty
 - PROGRESS.md ma sekcję T31.1 z decyzjami: nav-soon testowany przez mock getContentSource i kontrolowaną nawigację w seed.test, pokrycie API domyślnie jako fail w CLI (checkPages bez zmiany domyślnej, CI bez zmian), dobór tekstów headingów i zamiana linków GitHub na /docs/<slug>
+
+## ✔ T31.2 Strona migration-1-0 z przykładami w examples/migration i link w changesetach (2026-10-25)
+Dodałem stronę `content/migration-1-0.json` (4 zmiany łamiące, 3 addytywne), 7 przykładów w `apps/docs/examples/migration/` (`ranked-bars-hatch`, `chart-title`, `chart-labelledby` z aliasem `type MyBarsProps<D> = BarChartProps<D> & {…}`, `invalid-dates`, `keyboard-hint`, `date-formatter`, `select-hint` z `'use client'`), testy w `content/fixtures.test.ts`, `e2e/migration-1-0.spec.ts` i link do strony w trzech changesetach. Pakiety, storybook i baseline'y bez zmian.
+
+**Decyzje:**
+- **URL w changesetach:** `https://tally-charts.vercel.app/docs/migration-1-0` to założenie (SPEC F17: `*.vercel.app`; w repo nie było URL). Do weryfikacji przez maintainera przy F17, który razem z `SITE_URL` i `homepage` (F18) poprawi changesety, jeśli projekt Vercel dostanie inną nazwę.
+- **„Przed” tylko jako code-block** (`filename: 'Before (0.9)'`), bo kod 0.9 nie kompiluje się z 1.0. „Po” to przykłady sprawdzane typecheckiem.
+- **Etykiety Before/After** idą przez `filename` code-blocka i zdanie prose „After:”; schematów bloków nie rozszerzałem.
+- **Nawigacja:** wszystkie 25 slugów F15 jest dostępnych, żaden item nie ma `available: false`. CLAUDE.md nie mówi już, że `migration-1-0` jest niedostępny.
+- **Nazwa wykresu w `chart-labelledby`:** nagłówek to „Weekly margin”, żeby nazwa nie kolidowała z tytułem „Margin by week” z `chart-title` (`getByRole` dopasowuje podciąg).
+- Sekcja Additive używa też istniejącego przykładu `line-chart/orders-last-year` (underlay).

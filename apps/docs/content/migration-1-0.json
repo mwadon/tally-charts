@@ -1,0 +1,367 @@
+{
+  "versionId": "fixture-migration-1-0-v1",
+  "version": 1,
+  "locale": "en",
+  "publishedAt": "2026-10-25T00:00:00.000Z",
+  "codeInjection": {},
+  "layout": {
+    "key": "default",
+    "header": null,
+    "footer": null
+  },
+  "pageId": "fixture-migration-1-0",
+  "title": "Migration to 1.0",
+  "slug": "migration-1-0",
+  "seo": {
+    "metaTitle": "Migration to 1.0 · tally-charts",
+    "metaDescription": "Moving from 0.9 to 1.0: the breaking changes with the code before and after, and what is new."
+  },
+  "componentTree": [
+    {
+      "id": "n1",
+      "type": "prose",
+      "props": {
+        "markdown": "This page lists what changes when you move from 0.9 to 1.0. Each breaking change shows the 0.9 code, then a live example of the 1.0 code. The additive changes need no action. For what 1.x keeps stable, see [Stability](/docs/stability)."
+      }
+    },
+    {
+      "id": "n2",
+      "type": "heading",
+      "props": {
+        "text": "Breaking changes",
+        "level": "2",
+        "anchor": "breaking-changes"
+      }
+    },
+    {
+      "id": "n3",
+      "type": "prose",
+      "props": {
+        "markdown": "Four changes can break a build or change what a chart draws. Go through them in order."
+      }
+    },
+    {
+      "id": "n4",
+      "type": "heading",
+      "props": {
+        "text": "RankedBars: solid fill by default",
+        "level": "3",
+        "anchor": "ranked-bars-fill"
+      }
+    },
+    {
+      "id": "n5",
+      "type": "prose",
+      "props": {
+        "markdown": "In the library, solid is an actual value and hatch is a plan or a reference. A bare `<RankedBars>` now draws solid bars; in 0.9 it drew hatched ones. RankedBars: pass `fill=\"hatch\"` to keep the old look."
+      }
+    },
+    {
+      "id": "n6",
+      "type": "code-block",
+      "props": {
+        "code": "<RankedBars data={causes} label=\"name\" value=\"amount\" />",
+        "lang": "tsx",
+        "filename": "Before (0.9)"
+      }
+    },
+    {
+      "id": "n7",
+      "type": "prose",
+      "props": {
+        "markdown": "After:"
+      }
+    },
+    {
+      "id": "n8",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "migration/ranked-bars-hatch",
+        "defaultView": "preview"
+      }
+    },
+    {
+      "id": "n9",
+      "type": "heading",
+      "props": {
+        "text": "A chart needs a title or aria-labelledby",
+        "level": "3",
+        "anchor": "chart-name"
+      }
+    },
+    {
+      "id": "n10",
+      "type": "prose",
+      "props": {
+        "markdown": "`Chart` and the 11 high-level charts now require an accessible name in their types: a `title`, or an `aria-labelledby` that points at an element naming the chart. A chart with neither is a type error. The development warning stays for calls from JavaScript. With both props, `aria-labelledby` names the chart and `title` stays the default caption of the data table."
+      }
+    },
+    {
+      "id": "n11",
+      "type": "code-block",
+      "props": {
+        "code": "<BarChart data={weeks} x=\"week\" y=\"margin\" />",
+        "lang": "tsx",
+        "filename": "Before (0.9)"
+      }
+    },
+    {
+      "id": "n12",
+      "type": "prose",
+      "props": {
+        "markdown": "After, with a `title`:"
+      }
+    },
+    {
+      "id": "n13",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "migration/chart-title",
+        "defaultView": "preview"
+      }
+    },
+    {
+      "id": "n14",
+      "type": "prose",
+      "props": {
+        "markdown": "After, with a heading that already names the chart. `aria-labelledby` points at the id of the heading:"
+      }
+    },
+    {
+      "id": "n15",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "migration/chart-labelledby",
+        "defaultView": "preview"
+      }
+    },
+    {
+      "id": "n16",
+      "type": "prose",
+      "props": {
+        "markdown": "`ChartProps` and every `*Props` of the 11 charts are now type aliases, an intersection with the new exported type `ChartName`, not interfaces. So `interface … extends BarChartProps<D>` no longer compiles. Use `type … = BarChartProps<D> & {…}`:"
+      }
+    },
+    {
+      "id": "n17",
+      "type": "code-block",
+      "props": {
+        "code": "interface MyBarsProps<D> extends BarChartProps<D> {\n  accent?: boolean\n}",
+        "lang": "tsx",
+        "filename": "Before (0.9)"
+      }
+    },
+    {
+      "id": "n18",
+      "type": "code-block",
+      "props": {
+        "code": "type MyBarsProps<D> = BarChartProps<D> & {\n  accent?: boolean\n}",
+        "lang": "tsx",
+        "filename": "After"
+      }
+    },
+    {
+      "id": "n19",
+      "type": "callout",
+      "props": {
+        "tone": "warning",
+        "markdown": "Do not wrap a props type in `Pick` or `Omit`. They collapse the union of `ChartName` and the chart loses the requirement of a name. If you must, add it back with `& ChartName`: `type MyProps<D> = Omit<BarChartProps<D>, 'height'> & ChartName`."
+      }
+    },
+    {
+      "id": "n20",
+      "type": "heading",
+      "props": {
+        "text": "An invalid date breaks the line",
+        "level": "3",
+        "anchor": "invalid-dates"
+      }
+    },
+    {
+      "id": "n21",
+      "type": "prose",
+      "props": {
+        "markdown": "`Area` and `LineChart` no longer join the line, band or area across a date that isn’t a date, or across a missing value. They break there, as `Line` and `Band` already did: a series with a bad date in the middle draws two segments instead of one. To keep the old joined line, filter the rows before you pass them. The same filter keeps an `Area` joined; for a missing value, filter out the rows whose value is `null` or `NaN`."
+      }
+    },
+    {
+      "id": "n22",
+      "type": "code-block",
+      "props": {
+        "code": "<LineChart data={rows} x={{ type: 'time', field: 'date' }} series={series} />",
+        "lang": "tsx",
+        "filename": "Before (0.9)"
+      }
+    },
+    {
+      "id": "n23",
+      "type": "prose",
+      "props": {
+        "markdown": "After:"
+      }
+    },
+    {
+      "id": "n24",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "migration/invalid-dates",
+        "defaultView": "preview"
+      }
+    },
+    {
+      "id": "n25",
+      "type": "code-block",
+      "props": {
+        "code": "<Area data={rows.filter((r) => !Number.isNaN(new Date(r.date).getTime()))} x=\"date\" y=\"orders\" />",
+        "lang": "tsx",
+        "filename": "After, Area"
+      }
+    },
+    {
+      "id": "n26",
+      "type": "heading",
+      "props": {
+        "text": "Built-in strings are not API",
+        "level": "3",
+        "anchor": "built-in-strings"
+      }
+    },
+    {
+      "id": "n27",
+      "type": "prose",
+      "props": {
+        "markdown": "The wording of the strings the library writes itself, such as the keyboard hint, is not part of the public API and can change in a minor release (see [Stability](/docs/stability)). Pass your own `keyboardHint`, or another text you control, wherever you need to know the exact words. In tests, don’t search by the built-in text: find the chart by its `title` and role."
+      }
+    },
+    {
+      "id": "n28",
+      "type": "code-block",
+      "props": {
+        "code": "expect(screen.getByText('Use arrow keys to move between points, Home and End for first and last, Escape to clear.')).toBeInTheDocument()",
+        "lang": "tsx",
+        "filename": "Before (0.9)"
+      }
+    },
+    {
+      "id": "n29",
+      "type": "prose",
+      "props": {
+        "markdown": "After: a `keyboardHint` you pass is used as is, so you can assert on it."
+      }
+    },
+    {
+      "id": "n30",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "migration/keyboard-hint",
+        "defaultView": "preview"
+      }
+    },
+    {
+      "id": "n31",
+      "type": "code-block",
+      "props": {
+        "code": "expect(screen.getByRole('application', { name: 'Orders by region' })).toBeInTheDocument()",
+        "lang": "tsx",
+        "filename": "After, in a test"
+      }
+    },
+    {
+      "id": "n32",
+      "type": "heading",
+      "props": {
+        "text": "Additive changes",
+        "level": "2",
+        "anchor": "additive-changes"
+      }
+    },
+    {
+      "id": "n33",
+      "type": "prose",
+      "props": {
+        "markdown": "These need no action. They are new in 1.0."
+      }
+    },
+    {
+      "id": "n34",
+      "type": "heading",
+      "props": {
+        "text": "underlay in LineChart",
+        "level": "3",
+        "anchor": "underlay"
+      }
+    },
+    {
+      "id": "n35",
+      "type": "prose",
+      "props": {
+        "markdown": "`LineChart` takes an `underlay`: an element drawn after the grid and before the lines, for example an `Area` with last year’s values. See [LineChart](/docs/line-chart) for the props."
+      }
+    },
+    {
+      "id": "n36",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "line-chart/orders-last-year",
+        "defaultView": "preview"
+      }
+    },
+    {
+      "id": "n37",
+      "type": "heading",
+      "props": {
+        "text": "createDateFormatter in tally-charts/core",
+        "level": "3",
+        "anchor": "create-date-formatter"
+      }
+    },
+    {
+      "id": "n38",
+      "type": "prose",
+      "props": {
+        "markdown": "`createDateFormatter(spec, options)` builds a function from epoch milliseconds to a string, in `'day'`, `'month'`, `'quarter'`, `'year'`, `'auto'` or any `Intl.DateTimeFormatOptions`. It is exported from `tally-charts/core` with three types: `DateFormatSpec` for the first argument, `DateFormatOptions` for the second and `DateFormatter` for the result. See [Formatting](/docs/formatting)."
+      }
+    },
+    {
+      "id": "n39",
+      "type": "code-block",
+      "props": {
+        "code": "import { createDateFormatter, type DateFormatOptions, type DateFormatSpec, type DateFormatter } from 'tally-charts/core'\n\nconst spec: DateFormatSpec = 'month'\nconst options: DateFormatOptions = { locale: 'en-US' }\nconst monthName: DateFormatter = createDateFormatter(spec, options)",
+        "lang": "tsx",
+        "filename": "Build it once"
+      }
+    },
+    {
+      "id": "n40",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "migration/date-formatter",
+        "defaultView": "preview"
+      }
+    },
+    {
+      "id": "n41",
+      "type": "heading",
+      "props": {
+        "text": "The Enter hint only on selectable points",
+        "level": "3",
+        "anchor": "select-hint"
+      }
+    },
+    {
+      "id": "n42",
+      "type": "prose",
+      "props": {
+        "markdown": "The keyboard hint adds “Press Enter to select.” only while the active point can be selected: the chart has `onSelect` and the point doesn’t have `selectable: false`. In 0.9 the sentence could promise Enter on a chart where it did nothing. Tab into the chart below and listen; remove `onSelect` and the sentence is gone."
+      }
+    },
+    {
+      "id": "n43",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "migration/select-hint",
+        "defaultView": "preview"
+      }
+    }
+  ]
+}

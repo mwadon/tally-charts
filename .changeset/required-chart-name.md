@@ -53,3 +53,5 @@ type MyBarsProps<D> = BarChartProps<D> & {
   accent?: boolean
 }
 ```
+
+See the migration guide: https://tally-charts.vercel.app/docs/migration-1-0
