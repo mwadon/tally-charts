@@ -14,3 +14,4 @@ packages/tally-charts/temp/
 next-env.d.ts
 apps/docs/examples.generated.ts
 apps/docs/api.generated.json
+apps/docs/tokens.generated.ts

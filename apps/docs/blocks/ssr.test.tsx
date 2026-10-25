@@ -2,9 +2,13 @@
 import { renderToString } from 'react-dom/server'
 import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import { Callout } from './callout'
+import { ChartExampleBlock } from './chart-example'
 import { CodeBlock } from './code-block'
 import { Heading } from './heading'
+import { PaletteSwatches } from './palette-swatches'
+import { PropsTable } from './props-table'
 import { Prose } from './prose'
+import { TokenTable } from './token-table'
 
 let errors: ReturnType<typeof vi.spyOn>
 
@@ -47,5 +51,37 @@ test('CodeBlock is an async server component whose output renders to a string', 
 
   expect(html).toContain('var(--shiki-')
   expect(html).toContain('role="status"')
+  expect(errors).not.toHaveBeenCalled()
+})
+
+test('ChartExample is an async server component whose output renders to a string', async () => {
+  const html = renderToString(
+    await ChartExampleBlock({ exampleId: 'bar-chart/margin-by-week', defaultView: 'preview' }),
+  )
+
+  expect(html).toContain('aria-pressed="true"')
+  expect(html).toContain('Margin by week')
+  expect(errors).not.toHaveBeenCalled()
+})
+
+test('PropsTable renders to a string on the server', () => {
+  const html = renderToString(<PropsTable symbol="LineChart" />)
+
+  expect(html).toContain('Props of LineChart')
+  expect(html).toContain('readonly D[]')
+  expect(errors).not.toHaveBeenCalled()
+})
+
+test('TokenTable renders to a string on the server', () => {
+  const html = renderToString(<TokenTable group="theme" />)
+
+  expect(html).toContain('--ch-accent')
+  expect(errors).not.toHaveBeenCalled()
+})
+
+test('PaletteSwatches renders to a string on the server', () => {
+  const html = renderToString(<PaletteSwatches palette="vivid" />)
+
+  expect(html).toContain('#f1a23b')
   expect(errors).not.toHaveBeenCalled()
 })

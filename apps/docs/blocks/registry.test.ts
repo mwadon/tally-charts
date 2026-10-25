@@ -1,9 +1,18 @@
 import { expect, test } from 'vitest'
 import { blockRegistry, blockSchemas, parseBlockProps } from './registry'
 
-const types = ['prose', 'heading', 'callout', 'code-block']
+const types = [
+  'prose',
+  'heading',
+  'callout',
+  'code-block',
+  'chart-example',
+  'props-table',
+  'token-table',
+  'palette-swatches',
+]
 
-test('the registry has the four content blocks, in order', () => {
+test('the registry has the eight content blocks, in order', () => {
   expect(blockRegistry.getTypes()).toEqual(types)
   for (const type of types) expect(blockRegistry.getComponent(type)).toBeDefined()
 })

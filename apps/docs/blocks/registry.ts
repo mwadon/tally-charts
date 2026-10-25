@@ -1,15 +1,23 @@
 import { createBlockRegistry } from '@glokki-cms/sdk'
 import type { z } from 'zod'
 import { calloutBlock, calloutSchema } from './callout'
+import { chartExampleBlock, chartExampleSchema } from './chart-example'
 import { codeBlockBlock, codeBlockSchema } from './code-block'
 import { headingBlock, headingSchema } from './heading'
+import { paletteSwatchesBlock, paletteSwatchesSchema } from './palette-swatches'
+import { propsTableBlock, propsTableSchema } from './props-table'
 import { proseBlock, proseSchema } from './prose'
+import { tokenTableBlock, tokenTableSchema } from './token-table'
 
 export const blockRegistry = createBlockRegistry([
   proseBlock,
   headingBlock,
   calloutBlock,
   codeBlockBlock,
+  chartExampleBlock,
+  propsTableBlock,
+  tokenTableBlock,
+  paletteSwatchesBlock,
 ])
 
 /** `defineBlock` drops the Zod schema (it keeps only `fields`), so the schemas live here too. */
@@ -18,6 +26,10 @@ export const blockSchemas = {
   heading: headingSchema,
   callout: calloutSchema,
   'code-block': codeBlockSchema,
+  'chart-example': chartExampleSchema,
+  'props-table': propsTableSchema,
+  'token-table': tokenTableSchema,
+  'palette-swatches': paletteSwatchesSchema,
 } satisfies Record<string, z.ZodObject>
 
 export type BlockType = keyof typeof blockSchemas
