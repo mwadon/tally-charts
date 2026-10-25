@@ -1,19 +1,28 @@
 import { render, screen, within } from '@testing-library/react'
+import { draftMode } from 'next/headers'
 import { afterEach, expect, test, vi } from 'vitest'
 import api from '../api.generated.json'
 import { apiSymbols, PropsTable, propsTableSchema } from './props-table'
 
+vi.mock('next/headers', () => ({ draftMode: vi.fn() }))
+
+const setDraft = (isEnabled: boolean) =>
+  vi.mocked(draftMode).mockResolvedValue({ isEnabled } as never)
+
 afterEach(() => {
   vi.unstubAllEnvs()
+  vi.mocked(draftMode).mockReset()
 })
+
+const renderTable = async (symbol: string) => render(await PropsTable({ symbol: symbol as never }))
 
 function rowOf(name: string) {
   const row = screen.getByRole('rowheader', { name }).closest('tr') as HTMLElement
   return within(row)
 }
 
-test('LineChart: a table with the five columns and a row for data', () => {
-  render(<PropsTable symbol="LineChart" />)
+test('LineChart: a table with the five columns and a row for data', async () => {
+  await renderTable('LineChart')
 
   const headers = screen.getAllByRole('columnheader').map((h) => h.textContent)
   expect(headers).toEqual(['Name', 'Type', 'Default', 'Required', 'Description'])
@@ -25,16 +34,16 @@ test('LineChart: a table with the five columns and a row for data', () => {
   expect(screen.getByRole('region', { name: 'Props of LineChart' })).toBeTruthy()
 })
 
-test('RankedBars: the default of fill is shown', () => {
-  render(<PropsTable symbol="RankedBars" />)
+test('RankedBars: the default of fill is shown', async () => {
+  await renderTable('RankedBars')
 
   const cells = rowOf('fill').getAllByRole('cell')
   expect(cells[1]?.textContent).toBe("'solid'")
   expect(cells[2]?.textContent).toBe('No')
 })
 
-test('createFormatter: parameters instead of props, and what it returns', () => {
-  render(<PropsTable symbol="createFormatter" />)
+test('createFormatter: parameters instead of props, and what it returns', async () => {
+  await renderTable('createFormatter')
 
   expect(screen.getAllByRole('columnheader')[0]?.textContent).toBe('Parameter')
   const spec = rowOf('spec').getAllByRole('cell')
@@ -45,16 +54,16 @@ test('createFormatter: parameters instead of props, and what it returns', () => 
   expect(screen.getByText('Formatter').tagName).toBe('CODE')
 })
 
-test('descriptions are rendered as markdown', () => {
-  const { container } = render(<PropsTable symbol="createFormatter" />)
+test('descriptions are rendered as markdown', async () => {
+  const { container } = await renderTable('createFormatter')
 
   expect(container.querySelector('td code')).not.toBeNull()
   expect(container.textContent).not.toContain('`locale`')
 })
 
-test('every symbol of the API model renders a table or a note', () => {
+test('every symbol of the API model renders a table or a note', async () => {
   for (const symbol of apiSymbols) {
-    const { container, unmount } = render(<PropsTable symbol={symbol} />)
+    const { container, unmount } = await renderTable(symbol)
     expect(container.querySelector('table, p'), symbol).not.toBeNull()
     unmount()
   }
@@ -77,25 +86,53 @@ test.each([{ symbol: 'NotASymbol' }, {}, { symbol: 'LineChart', extra: 1 }, { sy
 
 test.each([undefined, 'preview', 'development'])(
   'an unknown symbol shows a visible error when APP_ENV is %s',
-  (appEnv) => {
+  async (appEnv) => {
     vi.stubEnv('APP_ENV', appEnv as never)
 
-    const { container } = render(<PropsTable symbol={'NotASymbol' as never} />)
+    const { container } = await renderTable('NotASymbol')
 
     expect(container.querySelector('.block-error')?.textContent).toContain('NotASymbol')
   },
 )
 
-test('an unknown symbol renders nothing on production', () => {
+test('an unknown symbol renders nothing on production', async () => {
   vi.stubEnv('APP_ENV', 'production')
 
-  const { container } = render(<PropsTable symbol={'NotASymbol' as never} />)
+  const { container } = await renderTable('NotASymbol')
 
   expect(container.innerHTML).toBe('')
 })
 
-test('a name from Object.prototype is not a symbol', () => {
-  const { container } = render(<PropsTable symbol={'toString' as never} />)
+test('an unknown symbol renders nothing on production without draft mode', async () => {
+  vi.stubEnv('APP_ENV', 'production')
+  setDraft(false)
+
+  const { container } = await renderTable('NotASymbol')
+
+  expect(container.innerHTML).toBe('')
+})
+
+test('an unknown symbol shows a visible error on production in draft mode', async () => {
+  vi.stubEnv('APP_ENV', 'production')
+  setDraft(true)
+
+  const { container } = await renderTable('NotASymbol')
+
+  expect(container.querySelector('.block-error')?.textContent).toContain('NotASymbol')
+})
+
+test('a known symbol renders its table on production, in draft mode or not', async () => {
+  vi.stubEnv('APP_ENV', 'production')
+  setDraft(true)
+
+  await renderTable('LineChart')
+
+  expect(screen.getByRole('region', { name: 'Props of LineChart' })).toBeTruthy()
+  expect(document.querySelector('.block-error')).toBeNull()
+})
+
+test('a name from Object.prototype is not a symbol', async () => {
+  const { container } = await renderTable('toString')
 
   expect(container.querySelector('.block-error')?.textContent).toContain('toString')
 })

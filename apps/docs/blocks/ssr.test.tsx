@@ -64,8 +64,8 @@ test('ChartExample is an async server component whose output renders to a string
   expect(errors).not.toHaveBeenCalled()
 })
 
-test('PropsTable renders to a string on the server', () => {
-  const html = renderToString(<PropsTable symbol="LineChart" />)
+test('PropsTable is an async server component whose output renders to a string', async () => {
+  const html = renderToString(await PropsTable({ symbol: 'LineChart' }))
 
   expect(html).toContain('Props of LineChart')
   expect(html).toContain('readonly D[]')

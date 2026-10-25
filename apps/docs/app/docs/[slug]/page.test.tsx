@@ -1,6 +1,7 @@
 // @vitest-environment node
+import { draftMode } from 'next/headers'
 import { renderToReadableStream } from 'react-dom/server'
-import { afterEach, describe, expect, test, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest'
 import DocPage, { generateMetadata, generateStaticParams } from './page'
 
 vi.mock('next/navigation', () => ({
@@ -8,6 +9,13 @@ vi.mock('next/navigation', () => ({
     throw new Error('NEXT_NOT_FOUND')
   },
 }))
+
+vi.mock('next/headers', () => ({ draftMode: vi.fn() }))
+
+const setDraft = (isEnabled: boolean) =>
+  vi.mocked(draftMode).mockResolvedValue({ isEnabled } as never)
+
+beforeEach(() => setDraft(false))
 
 const params = (slug: string) => ({ params: Promise.resolve({ slug }) })
 
@@ -57,6 +65,31 @@ describe('the LineChart page', () => {
     expect(out).toContain('aria-label="On this page"')
     expect(out).toContain('<a href="#props">Props</a>')
     expect(out).toContain('<a href="#install">Import</a>')
+  })
+})
+
+describe('draft mode', () => {
+  test('shows the preview banner', async () => {
+    setDraft(true)
+    const out = await html('line-chart')
+
+    expect(out).toContain('role="alert"')
+    expect(out).toContain('Preview mode')
+    expect(out).toMatch(/<h1>LineChart<\/h1>/)
+  })
+
+  test('has no banner otherwise', async () => {
+    const out = await html('line-chart')
+
+    expect(out).not.toContain('role="alert"')
+    expect(out).not.toContain('Preview mode')
+  })
+
+  test('is read for the metadata too, and home is still not a route', async () => {
+    setDraft(true)
+
+    expect((await generateMetadata(params('line-chart'))).title).toBe('LineChart · tally-charts')
+    await expect(DocPage(params('home'))).rejects.toThrow('NEXT_NOT_FOUND')
   })
 })
 

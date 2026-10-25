@@ -1,11 +1,14 @@
 import { CMSPage } from '@glokki-cms/react'
 import type { Metadata } from 'next'
+import { draftMode } from 'next/headers'
 import { notFound } from 'next/navigation'
 import { componentRegistry } from '../blocks/registry'
 import MarginByWeek from '../examples/bar-chart/margin-by-week'
 import { getContentSource } from '../lib/content'
 import { pageMetadata } from '../lib/metadata'
 import { CodeBlock, Tok } from './_components/code-block'
+import { EditorSwitch } from './_components/editor-switch'
+import { PreviewNotice } from './_components/preview-notice'
 import { SiteHeader } from './_components/site-header'
 import { VisualLanguage } from './_components/visual-language'
 import { SITE } from './_content/navigation'
@@ -31,19 +34,24 @@ const FEATURES = [
 
 const DASHBOARDS = [1, 2, 3, 4, 5, 6, 7, 8, 9] as const
 
-const loadHome = () => getContentSource().getPage('home')
+async function loadHome() {
+  const { isEnabled } = await draftMode()
+  const page = await getContentSource(process.env, isEnabled).getPage('home')
+  return { page, isEnabled }
+}
 
 export async function generateMetadata(): Promise<Metadata> {
-  const page = await loadHome()
+  const { page } = await loadHome()
   return page ? pageMetadata(page, '/') : {}
 }
 
 export default async function Home() {
-  const page = await loadHome()
+  const { page, isEnabled } = await loadHome()
   if (!page) notFound()
 
   return (
     <>
+      {isEnabled ? <PreviewNotice /> : null}
       <SiteHeader />
       <main id="main" className="home">
         <section className="hero" aria-labelledby="hero-title">
@@ -126,7 +134,9 @@ export default async function Home() {
           </ul>
         </section>
 
-        <CMSPage componentTree={page.componentTree} registry={componentRegistry} />
+        <EditorSwitch componentTree={page.componentTree} pageSlug="/">
+          <CMSPage componentTree={page.componentTree} registry={componentRegistry} />
+        </EditorSwitch>
       </main>
       <footer className="site-footer">
         <p>tally-charts · MIT</p>

@@ -16,22 +16,30 @@ interface GlokkiOptions {
   baseUrl: string
   tenant: string
   apiKey: string
+  /** Read drafts, and never cache: no `cms` tag, `cache: 'no-store'`. Default `false`. */
+  preview?: boolean
   /** Defaults to `content/navigation.json`. */
   navigationConfig?: () => Promise<NavigationConfig>
 }
 
-/** Published pages from the glökki delivery API. Every fetch is tagged `cms` for `revalidateTag`. */
+/**
+ * Published pages from the glökki delivery API. Every fetch is tagged `cms` for `revalidateTag`;
+ * with `preview` it is `no-store` instead, so an editor always sees the latest draft.
+ */
 export function createGlokkiSource({
   baseUrl,
   tenant,
   apiKey,
+  preview = false,
   navigationConfig = () => loadNavigationConfig(),
 }: GlokkiOptions): ContentSource {
   const client = createClient({
     baseUrl,
     apiKey,
     tenantSlug: tenant,
-    fetchInit: { next: { tags: [CMS_TAG] } },
+    ...(preview
+      ? { preview: true, fetchInit: { cache: 'no-store' } }
+      : { fetchInit: { next: { tags: [CMS_TAG] } } }),
   })
 
   async function listPages() {

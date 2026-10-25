@@ -26,7 +26,7 @@ export async function ChartExampleBlock({
   defaultView,
   height,
 }: ChartExampleBlockProps) {
-  if (!Object.hasOwn(examples, exampleId)) return blockError(`Unknown example: ${exampleId}`)
+  if (!Object.hasOwn(examples, exampleId)) return await blockError(`Unknown example: ${exampleId}`)
 
   const entry = examples[exampleId]
   const { default: Example } = await entry.load()
