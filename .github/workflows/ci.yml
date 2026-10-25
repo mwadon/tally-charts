@@ -29,6 +29,22 @@ jobs:
       - run: pnpm --filter tally-charts check:treeshake
       - run: pnpm --filter tally-charts check:dts
 
+  # Release tooling: tests of scripts/release, the no-npm-token check and actionlint (pinned).
+  # Local actionlint: docker run --rm -v "$PWD":/repo -w /repo rhysd/actionlint:1.7.7 -color
+  workflows:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm check:workflows
+      - run: pnpm test:scripts
+      - run: docker run --rm -v "$PWD":/repo -w /repo rhysd/actionlint:1.7.7 -color
+
   # Unit tests on the oldest supported React major. Types stay on 19.
   react18:
     runs-on: ubuntu-latest

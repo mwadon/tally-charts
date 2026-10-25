@@ -1,0 +1,145 @@
+# Releases: see docs/releasing.md. There is no npm token anywhere: `publish` authenticates to npm
+# with a short-lived OIDC token (npm trusted publishing), so `pnpm changeset publish` runs here only.
+# Do not add `registry-url` to setup-node: it makes setup-node write an auth-token placeholder into
+# .npmrc and breaks OIDC (pnpm check:workflows enforces this).
+name: Release
+
+on:
+  push:
+    branches: [main]
+  # Retry after a failed or rejected publish (run it on main).
+  workflow_dispatch:
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  # Pending changesets: open or update the "Version Packages" PR. Nothing pending and the version in
+  # package.json is not on npm yet (the Version PR was just merged): ask for a publish.
+  version:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    outputs:
+      publish: ${{ steps.plan.outputs.publish }}
+      version: ${{ steps.plan.outputs.version }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - id: changesets
+        uses: changesets/action@v1
+        with:
+          version: pnpm changeset version
+          title: Version Packages
+          commit: 'chore: version packages'
+          createGithubReleases: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - id: plan
+        if: steps.changesets.outputs.hasChangesets == 'false'
+        run: |
+          V=$(node -p "require('./packages/tally-charts/package.json').version")
+          echo "version=$V" >> "$GITHUB_OUTPUT"
+          if out=$(npm view "tally-charts@$V" version 2>npm-view.err); then
+            if [ -z "$out" ]; then
+              echo "tally-charts@$V is not on npm yet"
+              echo "publish=true" >> "$GITHUB_OUTPUT"
+            else
+              echo "tally-charts@$V is already on npm, nothing to publish"
+              echo "publish=false" >> "$GITHUB_OUTPUT"
+            fi
+          elif grep -q E404 npm-view.err; then
+            echo "tally-charts@$V is not on npm yet"
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+          else
+            cat npm-view.err
+            exit 1
+          fi
+
+  # The same checks as the `check` job in ci.yml. Keep the two in sync.
+  verify:
+    needs: version
+    if: needs.version.outputs.publish == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck
+      - run: pnpm lint
+      - run: pnpm build
+      # After the build: src/dts-parse.test.ts reads dist and must not be skipped here.
+      - run: pnpm test
+        env:
+          REQUIRE_DIST: '1'
+      - run: pnpm --filter tally-charts api:check
+      - run: pnpm size
+      - run: pnpm --filter tally-charts check:dev-strip
+      - run: pnpm --filter tally-charts check:treeshake
+      - run: pnpm --filter tally-charts check:dts
+
+  # Waits for a reviewer on the `npm-publish` environment (Actions -> Review deployments).
+  publish:
+    needs: [version, verify]
+    runs-on: ubuntu-latest
+    environment: npm-publish
+    permissions:
+      contents: write
+      id-token: write
+    env:
+      VERSION: ${{ needs.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: pnpm
+      # Trusted publishing needs npm >= 11.5.1.
+      - run: npm install -g npm@^11.5.1
+      - run: node scripts/release/check-npm-version.mjs
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      # No --tag: in pre mode changesets publishes to the pre tag (rc) and refuses --tag.
+      # prepublishOnly runs the full check suite again.
+      - run: pnpm changeset publish
+        env:
+          NPM_CONFIG_PROVENANCE: 'true'
+          PNPM_CONFIG_PROVENANCE: 'true'
+      # Idempotent: a re-run after a partial failure skips what already exists. The
+      # tally-charts@x.y.z tags that changesets creates locally are not pushed.
+      - name: Tag
+        run: |
+          if git ls-remote --exit-code --tags origin "refs/tags/v$VERSION" >/dev/null 2>&1; then
+            echo "tag v$VERSION already exists"
+          else
+            git tag "v$VERSION"
+            git push origin "v$VERSION"
+          fi
+      - name: GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "v$VERSION" >/dev/null 2>&1; then
+            echo "release v$VERSION already exists"
+            exit 0
+          fi
+          node scripts/release/changelog-section.mjs "$VERSION" > notes.md
+          args=(--title "v$VERSION" --notes-file notes.md)
+          case "$VERSION" in *-*) args+=(--prerelease) ;; esac
+          gh release create "v$VERSION" "${args[@]}"
