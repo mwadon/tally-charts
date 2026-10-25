@@ -1,0 +1,184 @@
+{
+  "versionId": "fixture-thresholds-v1",
+  "version": 1,
+  "locale": "en",
+  "publishedAt": "2026-10-25T00:00:00.000Z",
+  "codeInjection": {},
+  "layout": {
+    "key": "default",
+    "header": null,
+    "footer": null
+  },
+  "pageId": "fixture-thresholds",
+  "title": "Thresholds",
+  "slug": "thresholds",
+  "seo": {
+    "metaTitle": "Thresholds · tally-charts",
+    "metaDescription": "Build threshold categories with thresholds(): breaks, tones and labels, which edge holds a value on a break, and heatmapLevel for matching a legend to a Heatmap."
+  },
+  "componentTree": [
+    {
+      "id": "n1",
+      "type": "prose",
+      "props": {
+        "markdown": "A threshold turns a number into a category: a page load of 3.1 s is \"Needs improvement\", a margin of 9% is \"Critical\". `thresholds()` builds those categories once, and the same result colors a `ZoneMeter`, counts a `Legend` and tones the dots of a `DotHistogram`, so a value gets the same color everywhere. `heatmapLevel()` does the matching job for a `Heatmap`."
+      }
+    },
+    {
+      "id": "n2",
+      "type": "heading",
+      "props": {
+        "text": "Building thresholds",
+        "level": "2",
+        "anchor": "building"
+      }
+    },
+    {
+      "id": "n3",
+      "type": "prose",
+      "props": {
+        "markdown": "`thresholds(breaks, tones, labels, options)` takes the ascending break values, a tone for each bin and a label for each bin. There is one more tone and one more label than there are breaks: two breaks make three bins. A spec that does not fit, or breaks that are not finite and strictly ascending, throws, because it is a mistake in the code rather than in the data."
+      }
+    },
+    {
+      "id": "n4",
+      "type": "code-block",
+      "props": {
+        "code": "import { thresholds } from 'tally-charts'\n\n// Largest contentful paint in seconds: 2 breaks, 3 bins.\nconst lcp = thresholds(\n  [2.5, 4],\n  ['gain', 'warn', 'loss'],\n  ['Good', 'Needs improvement', 'Poor'],\n)\n\nlcp.indexOf(3.1) // 1\nlcp.toneOf(3.1) // 'warn'\nlcp.toneOf('n/a') // undefined\nlcp.indexOf('n/a') // -1",
+        "lang": "ts"
+      }
+    },
+    {
+      "id": "n5",
+      "type": "prose",
+      "props": {
+        "markdown": "The result carries the plain data and three helpers. `bins` lists the bins as `{ label, tone, min, max }`; the first starts at `-Infinity` and the last ends at `Infinity`. `indexOf(value)` is the index of the bin that holds a value, or `-1` for a value that is missing or not a number. `toneOf(value)` is the tone of that bin. `legend(values)` counts how many of the values fall into each bin and returns entries for a `Legend`."
+      }
+    },
+    {
+      "id": "n6",
+      "type": "heading",
+      "props": {
+        "text": "Which bin holds a value on a break",
+        "level": "2",
+        "anchor": "inclusive"
+      }
+    },
+    {
+      "id": "n7",
+      "type": "prose",
+      "props": {
+        "markdown": "The `inclusive` option decides what happens to a value that is exactly on a break. With `'lower'`, the default, a bin is `[min, max)`: the value belongs to the bin above the break. With `'upper'` a bin is `(min, max]`: the value belongs to the bin below it, which is how Core Web Vitals count their tiers."
+      }
+    },
+    {
+      "id": "n8",
+      "type": "prose",
+      "props": {
+        "markdown": "Take an LCP of exactly 2.5 s against the breaks `[2.5, 4]`. With `inclusive: 'lower'` it is \"Needs improvement\", because 2.5 starts the second bin. With `inclusive: 'upper'` it is \"Good\", because 2.5 ends the first one. The same goes for 4 s: \"Poor\" with `'lower'`, \"Needs improvement\" with `'upper'`. Values that are not on a break fall in the same bin either way."
+      }
+    },
+    {
+      "id": "n9",
+      "type": "code-block",
+      "props": {
+        "code": "const strict = thresholds([2.5, 4], tones, labels) // 'lower'\nconst vitals = thresholds([2.5, 4], tones, labels, { inclusive: 'upper' })\n\nstrict.toneOf(2.5) // 'warn' (Needs improvement)\nvitals.toneOf(2.5) // 'gain' (Good)",
+        "lang": "ts"
+      }
+    },
+    {
+      "id": "n10",
+      "type": "heading",
+      "props": {
+        "text": "In ZoneMeter, Legend and DotHistogram",
+        "level": "2",
+        "anchor": "using"
+      }
+    },
+    {
+      "id": "n11",
+      "type": "prose",
+      "props": {
+        "markdown": "Pass the result to `ZoneMeter` as `zones`: the track draws one zone per bin and the marker sits at the value, which the screen reader hears together with the label of its bin. `ZoneMeter` reads `inclusive` too, so a value on a break lands in the bin your `thresholds()` call says. Pass it to `DotHistogram` as `toneBy` to tone each dot by its bin, and give `Legend` the result of `legend(values)` with `shape=\"dot\"` for the swatches and counts."
+      }
+    },
+    {
+      "id": "n12",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "thresholds/zones-and-dots",
+        "defaultView": "preview"
+      }
+    },
+    {
+      "id": "n13",
+      "type": "prose",
+      "props": {
+        "markdown": "Both meters show the same value, 2.5 s. The first uses `inclusive: 'upper'` and reads \"Good\"; the second uses the default and reads \"Needs improvement\". The two loads of exactly 2.5 s in the histogram are toned and counted as Good. The `thresholds()` result has methods, so it can only be passed from a client component. A Server Component can give `ZoneMeter` the plain `{ bins, inclusive }` instead; see [Server Components](/docs/server-components)."
+      }
+    },
+    {
+      "id": "n14",
+      "type": "heading",
+      "props": {
+        "text": "Parameters of thresholds",
+        "level": "2",
+        "anchor": "thresholds-parameters"
+      }
+    },
+    {
+      "id": "n15",
+      "type": "props-table",
+      "props": {
+        "symbol": "thresholds"
+      }
+    },
+    {
+      "id": "n16",
+      "type": "heading",
+      "props": {
+        "text": "Matching a Heatmap",
+        "level": "2",
+        "anchor": "heatmap-level"
+      }
+    },
+    {
+      "id": "n17",
+      "type": "prose",
+      "props": {
+        "markdown": "A `Heatmap` bins its values by `breaks` and paints each cell with a sequential level from 1 to 5. Its own legend already matches. When you draw the legend yourself, with a standalone `Legend` somewhere else on the page, `heatmapLevel(value, breaks)` gives the level the heatmap would paint that value with, so the swatches use the same colors. It returns `0` for a missing or non-numeric value."
+      }
+    },
+    {
+      "id": "n18",
+      "type": "prose",
+      "props": {
+        "markdown": "The breaks are cleaned the way `Heatmap` cleans them: sorted, deduplicated and cut to the first four, which make the five bins. Four bins use the levels 1, 2, 4 and 5, and fewer bins spread over the range with the ends pinned, so do not work the levels out by hand. Take one value from each bin, ask `heatmapLevel` for its level and set it as the `level` of a `Legend` item. These are plain numbers, so the call also works in a Server Component."
+      }
+    },
+    {
+      "id": "n19",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "thresholds/heatmap-legend",
+        "defaultView": "preview"
+      }
+    },
+    {
+      "id": "n20",
+      "type": "heading",
+      "props": {
+        "text": "Parameters of heatmapLevel",
+        "level": "2",
+        "anchor": "heatmap-level-parameters"
+      }
+    },
+    {
+      "id": "n21",
+      "type": "props-table",
+      "props": {
+        "symbol": "heatmapLevel"
+      }
+    }
+  ]
+}
