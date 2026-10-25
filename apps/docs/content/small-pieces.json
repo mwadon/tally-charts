@@ -147,7 +147,7 @@
       "props": {
         "text": "Numbers",
         "level": "3",
-        "anchor": "numbers"
+        "anchor": "props-numbers"
       }
     },
     {
@@ -184,7 +184,7 @@
       "props": {
         "text": "Meters",
         "level": "3",
-        "anchor": "meters"
+        "anchor": "props-meters"
       }
     },
     {
@@ -221,7 +221,7 @@
       "props": {
         "text": "Legend and tooltip",
         "level": "3",
-        "anchor": "legend-and-tooltip"
+        "anchor": "props-legend-and-tooltip"
       }
     },
     {

@@ -2,6 +2,7 @@
 import { readdirSync } from 'node:fs'
 import path from 'node:path'
 import { expect, test } from 'vitest'
+import { type HeadingProps, headingId } from '../blocks/heading'
 import { parseBlockProps } from '../blocks/registry'
 import { createFixtureSource } from '../lib/content/fixtures'
 import { loadNavigationConfig } from '../lib/content/navigation-config'
@@ -42,6 +43,17 @@ test('the ids of the nodes of a page are unique', async () => {
   for (const slug of slugs) {
     const ids = [...walk((await source.getPage(slug))?.componentTree ?? [])].map((n) => n.id)
     expect(new Set(ids).size, slug).toBe(ids.length)
+  }
+})
+
+test('the heading anchors of a page are unique', async () => {
+  for (const slug of slugs) {
+    const page = await source.getPage(slug)
+    const ids = [...walk(page?.componentTree ?? [])]
+      .filter((n) => n.type === 'heading')
+      .map((n) => headingId(n.props as HeadingProps))
+    const duplicates = ids.filter((id, i) => ids.indexOf(id) !== i)
+    expect(duplicates, slug).toEqual([])
   }
 })
 

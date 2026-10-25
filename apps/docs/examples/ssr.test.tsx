@@ -29,7 +29,7 @@ test.each(safe)('$id (rscSafe) renders to an HTML string', async (entry) => {
   const { default: Example } = await entry.load()
   const html = renderToString(<Example />)
 
-  if (mayOmitSvg(entry.id)) expect(html).not.toBe('')
+  if (mayOmitSvg(entry.id)) expect(html.replace(/<[^>]*>/g, '').trim()).not.toBe('')
   else expect(html).toContain('<svg')
   expect(errors).not.toHaveBeenCalled()
 })
