@@ -978,3 +978,37 @@ Sprawdzone: vitest w `apps/docs` (262 testy) przechodzi, `pnpm --filter docs typ
 **Otwarte kwestie:**
 - `Small note` w `contrast.mjs` (`.small`) jest tylko w bloku PaletteSwatches, którego nie ma na `/docs/line-chart`, więc wiersz to n/a.
 - Poniżej 400 px strony docs nie mają linków GitHub/npm (poza headerem są tylko na home).
+
+## ✔ T23.1 Header z wersją z package.json, przełącznik motywu bez mrugania i layout przy 320 px (2026-10-25)
+Header pokazuje teraz `v` + wersję z `packages/tally-charts/package.json`. Zamiast starego, wyłączonego przycisku jest przełącznik motywu System/Light/Dark, a strony `/` i `/docs/line-chart` nie przewijają się w poziomie przy 320 i 375 px. Przeszły bramki: `pnpm build`, `docs typecheck`, `pnpm lint` (0 błędów, 4 ostrzeżenia, tak jak przed zmianą), `docs test` (279 testów), `docs build` i `docs test:e2e` (37 testów). `contrast.mjs` kończy się exit 0, a `shots.mjs` odświeżył 8 PNG. `grep "v0.9" apps/docs/app apps/docs/lib` zwraca pusto. `packages/tally-charts` bez zmian, więc bez changesetu.
+
+Co zrobiłem:
+- **Wersja:** `SITE.version` w `navigation.ts` to `` `v${pkg.version}` ``. `docHref` przeniosłem do `doc-href.ts`, bo `side-nav.tsx` jest komponentem klienckim i importując z `navigation.ts` wciągnąłby `package.json` do bundla klienta.
+- **Przełącznik:** natywny `<select aria-label="Theme" class="theme-select">` w `theme-switch.tsx`. Początkowo `system`, po mount czyta `data-ch-theme` z `<html>`, więc nie ma mismatchu hydracji.
+- **Logika motywu:** `lib/theme.ts` ma `applyTheme`, `readStoredTheme` i `THEME_SCRIPT` (klucz `tally-docs-theme`). Kolejność to `?theme=` (niczego nie zapisuje), potem localStorage, potem system; nieznane wartości są ignorowane. `layout.tsx` używa `THEME_SCRIPT` w `<head>` zamiast `FORCE_THEME`.
+- **320 px:** poniżej 400 px z headera znikają GitHub i npm (klasa `.header-external`), a wordmark ma `white-space: nowrap`. Bez tego `.menu-button` kończył na 347 px przy viewporcie 320 px.
+- **contrast.mjs:** dodane próbki tekstu i bordera przełącznika, tabela w dokumencie designu odświeżona.
+- **Dokumentacja:** PROGRESS.md ma sekcję T23.1 z decyzjami D1–D5, a CLAUDE.md opis kolejności motywu i klucza localStorage.
+**Decyzje i pułapki:**
+- Komponent kliencki nie może importować z modułu, który importuje package.json lub inne duże dane serwerowe, bo trafią do bundla klienta. Takie helpery trzeba trzymać w osobnym pliku (doc-href.ts).
+- Przed `pnpm --filter docs test:e2e` trzeba sprawdzić `lsof -i :3100`: `pkill -f "next start"` nie zabija procesu next-server, a stary serwer serwuje stary build i daje fałszywe porażki e2e.
+- Dla testu 'przed hydracją' w Playwright MutationObserver w addInitScript trzeba podpiąć do `document` (z `subtree`), bo w momencie init scriptu `documentElement` bywa jeszcze null.
+- contrast.mjs cicho zwraca n/a dla selektorów, które przestały pasować (zmiana markupu), i crashuje dopiero na brakującym 'Body text'. Po zmianach struktury stron warto przejrzeć tabelę pod kątem n/a.
+- Pole `<select>` ma natywną nazwę, stan i obsługę klawiatury; wystarczy `aria-label`, outline z globalnego `:focus-visible` i stylowanie tokenami `--docs-*`.
+**Otwarte kwestie:**
+- Poniżej 400 px strony docs nie mają w headerze linków GitHub i npm; poza headerem są tylko na home (hero i stopka). Do decyzji, czy dodać je np. do panelu nawigacji.
+- contrast.mjs: wiersz 'Small note' (.small) jest n/a, bo ten element jest tylko w bloku PaletteSwatches, którego nie ma na /docs/line-chart.
+- Selektory próbek 'Body text', 'Lede' i znaczników składni w contrast.mjs były nieaktualne po T22 (wrapper .prose, kolory Shiki zamiast data-tok), więc skrypt wcześniej nie kończył się exit 0. Naprawiłem; wiersze 'Syntax: number' i 'Syntax: tag' to teraz 'constant' i 'punctuation'.
+- apps/docs/app/globals.css: Poniżej 400 px GitHub i npm znikają z headera (.header-external { display: none }). Na stronach docs nie ma ich wtedy nigdzie indziej. SPEC:156 mówi, że header pokazuje link do GitHuba i npm, a SPEC:352 (reflow przy 320 px, WCAG 1.4.10) zakłada brak utraty treści. Implementer zapisał to jako otwartą kwestię.
+**Kryteria:**
+- Test vitest importuje packages/tally-charts/package.json i sprawdza, że SITE.version === `v${pkg.version}` oraz że wyrenderowany SiteHeader zawiera ten tekst; w apps/docs nie ma już literału 'v0.9' (grep -rn "v0.9" apps/docs/app apps/docs/lib zwraca pusto)
+- Header zawiera kontrolkę getByRole('combobox', { name: 'Theme' }) z opcjami System/Light/Dark (wartości system|light|dark); stary disabled przycisk theme-toggle jest usunięty
+- Vitest (jsdom): wybór light/dark ustawia data-ch-theme na <html> i localStorage['tally-docs-theme']; wybór system usuwa atrybut i klucz z localStorage
+- Vitest (jsdom) skryptu THEME_SCRIPT: ?theme=dark wygrywa z localStorage=light i nie zmienia storage; ?theme=sepia jest ignorowane i stosuje się wartość z localStorage; localStorage='sepia' nie ustawia atrybutu; brak query i storage nie ustawia atrybutu; wyjątek z localStorage nie przerywa strony
+- layout.tsx używa THEME_SCRIPT inline w <head>; istniejące themeSuite (forced/system × light/dark) i test 'an unknown ?theme= value changes nothing' przechodzą bez zmian logiki
+- E2E: Tab dochodzi do przełącznika motywu, outline-style solid i outline-width > 0
+- E2E: po wyborze dark i reloadzie z zablokowanym **/_next/static/**/*.js <html> ma data-ch-theme='dark', a body ma background-color rgb(18, 18, 21)
+- E2E: wybór dark na / przetrwa przejście linkiem na /docs/line-chart (atrybut dark, ciemne tło, select pokazuje dark); wybór system po reloadzie nie ma atrybutu ani klucza w localStorage
+- E2E: przy viewport 320 i 375 px strony / i /docs/line-chart mają document.documentElement.scrollWidth <= clientWidth
+- contrast.mjs zawiera próbki tekstu i bordera przełącznika motywu i kończy się exit 0 przy działającym pnpm --filter docs start; tabela wklejona do dokumentu designu
+- pnpm --filter docs typecheck, pnpm lint, pnpm --filter docs test, pnpm --filter docs build i pnpm --filter docs test:e2e kończą się exit 0; brak zmian w packages/tally-charts
