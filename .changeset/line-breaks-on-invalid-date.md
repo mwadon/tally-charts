@@ -8,7 +8,8 @@ date in the middle draws two segments instead of one. `Area` also breaks at a mi
 `between` skips a pair that touches a gap. `Line`, `Band` and `Area` now warn once per series on a
 time axis, not once per chart. `LineChart` skips the row as before (it stays out of the tooltip,
 the keyboard and the data table) and breaks every line and the band after the row before it in
-data order.
+data order. With unsorted data that is the row before it in the data, not in date order, so the
+break can fall between two other dates: sort the rows first, or drop the invalid ones.
 
 Also: the highlighted axis label (for example the last column of a `BridgeChart`) now stays when
 the axis thins its labels on a narrow chart.

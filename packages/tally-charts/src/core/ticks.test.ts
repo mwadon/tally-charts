@@ -148,6 +148,20 @@ describe('thinTicks', () => {
       expect(fits(kept, measure)).toBe(true)
     })
 
+    it('pins a lone kept last label to the right edge of its band', () => {
+      // Three 20px bands: even the first and last labels overlap, so only the kept one is left.
+      const bands = Array.from({ length: 3 }, (_, i) => ({
+        value: i,
+        position: i * 20 + 10,
+        label: 'Sep 21',
+        anchor: 'middle' as const,
+        bounds: [i * 20, i * 20 + 20] as const,
+      }))
+      expect(
+        thinTicks(bands, undefined, { keep: 2 }).map((t) => [t.value, t.position, t.anchor]),
+      ).toEqual([[2, 60, 'end']])
+    })
+
     it('ignores an index outside the ticks', () => {
       const ticks = row(9, 40, 'Aug 10')
       expect(thinTicks(ticks, undefined, { keep: 20 })).toEqual(thinTicks(ticks))

@@ -10,7 +10,7 @@ export interface Tick {
   position: number
   label: string
   anchor: TickAnchor
-  /** Start and end of the tick's band, when it has width. See `thinTicks`. */
+  /** Start and end of the tick's band, set by `categoryTicks` with `anchorEnds`. See `thinTicks`. */
   bounds?: readonly [number, number]
 }
 
@@ -51,7 +51,7 @@ export function categoryTicks(
     }
     if (!anchorEnds || domain.length < 2) return tick
     if (bandwidth > 0) {
-      if (spec !== 'ends') return tick
+      if (spec !== 'ends') return { ...tick, bounds: [start, start + bandwidth] }
       return value === first
         ? { ...tick, position: start, anchor: 'start' }
         : { ...tick, position: start + bandwidth, anchor: 'end' }
@@ -113,8 +113,9 @@ export function fits(ticks: readonly Tick[], measure: MeasureTick): boolean {
  *
  * `keep` is the index in `ticks` of a label that must survive, e.g. an emphasized one. At every
  * step it stays and the labels that would overlap it go, except the first, which also stays. The
- * last resorts are the first and the kept label, then the kept label alone. With `keep`, those
- * two are pinned to the outer edges of their bands (`bounds`), where a label has the most room.
+ * last resorts are the first and the kept label, then the kept label alone. With `keep`, the
+ * first and the last label are pinned to the outer edges of their bands (`bounds`), where a label
+ * has the most room, so a lone last label stays inside the plot.
  */
 export function thinTicks(
   ticks: readonly Tick[],
@@ -122,7 +123,8 @@ export function thinTicks(
   { keep }: { keep?: number } = {},
 ): Tick[] {
   if (ticks.length <= 1 || fits(ticks, measure)) return [...ticks]
-  const pinned = keep === undefined ? undefined : ticks[keep]
+  // The first label always stays, so `keep: 0` needs nothing more.
+  const pinned = keep ? ticks[keep] : undefined
   for (let step = 2; step < ticks.length; step *= 2) {
     const kept = ticks.filter(
       (tick, i) =>
@@ -130,19 +132,17 @@ export function thinTicks(
     )
     if (kept.length > 2 && fits(kept, measure)) return kept
   }
-  const first = ticks[0]
-  const last = ticks[ticks.length - 1]
-  if (!first || !last) return []
+  // Two or more ticks here.
+  const first = ticks[0] as Tick
+  const last = ticks[ticks.length - 1] as Tick
   // Without `keep` the labels stay at their band centres, as they always did.
-  const pin = (tick: Tick, anchor: 'start' | 'end'): Tick => ({
+  const pin = (tick: Tick, edge: 0 | 1): Tick => ({
     ...tick,
-    anchor,
-    position:
-      (keep === undefined ? undefined : tick.bounds?.[anchor === 'start' ? 0 : 1]) ?? tick.position,
+    anchor: edge ? 'end' : 'start',
+    position: (keep === undefined ? undefined : tick.bounds?.[edge]) ?? tick.position,
   })
-  const start = pin(first, 'start')
-  const other = pinned && keep !== 0 ? pinned : last
-  const ends: Tick[] = [start, other === last ? pin(last, 'end') : other]
-  if (fits(ends, measure)) return ends
-  return pinned && keep !== 0 ? [pinned] : [start]
+  const start = pin(first, 0)
+  const target = pinned ?? last
+  const end = target === last ? pin(last, 1) : target
+  return fits([start, end], measure) ? [start, end] : [pinned ? end : start]
 }

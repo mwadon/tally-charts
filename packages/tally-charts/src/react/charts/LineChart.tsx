@@ -77,7 +77,8 @@ export type LineChartProps<D> = ChartName &
      * x. A time scale spec with a `field` puts dates on a time axis instead: rows are sorted by
      * date, rows with the same epoch ms are repeats, and point ids are ISO strings. A row whose x
      * is not a date (or missing) is skipped and breaks every line and the band after the row
-     * before it in data order.
+     * before it in data order. On a time axis that row is the one before it in the data, not in
+     * date order: with unsorted data the break can fall between two other dates.
      */
     x: Accessor<D, string | number> | (TimeScaleSpec<D> & { field: Accessor<D, TimeInput> })
     series: readonly LineSeries<D>[]
@@ -137,7 +138,7 @@ interface LineRow<D> {
   low: number
   high: number
   /** A skipped row followed this one in data order: the lines and the band break after it. */
-  gapAfter: boolean
+  gapAfter?: boolean
 }
 
 const MARGIN: Margin = { top: 24, right: 16, bottom: 32, left: 44 }
@@ -256,7 +257,6 @@ export function LineChart<D>({
     const getLow = band ? resolveAccessor(band.low) : undefined
     const getHigh = band ? resolveAccessor(band.high) : undefined
     const seen = new Set<string>()
-    // The last row kept so far, in data order: a skipped row breaks the lines after it.
     let previous: LineRow<D> | undefined
     const all = data.flatMap((d, i): LineRow<D>[] => {
       const raw = getX(d, i)
@@ -297,7 +297,6 @@ export function LineChart<D>({
         values: getters.map((get) => toNumber(get(d, i))),
         low: getLow ? toNumber(getLow(d, i)) : Number.NaN,
         high: getHigh ? toNumber(getHigh(d, i)) : Number.NaN,
-        gapAfter: false,
       }
       previous = row
       return [row]
@@ -322,24 +321,10 @@ export function LineChart<D>({
     return (row) => date(row.time)
   }, [xAxisFormat, timeX, rows, locale, zone])
   const labelled = useMemo(() => rows.map((r) => ({ ...r, label: xLabel(r) })), [rows, xLabel])
-  // What the lines and the band draw: `labelled`, with a row of NaN values after each row that
-  // precedes a skipped one. It has a valid x, so the marks don't warn, and its NaN breaks the path.
-  const drawn = useMemo(
-    () =>
-      labelled.flatMap((row) =>
-        row.gapAfter
-          ? [
-              row,
-              {
-                ...row,
-                values: row.values.map(() => Number.NaN),
-                low: Number.NaN,
-                high: Number.NaN,
-              },
-            ]
-          : [row],
-      ),
-    [labelled],
+  // What the lines and the band draw: `labelled`, with a row of NaN values after each row that a
+  // skipped one followed. It has a valid x, so the marks don't warn, and its NaN breaks the path.
+  const drawn = labelled.flatMap((row) =>
+    row.gapAfter ? [row, { ...row, values: [], low: Number.NaN }] : [row],
   )
 
   const targetSpec = typeof target === 'number' ? { value: target } : target
