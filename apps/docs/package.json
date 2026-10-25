@@ -3,7 +3,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "gen": "node scripts/gen-examples.mjs && node scripts/gen-api.mjs",
+    "gen": "node scripts/gen-examples.mjs && node scripts/gen-api.mjs && node scripts/gen-tokens.mjs",
     "dev": "pnpm gen && next dev -p 3000",
     "build": "pnpm gen && next build",
     "start": "next start -p 3100",

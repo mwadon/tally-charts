@@ -644,6 +644,73 @@ tbody th {
   padding: 0;
 }
 
+/* ---------- Block errors, tokens and palettes ---------- */
+/* Shown outside production when a block points at an id that is not in the registry. */
+.block-error {
+  margin: 0 0 1rem;
+  padding: 0.75rem 1rem;
+  border: 2px solid color-mix(in srgb, var(--ch-loss) 70%, var(--ch-ink));
+  border-radius: var(--docs-radius);
+  background: var(--docs-raised);
+  color: var(--ch-ink);
+}
+
+.token-value {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.token-swatch,
+.swatch {
+  flex: none;
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 1px solid var(--docs-control-border);
+  border-radius: calc(var(--docs-radius) / 2);
+}
+
+.swatches {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+  gap: 0.75rem;
+  margin: 0 0 1rem;
+  padding: 0;
+  list-style: none;
+}
+
+.swatches > li {
+  padding: 0.75rem;
+  border: 1px solid var(--docs-line);
+  border-radius: var(--docs-radius);
+  background: var(--docs-raised);
+}
+
+.swatch-name {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.swatches dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.25rem 0.75rem;
+  margin: 0;
+}
+
+.swatches dt {
+  color: var(--docs-muted);
+}
+
+.swatches dd {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.5rem;
+  margin: 0;
+}
+
 /* ---------- Home ---------- */
 .home {
   max-width: 72rem;

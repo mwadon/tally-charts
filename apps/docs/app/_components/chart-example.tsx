@@ -9,11 +9,22 @@ interface ChartExampleProps {
   preview: ReactNode
   /** The source of the example, as a (static) code block. */
   code: ReactNode
+  /** The view shown first. Default `'preview'`. */
+  defaultView?: 'preview' | 'code'
+  /** Minimum height of both panels in px. Default: the stylesheet's (18rem). */
+  height?: number
 }
 
 /** A live chart with a Preview / Code toggle. Both panels keep the same height. */
-export function ChartExample({ title, preview, code }: ChartExampleProps) {
-  const [view, setView] = useState<'preview' | 'code'>('preview')
+export function ChartExample({
+  title,
+  preview,
+  code,
+  defaultView = 'preview',
+  height,
+}: ChartExampleProps) {
+  const [view, setView] = useState<'preview' | 'code'>(defaultView)
+  const panelStyle = height === undefined ? undefined : { minHeight: height }
   const previewId = useId()
   const codeId = useId()
 
@@ -41,10 +52,15 @@ export function ChartExample({ title, preview, code }: ChartExampleProps) {
           </button>
         </fieldset>
       </div>
-      <div id={previewId} className="chart-example-panel" hidden={view !== 'preview'}>
+      <div
+        id={previewId}
+        className="chart-example-panel"
+        style={panelStyle}
+        hidden={view !== 'preview'}
+      >
         {preview}
       </div>
-      <div id={codeId} className="chart-example-panel" hidden={view !== 'code'}>
+      <div id={codeId} className="chart-example-panel" style={panelStyle} hidden={view !== 'code'}>
         {code}
       </div>
     </div>
