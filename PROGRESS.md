@@ -1594,3 +1594,26 @@ Dodałem strony WaterfallChart i BridgeChart w grupie Charts. Zmiany zostają w 
 **Bramki:** `pnpm build`, `docs test` (562), `docs typecheck`, `pnpm lint` (kod 0, 5 ostrzeżeń i 1 info jak wcześniej), `check:content` (0 błędów, `API coverage: 46/52`, brakuje DotHistogram, Heatmap, RunwayChart, StripPlot, WaffleColumns, runwayForecast), `docs build`, `docs test:e2e` (233, bez update, port 3100 wolny) przeszły. `git diff --stat -- packages apps/storybook apps/docs/e2e/__screenshots__` jest pusty.
 
 **Podsumowanie T29:** 5 stron (bar-chart, comparison-bars, ranked-bars, waterfall-chart, bridge-chart), pokrycie API 42→44→46/52. Pozostałe 6 symboli (T30–T31): DotHistogram, Heatmap, RunwayChart, StripPlot, WaffleColumns, runwayForecast.
+
+## ✔ T29.2 Strony waterfall-chart i bridge-chart (2026-10-25)
+Dodałem strony waterfall-chart i bridge-chart w grupie Charts, z 4 nowymi przykładami, dwiema fiksturkami JSON i dwiema specyfikacjami e2e. Wszystkie bramki z taska przechodzą: build, docs test (562), typecheck, lint, check:content, docs build, docs test:e2e (233, bez update snapshotów). `check:content` kończy się kodem 0 i podaje `API coverage: 46/52`. Brakuje dokładnie DotHistogram, Heatmap, RunwayChart, StripPlot, WaffleColumns i runwayForecast. `git diff --stat -- packages apps/storybook apps/docs/e2e/__screenshots__` jest pusty. Zmiany zostają w drzewie roboczym, bez commitów i bez changesetu.
+**Decyzje i pułapki:**
+- PropsTable komponentu podpisuje region 'Props of X', a 'Parameters of X' mają tylko funkcje i hooki, więc e2e wykresów szukają 'Props of'. To odstępstwo od brzmienia backlogu zapisałem w PROGRESS.md.
+- Fiksturki stron wykresów generowałem skryptem z jednego szablonu (prose, heading, code-block, chart-example, props-table). To ogranicza ryzyko błędów w JSON-ie.
+- Pozostały 6 symboli do pokrycia (T30–T31): DotHistogram, Heatmap, RunwayChart, StripPlot, WaffleColumns, runwayForecast.
+**Otwarte kwestie:**
+- Liczby w ręcznie pisanych description przykładów sprawdziłem ręcznie. Nic tego nie pilnuje automatycznie.
+- Prose o zapowiedzi start i end waterfalla ('1 of 7, Target, 38.0%') wynika z kodu ariaOf w WaterfallChart.tsx, a nie z tabeli a11y.md. Warto to potwierdzić ręcznym przejściem czytnikiem.
+- 5 ostrzeżeń i 1 info lintu bez zmian względem poprzednich tasków. Nie sprawdzałem, skąd pochodzą.
+**Kryteria:**
+- Istnieją ≥2 pliki apps/docs/examples/waterfall-chart/*.tsx i ≥2 apps/docs/examples/bridge-chart/*.tsx z `meta` jako literałami (id = '<slug>/<nazwa>'). Jeden waterfall używa presetu `format`, drugi `stepLabel` jako funkcji i ma 'use client' oraz rscSafe: false. Jeden bridge ma `note` na krokach, drugi `callout` albo `highlightLast={false}`. Przykłady bez funkcji w propsach mają rscSafe: true. Dane i tytuły różnią się od reference/01-gross-margin-waterfall i reference/04-profit-bridge.
+- examples/registry.test.ts, render.test.tsx (svg, bez console.error) i ssr.test.tsx przechodzą dla nowych przykładów.
+- content/waterfall-chart.json i bridge-chart.json przechodzą content/fixtures.test.ts (schemat, unikalne id i anchory). Każda ma ≥2 chart-example z nowymi id, props-table z symbolem WaterfallChart/BridgeChart oraz headingi level '2' „When to use it” i „Keyboard and screen readers”.
+- „When to use it” rozróżnia oba wykresy: waterfall to poziome kroki zmian od startu do wyliczonego końca, bridge to kolumny sum bieżących. Strony linkują do siebie przez /docs/<slug>.
+- „Keyboard and screen readers” opisuje jeden tab stop, strzałki, Home/End, Enter/Space z onSelect i Escape, a zapowiedź podaje w formacie z tabeli docs/a11y.md (waterfall: '…, running total …', bridge: '…, −$260 discount') oraz ukrytą tabelę danych. Bridge ma też uwagę, że callout jest niewidoczny dla czytnika.
+- content/fixtures.test.ts oczekuje kolejności …, bar-chart, comparison-bars, ranked-bars, waterfall-chart, bridge-chart, line-chart, composition, small-pieces, hooks-and-providers, a nazwa testu jest zaktualizowana.
+- lib/content/check.test.ts przy --require-coverage i przy CHECK_CONTENT_REQUIRE_COVERAGE=1 oczekuje 'API coverage: DotHistogram (component) has no PropsTable' i przechodzi.
+- e2e/waterfall-chart.spec.ts i bridge-chart.spec.ts: themeSuite (h1 = nazwa komponentu, chart = unikalny title), status 200, link w sidebarze z href /docs/<slug>, aria-current="page", bez .nav-soon, dokładnie 1 region 'Props of WaterfallChart' / 'Props of BridgeChart' (exact: true). Komponenty mają podpis „Props of”, nie „Parameters of”, zgodnie z decyzją z T29.1.
+- Po pnpm build `pnpm --filter docs check:content` kończy się kodem 0 i wypisuje `API coverage: 46/52`, a brakują dokładnie DotHistogram, Heatmap, RunwayChart, StripPlot, WaffleColumns i runwayForecast.
+- pnpm --filter docs test, pnpm --filter docs typecheck, pnpm lint, pnpm --filter docs build i pnpm --filter docs test:e2e (darwin, bez --update-snapshots, port 3100 wolny) kończą się kodem 0. `git diff --stat -- packages apps/storybook apps/docs/e2e/__screenshots__` jest pusty.
+- PROGRESS.md ma sekcję T29.2 z decyzjami (rscSafe, „Props of”, różnice wobec reference/01 i 04) i podsumowanie T29: 5 stron, pokrycie 42→46/52 i lista 6 pozostałych symboli.
