@@ -197,29 +197,6 @@ Domyślny fill w RankedBars to teraz 'solid' (kod `fill ?? 'solid'` i TSDoc "Def
 ## ✔ T06 LineChart: prop underlay pod seriami (F2) — domknięty w Q1-01
 Domknięcie: patrz sekcja Q1-01 (kod i baseline'y linux weszły na main przez port łatek).
 Poprawiłem uwagę minor z review: opis dostępności story LineChart podawał „about 62” na koniec serii, a dane dają około 67, więc jest „about 67”. Piksele się nie zmieniają. Dopisałem też do PROGRESS.md (sekcja T06) stan próby 3 z Dockerem. Nie udało mi się wygenerować baseline'ów linux `charts-linechart--underlay-{light,dark}.png`. Dopóki ich nie będzie, job `e2e` na CI padnie na tych 2 stories. Docker Desktop nadal zwraca `input/output error`: `docker info` pokazuje błąd na blobie w `/var/lib/desktop-containerd`, a `docker pull mcr.microsoft.com/playwright:v1.64.0-noble` pada na zapisie `meta.db`. Wolnego miejsca na dysku jest już 2,2 GiB, więc to nie sam brak miejsca. Uszkodzony jest wewnętrzny store Dockera. Naprawa to restart albo reset danych Docker Desktop, który kasuje obrazy i kontenery właściciela, więc tego nie robiłem. Linuxa nie generowałem inną drogą, zgodnie z planem. Po zmianie przeszły `pnpm format`, `pnpm lint` (te same 4 ostrzeżenia i 1 info) i `pnpm typecheck`. Testów, buildu i e2e nie uruchamiałem ponownie, bo zmiana dotyczy tylko tekstu opisu story i PROGRESS.md. Po poprzedniej próbie przechodziły test (1044), build, `api:check`, size, `check:dev-strip` i e2e na darwin (313).
-## ✔ T30.1 Strony dot-histogram, strip-plot i waffle-columns (2026-10-25)
-Dodałem strony DotHistogram, StripPlot i WaffleColumns w grupie Charts: 6 przykładów, 3 fiksturki JSON i 3 specyfikacje e2e. Zmiany zostają w drzewie roboczym, bez commitów i bez changesetu (packages bez zmian).
-
-- **Przykłady:**
-  - `dot-histogram/first-reply-times` (accessory-stringi, `binWidth`, `domain`, `target`, `format="hours"`, rscSafe: true). 42 zgłoszenia, 35 w celu 4 h, 7 dłużej, najdłużej 9,4 h.
-  - `dot-histogram/invoice-days-overdue` (`toneBy={thresholds([15, 30, 60], …)}` + `Legend`, 'use client', rscSafe: false). 56 faktur: 18 / 14 / 16 / 8 w czterech pasmach, najstarsza 95 dni.
-  - `strip-plot/delivery-days` (2 serie z `value` jako string, `domain`, `axis`, rscSafe: true). 24 zamówienia, mediana obietnicy 3 dni, dostawy 4, 16 spóźnionych.
-  - `strip-plot/exam-attempts` (3 serie z tonami, `median={false}`, `domain`, `radius`, `rowHeight`, `labelWidth`, rscSafe: true). 18 studentów, wyniki 51–76, 59–86, 63–93.
-  - `waffle-columns/weekly-signups` (`group`, domyślny `callout`, `unit`, rscSafe: true). 9 tygodni, szczyt 1180 (Aug 10), lipiec 1770, sierpień 3380.
-  - `waffle-columns/warranty-claims` (`groupTone` i `callout` jako funkcje, 'use client', rscSafe: false). Kwartały 131 / 151 / 184 / 248, szczyt październik 91.
-- **Podział rscSafe:** `toneBy` z `thresholds()` ma metody (decyzja T25/T28.3), a `groupTone` i `callout` to funkcje, więc `invoice-days-overdue` i `warranty-claims` są 'use client' z `rscSafe: false`. Pozostałe cztery mają serializowalne propsy (accessory-stringi, `series` z `value: 'pole'`) i `rscSafe: true`.
-- **Różnice wobec istniejących przykładów:** inne dziedziny, tytuły i dane niż reference/02 (marża zleceń), reference/05 (waffle „Profit leaked by week”, tygodnie sierpnia–września), reference/06 (godziny: szacunek vs rzeczywistość) i thresholds/zones-and-dots (LCP). Plan wskazywał reference/09 dla waffle, ale WaffleColumns jest w reference/05; porównałem z nim.
-- **„Props of” zamiast „Parameters of”:** e2e szuka regionu `Props of <Komponent>` (`exact: true`), jak w T29 (decyzja T29.1).
-- **Rozróżnienie wykresów** („When to use it”, każda strona linkuje do dwóch pozostałych): DotHistogram to rozkład jednej wartości, każdy element to kropka w stosie binu, kolor z progów; StripPlot to te same elementy w kilku wierszach-miarach z medianą; WaffleColumns to suma okresu liczona kropkami, szczyt wyróżniony, grupy okresów.
-- **Zapowiedzi i tabele:** zapowiedzi cytowane z tabeli `docs/a11y.md` („Critical, 1 of 6, #5600, 3.1%”, „Estimated, 1 of 29, #5900, 5.2 h”, „1 of 8, Aug 3, $9.8K”). Nagłówki ukrytych tabel według kodu: DotHistogram Item/Value (z nazwy pola, gdy `label` i `value` to stringi, czyli w przykładach Ticket/Hours) i Group tylko przy `thresholds()`; StripPlot kolumna Item plus kolumna na serię; WaffleColumns Period/Value (z `x` i `y`) i Group z `group`. Waffle opisuje też, że pill `callout` jest `aria-hidden`, a miękkie kropki są dekoracyjne.
-- **E2e:** `dot-histogram.spec.ts`, `strip-plot.spec.ts`, `waffle-columns.spec.ts` (themeSuite, 200, link w sidebarze z `aria-current`, bez `.nav-soon`, 1 region `Props of …`, oba przykłady jako `application` o nazwie z title).
-- **Testy:** `content/fixtures.test.ts` (kolejność: …, bridge-chart, dot-histogram, strip-plot, waffle-columns, line-chart, …); `lib/content/check.test.ts` oczekuje `API coverage: Heatmap (component) has no PropsTable`.
-- **Pokrycie API:** 46→49/52. Brakuje dokładnie Heatmap, RunwayChart i runwayForecast.
-
-**Bramki:** `pnpm build`, `docs test` (620), `docs typecheck`, `pnpm lint` (kod 0, 5 ostrzeżeń i 1 info jak wcześniej), `check:content` (0 błędów, `API coverage: 49/52`), `docs build`, `docs test:e2e` (263, bez update, port 3100 wolny; home-visual bez zmian) przeszły. `git diff --stat -- packages apps/storybook apps/docs/e2e/__screenshots__` jest pusty.
-
-**Otwarte kwestie:** liczby w description przykładów (liczności, mediany, sumy) policzyłem skryptem i ręcznie, nic ich nie pilnuje automatycznie.
-
 Ostatnie uwagi: zobacz .crew/backlog.json (lastNote).
 
 ## T07 Wymagana nazwa wykresu w typach: title albo aria-labelledby (F3)
@@ -284,29 +261,6 @@ W tej próbie zmieniłem dwie rzeczy:
 - W PROGRESS.md zdjąłem znacznik ⛔ i „ZABLOKOWANY”. Nagłówek T06 mówi teraz „do domknięcia: baseline'y linux (Docker)”. Wpis D4 opisuje powrót do 13 KB.
 
 Co przeszło: `pnpm format`, `pnpm lint` (4 ostrzeżenia i 1 info jak wcześniej), `pnpm typecheck`, `pnpm test` (1055), `pnpm build`, `api:check`, `pnpm size`, `check:dev-strip`. `pnpm test:e2e` na darwin przechodzi bez aktualizacji snapshotów (313), port 6007 był wolny. W katalogu darwin są 2 nowe PNG underlay, a istniejące PNG się nie zmieniły. W drzewie roboczym są tylko zmiany w `.size-limit.json`, `LineChart.tsx` i `PROGRESS.md`.
-## ✔ T30.1 Strony dot-histogram, strip-plot i waffle-columns (2026-10-25)
-Dodałem strony DotHistogram, StripPlot i WaffleColumns w grupie Charts: 6 przykładów, 3 fiksturki JSON i 3 specyfikacje e2e. Zmiany zostają w drzewie roboczym, bez commitów i bez changesetu (packages bez zmian).
-
-- **Przykłady:**
-  - `dot-histogram/first-reply-times` (accessory-stringi, `binWidth`, `domain`, `target`, `format="hours"`, rscSafe: true). 42 zgłoszenia, 35 w celu 4 h, 7 dłużej, najdłużej 9,4 h.
-  - `dot-histogram/invoice-days-overdue` (`toneBy={thresholds([15, 30, 60], …)}` + `Legend`, 'use client', rscSafe: false). 56 faktur: 18 / 14 / 16 / 8 w czterech pasmach, najstarsza 95 dni.
-  - `strip-plot/delivery-days` (2 serie z `value` jako string, `domain`, `axis`, rscSafe: true). 24 zamówienia, mediana obietnicy 3 dni, dostawy 4, 16 spóźnionych.
-  - `strip-plot/exam-attempts` (3 serie z tonami, `median={false}`, `domain`, `radius`, `rowHeight`, `labelWidth`, rscSafe: true). 18 studentów, wyniki 51–76, 59–86, 63–93.
-  - `waffle-columns/weekly-signups` (`group`, domyślny `callout`, `unit`, rscSafe: true). 9 tygodni, szczyt 1180 (Aug 10), lipiec 1770, sierpień 3380.
-  - `waffle-columns/warranty-claims` (`groupTone` i `callout` jako funkcje, 'use client', rscSafe: false). Kwartały 131 / 151 / 184 / 248, szczyt październik 91.
-- **Podział rscSafe:** `toneBy` z `thresholds()` ma metody (decyzja T25/T28.3), a `groupTone` i `callout` to funkcje, więc `invoice-days-overdue` i `warranty-claims` są 'use client' z `rscSafe: false`. Pozostałe cztery mają serializowalne propsy (accessory-stringi, `series` z `value: 'pole'`) i `rscSafe: true`.
-- **Różnice wobec istniejących przykładów:** inne dziedziny, tytuły i dane niż reference/02 (marża zleceń), reference/05 (waffle „Profit leaked by week”, tygodnie sierpnia–września), reference/06 (godziny: szacunek vs rzeczywistość) i thresholds/zones-and-dots (LCP). Plan wskazywał reference/09 dla waffle, ale WaffleColumns jest w reference/05; porównałem z nim.
-- **„Props of” zamiast „Parameters of”:** e2e szuka regionu `Props of <Komponent>` (`exact: true`), jak w T29 (decyzja T29.1).
-- **Rozróżnienie wykresów** („When to use it”, każda strona linkuje do dwóch pozostałych): DotHistogram to rozkład jednej wartości, każdy element to kropka w stosie binu, kolor z progów; StripPlot to te same elementy w kilku wierszach-miarach z medianą; WaffleColumns to suma okresu liczona kropkami, szczyt wyróżniony, grupy okresów.
-- **Zapowiedzi i tabele:** zapowiedzi cytowane z tabeli `docs/a11y.md` („Critical, 1 of 6, #5600, 3.1%”, „Estimated, 1 of 29, #5900, 5.2 h”, „1 of 8, Aug 3, $9.8K”). Nagłówki ukrytych tabel według kodu: DotHistogram Item/Value (z nazwy pola, gdy `label` i `value` to stringi, czyli w przykładach Ticket/Hours) i Group tylko przy `thresholds()`; StripPlot kolumna Item plus kolumna na serię; WaffleColumns Period/Value (z `x` i `y`) i Group z `group`. Waffle opisuje też, że pill `callout` jest `aria-hidden`, a miękkie kropki są dekoracyjne.
-- **E2e:** `dot-histogram.spec.ts`, `strip-plot.spec.ts`, `waffle-columns.spec.ts` (themeSuite, 200, link w sidebarze z `aria-current`, bez `.nav-soon`, 1 region `Props of …`, oba przykłady jako `application` o nazwie z title).
-- **Testy:** `content/fixtures.test.ts` (kolejność: …, bridge-chart, dot-histogram, strip-plot, waffle-columns, line-chart, …); `lib/content/check.test.ts` oczekuje `API coverage: Heatmap (component) has no PropsTable`.
-- **Pokrycie API:** 46→49/52. Brakuje dokładnie Heatmap, RunwayChart i runwayForecast.
-
-**Bramki:** `pnpm build`, `docs test` (620), `docs typecheck`, `pnpm lint` (kod 0, 5 ostrzeżeń i 1 info jak wcześniej), `check:content` (0 błędów, `API coverage: 49/52`), `docs build`, `docs test:e2e` (263, bez update, port 3100 wolny; home-visual bez zmian) przeszły. `git diff --stat -- packages apps/storybook apps/docs/e2e/__screenshots__` jest pusty.
-
-**Otwarte kwestie:** liczby w description przykładów (liczności, mediany, sumy) policzyłem skryptem i ręcznie, nic ich nie pilnuje automatycznie.
-
 Ostatnie uwagi: zobacz .crew/backlog.json (lastNote).
 
 ## T08 Podpowiedź „Press Enter to select” tylko na wybieralnych punktach (F4)
@@ -395,29 +349,6 @@ Wyniki bramek:
 
 ## ✔ T09.2 ZoneMeter: baseline wizualny przy 320 px (darwin + linux) — domknięty w Q1-01
 Domknięcie: patrz sekcja Q1-01 (baseline linux wygenerowany, gdy Docker znów działał). Poniżej historia blokady: task był ZABLOKOWANY na części linux. Nie powstał `linux/primitives-small-pieces--edge-cases.png`, więc job `e2e` w CI padnie na brakującym baseline'ie. Część darwin i zmiany w kodzie są gotowe i zacommitowane w poprzednich próbach: story w STORIES, mapa VIEWPORTS z wpisem 320×640, usunięty duplikat axe, poprawione komentarze, darwin PNG 320×640. W tej próbie ponowiłem `docker image ls` i `docker pull mcr.microsoft.com/playwright:v1.64.0-noble`. Oba padły z `input/output error` w store Docker Desktop (`blob sha256:dc2d74b2…` i `meta.db`). Nie resetowałem Docker Desktop i nie generowałem linuxa inną drogą. Doprecyzowałem treść błędu w sekcji T09.2 w PROGRESS.md, jedynej zmianie w drzewie roboczym w tej próbie. Defekt ZoneMeter z uwagi minor dopisałem do pamięciowego backlogu 1.0 (`tally-charts-1-0-backlog.md`, poza repo).
-## ✔ T30.1 Strony dot-histogram, strip-plot i waffle-columns (2026-10-25)
-Dodałem strony DotHistogram, StripPlot i WaffleColumns w grupie Charts: 6 przykładów, 3 fiksturki JSON i 3 specyfikacje e2e. Zmiany zostają w drzewie roboczym, bez commitów i bez changesetu (packages bez zmian).
-
-- **Przykłady:**
-  - `dot-histogram/first-reply-times` (accessory-stringi, `binWidth`, `domain`, `target`, `format="hours"`, rscSafe: true). 42 zgłoszenia, 35 w celu 4 h, 7 dłużej, najdłużej 9,4 h.
-  - `dot-histogram/invoice-days-overdue` (`toneBy={thresholds([15, 30, 60], …)}` + `Legend`, 'use client', rscSafe: false). 56 faktur: 18 / 14 / 16 / 8 w czterech pasmach, najstarsza 95 dni.
-  - `strip-plot/delivery-days` (2 serie z `value` jako string, `domain`, `axis`, rscSafe: true). 24 zamówienia, mediana obietnicy 3 dni, dostawy 4, 16 spóźnionych.
-  - `strip-plot/exam-attempts` (3 serie z tonami, `median={false}`, `domain`, `radius`, `rowHeight`, `labelWidth`, rscSafe: true). 18 studentów, wyniki 51–76, 59–86, 63–93.
-  - `waffle-columns/weekly-signups` (`group`, domyślny `callout`, `unit`, rscSafe: true). 9 tygodni, szczyt 1180 (Aug 10), lipiec 1770, sierpień 3380.
-  - `waffle-columns/warranty-claims` (`groupTone` i `callout` jako funkcje, 'use client', rscSafe: false). Kwartały 131 / 151 / 184 / 248, szczyt październik 91.
-- **Podział rscSafe:** `toneBy` z `thresholds()` ma metody (decyzja T25/T28.3), a `groupTone` i `callout` to funkcje, więc `invoice-days-overdue` i `warranty-claims` są 'use client' z `rscSafe: false`. Pozostałe cztery mają serializowalne propsy (accessory-stringi, `series` z `value: 'pole'`) i `rscSafe: true`.
-- **Różnice wobec istniejących przykładów:** inne dziedziny, tytuły i dane niż reference/02 (marża zleceń), reference/05 (waffle „Profit leaked by week”, tygodnie sierpnia–września), reference/06 (godziny: szacunek vs rzeczywistość) i thresholds/zones-and-dots (LCP). Plan wskazywał reference/09 dla waffle, ale WaffleColumns jest w reference/05; porównałem z nim.
-- **„Props of” zamiast „Parameters of”:** e2e szuka regionu `Props of <Komponent>` (`exact: true`), jak w T29 (decyzja T29.1).
-- **Rozróżnienie wykresów** („When to use it”, każda strona linkuje do dwóch pozostałych): DotHistogram to rozkład jednej wartości, każdy element to kropka w stosie binu, kolor z progów; StripPlot to te same elementy w kilku wierszach-miarach z medianą; WaffleColumns to suma okresu liczona kropkami, szczyt wyróżniony, grupy okresów.
-- **Zapowiedzi i tabele:** zapowiedzi cytowane z tabeli `docs/a11y.md` („Critical, 1 of 6, #5600, 3.1%”, „Estimated, 1 of 29, #5900, 5.2 h”, „1 of 8, Aug 3, $9.8K”). Nagłówki ukrytych tabel według kodu: DotHistogram Item/Value (z nazwy pola, gdy `label` i `value` to stringi, czyli w przykładach Ticket/Hours) i Group tylko przy `thresholds()`; StripPlot kolumna Item plus kolumna na serię; WaffleColumns Period/Value (z `x` i `y`) i Group z `group`. Waffle opisuje też, że pill `callout` jest `aria-hidden`, a miękkie kropki są dekoracyjne.
-- **E2e:** `dot-histogram.spec.ts`, `strip-plot.spec.ts`, `waffle-columns.spec.ts` (themeSuite, 200, link w sidebarze z `aria-current`, bez `.nav-soon`, 1 region `Props of …`, oba przykłady jako `application` o nazwie z title).
-- **Testy:** `content/fixtures.test.ts` (kolejność: …, bridge-chart, dot-histogram, strip-plot, waffle-columns, line-chart, …); `lib/content/check.test.ts` oczekuje `API coverage: Heatmap (component) has no PropsTable`.
-- **Pokrycie API:** 46→49/52. Brakuje dokładnie Heatmap, RunwayChart i runwayForecast.
-
-**Bramki:** `pnpm build`, `docs test` (620), `docs typecheck`, `pnpm lint` (kod 0, 5 ostrzeżeń i 1 info jak wcześniej), `check:content` (0 błędów, `API coverage: 49/52`), `docs build`, `docs test:e2e` (263, bez update, port 3100 wolny; home-visual bez zmian) przeszły. `git diff --stat -- packages apps/storybook apps/docs/e2e/__screenshots__` jest pusty.
-
-**Otwarte kwestie:** liczby w description przykładów (liczności, mediany, sumy) policzyłem skryptem i ręcznie, nic ich nie pilnuje automatycznie.
-
 Ostatnie uwagi: zobacz .crew/backlog.json (lastNote).
 
 ## T10 Niepoprawna data w serii przerywa linię; thinTicks zachowuje wyróżniony tick (F6)
@@ -755,29 +686,6 @@ Naprawiłem blocker z review: release.yml używa teraz changesets/action@v2 zami
 
 ## ⛔ T17 [MAINTAINER] Konfiguracja npm trusted publisher, environment npm-publish, deprecate 0.0.0-stage — ZABLOKOWANY
 Bramka T17 [MAINTAINER] pozostaje OTWARTA, bo kroki wymagają maintainera. Ponownie sprawdziłem stan komendami tylko do odczytu (2026-10-25) i nic się nie zmieniło. `npm view tally-charts@0.0.0-stage deprecated` jest puste. `gh api .../environments` zwraca total_count 0, a `environments/npm-publish` zwraca 404. `can_approve_pull_request_reviews` = false. `gh secret list` jest puste (brak NPM_TOKEN i NODE_AUTH_TOKEN), a `gh secret list --env npm-publish` zwraca 404, bo environment nie istnieje. W PROGRESS.md sekcja T17 była już kompletna: jawne „Gate OTWARTY, potwierdzenie niezapisane”, stan zastany, odnośnik do docs/releasing.md §9, checklista, komendy weryfikacyjne, format linii zamykającej i reguła ✔. W tej próbie zmieniłem tylko nagłówek i zdanie podsumowujące ponownego sprawdzenia (po drugim review). Nie wykonałem żadnych zmian zewnętrznych i niczego nie potwierdziłem za maintainera. `git status` pokazuje tylko PROGRESS.md. `pnpm check:workflows` przechodzi. `pnpm lint` kończy się kodem 0 (4 ostrzeżenia, 1 info, nieprzypisane do tej zmiany).
-## ✔ T30.1 Strony dot-histogram, strip-plot i waffle-columns (2026-10-25)
-Dodałem strony DotHistogram, StripPlot i WaffleColumns w grupie Charts: 6 przykładów, 3 fiksturki JSON i 3 specyfikacje e2e. Zmiany zostają w drzewie roboczym, bez commitów i bez changesetu (packages bez zmian).
-
-- **Przykłady:**
-  - `dot-histogram/first-reply-times` (accessory-stringi, `binWidth`, `domain`, `target`, `format="hours"`, rscSafe: true). 42 zgłoszenia, 35 w celu 4 h, 7 dłużej, najdłużej 9,4 h.
-  - `dot-histogram/invoice-days-overdue` (`toneBy={thresholds([15, 30, 60], …)}` + `Legend`, 'use client', rscSafe: false). 56 faktur: 18 / 14 / 16 / 8 w czterech pasmach, najstarsza 95 dni.
-  - `strip-plot/delivery-days` (2 serie z `value` jako string, `domain`, `axis`, rscSafe: true). 24 zamówienia, mediana obietnicy 3 dni, dostawy 4, 16 spóźnionych.
-  - `strip-plot/exam-attempts` (3 serie z tonami, `median={false}`, `domain`, `radius`, `rowHeight`, `labelWidth`, rscSafe: true). 18 studentów, wyniki 51–76, 59–86, 63–93.
-  - `waffle-columns/weekly-signups` (`group`, domyślny `callout`, `unit`, rscSafe: true). 9 tygodni, szczyt 1180 (Aug 10), lipiec 1770, sierpień 3380.
-  - `waffle-columns/warranty-claims` (`groupTone` i `callout` jako funkcje, 'use client', rscSafe: false). Kwartały 131 / 151 / 184 / 248, szczyt październik 91.
-- **Podział rscSafe:** `toneBy` z `thresholds()` ma metody (decyzja T25/T28.3), a `groupTone` i `callout` to funkcje, więc `invoice-days-overdue` i `warranty-claims` są 'use client' z `rscSafe: false`. Pozostałe cztery mają serializowalne propsy (accessory-stringi, `series` z `value: 'pole'`) i `rscSafe: true`.
-- **Różnice wobec istniejących przykładów:** inne dziedziny, tytuły i dane niż reference/02 (marża zleceń), reference/05 (waffle „Profit leaked by week”, tygodnie sierpnia–września), reference/06 (godziny: szacunek vs rzeczywistość) i thresholds/zones-and-dots (LCP). Plan wskazywał reference/09 dla waffle, ale WaffleColumns jest w reference/05; porównałem z nim.
-- **„Props of” zamiast „Parameters of”:** e2e szuka regionu `Props of <Komponent>` (`exact: true`), jak w T29 (decyzja T29.1).
-- **Rozróżnienie wykresów** („When to use it”, każda strona linkuje do dwóch pozostałych): DotHistogram to rozkład jednej wartości, każdy element to kropka w stosie binu, kolor z progów; StripPlot to te same elementy w kilku wierszach-miarach z medianą; WaffleColumns to suma okresu liczona kropkami, szczyt wyróżniony, grupy okresów.
-- **Zapowiedzi i tabele:** zapowiedzi cytowane z tabeli `docs/a11y.md` („Critical, 1 of 6, #5600, 3.1%”, „Estimated, 1 of 29, #5900, 5.2 h”, „1 of 8, Aug 3, $9.8K”). Nagłówki ukrytych tabel według kodu: DotHistogram Item/Value (z nazwy pola, gdy `label` i `value` to stringi, czyli w przykładach Ticket/Hours) i Group tylko przy `thresholds()`; StripPlot kolumna Item plus kolumna na serię; WaffleColumns Period/Value (z `x` i `y`) i Group z `group`. Waffle opisuje też, że pill `callout` jest `aria-hidden`, a miękkie kropki są dekoracyjne.
-- **E2e:** `dot-histogram.spec.ts`, `strip-plot.spec.ts`, `waffle-columns.spec.ts` (themeSuite, 200, link w sidebarze z `aria-current`, bez `.nav-soon`, 1 region `Props of …`, oba przykłady jako `application` o nazwie z title).
-- **Testy:** `content/fixtures.test.ts` (kolejność: …, bridge-chart, dot-histogram, strip-plot, waffle-columns, line-chart, …); `lib/content/check.test.ts` oczekuje `API coverage: Heatmap (component) has no PropsTable`.
-- **Pokrycie API:** 46→49/52. Brakuje dokładnie Heatmap, RunwayChart i runwayForecast.
-
-**Bramki:** `pnpm build`, `docs test` (620), `docs typecheck`, `pnpm lint` (kod 0, 5 ostrzeżeń i 1 info jak wcześniej), `check:content` (0 błędów, `API coverage: 49/52`), `docs build`, `docs test:e2e` (263, bez update, port 3100 wolny; home-visual bez zmian) przeszły. `git diff --stat -- packages apps/storybook apps/docs/e2e/__screenshots__` jest pusty.
-
-**Otwarte kwestie:** liczby w description przykładów (liczności, mediany, sumy) policzyłem skryptem i ręcznie, nic ich nie pilnuje automatycznie.
-
 Ostatnie uwagi: zobacz .crew/backlog.json (lastNote).
 
 ## ✔ T18 Biblioteka przykładów i generator examples.generated.ts (F13) (2026-10-25)
@@ -1797,29 +1705,6 @@ Przeniosłem łatki z `crew/T06` i `crew/T09.2` na main (bez merge gałęzi, bez
 
 ## ⛔ Q1-02 [MAINTAINER] Zapisanie decyzji bramki F10 (design strony docs) — ZABLOKOWANY
 Niczego nowego nie zmieniałem. Poprzednia próba była odrzucona tylko za kryteria [MAINTAINER]: akceptację F10 może wpisać wyłącznie człowiek. Sprawdziłem stan: drzewo robocze jest czyste (zmiany z poprzednich prób są już scommitowane przez orkiestratora), a port 3100 wolny. `grep "F10 zaakceptowany:\|F10 uwagi:" PROGRESS.md` trafia tylko w opisy formatu z placeholderem `<maintainer>`/`RRRR-MM-DD`. W §13 dokumentu designu `Decision: —` (l. 422) i `Date: —` (l. 423) są bez zmian, a linia 3 nadal brzmi „proposal, waiting for the maintainer's approval (gate F10)”. Nagłówek T04 w PROGRESS.md to „## ⏳ T04 … — bramka otwarta, zob. Q1-02”. Część agentowa jest gotowa: §13 ma podsekcję „State at review time (2026-10-25)” z tabelą decyzja → kod → plik, zrzuty current i wynik contrast.mjs (exit 0). PROGRESS.md ma sekcję Q1-02 z procedurą dla uwag i notą o naruszeniu D-12. Nie uruchamiałem ponownie zrzutów, kontrastu ani lintu, bo nic się nie zmieniło od odbioru poprzedniej próby, który je potwierdził.
-## ✔ T30.1 Strony dot-histogram, strip-plot i waffle-columns (2026-10-25)
-Dodałem strony DotHistogram, StripPlot i WaffleColumns w grupie Charts: 6 przykładów, 3 fiksturki JSON i 3 specyfikacje e2e. Zmiany zostają w drzewie roboczym, bez commitów i bez changesetu (packages bez zmian).
-
-- **Przykłady:**
-  - `dot-histogram/first-reply-times` (accessory-stringi, `binWidth`, `domain`, `target`, `format="hours"`, rscSafe: true). 42 zgłoszenia, 35 w celu 4 h, 7 dłużej, najdłużej 9,4 h.
-  - `dot-histogram/invoice-days-overdue` (`toneBy={thresholds([15, 30, 60], …)}` + `Legend`, 'use client', rscSafe: false). 56 faktur: 18 / 14 / 16 / 8 w czterech pasmach, najstarsza 95 dni.
-  - `strip-plot/delivery-days` (2 serie z `value` jako string, `domain`, `axis`, rscSafe: true). 24 zamówienia, mediana obietnicy 3 dni, dostawy 4, 16 spóźnionych.
-  - `strip-plot/exam-attempts` (3 serie z tonami, `median={false}`, `domain`, `radius`, `rowHeight`, `labelWidth`, rscSafe: true). 18 studentów, wyniki 51–76, 59–86, 63–93.
-  - `waffle-columns/weekly-signups` (`group`, domyślny `callout`, `unit`, rscSafe: true). 9 tygodni, szczyt 1180 (Aug 10), lipiec 1770, sierpień 3380.
-  - `waffle-columns/warranty-claims` (`groupTone` i `callout` jako funkcje, 'use client', rscSafe: false). Kwartały 131 / 151 / 184 / 248, szczyt październik 91.
-- **Podział rscSafe:** `toneBy` z `thresholds()` ma metody (decyzja T25/T28.3), a `groupTone` i `callout` to funkcje, więc `invoice-days-overdue` i `warranty-claims` są 'use client' z `rscSafe: false`. Pozostałe cztery mają serializowalne propsy (accessory-stringi, `series` z `value: 'pole'`) i `rscSafe: true`.
-- **Różnice wobec istniejących przykładów:** inne dziedziny, tytuły i dane niż reference/02 (marża zleceń), reference/05 (waffle „Profit leaked by week”, tygodnie sierpnia–września), reference/06 (godziny: szacunek vs rzeczywistość) i thresholds/zones-and-dots (LCP). Plan wskazywał reference/09 dla waffle, ale WaffleColumns jest w reference/05; porównałem z nim.
-- **„Props of” zamiast „Parameters of”:** e2e szuka regionu `Props of <Komponent>` (`exact: true`), jak w T29 (decyzja T29.1).
-- **Rozróżnienie wykresów** („When to use it”, każda strona linkuje do dwóch pozostałych): DotHistogram to rozkład jednej wartości, każdy element to kropka w stosie binu, kolor z progów; StripPlot to te same elementy w kilku wierszach-miarach z medianą; WaffleColumns to suma okresu liczona kropkami, szczyt wyróżniony, grupy okresów.
-- **Zapowiedzi i tabele:** zapowiedzi cytowane z tabeli `docs/a11y.md` („Critical, 1 of 6, #5600, 3.1%”, „Estimated, 1 of 29, #5900, 5.2 h”, „1 of 8, Aug 3, $9.8K”). Nagłówki ukrytych tabel według kodu: DotHistogram Item/Value (z nazwy pola, gdy `label` i `value` to stringi, czyli w przykładach Ticket/Hours) i Group tylko przy `thresholds()`; StripPlot kolumna Item plus kolumna na serię; WaffleColumns Period/Value (z `x` i `y`) i Group z `group`. Waffle opisuje też, że pill `callout` jest `aria-hidden`, a miękkie kropki są dekoracyjne.
-- **E2e:** `dot-histogram.spec.ts`, `strip-plot.spec.ts`, `waffle-columns.spec.ts` (themeSuite, 200, link w sidebarze z `aria-current`, bez `.nav-soon`, 1 region `Props of …`, oba przykłady jako `application` o nazwie z title).
-- **Testy:** `content/fixtures.test.ts` (kolejność: …, bridge-chart, dot-histogram, strip-plot, waffle-columns, line-chart, …); `lib/content/check.test.ts` oczekuje `API coverage: Heatmap (component) has no PropsTable`.
-- **Pokrycie API:** 46→49/52. Brakuje dokładnie Heatmap, RunwayChart i runwayForecast.
-
-**Bramki:** `pnpm build`, `docs test` (620), `docs typecheck`, `pnpm lint` (kod 0, 5 ostrzeżeń i 1 info jak wcześniej), `check:content` (0 błędów, `API coverage: 49/52`), `docs build`, `docs test:e2e` (263, bez update, port 3100 wolny; home-visual bez zmian) przeszły. `git diff --stat -- packages apps/storybook apps/docs/e2e/__screenshots__` jest pusty.
-
-**Otwarte kwestie:** liczby w description przykładów (liczności, mediany, sumy) policzyłem skryptem i ręcznie, nic ich nie pilnuje automatycznie.
-
 Ostatnie uwagi: zobacz .crew/backlog.json (lastNote).
 
 ## ✔ T06 LineChart: prop underlay pod seriami (F2) (2026-10-25)
@@ -1840,6 +1725,8 @@ Kryteria spełnione przez wcześniejsze zmiany.
 
 ## ⛔ T17 [MAINTAINER] Konfiguracja npm trusted publisher, environment npm-publish, deprecate 0.0.0-stage — ZABLOKOWANY
 Nic nowego nie zmieniłem: część agenta jest już w repo (commit a114818, drzewo robocze czyste), a bramka T17 nadal czeka na maintainera. `docs/releasing.md` §9 krok 5 ma ostrzeżenie, że `npm deprecate` bez `@0.0.0-stage` deprecjonuje wszystkie wersje, oraz komendę naprawczą `npm deprecate tally-charts@"0.8.0 || 0.9.0" ""` z weryfikacją. W `PROGRESS.md` jest jedna sekcja ⛔ T17 ze stanem zastanym, komendą naprawczą i rozszerzonymi komendami weryfikacyjnymi, bez linii potwierdzenia. `pnpm check:workflows` kończy się kodem 0. `pnpm lint` kończy się z kodem 0 (5 ostrzeżeń, 1 info). Na npm ani GitHubie nic nie zapisałem. Stan sprawdzony 2026-10-25 komendami tylko do odczytu: `npm view tally-charts@0.0.0-stage|0.8.0|0.9.0 deprecated` zwraca dla wszystkich trzech "0.0.0-stage", `gh api .../environments` ma total_count 0, a `can_approve_pull_request_reviews` to false.
+Ostatnie uwagi: zobacz .crew/backlog.json (lastNote).
+
 ## ✔ T30.1 Strony dot-histogram, strip-plot i waffle-columns (2026-10-25)
 Dodałem strony DotHistogram, StripPlot i WaffleColumns w grupie Charts: 6 przykładów, 3 fiksturki JSON i 3 specyfikacje e2e. Zmiany zostają w drzewie roboczym, bez commitów i bez changesetu (packages bez zmian).
 

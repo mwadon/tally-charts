@@ -148,7 +148,7 @@
       "id": "n17",
       "type": "prose",
       "props": {
-        "markdown": "The dots are decorative: the soft dots of columns that are not the peak carry no meaning of their own, and the `callout` pill is `aria-hidden`, so it says nothing to a screen reader. Put the same facts in the `title`, the `description` or the data, as both examples do with the peak."
+        "markdown": "The soft dots of columns that are not the peak are decorative and carry no meaning of their own, and the `callout` pill is `aria-hidden`, so it says nothing to a screen reader. Put the same facts in the `title`, the `description` or the data, as both examples do with the peak."
       }
     },
     {
