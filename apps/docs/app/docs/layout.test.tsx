@@ -28,8 +28,8 @@ test('the sidebar lists the five groups of the content navigation and marks the 
   const current = within(nav).getByRole('link', { name: 'LineChart' })
   expect(current.getAttribute('aria-current')).toBe('page')
   // Pages without a fixture are listed but are not links.
-  expect(within(nav).queryByRole('link', { name: 'Theming' })).toBeNull()
-  expect(within(nav).getByText('Theming').getAttribute('aria-disabled')).toBe('true')
+  expect(within(nav).queryByRole('link', { name: 'Accessibility' })).toBeNull()
+  expect(within(nav).getByText('Accessibility').getAttribute('aria-disabled')).toBe('true')
 })
 
 test('every sidebar group is a named region whose label id has no spaces', async () => {

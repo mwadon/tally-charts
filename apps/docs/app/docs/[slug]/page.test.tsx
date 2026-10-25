@@ -94,7 +94,7 @@ describe('draft mode', () => {
 })
 
 describe('an unknown page', () => {
-  test.each(['does-not-exist', 'theming', 'home', 'navigation', '../etc'])(
+  test.each(['does-not-exist', 'accessibility', 'home', 'navigation', '../etc'])(
     '/docs/%s is not found',
     async (slug) => {
       await expect(DocPage(params(slug))).rejects.toThrow('NEXT_NOT_FOUND')

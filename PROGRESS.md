@@ -1385,3 +1385,16 @@ Naprawiłem zduplikowane kotwice na stronie small-pieces. W sekcji Props nagłó
 - Nowe `e2e/small-pieces.spec.ts` i `e2e/hooks-and-providers.spec.ts` sprawdzają: `themeSuite` (h1 i wykres po `title`), status 200, link w sidebarze z `aria-current="page"` bez `.nav-soon`, liczbę regionów `Props of …` (10 i 4) oraz to, że wykres z własnym znacznikiem ogłasza punkt (`1 of N`) po fokusie i `Home`.
 - Po `pnpm build` `pnpm --filter docs check:content` kończy się kodem 0 i raportuje `API coverage: 35/52`. Na liście brakujących nie ma żadnego z 33 symboli T27 (Chart, 18 prymitywów, 10 małych komponentów, ChartsProvider, useChart, useFormat, useRegisterPoints).
 - `pnpm --filter docs test`, `pnpm --filter docs typecheck`, `pnpm lint`, `pnpm --filter docs build` i `pnpm --filter docs test:e2e` (darwin, bez update snapshotów) kończą się kodem 0. `git diff --stat -- packages apps/storybook` jest pusty, a baseline'y `home-*.png` się nie zmieniają.
+
+## T28.1 Strony theming, palettes i dark-mode (TokenTable, PaletteSwatches, przepis next-themes)
+**Decyzje:**
+- Nowy slug „strony nie ma” w testach to `accessibility`: jest w `navigation.json`, nie ma fiksturki, a fiksturkę ma dostać któryś z kolejnych tasków T28.x (wtedy trzeba znów zmienić slug w `e2e/routes.spec.ts`, `app/docs/[slug]/page.test.tsx`, `blocks/link-row.test.tsx`, `blocks/ssr.test.tsx` i `app/docs/layout.test.tsx`). `layout.test.tsx` też zakładał, że Theming nie jest linkiem, więc przełączyłem go na Accessibility.
+- `theming/token-overrides`: dwa `BarChart` obok siebie (grid `repeat(auto-fit, minmax(min(100%, 16rem), 1fr))`), drugi w kontenerze ze `style` nadpisującym `--ch-accent` (na `var(--ch-loss)`), `--ch-radius` i `--ch-hatch-gap`. `theming/nested-dark`: `LineChart` w `div[data-ch-theme="dark"]` z tłem `var(--ch-surface)`.
+- `palettes/vivid`: dwa panele, oba z `data-ch-theme="light"` i tłem `var(--ch-surface)`. Drugi ma `data-ch-palette="vivid"` na tym samym elemencie co `data-ch-theme`, więc nie ma pułapki zagnieżdżenia. Wykres to `Chart` z `Bars` (gain) i dwiema liniami (neutral, warn), bo musi mieć `<svg>`.
+- `dark-mode/side-by-side`: ten sam `BarChart` w `data-ch-theme="light"` i `"dark"`. Wszystkie przykłady są `rscSafe: true`, mają po 2 wykresy z różnymi `title` (themeSuite szuka pierwszego, `meta.title`), a style kolorów to tylko `var(--ch-*)`.
+- next-themes jest wyłącznie w `code-block` na stronie dark-mode (razem z przepisem z własnym providerem i `data-ch-theme` z cookie na `<html>`), nie ma go w `package.json` ani w przykładach. Callout mówi, że trzeba go zainstalować samemu.
+- Wartości atrybutów `data-ch-*` na stronie theming sprawdziłem w `theme.css` i `src` (np. `data-ch-direction`: up/down/left/right, `data-ch-fill`: solid/hatch/hatch-fade), a nie przepisałem z stability.md samych nazw.
+**Pułapki:**
+- `getByRole('rowheader', { name: '--ch-accent' })` łapie też `--ch-accent-soft`; w e2e jest `exact: true`.
+- `LineChart` wymaga `series`, nie ma `y`.
+**Bramki:** `docs test` (519), `docs typecheck`, `pnpm lint` (bez błędów, te same ostrzeżenia CSS co wcześniej), `pnpm build`, `check:content` (0 błędów, API coverage 35/52), `docs build`, `docs test:e2e` (143, darwin, bez update). `git status` bez zmian w `apps/docs/e2e/__screenshots__` i `packages/`.
