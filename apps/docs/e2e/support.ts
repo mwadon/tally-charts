@@ -12,6 +12,8 @@ interface PageSpec {
   path: string
   h1: string
   chart: string
+  /** Role of the chart widget the name is looked up by. Default 'application'; Heatmap is a 'grid', RunwayChart a 'list'. */
+  chartRole?: 'application' | 'grid' | 'list' | 'listbox'
 }
 
 /** Collects console errors and uncaught page errors; assert `errors` is empty at the end. */
@@ -25,6 +27,7 @@ export function collectErrors(page: Page) {
 }
 
 export function themeSuite(spec: PageSpec) {
+  const role = spec.chartRole ?? 'application'
   for (const theme of Object.keys(SURFACE) as Theme[]) {
     for (const mode of MODES) {
       test.describe(`${spec.name}, ${theme}, ${mode}`, () => {
@@ -40,9 +43,10 @@ export function themeSuite(spec: PageSpec) {
           expect(response?.status()).toBe(200)
 
           await expect(page.getByRole('heading', { level: 1, name: spec.h1 })).toBeVisible()
-          const chart = page.getByRole('application', { name: spec.chart })
+          const chart = page.getByRole(role, { name: spec.chart })
           await expect(chart).toBeVisible()
-          await expect(chart.locator('svg')).toBeVisible()
+          // Only the application widget wraps the SVG; a grid or a list has its own markup.
+          if (role === 'application') await expect(chart.locator('svg')).toBeVisible()
 
           const html = page.locator('html')
           if (mode === 'forced') await expect(html).toHaveAttribute('data-ch-theme', theme)
@@ -62,7 +66,7 @@ export function themeSuite(spec: PageSpec) {
       test('does not scroll horizontally', async ({ page }) => {
         const errors = collectErrors(page)
         await page.goto(spec.path)
-        await expect(page.getByRole('application', { name: spec.chart })).toBeVisible()
+        await expect(page.getByRole(role, { name: spec.chart })).toBeVisible()
 
         const sizes = await page.evaluate(() => ({
           root: [document.documentElement.scrollWidth, document.documentElement.clientWidth],

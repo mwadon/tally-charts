@@ -26,12 +26,24 @@ test('the toggle swaps the live chart for the source and back', async ({ page })
   await expect(chart).toBeVisible()
   await expect(source).toBeHidden()
 
-  await page.getByRole('button', { name: 'Code', exact: true }).click()
+  // The page has more than one example: the toggle under test is the first card's.
+  const card = page.locator('.chart-example').first()
+  await card.getByRole('button', { name: 'Code', exact: true }).click()
   await expect(source).toBeVisible()
   await expect(chart).toBeHidden()
 
-  await page.getByRole('button', { name: 'Preview', exact: true }).click()
+  await card.getByRole('button', { name: 'Preview', exact: true }).click()
   await expect(chart).toBeVisible()
+})
+
+test('the underlay example is a chart on the page', async ({ page }) => {
+  await page.goto('/docs/line-chart')
+
+  await expect(
+    page.getByRole('application', {
+      name: 'Weekly orders this autumn, over the same weeks last year',
+    }),
+  ).toBeVisible()
 })
 
 test('the sidebar has the five groups and the ToC links jump to the h2 anchors', async ({

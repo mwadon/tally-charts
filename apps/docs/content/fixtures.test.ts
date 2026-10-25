@@ -70,7 +70,7 @@ test('navigation.json is valid and its slugs are unique', async () => {
   expect(new Set(all).size).toBe(all.length)
 })
 
-test('getting-started, theming, palettes, time-scales, formatting, thresholds, server-components, dark-mode, bar-chart, comparison-bars, ranked-bars, waterfall-chart, bridge-chart, dot-histogram, strip-plot, waffle-columns, line-chart, composition, small-pieces and hooks-and-providers are the only available pages in the navigation', async () => {
+test('getting-started, theming, palettes, time-scales, formatting, thresholds, server-components, dark-mode, bar-chart, comparison-bars, ranked-bars, waterfall-chart, bridge-chart, dot-histogram, strip-plot, waffle-columns, line-chart, heatmap, runway-chart, composition, small-pieces and hooks-and-providers are the only available pages in the navigation', async () => {
   const { groups } = await source.getNavigation()
   const available = groups.flatMap((g) => g.items).filter((i) => i.available)
   expect(available.map((i) => i.slug)).toEqual([
@@ -91,6 +91,8 @@ test('getting-started, theming, palettes, time-scales, formatting, thresholds, s
     'strip-plot',
     'waffle-columns',
     'line-chart',
+    'heatmap',
+    'runway-chart',
     'composition',
     'small-pieces',
     'hooks-and-providers',
