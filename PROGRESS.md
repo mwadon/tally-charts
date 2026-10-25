@@ -782,3 +782,30 @@ Pozostałych bramek nie powtarzałem, bo zmiana dotyczy tylko `apps/docs`: `pnpm
 - `createFormatter` ma TSDoc (podsumowanie, @param spec, @param options, @returns). Jest changeset `patch` dla `tally-charts`.
 - Przechodzą `pnpm lint` (z wykluczeniem `api/*.api.json` w biome), `pnpm test`, `pnpm size`, `check:treeshake`, `check:dts` i `check:dev-strip`.
 - CLAUDE.md opisuje, że `gen` tworzy też `api.generated.json`, a `api:check`/`api:update` obejmują `.api.json`. PROGRESS.md ma sekcję T19 z decyzjami D1–D8 i wynikami bramek.
+
+## T20 Bloki glökki: Prose, Heading, Callout, CodeBlock i rejestr bloków (F12)
+Cztery bloki treści w `apps/docs/blocks/`, każdy jako `defineBlock` ze schematem Zod, zebrane w `blockRegistry`. Strony (LineChart itd.) nadal używają placeholdera `app/_components/code-block.tsx`; przepięcie to zakres M5.
+
+**Decyzje:**
+- **D1 (D-6 POTWIERDZONA).** Prose i Callout trzymają `markdown: z.string().meta({ fieldType: 'textarea' })`, nie richtext. W glökki `richtext` to HTML (`MarkdownHelpers.richtext(html)`, `richtextToMarkdown(html)`), więc wymagałby sanityzacji HTML-a, wbrew celowi „bez surowego HTML”. SPEC (tabela decyzji, D-6) bez zmian; w PROGRESS.md nie ma osobnej tabeli D-6, dlatego decyzja stoi tutaj.
+- **D2.** Każdy blok to osobny moduł `blocks/<nazwa>.tsx` z `<nazwa>Schema`, typem propsów, komponentem i wpisem `defineBlock`. `blocks/registry.ts` eksportuje `blockRegistry`, `blockSchemas` (bo `defineBlock` gubi schemat) i `parseBlockProps(type, props)` (wynik `safeParse`, a dla nieznanego typu, także `constructor`/`toString`, wynik `success: false`). Typy: `prose`, `heading`, `callout`, `code-block`, kategoria `content`.
+- **D3.** Heading: `level` to `z.enum(['2','3'])` (select w CMS; zod 4 przyjmuje w enum tylko stringi), `text` `min(1)`, `anchor` `^[a-z0-9]+(-[a-z0-9]+)*$` opcjonalny.
+- **D4.** Markdown: `react-markdown` + `remark-gfm`, bez `rehype-raw`, z `skipHtml`. Bez `skipHtml` react-markdown 10 nie usuwa surowego HTML-a, tylko pokazuje go jako zescapowany tekst (bezpieczny, ale `<img … onerror=…>` widać w treści), więc `skipHtml` realizuje „ignorowany”. Domyślny `urlTransform` czyści `javascript:`. Jeden `blocks/markdown.tsx` dla Prose i Callout.
+- **D5.** Podświetlanie: `createHighlighterCore` z `shiki/core`, `createJavaScriptRegexEngine` z `shiki/engine/javascript` (bez wasm), importy tylko tsx, ts, bash, css, json (`shiki/langs/<x>.mjs`), singleton jako leniwy promise. Theme `createCssVariablesTheme` (`--shiki-*`), zmienne przypisane w `globals.css` na `.code-block` do tych samych mieszanek `--ch-*` co `[data-tok]`, więc light/dark działa przez `data-ch-theme`.
+- **D6 (odchylenie).** `highlight()` zwraca tokeny (`codeToTokens`), a nie string HTML. `CodeBlock` (async server component) renderuje je jako spany Reacta ze stylem `color: var(--shiki-…)`, więc kod jest escapowany przez React i nie ma `dangerouslySetInnerHTML`. Struktura jak `.code-block` z §8 designu: bar z `filename ?? 'Terminal'` dla bash albo pusty, `pre tabIndex=0 role=region aria-label`. `copy-button.tsx` (`'use client'`, jedyny klientowy moduł): `aria-label="Copy code: <filename|lang>"`, `navigator.clipboard.writeText(code)`, stale zamontowany `<span role="status" aria-live="polite" class="visually-hidden">` z „Copied” (czyszczony po 2 s) albo „Copy failed”.
+- **D7.** `heading.tsx`: `headingId = anchor ?? slugify(text)` (NFKD, `ł`→`l`, pusty slug → `section`), `collectToc(nodes)` zbiera poprawne węzły `heading` rekurencyjnie po `children` do `TocItem[]`. Heading: `<hN id class="heading">tekst <a href="#id" class="heading-anchor" aria-label="Link to section: …">#</a>`, kotwica widoczna przy hover/focus, `scroll-margin-top` jak h2. Callout: `<aside class="callout" data-tone>` z etykietą Note/Warning/Tip i markdownem. Kontrast etykiet callout i kolorów składni (mieszanki tonu z inkiem) ≥ 4.5:1 w obu motywach, sprawdza `app/contrast.test.ts`.
+
+**Pułapki SDK (@glokki-cms/sdk 0.17.0):**
+- README pokazuje `schema`/`Component`, a typy i implementacja wymagają `propsSchema`, `component`, `type`, `label`, `category`, `icon` (nazwa ikony Lucide) i `defaultProps`.
+- `defineBlock` usuwa `propsSchema` z wyniku i zostawia `fields: FieldDescriptor[]`, więc schemat trzeba trzymać osobno (`blockSchemas`).
+- Rodzaj pola: `.meta({ fieldType: 'textarea' })` na `z.string()`. `z.enum` zawsze daje `select`, liczby dają pole `text`.
+- `createBlockRegistry` rzuca błąd przy zduplikowanym `type`; bez opcji `categories` obowiązuje `content|layout|media|interactive|list`.
+- `shiki/core` re-eksportuje `createCssVariablesTheme`, ale silnik JS jest w `shiki/engine/javascript`.
+
+**Testy:** `blocks/{prose,heading,callout,code-block,registry}.test.*` (jsdom) i `blocks/ssr.test.tsx` (node, `renderToString`) pokrywają: GFM, brak `script`/`img`/`onerror`/`javascript:`, schematy (odrzucenie `{}`, `level '4'`, `level 2`, `tone 'danger'`, `lang 'py'`, zły `anchor`), `fieldType: 'textarea'`, `collectToc`, spany `var(--shiki-…)`, `</code><script>` w kodzie, przycisk kopiowania (mock clipboard, fake timers, „Copied”, „Copy failed”), rejestr. `app/contrast.test.ts` dostał pary callout i składni (31 testów).
+**Bramki:** `pnpm install --frozen-lockfile` (bez ostrzeżeń o ignored builds), `pnpm build`, `pnpm --filter docs typecheck`, `pnpm typecheck`, `pnpm lint` (0 błędów, 4 ostrzeżenia, 1 info jak w bazie), `pnpm --filter docs test` (131), `pnpm --filter docs build`, `pnpm --filter docs test:e2e` (20). Bundlowanie shiki i react-markdown w Next 16 sprawdzone tymczasową stroną importującą wszystkie bloki (`next build` OK, HTML ma `var(--shiki-…)` i nie ma `<script>`); strona usunięta, bo bloki nie są jeszcze nigdzie użyte.
+
+**Otwarte kwestie:**
+- Zduplikowane `id` nagłówków na stronie (dwa „Install” bez `anchor`) wyłapie dopiero walidacja treści (F14); `collectToc` zwraca je oba.
+- Bloki nie są jeszcze użyte przez żadną stronę, więc `next build` nie bundluje shiki w realnej trasie; rozmiar chunków sprawdzić przy przepinaniu stron (M5).
+- `Heading` renderuje `#` jako tekst linku (ukryty wizualnie przez opacity do hover/focus); dostępna nazwa pochodzi z `aria-label`.

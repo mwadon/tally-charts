@@ -58,3 +58,34 @@ test('pure accent as text on the light surface stays below 4.5:1, so links mix i
   const light = themes.light
   expect(contrast(light.accent as string, light.surface as string)).toBeLessThan(4.5)
 })
+
+/** `color-mix(in srgb, a pct%, b)` for two hex colors. */
+function mix(a: string, pct: number, b: string) {
+  const out = [0, 1, 2].map((i) => {
+    const av = Number.parseInt(a.slice(1 + i * 2, 3 + i * 2), 16)
+    const bv = Number.parseInt(b.slice(1 + i * 2, 3 + i * 2), 16)
+    return Math.round((av * pct) / 100 + (bv * (100 - pct)) / 100)
+  })
+  return `#${out.map((v) => v.toString(16).padStart(2, '0')).join('')}`
+}
+
+// Toned text on the raised card: callout labels (globals.css, .callout-label at 65%) and the
+// syntax colors of code blocks (--shiki-token-*, same mixes as [data-tok]).
+const tonedText = [
+  ['callout label (info)', 'accent', 65],
+  ['callout label (warning)', 'warn', 65],
+  ['callout label (tip)', 'gain', 65],
+  ['code keyword', 'accent', 70],
+  ['code string', 'gain', 60],
+  ['code number', 'warn', 65],
+  ['code tag', 'loss', 65],
+] as const
+
+for (const [theme, t] of Object.entries(themes)) {
+  for (const [name, token, pct] of tonedText) {
+    test(`${name} (${token} ${pct}% with ink) on tooltip-bg is at least 4.5:1 (${theme})`, () => {
+      const fg = mix(t[token] as string, pct, t.ink as string)
+      expect(contrast(fg, t['tooltip-bg'] as string)).toBeGreaterThanOrEqual(4.5)
+    })
+  }
+}
