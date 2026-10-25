@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, within } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { RankedBars, type RankedBarsProps } from './RankedBars'
 
@@ -111,6 +111,36 @@ describe('<RankedBars>', () => {
     fireEvent.keyDown(chart, { key: 'ArrowDown' })
     fireEvent.keyDown(chart, { key: ' ' })
     expect(onSelect).toHaveBeenCalledWith(2, expect.objectContaining({ id: 2 }))
+  })
+
+  it('mentions Enter in the chart description only on selectable rows', () => {
+    const enter = 'Press Enter to select'
+    const { container, unmount } = renderRanked({
+      onSelect: vi.fn(),
+      selectable: (d) => d.name !== 'Labor overruns',
+    })
+    const chart = screen.getByRole('application', { name: 'Leakage by cause' })
+    const live = () => container.querySelector('[aria-live]')?.textContent
+    // The first row shown, "Labor overruns", cannot be selected.
+    act(() => chart.focus())
+    expect(chart).not.toHaveAccessibleDescription(expect.stringContaining(enter))
+    expect(live()).not.toContain('Enter')
+    fireEvent.keyDown(chart, { key: 'ArrowDown' })
+    expect(chart).toHaveAccessibleDescription(expect.stringContaining(`${enter}.`))
+    expect(live()).not.toContain('Enter')
+    fireEvent.keyDown(chart, { key: 'ArrowUp' })
+    expect(chart).not.toHaveAccessibleDescription(expect.stringContaining(enter))
+    unmount()
+    // Without onSelect no row can be selected.
+    const plain = renderRanked({ selectable: (d) => d.name !== 'Labor overruns' })
+    const plainChart = screen.getByRole('application', { name: 'Leakage by cause' })
+    act(() => plainChart.focus())
+    for (const key of ['ArrowDown', 'ArrowDown', 'ArrowUp']) {
+      expect(plainChart).not.toHaveAccessibleDescription(expect.stringContaining(enter))
+      fireEvent.keyDown(plainChart, { key })
+    }
+    expect(plainChart).not.toHaveAccessibleDescription(expect.stringContaining(enter))
+    expect(plain.container.querySelector('[aria-live]')?.textContent).not.toContain('Enter')
   })
 
   it('highlights the selected row in the selected tone', () => {

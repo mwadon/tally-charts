@@ -59,7 +59,8 @@ export type ChartProps<D> = ChartName & {
   /**
    * Instructions read with the chart when it takes keyboard focus. Default: "Use arrow keys to
    * move between points, Home and End for first and last, Escape to clear.", plus " Press Enter
-   * to select." with `onSelect`. Set it to translate the text; `""` turns it off.
+   * to select." while the active point (or the first, before one is active) can be selected with
+   * `onSelect`. A custom text is used as is. Set it to translate the text; `""` turns it off.
    */
   keyboardHint?: string
   activeId?: Id | null
@@ -243,10 +244,14 @@ export function Chart<D>({
   // move to. The first render (and the server's) has none yet, so the attributes arrive after
   // mount and hydration still matches.
   const interactive = interaction.points.length > 0
+  // The description is about the active point; before one is active, keyboard focus will
+  // activate the first, so that is the one it must be right for.
+  const hintPoint = interaction.activePoint ?? interaction.points[0]
+  const canSelect = onSelect !== undefined && hintPoint?.selectable !== false
   const hint =
     keyboardHint ??
     `Use arrow keys to move between points, Home and End for first and last, Escape to clear.${
-      onSelect ? ' Press Enter to select.' : ''
+      canSelect ? ' Press Enter to select.' : ''
     }`
   const describedBy = [description ? descId : '', hint ? hintId : ''].filter(Boolean).join(' ')
 
