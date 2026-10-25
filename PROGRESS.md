@@ -250,3 +250,13 @@ Ostatnie uwagi: zobacz .crew/backlog.json (lastNote).
 - `pnpm test:e2e` przechodzi bez `--update-snapshots`, a `git status` nie pokazuje zmienionych PNG.
 - Istnieje `.changeset/*.md` z `'tally-charts': major`, z notatką migracyjną i fragmentami kodu Before/After (dodanie `title` albo `aria-labelledby`, oraz `interface … extends XxxProps` → `type … = XxxProps & {…}`).
 - README biblioteki (sekcja Accessibility) opisuje wymóg `title` albo `aria-labelledby`, a PROGRESS.md zapisuje decyzje D1–D5 z planu.
+
+## ⛔ T06 LineChart: prop underlay pod seriami (F2) — ZABLOKOWANY
+Nie wygenerowałem baseline'ów linux, więc task jest niedomknięty. Kod `underlay` był już w gałęzi (commit 8129a40), wbrew planowi tech leada, który zakładał, że go nie ma. Docker nadal jest uszkodzony: `docker info` działa, ale `docker pull` pada na `input/output error` przy zapisie `meta.db` w `/var/lib/desktop-containerd`. Obrazu Playwrighta nie da się pobrać, więc komenda z ci.yml nie ruszy. Naprawa to reset danych Docker Desktop, który skasowałby kontenery właściciela (m.in. działający `foundation-postgres-1`), więc go nie robiłem. PNG linux nie da się wygenerować na darwin, bo renderowanie fontów się różni.
+
+W tej próbie zmieniłem dwie rzeczy:
+- Limit rozmiaru LineChart wrócił do 13 KB (było 13.2 KB). Bundle wychodził 13001 B przy limicie 13000 B. Przesunąłem destrukturyzację `underlay` w `LineChart.tsx` za `grid`, co zmieniło gzip i mieści się w 13 KB. Zachowanie i DOM są te same.
+- W PROGRESS.md zdjąłem znacznik ⛔ i „ZABLOKOWANY”. Nagłówek T06 mówi teraz „do domknięcia: baseline'y linux (Docker)”. Wpis D4 opisuje powrót do 13 KB.
+
+Co przeszło: `pnpm format`, `pnpm lint` (4 ostrzeżenia i 1 info jak wcześniej), `pnpm typecheck`, `pnpm test` (1055), `pnpm build`, `api:check`, `pnpm size`, `check:dev-strip`. `pnpm test:e2e` na darwin przechodzi bez aktualizacji snapshotów (313), port 6007 był wolny. W katalogu darwin są 2 nowe PNG underlay, a istniejące PNG się nie zmieniły. W drzewie roboczym są tylko zmiany w `.size-limit.json`, `LineChart.tsx` i `PROGRESS.md`.
+Ostatnie uwagi: zobacz .crew/backlog.json (lastNote).
