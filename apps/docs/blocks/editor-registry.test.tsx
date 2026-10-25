@@ -151,7 +151,7 @@ test('a home page block with an unknown example is a visible error in the editor
     {
       id: 'v1',
       type: 'visual-language',
-      props: { items: [{ title: 'a', text: 'b', exampleId: 'nope/missing' }] },
+      props: { heading: 'V', items: [{ title: 'a', text: 'b', exampleId: 'nope/missing' }] },
     },
     { id: 'g1', type: 'gallery', props: { heading: 'G', items: [{ exampleId: 'nope/also' }] } },
   ] as unknown as ComponentNode[])

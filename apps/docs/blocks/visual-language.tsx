@@ -5,6 +5,7 @@ import { VisualLanguageView } from './home-views'
 import { loadExamples } from './load-example'
 
 export const visualLanguageSchema = z.object({
+  heading: z.string().min(1),
   items: z
     .array(
       z.object({
@@ -19,11 +20,11 @@ export const visualLanguageSchema = z.object({
 
 export type VisualLanguageProps = z.infer<typeof visualLanguageSchema>
 
-/** Server component: one card per item, with the chart of its `exampleId`. */
-export async function VisualLanguage({ items }: VisualLanguageProps) {
+/** Server component: a section with a heading and one card per item, with the chart of its `exampleId`. */
+export async function VisualLanguage({ heading, items }: VisualLanguageProps) {
   const loaded = await loadExamples(items.map((item) => item.exampleId))
   if (!loaded.ok) return loaded.error
-  return <VisualLanguageView items={items} charts={loaded.charts} />
+  return <VisualLanguageView heading={heading} items={items} charts={loaded.charts} />
 }
 
 export const visualLanguageBlock = defineBlock({
@@ -33,6 +34,7 @@ export const visualLanguageBlock = defineBlock({
   icon: 'palette',
   description: 'Cards that each explain one rule of the look, with a live mini chart.',
   defaultProps: {
+    heading: 'A visual language that reads at a glance',
     items: [
       {
         title: 'Hatched is plan',

@@ -323,6 +323,18 @@
   }
 }
 
+/* The same rules for a dashboard inside a gallery tile (`container: ref-tile`), whose width is not the viewport's. */
+@container ref-tile (max-width: 900px) {
+  .ref-runway-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .ref-runway-detail {
+    padding-left: 0;
+    border-left: 0;
+  }
+}
+
 /* 09 Performance */
 .ref-perf {
   display: grid;
@@ -575,6 +587,15 @@
 }
 
 @media (max-width: 900px) {
+  .ref-perf-top,
+  .ref-perf-vitals,
+  .ref-perf-dist {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* The same rules for a dashboard inside a gallery tile (`container: ref-tile`), whose width is not the viewport's. */
+@container ref-tile (max-width: 900px) {
   .ref-perf-top,
   .ref-perf-vitals,
   .ref-perf-dist {

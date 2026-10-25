@@ -21,6 +21,25 @@ test('?_editor=1 shows the page through the editor canvas, without errors', asyn
   expect(errors).toEqual([])
 })
 
+test('/?_editor=1 shows the home blocks through the editor canvas, without errors', async ({
+  page,
+}) => {
+  const errors = collectErrors(page)
+  await page.goto('/?_editor=1')
+
+  await expect(
+    page.getByRole('heading', {
+      level: 1,
+      name: 'Opinionated React charts for narrative business dashboards.',
+    }),
+  ).toBeVisible()
+  await expect(page.locator('.block-error')).toHaveCount(0)
+  const charts = page.locator('.gallery').getByRole('application')
+  await expect(charts.first()).toBeVisible()
+  expect(await charts.count()).toBeGreaterThanOrEqual(9)
+  expect(errors).toEqual([])
+})
+
 test('without ?_editor=1 the server content stays and nothing is wrapped as a block', async ({
   page,
 }) => {
