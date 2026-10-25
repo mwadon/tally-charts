@@ -1574,3 +1574,23 @@ Wyniki bramek:
 - Po pnpm build `pnpm --filter docs check:content` kończy się kodem 0 i wypisuje `API coverage: 44/52`, a lista brakujących nie zawiera ComparisonBars ani RankedBars. lib/content/check.test.ts (pierwszy brak BridgeChart) przechodzi bez zmian.
 - pnpm --filter docs test, pnpm --filter docs typecheck, pnpm lint, pnpm --filter docs build i pnpm --filter docs test:e2e (darwin, bez --update-snapshots) kończą się kodem 0. `git diff --stat -- packages apps/storybook apps/docs/e2e/__screenshots__` jest pusty.
 - PROGRESS.md ma sekcję T29.1 z decyzjami: podział rscSafe, pokrycie 42→44 (BarChart był już pokryty przez getting-started), „Props of” zamiast „Parameters of”.
+
+## ✔ T29.2 Strony waterfall-chart i bridge-chart (2026-10-25)
+Dodałem strony WaterfallChart i BridgeChart w grupie Charts. Zmiany zostają w drzewie roboczym, bez commitów i bez changesetu (packages bez zmian).
+
+- **Przykłady:**
+  - `waterfall-chart/cash-flow` (`format={{ preset: 'currency-compact', digits: 1 }}`, własne etykiety start/end, kroki +/−, rscSafe: true). Kasa 84,0K → 78,1K.
+  - `waterfall-chart/margin-drivers` (`stepLabel` jako funkcja z `fmt` i `meta`, `domain`, `connectors={false}`, 'use client', rscSafe: false). Marża 36,0% → 35,0%.
+  - `bridge-chart/quote-to-cash` (`note` na wszystkich krokach, `highlightLast={false}`, rscSafe: true). Wycena $48,000 → $44,500.
+  - `bridge-chart/job-profit` (`callout` jako tablica segmentów, rscSafe: true). Zysk $2,400 → $1,200.
+- **Różnice wobec reference/01 i 04:** inne dane, tytuły i domeny (nie Target/Actual 38→34 ani 1,260→400 z discount/labor/callback/materials). Przykłady nie kopiują kompozycji referencyjnych (bez kart, Stat, Meter).
+- **Podział rscSafe:** tylko `margin-drivers` ma funkcję w propsach (`stepLabel`), więc 'use client' i `rscSafe: false`. Pozostałe trzy mają serializowalne propsy (preset formatu, `note`, `callout`) i `rscSafe: true`.
+- **„Props of” zamiast „Parameters of”:** wbrew brzmieniu backlogu e2e szuka regionu `Props of WaterfallChart|BridgeChart` (`exact: true`), bo „Parameters of” dostają tylko funkcje i hooki (decyzja T29.1).
+- **Różnica między wykresami** (sekcja „When to use it”, strony linkują do siebie): waterfall to poziome wiersze zmian od startu (kreskowany) do wyliczonego końca (solidny) z connectorami, bridge to pionowe kolumny sum bieżących z „czapką” zmiany i notą, ostatnia wyróżniona, opcjonalny callout.
+- **Zapowiedzi:** format z tabeli `docs/a11y.md` (waterfall „…, running total 36.4%”, bridge „2 of 5, After discount, $1,000, −$260 discount”), cytowane z a11y.md zamiast przeliczone na przykłady. Waterfall: kolumny ukrytej tabeli Item/Change/Total, bridge: Column/Change/Total. Strona bridge dodaje uwagę z a11y.md, że callout jest `aria-hidden` (fakty w title/description) i ograniczenie wąskiego ekranu. Obie opisują `keyboardHint`.
+- **E2e:** `waterfall-chart.spec.ts` i `bridge-chart.spec.ts` (themeSuite, 200, link w sidebarze z `aria-current`, bez `.nav-soon`, 1 region `Props of …`, widoczność obu wykresów po roli application i title).
+- **Testy:** `content/fixtures.test.ts` (nowa kolejność: …, ranked-bars, waterfall-chart, bridge-chart, line-chart, …); `lib/content/check.test.ts` oczekuje teraz `API coverage: DotHistogram (component) has no PropsTable`.
+
+**Bramki:** `pnpm build`, `docs test` (562), `docs typecheck`, `pnpm lint` (kod 0, 5 ostrzeżeń i 1 info jak wcześniej), `check:content` (0 błędów, `API coverage: 46/52`, brakuje DotHistogram, Heatmap, RunwayChart, StripPlot, WaffleColumns, runwayForecast), `docs build`, `docs test:e2e` (233, bez update, port 3100 wolny) przeszły. `git diff --stat -- packages apps/storybook apps/docs/e2e/__screenshots__` jest pusty.
+
+**Podsumowanie T29:** 5 stron (bar-chart, comparison-bars, ranked-bars, waterfall-chart, bridge-chart), pokrycie API 42→44→46/52. Pozostałe 6 symboli (T30–T31): DotHistogram, Heatmap, RunwayChart, StripPlot, WaffleColumns, runwayForecast.
