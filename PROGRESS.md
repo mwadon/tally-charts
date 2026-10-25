@@ -1102,3 +1102,32 @@ Dodano `pnpm --filter docs check:content`: skrypt `tsx` sprawdza strony z fikstu
 - Job `docs` w `.github/workflows/ci.yml` uruchamia `pnpm --filter docs check:content` na fiksturkach bez sekretów; actionlint przechodzi
 - CLAUDE.md opisuje komendę `pnpm --filter docs check:content` (zamiast notki „zostanie dopisana”), flagę pokrycia i wymaganie `pnpm build`; PROGRESS.md zapisuje decyzje (tsx jako runner, pokrycie tylko raportowane do T31)
 - `pnpm --filter docs typecheck` i `pnpm lint` przechodzą
+
+## T25 Port 9 kompozycji referencyjnych jako żywe przykłady (F13, D-9)
+**Mapowanie PNG → plik** (`apps/docs/examples/reference/`, id = `reference/<nazwa PNG>`):
+- `01-gross-margin-waterfall` → `01-gross-margin-waterfall.tsx`: GrossMargin + „Last 12 weeks” (wysokopoziomowy `BarChart`, nie niskopoziomowe `Chart`) + WhyUnderTarget. **client**
+- `02-jobs-dot-histogram-table` → JobsByMargin z Legend. **client**
+- `03-estimate-vs-actual` → Result + EstimateVsActual. **rscSafe**
+- `04-profit-bridge` → ProfitBridge. **rscSafe**
+- `05-leakage-heatmap` → ProfitLeaked + WhereItLeaks. **rscSafe**
+- `06-drilldown-strip-plot` → DrillColumns (useState) + DallasInstalls. **client**
+- `07-forecast` → MarginOutlook. **rscSafe**
+- `08-usage-runway` → UsageRunway z wklejonymi danymi z `runway-data.tsx`. **client**
+- `09-performance` → Performance. **client**
+
+**Decyzje:**
+- **Prefiks `ref-`.** Style w `examples/reference/reference.css` (klasy `ref-*`, tylko tokeny `--ch-*`), importowane raz w `app/layout.tsx`, żeby `source` przykładu zawierał tylko kod wykresu. Powód: docs ma własne `.card`, `.segmented`, style `table`/`th`/`h2`/`p`. Reguły CSS resetują to, co globalne style elementów by zepsuły (marginesy nagłówków, `thead th` wielkimi literami). `.ref-dashboard` to grid `auto-fit, minmax(min(100%, 320px), 1fr)`, więc przy 320 px karty idą w jednej kolumnie; sprawdzone w Playwright (scrollWidth = 320 przy 320 i 1280 px, bez błędów konsoli).
+- **Bez zmian w galerii na stronie głównej** (`app/page.tsx`, `home.json`, e2e): podpięcie to F16.
+- **Dane runway wklejone do pliku 08** (`now` to stała data `2026-10-15T02:00:00Z`), bez importu ze Storybooka i bez wspólnych helperów, bo panel Code pokazuje plik 1:1.
+- **Zmiany względem stories (pod API 1.0 i rscSafe):** `fill="hatch"` jawnie w 03 (Result) i 06 (z komentarzem), w 09 usunięte zbędne `fill="solid"` z `RankedBars` (domyślne). Bez `--_ch-*`: w 09 kolor strefy daje `data-tone` na karcie i zmienna `--ref-tone` w CSS (zamiast `--_ch-swatch-color` i `data-ch-tone-text`). W 01 `valueFormat={{ preset: 'number', digits: 1 }}` zamiast funkcji, a `axisFormat` pominięty (domyślnie `format`, ten sam wynik); w 07 `yAxisFormat="percent"` zamiast `${v}%` (te same etykiety osi), więc 07 jest rscSafe. W 05 usunięty stan zaznaczenia i `<output data-testid>` (pomoc testowa Storybooka, nie ma go w PNG), dzięki czemu plik jest rscSafe.
+- `'use client'` i `rscSafe: false`: 01 (`stepLabel`), 02 (`toneBy` z `thresholds()` to obiekt z metodami, `label`, `segments`), 06 (stan, `onSelect`, `axisFormat`), 08 (stan, `onSelect`, `useChart`), 09 (`useChart`, funkcje `tone`/`fill`/`label`). Biblioteka jest jednym modułem `'use client'`, więc w RSC przechodzą tylko propsy serializowalne.
+- Storybook i `packages/tally-charts` bez zmian (`git diff --stat -- apps/storybook packages` pusty), więc bez changesetu.
+
+**Testy:** `examples/reference/reference.test.ts` (id przykładów `reference/*` = dokładnie nazwy plików `docs/reference/*.png`, niepusty tytuł, co najmniej jeden rscSafe, importy tylko `react`/`tally-charts`/`../types`, brak `Date.now`/`new Date()`/`Math.random`/`--_ch-`, `'use client'` wtedy i tylko wtedy gdy `rscSafe: false`, w `reference.css` tylko klasy `ref-*` i brak `--_ch-`). Render w jsdom i SSR obejmują istniejące `render.test.tsx` i `ssr.test.tsx`.
+
+**Otwarte kwestie:**
+- Brak: port nie wykazał błędów w bibliotece.
+- Wygląd sprawdzony tylko przez zrzut strony tymczasowej (usuniętej) w jasnym motywie; ciemny motyw i kontrast kart nie były mierzone (`contrast.mjs` obejmuje tylko stronę docs).
+
+## ✔ T25 Port 9 kompozycji referencyjnych jako żywe przykłady (F13, D-9) (2026-10-25)
+Dodano 9 przykładów w `apps/docs/examples/reference/` (01…09 według `docs/reference/*.png`) ze stałymi danymi i stylami `ref-*` z `reference.css`, importowanymi w `app/layout.tsx`. rscSafe: 03, 04, 05, 07; client: 01, 02, 06, 08, 09. Sprawdzone: `pnpm build`, `pnpm --filter docs gen` (drugie wywołanie bez zmiany mtime), `pnpm --filter docs test` (415 testów), `pnpm --filter docs typecheck`, `pnpm typecheck`, `pnpm lint` (0 błędów, tylko wcześniejsze ostrzeżenia), `pnpm --filter docs build`, `pnpm --filter docs check:content` (exit 0, pokrycie 1/52).

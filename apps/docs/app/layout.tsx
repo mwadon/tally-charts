@@ -4,6 +4,7 @@ import 'tally-charts/theme.css'
 import { siteUrl } from '../lib/metadata'
 import { THEME_SCRIPT } from '../lib/theme'
 import './globals.css'
+import '../examples/reference/reference.css'
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl()),
