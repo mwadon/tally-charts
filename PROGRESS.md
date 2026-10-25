@@ -1159,3 +1159,16 @@ Dodano 9 przykładów referencyjnych w apps/docs/examples/reference/ (01…09, i
 - `pnpm --filter docs build`, `pnpm typecheck`, `pnpm lint` (bez nowych błędów) i `pnpm --filter docs check:content` (exit 0) przechodzą po `pnpm build`.
 - `git diff --stat -- apps/storybook packages/tally-charts` jest pusty (Storybook i biblioteka bez zmian, więc bez changesetu).
 - PROGRESS.md ma sekcję T25 z mapowaniem PNG → plik, podziałem rscSafe/client i decyzjami (prefiks `ref-`, wklejone dane runway, galeria na stronie głównej zostaje dla F16).
+
+## ✔ T26.1 Bloki strony głównej: Hero, VisualLanguage, Gallery, Install, FeatureGrid, LinkRow (2026-10-25)
+Dodano 6 bloków w `apps/docs/blocks/` (każdy ze schematem Zod i `defineBlock`), 4 przykłady `examples/visual-language/{hatch,solid,loss,target}.tsx` (rscSafe, dane z `app/_components/visual-language.tsx`) i rejestrację w `blockRegistry`, `blockSchemas` i `editor-registry.tsx` (14 typów). `app/page.tsx` i `content/home.json` bez zmian (to T26.2). Sprawdzone: `docs gen`, `docs test` (473), `docs typecheck`, `pnpm lint` (0 błędów), `docs build`, `docs check:content` (0 błędów).
+**Decyzje:**
+- Widoki (`HeroView`, `VisualLanguageView`, `GalleryView`, `InstallView`, `FeatureGrid`, `LinkRowView`) są w `blocks/home-views.tsx`, a nie w modułach bloków, bo te importują `chart-example` (Shiki) i `block-error` (`next/headers`), a klientowy edytor nie może ich ciągnąć. Moduły bloków mają schemat, async loader i `defineBlock`. Widoki używają `useId` (działa w RSC) do `aria-labelledby`.
+- `blocks/load-example.tsx`: `loadExamples(ids)` zwraca `{ ok: false, error }` (`blockError`, pierwszy nieznany id zastępuje cały blok) albo `{ ok: true, charts }`. Edytor: `BlockError` w tym samym miejscu, wykres przez `entry.Component` w Suspense.
+- Kategoria `home`: SDK nie odrzuca wolnych kluczy, ale bez deklaracji `categories` CMS zna tylko swoje pięć. Dlatego `createBlockRegistry(…, { categories: [content, home] })`; nikt w repo wcześniej nie czytał kategorii.
+- `install`: `command` ma `.default('npm i tally-charts')`; typ propsów komponentu to `z.input`, bo CMS przekazuje propsy bez parsowania. `CodeBlock` bez `filename`, więc pasek pokazuje „Terminal”.
+- `link-row`: wyłącza tylko slug z `available: false`; slug spoza nawigacji i href zewnętrzny zostają linkami. Wersja edytorowa zawsze link (komentarz w kodzie).
+**Testy:** po jednym `*.test.tsx` na blok (render, wykres `role=application`, `fields` typu `array` z `items`, ≥2 odrzucone propsy), nieznany `exampleId` w `hero.test.tsx` (APP_ENV bez / production), `registry.test.ts` (14 typów, kategorie), `editor-registry.test.tsx` (14 typów, render nowych bloków, błędy), `ssr.test.tsx` (Hero, Install, LinkRow).
+**Otwarte kwestie:**
+- T26.2 musi podmienić `app/page.tsx` i `content/home.json` oraz usunąć `app/_components/visual-language.tsx` (dane zduplikowane w przykładach).
+- Gallery/VisualLanguage z wieloma wykresami: nieznany id w jednym elemencie chowa cały blok (zgodnie z ChartExample), nie tylko kafelek.

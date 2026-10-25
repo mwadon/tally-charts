@@ -5,6 +5,9 @@ import { Callout } from './callout'
 import { ChartExampleBlock } from './chart-example'
 import { CodeBlock } from './code-block'
 import { Heading } from './heading'
+import { Hero } from './hero'
+import { Install } from './install'
+import { LinkRow } from './link-row'
 import { PaletteSwatches } from './palette-swatches'
 import { PropsTable } from './props-table'
 import { Prose } from './prose'
@@ -83,5 +86,45 @@ test('PaletteSwatches renders to a string on the server', () => {
   const html = renderToString(<PaletteSwatches palette="vivid" />)
 
   expect(html).toContain('#f1a23b')
+  expect(errors).not.toHaveBeenCalled()
+})
+
+test('Hero is an async server component whose output renders to a string', async () => {
+  const html = renderToString(
+    await Hero({
+      title: 'Charts',
+      lede: 'Lede',
+      actions: [{ label: 'Docs', href: '/docs/line-chart', primary: true }],
+      exampleId: 'bar-chart/margin-by-week',
+    }),
+  )
+
+  expect(html).toContain('<h1')
+  expect(html).toContain('button button-primary')
+  expect(html).toContain('Margin by week')
+  expect(errors).not.toHaveBeenCalled()
+})
+
+test('Install is an async server component whose output renders to a string', async () => {
+  const html = renderToString(await Install({ heading: 'Install' }))
+
+  expect(html).toContain('<h2')
+  expect(html).toContain('role="status"')
+  expect(errors).not.toHaveBeenCalled()
+})
+
+test('LinkRow is an async server component whose output renders to a string', async () => {
+  const html = renderToString(
+    await LinkRow({
+      heading: 'Keep going',
+      items: [
+        { label: 'Soon', href: '/docs/getting-started' },
+        { label: 'Now', href: '/docs/line-chart' },
+      ],
+    }),
+  )
+
+  expect(html).toContain('class="nav-soon"')
+  expect(html).toContain('href="/docs/line-chart"')
   expect(errors).not.toHaveBeenCalled()
 })
