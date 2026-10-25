@@ -314,14 +314,22 @@ command); it holds no secret and no value of any variable.
    slug `home` opens `/`, any other `/docs/<slug>`), sending `PREVIEW_SECRET` in
    `Authorization: Bearer`, in `x-preview-secret` or as `?secret=`. A wrong secret answers 401, an
    unknown slug 400. After the seed (§10) open the visual editor once to sync the block registry.
-6. **Check the domain**: the changesets link `https://tally-charts.vercel.app/docs/migration-1-0`
-   (`grep -l 'tally-charts.vercel.app' .changeset/*.md` lists three of them). The production URL of
-   the project must be exactly `https://tally-charts.vercel.app`. If it is another one:
-   - replace the address in those changesets (a PR that changes no file in `packages/`),
-   - replace it in `homepage` in `packages/tally-charts/package.json` and in the links of
-     `packages/tally-charts/README.md` (this does change `packages/`, so add a changeset),
+6. **Check the domain**: the address of the docs site lives in one constant, `DOCS_URL` in
+   `scripts/release/docs-url.mjs`. The Vercel project must be named `tally-charts-docs`, so its
+   production URL is exactly `https://tally-charts-docs.vercel.app`. `tally-charts.vercel.app` is
+   taken by an unrelated project ("Tally Response Viewer"), which is the only place where that old
+   host may appear. `homepage`, the README links and the migration links in the 4 changesets
+   (`ranked-bars-solid-fill`, `required-chart-name`, `line-breaks-on-invalid-date`,
+   `stability-docs`) must use `DOCS_URL`; `grep -l "$DOCS_URL/docs/migration-1-0" .changeset/*.md`
+   (with the value of the constant) lists those 4 files. If the production URL is another one:
+   - change `DOCS_URL` in `scripts/release/docs-url.mjs`,
+   - replace the address in `homepage` in `packages/tally-charts/package.json`, in the links of
+     `packages/tally-charts/README.md`, in `docs/stability.md` and in the 4 changesets above
+     (the README and `package.json` change `packages/`, so add a changeset),
    - set `SITE_URL` to the new address in Production and Preview,
-   - update the address in `PROGRESS.md` and `CLAUDE.md` where it is mentioned,
+   - run `pnpm test:scripts`: `docs-url.test.mjs` points at every place that still has the old
+     address,
+   - update `CLAUDE.md` and `PROGRESS.md` where the address is mentioned,
    - redeploy the project so the new `SITE_URL` takes effect.
 7. **Record the result**: write the production URL and the URL of an example preview deploy (a
    test PR) in `PROGRESS.md`, as the closing line of T36 (format in its section), and close point 7

@@ -35,4 +35,4 @@ After (drop the rows with an invalid date first):
 The same filter keeps an `Area` joined: `<Area data={rows.filter(isValid)} />`. For a missing
 value, filter out the rows whose value is `null` or `NaN`.
 
-See the migration guide: https://tally-charts.vercel.app/docs/migration-1-0
+See the migration guide: https://tally-charts-docs.vercel.app/docs/migration-1-0

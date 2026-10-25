@@ -27,7 +27,7 @@ Everything below is covered by semver.
   If a name isn't exported from one of these two entry points, it isn't public.
 - **`--ch-*` custom properties (tokens).** Colors, hatching, sequential ramp, radius, motion and
   so on. Their names and meaning are stable; the list is the token table in
-  [Theming](https://tally-charts.vercel.app/docs/theming).
+  [Theming](https://tally-charts-docs.vercel.app/docs/theming).
   Default values can be tuned in a minor release, for example to keep a contrast ratio.
 - **`data-ch-part`.** The attribute that names every part you might style (`tooltip`, `overlay`,
   `callout-stem`, …). The part names are stable.
