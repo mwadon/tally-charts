@@ -1319,3 +1319,26 @@ Dodano stronę Composition: fiksturkę `apps/docs/content/composition.json` (wst
 - Pokrycie API to 21/52, reszta w T31.
 - Szary znacznik planu w `rows-and-custom-marks` nie ma legendy, tylko zdanie w treści strony.
 - Baseline'y `home-*.png` bez zmian (home nie linkuje do composition).
+
+## ✔ T27.2 Strona composition: Chart i 18 prymitywów (2026-10-25)
+Poprawiono trzy uwagi z review. (1) bridge-connector.tsx ma teraz jedną warstwę `Bars` z `tone` jako funkcją per słupek. Plik jest `'use client'` i `rscSafe: false`, bo `tone`, `ariaLabel` i `segments` to funkcje. Klawiatura i czytnik przechodzą słupki w kolejności osi x, a `ariaLabel` i `segments` ogłaszają zmianę kroku („Costs, -30”). (2) Fałszywe zdanie „tone is one value per Bars” zniknęło z bloku n15 w composition.json, z komentarza w przykładzie i z decyzji w PROGRESS.md. Nowa treść mówi, że `tone` przyjmuje funkcję. (3) `Tooltip content` w rows-and-custom-marks.tsx zwraca teraz `<TooltipPill segments=… />`, więc tooltip ma tło. Dodano test e2e, który sprawdza kolejność ogłoszeń. Wyniki: docs test 492 testy zielone, typecheck, lint, check:content (exit 0, pokrycie 21/52) i docs build kończą się kodem 0, docs test:e2e przechodzi 90 testów. `git diff --stat -- packages apps/storybook` jest pusty.
+**Decyzje i pułapki:**
+- `tone`, `fill` i `selectable` w `Bars` to `PerItem` (wartość albo funkcja per słupek), więc nie trzeba dzielić danych na warstwy po tonie.
+- Wiele warstw `Bars` rejestruje punkty warstwa po warstwie, co psuje kolejność klawiatury i czytnika ekranu. Jedna warstwa trzyma kolejność osi x.
+- Wartość słupka z `from` to jego koniec (`top`), więc zmianę kroku trzeba ogłosić przez `ariaLabel` i `segments`.
+- `Tooltip content` zwracający goły string nie ma tła. Pigułkę daje dopiero `TooltipPill`.
+- Live region wykresu (`[aria-live=polite]`) jest rodzeństwem diva z role=application, wewnątrz `figure[data-ch-root]`. W e2e szukaj go przez `[data-ch-root]` z filtrem `has: application`.
+**Otwarte kwestie:**
+- pnpm lint zgłasza 5 ostrzeżeń i 1 info, żadne nie dotyczy plików z tego taska. Nie sprawdzałem, czy istniały przed zmianami.
+- Hover Tooltip z TooltipPill w rows-and-custom-marks nie był oglądany na zrzucie po poprawce. Przykład przechodzi render.test i e2e.
+- Pokrycie API to 21/52, reszta w T31.
+- apps/docs/examples/composition/bridge-connector.tsx: The `segments` prop on Bars does nothing here. Point segments are read only by Tooltip and Callout (Tooltip.tsx:51, Callout.tsx:111), and this chart has neither. The prose in block n15 of composition.json ('ariaLabel and segments report the change of each step') and the comment in the file suggest segments has a visible effect, which misleads readers learning composition.
+**Kryteria:**
+- W `apps/docs/examples/composition/` są co najmniej 4 pliki przykładów z `meta.id = 'composition/<nazwa>'` i `title`. Każdy z 18 prymitywów (Bars, Line, Area, Dots, Axis, Grid, Target, Region, Band, Callout, Connector, ValueLabel, RowLabels, RowDividers, Tooltip, NearestPointer, ColumnHighlight, DataTable) występuje jako JSX `<Nazwa` w co najmniej jednym z nich, a `<Chart` w każdym (do sprawdzenia grepem). Przykłady bez `'use client'` mają `rscSafe: true` tylko przy propsach bez funkcji.
+- `pnpm --filter docs gen` kończy się kodem 0, a `examples/registry.test.ts`, `examples/render.test.tsx` i `examples/ssr.test.tsx` przechodzą dla nowych przykładów (bez console.error).
+- `apps/docs/content/composition.json` (slug `composition`) przechodzi `content/fixtures.test.ts`, ma dokładnie 19 bloków `props-table` z symbolami Chart i 18 prymitywów oraz blok `chart-example` dla każdego nowego przykładu. Linki wewnętrzne w prose/callout prowadzą tylko do stron z fiksturką.
+- `content/fixtures.test.ts` oczekuje dostępnych stron getting-started, line-chart i composition. `lib/content/check.test.ts` przy `--require-coverage` oczekuje faktycznie pierwszego brakującego symbolu (nie `Area`).
+- Nowy `apps/docs/e2e/composition.spec.ts`: themeSuite dla `/docs/composition` (h1 „Composition”, wykres o nazwie `title` jednego z przykładów) oraz test, że odpowiedź ma status 200, a sidebar ma `<a href="/docs/composition">` z `aria-current="page"` i bez `.nav-soon`.
+- Po `pnpm build` `pnpm --filter docs check:content` kończy się kodem 0 i raportuje pokrycie API 21/52 (wcześniej 2/52).
+- `pnpm --filter docs test`, `pnpm --filter docs typecheck`, `pnpm lint`, `pnpm --filter docs build` i `pnpm --filter docs test:e2e` (bez update snapshotów, darwin) kończą się kodem 0. `git diff --stat -- packages apps/storybook` jest pusty, changeset niepotrzebny.
+- PROGRESS.md ma sekcję T27.2 z decyzjami (podział prymitywów na przykłady, `'use client'` dla Dots/DataTable, zmiana symbolu w check.test).
