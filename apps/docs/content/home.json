@@ -1,0 +1,20 @@
+{
+  "versionId": "fixture-home-v1",
+  "version": 1,
+  "locale": "en",
+  "publishedAt": "2026-10-25T00:00:00.000Z",
+  "codeInjection": {},
+  "layout": {
+    "key": "default",
+    "header": null,
+    "footer": null
+  },
+  "pageId": "fixture-home",
+  "title": "tally-charts",
+  "slug": "home",
+  "componentTree": [],
+  "seo": {
+    "metaTitle": "tally-charts · Opinionated React charts",
+    "metaDescription": "Opinionated React charts for narrative business dashboards: bars, lines, waterfalls and runways that say what changed, and whether it is on plan."
+  }
+}

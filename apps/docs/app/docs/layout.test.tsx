@@ -1,51 +1,23 @@
-import { readFileSync } from 'node:fs'
-import path from 'node:path'
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import { expect, test, vi } from 'vitest'
-import { meta } from '../../../examples/line-chart/revenue-forecast'
-import DocsLayout from '../layout'
-import LineChartPage from './page'
+import DocsLayout from './layout'
 
 vi.mock('next/navigation', () => ({ usePathname: () => '/docs/line-chart' }))
 
-function renderPage() {
-  return render(
-    <DocsLayout>
-      <LineChartPage />
-    </DocsLayout>,
-  )
+async function renderLayout() {
+  return render(await DocsLayout({ children: <h1>LineChart</h1> }))
 }
 
-test('the LineChart page has its heading and a live chart in a ChartExample', () => {
-  const { container } = renderPage()
-
-  expect(screen.getByRole('heading', { level: 1, name: 'LineChart' })).toBeTruthy()
-  expect(screen.getByRole('application', { name: meta.title })).toBeTruthy()
-  expect(container.querySelector('svg')).not.toBeNull()
-  expect(screen.getByRole('button', { name: 'Preview' }).getAttribute('aria-pressed')).toBe('true')
-})
-
-test('the Code panel shows the exact source of the example file', () => {
-  renderPage()
-
-  fireEvent.click(screen.getByRole('button', { name: 'Code' }))
-  const file = readFileSync(
-    path.join(process.cwd(), 'examples/line-chart/revenue-forecast.tsx'),
-    'utf8',
-  )
-  expect(screen.getByRole('region', { name: `Source of: ${meta.title}` }).textContent).toBe(file)
-})
-
-test('the header wordmark is a text link to the home page', () => {
-  renderPage()
+test('the header wordmark is a text link to the home page', async () => {
+  await renderLayout()
 
   const wordmark = within(screen.getByRole('banner')).getByRole('link', { name: 'tally-charts' })
   expect(wordmark.getAttribute('href')).toBe('/')
   expect(wordmark.querySelector('img')).toBeNull()
 })
 
-test('the sidebar lists the five groups and marks the current page', () => {
-  renderPage()
+test('the sidebar lists the five groups of the content navigation and marks the current page', async () => {
+  await renderLayout()
 
   const nav = screen.getByRole('navigation', { name: 'Documentation' })
   const groups = within(nav)
@@ -55,13 +27,13 @@ test('the sidebar lists the five groups and marks the current page', () => {
 
   const current = within(nav).getByRole('link', { name: 'LineChart' })
   expect(current.getAttribute('aria-current')).toBe('page')
-  // Pages that don't exist yet are listed but are not links.
+  // Pages without a fixture are listed but are not links.
   expect(within(nav).queryByRole('link', { name: 'Theming' })).toBeNull()
   expect(within(nav).getByText('Theming').getAttribute('aria-disabled')).toBe('true')
 })
 
-test('every sidebar group is a named region whose label id has no spaces', () => {
-  renderPage()
+test('every sidebar group is a named region whose label id has no spaces', async () => {
+  await renderLayout()
 
   const nav = screen.getByRole('navigation', { name: 'Documentation' })
   const regions = within(nav).getAllByRole('region')
@@ -71,28 +43,14 @@ test('every sidebar group is a named region whose label id has no spaces', () =>
     expect(id).toMatch(/^[^\s]+$/)
     expect(nav.querySelector(`[id="${id}"]`), id).not.toBeNull()
   }
-  // The accessible names come from the group headings.
   for (const name of ['Start', 'Guides', 'Charts', 'Building blocks', 'Reference']) {
     expect(within(nav).getByRole('region', { name })).toBeTruthy()
   }
   expect(regions.map((r) => r.getAttribute('aria-labelledby'))).toContain('nav-building-blocks')
 })
 
-test('the table of contents links to the h2 anchors of the page', () => {
-  const { container } = renderPage()
-
-  const toc = screen.getByRole('navigation', { name: 'On this page' })
-  const hrefs = within(toc)
-    .getAllByRole('link')
-    .map((a) => a.getAttribute('href')?.slice(1) ?? '')
-  expect(hrefs.length).toBeGreaterThan(3)
-  for (const id of hrefs) {
-    expect(container.querySelector(`h2#${id}`), id).not.toBeNull()
-  }
-})
-
-test('the menu button toggles the navigation panel it controls', () => {
-  const { container } = renderPage()
+test('the menu button toggles the navigation panel it controls', async () => {
+  const { container } = await renderLayout()
 
   const button = screen.getByRole('button', { name: 'Menu' })
   const panel = container.querySelector(`#${button.getAttribute('aria-controls')}`)

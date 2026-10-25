@@ -1,4 +1,6 @@
+import type { ComponentRegistry } from '@glokki-cms/react'
 import { createBlockRegistry } from '@glokki-cms/sdk'
+import type { ComponentType } from 'react'
 import type { z } from 'zod'
 import { calloutBlock, calloutSchema } from './callout'
 import { chartExampleBlock, chartExampleSchema } from './chart-example'
@@ -48,3 +50,11 @@ export function parseBlockProps(type: string, props: unknown) {
   }
   return blockSchemas[type].safeParse(props)
 }
+
+/** The registry in the shape `CMSPage` takes: block type → component. */
+export const componentRegistry: ComponentRegistry = new Map(
+  blockRegistry.getTypes().flatMap((type) => {
+    const component = blockRegistry.getComponent(type) as ComponentType<Record<string, unknown>>
+    return [[type, component] as const]
+  }),
+)

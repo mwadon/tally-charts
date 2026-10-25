@@ -1,0 +1,129 @@
+{
+  "groups": [
+    {
+      "label": "Start",
+      "items": [
+        {
+          "label": "Getting started",
+          "slug": "getting-started"
+        }
+      ]
+    },
+    {
+      "label": "Guides",
+      "items": [
+        {
+          "label": "Theming",
+          "slug": "theming"
+        },
+        {
+          "label": "Palettes",
+          "slug": "palettes"
+        },
+        {
+          "label": "Time scales",
+          "slug": "time-scales"
+        },
+        {
+          "label": "Formatting",
+          "slug": "formatting"
+        },
+        {
+          "label": "Thresholds",
+          "slug": "thresholds"
+        },
+        {
+          "label": "Accessibility",
+          "slug": "accessibility"
+        },
+        {
+          "label": "Server Components",
+          "slug": "server-components"
+        },
+        {
+          "label": "Dark mode",
+          "slug": "dark-mode"
+        }
+      ]
+    },
+    {
+      "label": "Charts",
+      "items": [
+        {
+          "label": "BarChart",
+          "slug": "bar-chart"
+        },
+        {
+          "label": "ComparisonBars",
+          "slug": "comparison-bars"
+        },
+        {
+          "label": "RankedBars",
+          "slug": "ranked-bars"
+        },
+        {
+          "label": "WaterfallChart",
+          "slug": "waterfall-chart"
+        },
+        {
+          "label": "BridgeChart",
+          "slug": "bridge-chart"
+        },
+        {
+          "label": "DotHistogram",
+          "slug": "dot-histogram"
+        },
+        {
+          "label": "StripPlot",
+          "slug": "strip-plot"
+        },
+        {
+          "label": "WaffleColumns",
+          "slug": "waffle-columns"
+        },
+        {
+          "label": "LineChart",
+          "slug": "line-chart"
+        },
+        {
+          "label": "Heatmap",
+          "slug": "heatmap"
+        },
+        {
+          "label": "RunwayChart",
+          "slug": "runway-chart"
+        }
+      ]
+    },
+    {
+      "label": "Building blocks",
+      "items": [
+        {
+          "label": "Composition",
+          "slug": "composition"
+        },
+        {
+          "label": "Small pieces",
+          "slug": "small-pieces"
+        },
+        {
+          "label": "Hooks and providers",
+          "slug": "hooks-and-providers"
+        }
+      ]
+    },
+    {
+      "label": "Reference",
+      "items": [
+        {
+          "label": "Stability",
+          "slug": "stability"
+        },
+        {
+          "label": "Migration to 1.0",
+          "slug": "migration-1-0"
+        }
+      ]
+    }
+  ]
+}

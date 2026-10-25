@@ -92,8 +92,9 @@ jobs:
             apps/storybook/e2e/__screenshots__
             apps/storybook/test-results
 
-  # Runs without network access to the CMS and without secrets: the docs app has no remote
-  # content yet (fixtures arrive with F11). The Playwright image only provides the browsers.
+  # Runs without network access to the CMS and without secrets: with no CMS_BASE_URL the docs app
+  # reads its pages from the JSON fixtures in apps/docs/content. The Playwright image only
+  # provides the browsers.
   docs:
     runs-on: ubuntu-latest
     container: mcr.microsoft.com/playwright:v1.64.0-noble

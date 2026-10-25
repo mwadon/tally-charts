@@ -1,0 +1,119 @@
+{
+  "versionId": "fixture-line-chart-v1",
+  "version": 1,
+  "locale": "en",
+  "publishedAt": "2026-10-25T00:00:00.000Z",
+  "codeInjection": {},
+  "layout": {
+    "key": "default",
+    "header": null,
+    "footer": null
+  },
+  "pageId": "fixture-line-chart",
+  "title": "LineChart",
+  "slug": "line-chart",
+  "seo": {
+    "metaTitle": "LineChart · tally-charts",
+    "metaDescription": "Trends over time with a clear line between what happened and what is expected: solid actuals, a dashed forecast and a target that stays on the chart."
+  },
+  "componentTree": [
+    {
+      "id": "n1",
+      "type": "prose",
+      "props": {
+        "markdown": "Trends over time with a clear line between what happened and what is expected. Actual values are solid, a forecast is dashed, and a target stays on the chart."
+      }
+    },
+    {
+      "id": "n2",
+      "type": "heading",
+      "props": {
+        "text": "When to use it",
+        "level": "2",
+        "anchor": "when-to-use"
+      }
+    },
+    {
+      "id": "n3",
+      "type": "prose",
+      "props": {
+        "markdown": "Use `LineChart` for a handful of series that share an x axis: revenue against plan, a forecast that continues the actuals, a scenario next to the current path. For a single value per period, `BarChart` usually reads faster."
+      }
+    },
+    {
+      "id": "n4",
+      "type": "heading",
+      "props": {
+        "text": "Import",
+        "level": "2",
+        "anchor": "install"
+      }
+    },
+    {
+      "id": "n5",
+      "type": "code-block",
+      "props": {
+        "code": "npm i tally-charts",
+        "lang": "bash"
+      }
+    },
+    {
+      "id": "n6",
+      "type": "code-block",
+      "props": {
+        "code": "import { LineChart } from 'tally-charts'\nimport 'tally-charts/theme.css'",
+        "lang": "tsx",
+        "filename": "app/revenue.tsx"
+      }
+    },
+    {
+      "id": "n7",
+      "type": "heading",
+      "props": {
+        "text": "Examples",
+        "level": "2",
+        "anchor": "examples"
+      }
+    },
+    {
+      "id": "n8",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "line-chart/revenue-forecast",
+        "defaultView": "preview"
+      }
+    },
+    {
+      "id": "n9",
+      "type": "heading",
+      "props": {
+        "text": "Props",
+        "level": "2",
+        "anchor": "props"
+      }
+    },
+    {
+      "id": "n10",
+      "type": "props-table",
+      "props": {
+        "symbol": "LineChart"
+      }
+    },
+    {
+      "id": "n11",
+      "type": "heading",
+      "props": {
+        "text": "Keyboard and screen readers",
+        "level": "2",
+        "anchor": "keyboard"
+      }
+    },
+    {
+      "id": "n12",
+      "type": "prose",
+      "props": {
+        "markdown": "The chart is a single tab stop. Arrow keys move between points, `Home` and `End` jump to the ends, and `Esc` hides the tooltip. Screen readers get the chart title and description, an announcement for each point, and a hidden data table with every value. The full notes are in the [accessibility guide](https://github.com/mwadon/tally-charts/blob/main/docs/a11y.md)."
+      }
+    }
+  ]
+}

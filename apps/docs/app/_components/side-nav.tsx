@@ -1,7 +1,8 @@
 'use client'
 
 import { usePathname } from 'next/navigation'
-import { AVAILABLE_SLUGS, docHref, NAV_GROUPS } from '../_content/navigation'
+import type { NavigationGroup } from '../../lib/content'
+import { docHref } from '../_content/navigation'
 
 /** Heading id for a group: `nav-` plus the label as a slug (no spaces, `aria-labelledby` takes id lists). */
 function groupHeadingId(label: string) {
@@ -12,11 +13,11 @@ function groupHeadingId(label: string) {
 }
 
 /** Sidebar. Pages that don't exist yet are listed but disabled, not linked. */
-export function SideNav() {
+export function SideNav({ groups }: { groups: readonly NavigationGroup[] }) {
   const pathname = usePathname()
   return (
     <nav className="side-nav" aria-label="Documentation">
-      {NAV_GROUPS.map((group) => (
+      {groups.map((group) => (
         <section key={group.label} aria-labelledby={groupHeadingId(group.label)}>
           <h2 id={groupHeadingId(group.label)} className="side-nav-group">
             {group.label}
@@ -24,7 +25,7 @@ export function SideNav() {
           <ul>
             {group.items.map((item) => (
               <li key={item.slug}>
-                {AVAILABLE_SLUGS.has(item.slug) ? (
+                {item.available ? (
                   <a
                     href={docHref(item.slug)}
                     aria-current={pathname === docHref(item.slug) ? 'page' : undefined}
