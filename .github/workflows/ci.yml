@@ -112,6 +112,7 @@ jobs:
       - run: pnpm --filter docs typecheck
       - run: pnpm lint
       - run: pnpm --filter docs test
+      - run: pnpm --filter docs check:content
       - run: pnpm --filter docs build
       - run: pnpm --filter docs test:e2e
         env:
