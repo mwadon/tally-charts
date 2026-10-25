@@ -215,6 +215,7 @@ a:hover {
 }
 
 .wordmark {
+  white-space: nowrap;
   color: var(--docs-text);
   font-size: 1.125rem;
   font-weight: 750;
@@ -250,7 +251,6 @@ button {
   font: inherit;
 }
 
-.icon-button,
 .menu-button,
 .code-copy,
 .segmented button {
@@ -263,17 +263,25 @@ button {
   cursor: pointer;
 }
 
-.icon-button {
-  width: 2.25rem;
-  padding: 0;
-}
-
-.icon-button:disabled {
-  cursor: default;
-}
-
 .menu-button {
   font-weight: 600;
+}
+
+.theme-select {
+  min-height: 2rem;
+  padding: 0 0.25rem;
+  border: 1px solid var(--docs-control-border);
+  border-radius: var(--docs-radius);
+  background: transparent;
+  color: var(--docs-text);
+  font: inherit;
+  font-size: 0.875rem;
+  cursor: pointer;
+}
+
+.theme-select option {
+  background: var(--docs-bg);
+  color: var(--docs-text);
 }
 
 .menu-button[aria-expanded="true"],
@@ -854,6 +862,18 @@ tbody th {
 }
 
 /* ---------- Breakpoints ---------- */
+/* Very narrow phones (320 px): wordmark, theme switch and Menu must fit in 288 px, so the external
+   links (also on the home page) leave the header. */
+@media (max-width: 399px) {
+  .site-header-inner {
+    gap: 0.5rem;
+  }
+
+  .header-external {
+    display: none;
+  }
+}
+
 @media (min-width: 640px) {
   .version {
     display: inline-block;

@@ -55,22 +55,25 @@ export function themeSuite(spec: PageSpec) {
     }
   }
 
-  test.describe(`${spec.name}, 375 px`, () => {
-    test.use({ viewport: { width: 375, height: 812 } })
+  for (const width of [320, 375]) {
+    test.describe(`${spec.name}, ${width} px`, () => {
+      test.use({ viewport: { width, height: 812 } })
 
-    test('does not scroll horizontally', async ({ page }) => {
-      const errors = collectErrors(page)
-      await page.goto(spec.path)
-      await expect(page.getByRole('application', { name: spec.chart })).toBeVisible()
+      test('does not scroll horizontally', async ({ page }) => {
+        const errors = collectErrors(page)
+        await page.goto(spec.path)
+        await expect(page.getByRole('application', { name: spec.chart })).toBeVisible()
 
-      const { scrollWidth, clientWidth } = await page.evaluate(() => ({
-        scrollWidth: document.body.scrollWidth,
-        clientWidth: document.body.clientWidth,
-      }))
-      expect(scrollWidth).toBeLessThanOrEqual(clientWidth)
-      expect(errors).toEqual([])
+        const sizes = await page.evaluate(() => ({
+          root: [document.documentElement.scrollWidth, document.documentElement.clientWidth],
+          body: [document.body.scrollWidth, document.body.clientWidth],
+        }))
+        expect(sizes.root[0]).toBeLessThanOrEqual(sizes.root[1] ?? 0)
+        expect(sizes.body[0]).toBeLessThanOrEqual(sizes.body[1] ?? 0)
+        expect(errors).toEqual([])
+      })
     })
-  })
+  }
 
   test('an unknown ?theme= value changes nothing', async ({ page }) => {
     await page.goto(`${spec.path}?theme=sepia`)

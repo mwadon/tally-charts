@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
 import 'tally-charts/theme.css'
 import { siteUrl } from '../lib/metadata'
+import { THEME_SCRIPT } from '../lib/theme'
 import './globals.css'
 
 export const metadata: Metadata = {
@@ -9,17 +10,14 @@ export const metadata: Metadata = {
   title: 'tally-charts',
 }
 
-// Lets `?theme=light|dark` force a theme (screenshots, review) by setting the attribute that
-// theme.css already understands, before first paint. No storage: the real switch is F11.
-const FORCE_THEME = `try{var t=new URLSearchParams(location.search).get('theme');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-ch-theme',t)}catch(e){}`
-
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    // suppressHydrationWarning: the script above sets data-ch-theme on <html> before hydration.
+    // suppressHydrationWarning: THEME_SCRIPT sets data-ch-theme on <html> before hydration
+    // (`?theme=` first, then the stored choice; see lib/theme.ts).
     <html lang="en" suppressHydrationWarning>
       <head>
         {/* biome-ignore lint/security/noDangerouslySetInnerHtml: constant script, no user input */}
-        <script dangerouslySetInnerHTML={{ __html: FORCE_THEME }} />
+        <script dangerouslySetInnerHTML={{ __html: THEME_SCRIPT }} />
       </head>
       <body>
         <a className="skip-link" href="#main">
