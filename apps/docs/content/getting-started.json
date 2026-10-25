@@ -1,0 +1,165 @@
+{
+  "versionId": "fixture-getting-started-v1",
+  "version": 1,
+  "locale": "en",
+  "publishedAt": "2026-10-25T00:00:00.000Z",
+  "codeInjection": {},
+  "layout": {
+    "key": "default",
+    "header": null,
+    "footer": null
+  },
+  "pageId": "fixture-getting-started",
+  "title": "Getting started",
+  "slug": "getting-started",
+  "seo": {
+    "metaTitle": "Getting started · tally-charts",
+    "metaDescription": "Install tally-charts, import the theme, render your first chart and give it the name that screen readers need."
+  },
+  "componentTree": [
+    {
+      "id": "n1",
+      "type": "prose",
+      "props": {
+        "markdown": "Install `tally-charts`, load its theme once and render a chart from a few rows of data. It takes about a minute."
+      }
+    },
+    {
+      "id": "n2",
+      "type": "heading",
+      "props": {
+        "text": "Install",
+        "level": "2",
+        "anchor": "install"
+      }
+    },
+    {
+      "id": "n3",
+      "type": "code-block",
+      "props": {
+        "code": "npm i tally-charts",
+        "lang": "bash"
+      }
+    },
+    {
+      "id": "n4",
+      "type": "prose",
+      "props": {
+        "markdown": "Like React, the package reads `process.env.NODE_ENV` to turn development warnings on, so it expects a bundler that defines it (Vite, webpack, Next.js and esbuild with `define` all do)."
+      }
+    },
+    {
+      "id": "n5",
+      "type": "heading",
+      "props": {
+        "text": "Import the theme",
+        "level": "2",
+        "anchor": "theme"
+      }
+    },
+    {
+      "id": "n6",
+      "type": "code-block",
+      "props": {
+        "code": "import 'tally-charts/theme.css'",
+        "lang": "tsx",
+        "filename": "app/layout.tsx"
+      }
+    },
+    {
+      "id": "n7",
+      "type": "prose",
+      "props": {
+        "markdown": "Import the stylesheet once, near the root of your app. It defines the `--ch-*` design tokens that every chart reads for colors, type and spacing. Light and dark both work out of the box: charts follow the system setting, and a `data-ch-theme=\"light\"` or `data-ch-theme=\"dark\"` attribute on any ancestor forces one."
+      }
+    },
+    {
+      "id": "n8",
+      "type": "heading",
+      "props": {
+        "text": "Your first chart",
+        "level": "2",
+        "anchor": "first-chart"
+      }
+    },
+    {
+      "id": "n9",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "getting-started/first-chart",
+        "defaultView": "preview"
+      }
+    },
+    {
+      "id": "n10",
+      "type": "prose",
+      "props": {
+        "markdown": "`data` is an array of plain objects, `x` and `y` name the keys to read. The props are serializable, so the same code works in a Server Component."
+      }
+    },
+    {
+      "id": "n11",
+      "type": "heading",
+      "props": {
+        "text": "Name every chart",
+        "level": "2",
+        "anchor": "name"
+      }
+    },
+    {
+      "id": "n12",
+      "type": "callout",
+      "props": {
+        "tone": "warning",
+        "markdown": "**A name is required.** Every chart is a `figure` that screen readers announce by name. TypeScript requires `title` or `aria-labelledby` on every chart (the type is `ChartName`), and calls from JavaScript that give neither warn in development."
+      }
+    },
+    {
+      "id": "n13",
+      "type": "prose",
+      "props": {
+        "markdown": "If the page already has a visible heading, point the chart at it instead of repeating the text:"
+      }
+    },
+    {
+      "id": "n14",
+      "type": "code-block",
+      "props": {
+        "code": "<h2 id=\"margin-heading\">Margin by week</h2>\n<BarChart aria-labelledby=\"margin-heading\" data={weeks} x=\"week\" y=\"margin\" />",
+        "lang": "tsx"
+      }
+    },
+    {
+      "id": "n15",
+      "type": "heading",
+      "props": {
+        "text": "Props",
+        "level": "2",
+        "anchor": "props"
+      }
+    },
+    {
+      "id": "n16",
+      "type": "props-table",
+      "props": {
+        "symbol": "BarChart"
+      }
+    },
+    {
+      "id": "n17",
+      "type": "heading",
+      "props": {
+        "text": "Next steps",
+        "level": "2",
+        "anchor": "next-steps"
+      }
+    },
+    {
+      "id": "n18",
+      "type": "prose",
+      "props": {
+        "markdown": "Browse the [LineChart](/docs/line-chart) page for trends, forecasts and targets, or read the [package README](https://github.com/mwadon/tally-charts#readme) for the full list of charts and building blocks."
+      }
+    }
+  ]
+}
