@@ -305,3 +305,42 @@ Domyślna podpowiedź „Press Enter to select.” pojawia się tylko wtedy, gdy
 - D9. Blok `if (DEV) { … else for … }` w ZoneMeter przeciekał do buildu produkcyjnego (esbuild zostawiał `if(!1)…`, a istniejących fraz ZoneMeter nie było w `check-dev-strip.mjs`). Rozbiłem go na osobne `if (DEV && …)` i dopisałem frazę 'must be greater than min'. `check:dev-strip` daje 34/34.
 - D10. `share-empty` dopisane do listy części w `surface.test.ts` (publiczna powierzchnia CSS).
 **Weryfikacja:** format, lint (4 ostrzeżenia, 1 info jak wcześniej), typecheck, test (1074), build, api:check (bez zmian w `api/`), size (Small UI pieces 4.04 KB z 5 KB), check:dev-strip i `pnpm test:e2e` (307, bez `--update-snapshots`, port 6007 wolny) przechodzą; brak nowych ani zmienionych PNG.
+
+## ✔ T09.1 ZoneMeter i ShareBar: No data dla nieskończonych wartości, min. 2 px, zakotwiczenie etykiet (bez nowych baseline'ów) (2026-10-25)
+ShareBar i ZoneMeter pokazują „No data” dla NaN i ±Infinity, ostrzegają w dev dokładnie raz i nie gubią bardzo małych stref. Wszystkie bramki przechodzą, a w git status nie ma nowych ani zmienionych PNG. Zmieniłem:
+- `share.ts`: nowe ostrzeżenie „which is not finite; it counts as 0” dla NaN i ±Infinity. Ujemne i nieliczbowe wartości zostają przy starym ostrzeżeniu. `shareLayout` zwraca `empty` (są segmenty, ale żaden nie ma poprawnej wartości).
+- `ShareBar.tsx`: przy `empty` pasek nie ma segmentów, zamiast listy jest `<p data-ch-part="share-empty">No data</p>`, a przy `legend={false}` nazwa to `label: No data`. Segmenty z samymi zerami i pusta tablica działają jak dotąd.
+- `ZoneMeter.tsx`: ostrzeżenie „is not finite; it shows No data” tylko dla liczb (null i undefined bez ostrzeżenia). Strefy mają tylko inline `width`.
+- `theme.css`: track ZoneMeter jest flexem, strefy mają `flex: 0 1 auto` i `min-width` 2 px (kolejne 2 px + przerwa). Dodałem styl `share-empty`.
+- `check-dev-strip.mjs`: obie nowe frazy oraz 'must be greater than min'. `share-empty` dopisałem do `surface.test.ts` (lista części publicznej powierzchni CSS).
+- Story `primitives-small-pieces--edge-cases` (320 px) poza STORIES, nowy `e2e/small-pieces.spec.ts`, changeset patch `.changeset/small-pieces-edge-cases.md` i sekcja T09.1 w PROGRESS.md.
+
+Wyniki bramek:
+- `pnpm lint` ma te same 4 ostrzeżenia i 1 info co wcześniej.
+- `pnpm test` 1074 przechodzą.
+- `api:check` przeszedł bez zmian w `packages/tally-charts/api`.
+- Small UI pieces ma 4.04 KB przy limicie 5 KB.
+- `check:dev-strip` daje 34/34.
+- `pnpm test:e2e` bez `--update-snapshots`: 307 przeszło, port 6007 był wolny.
+**Decyzje i pułapki:**
+- esbuild nie usuwa `if(!1){ if(...) warn(); else for(...) }`; wzorzec `if (DEV && warunek) warn(...)` jest usuwany niezawodnie. Nowe ostrzeżenia dopisuj z DEV w warunku i dodawaj ich frazy do check-dev-strip.
+- Warner deduplikuje po kluczu, więc testy ostrzeżeń potrzebują unikalnych label/wartości na przypadek.
+- Nowa wartość data-ch-part w theme.css musi trafić do listy PARTS w src/theme/surface.test.ts.
+- Na macOS sed -i wymaga argumentu rozszerzenia; do zmian w plikach używaj Edit.
+- Flex z min-width zamiast position:absolute daje stref sumujące się do szerokości tracku bez zmiany pozycji dużych stref (baseline'y PNG bez zmian).
+**Otwarte kwestie:**
+- Do tej pory ostrzeżenia ZoneMeter przeciekały do buildu produkcyjnego: esbuild zostawiał `if(!1)…`, a ich fraz nie było w check-dev-strip. Naprawiłem to rozbiciem bloku na osobne `if (DEV && …)` i dopisaniem frazy 'must be greater than min'. Inne komponenty z blokiem `if (DEV) { … else for … }` mogą mieć ten sam problem, bo ich fraz też może nie być w liście.
+- ZoneMeter zakłada ciągłe strefy (bins z thresholds()); luki w ręcznie zbudowanych bins nie są wspierane.
+- T06 nadal czeka na baseline'y linux (Docker), nie dotyczy tego taska.
+- packages/tally-charts/src/react/ui/ZoneMeter.tsx: Decision D9 in PROGRESS.md says the leak of ZoneMeter warnings into production is fixed, but it isn't fully fixed. After bundling dist/index.js with esbuild (NODE_ENV=production, minify), the code still contains `if(!1,!1,!1)for(let x of n.bins.slice(1))(...)&&Pe(`zone-break:...`,`ZoneMeter "${i}": break ${x.min} is outside ...; its zone is not drawn.`)`. esbuild merged the three `if (DEV && …)` checks into one comma expression and did not drop the loop. The code never runs, but the text of this warning ships in the prod build, and check-dev-strip.mjs misses it because its list has no phrase for this warning. The same problem exists outside this task for the Heatmap warning ('must be finite and ascending', `if(!1){…}` stays in the bundle).
+- packages/tally-charts/src/react/ui/share.ts: `empty` is also true when every segment is negative, not just non-finite (e.g. [{value:-1}]). Before, such a bar showed a list with 0%; now it shows 'No data'. This change to behaviour is broader than the task (NaN/±Infinity) and has no test at the ShareBar component level.
+- packages/tally-charts/src/react/ui/ZoneMeter.tsx: With `left` removed and zones laid out by flex, the layout assumes zones are contiguous. Hand-built `zones.bins` with a gap (the public type ZoneMeterZones allows this) will shift the following zones relative to the breaks, the labels and the absolutely positioned marker. The min-width of 2px + gap also moves zone edges slightly off the breaks, so the CSS comment 'zone edges stay exactly on their breaks' (theme.css) is no longer true.
+**Kryteria:**
+- ZoneMeter.test.tsx: it.each([Infinity, -Infinity, NaN]) — role=meter ma aria-valuetext 'No data', brak [data-ch-part="zone-meter-marker"], console.warn wywołany dokładnie raz z tekstem zawierającym 'is not finite'
+- ShareBar.test.tsx: it.each([Infinity, -Infinity, NaN]) — 0 elementów [data-ch-part="share-segment"], widoczny tekst 'No data', dokładnie jedno console.warn o nieskończonej wartości; przy legend={false} role=img ma nazwę '<label>: No data'
+- share.test.ts: it.each([Infinity, -Infinity, NaN]) — shareLayout zwraca empty=true i value 0, dokładnie jedno console.warn zawierające 'not finite'; segmenty z samymi zerami i pusta tablica zachowują dotychczasowe zachowanie (istniejące testy przechodzą bez zmian)
+- ZoneMeter.test.tsx: pierwsza zone-meter-label ma style left '0%' i transform 'translateX(-0%)', ostatnia left '100%' i 'translateX(-100%)'
+- scripts/check-dev-strip.mjs zawiera frazy obu nowych ostrzeżeń, a `pnpm --filter tally-charts check:dev-strip` po `pnpm build` kończy się 'ok'
+- Story primitives-small-pieces--edge-cases (kontener 320 px) istnieje i nie jest w STORIES/WIDE_STORIES; apps/storybook/e2e/small-pieces.spec.ts sprawdza: segment ShareBar 0.1% ≥ 2 px i suma segmentów + przerw = szerokość paska ±0.5 px; strefa ZoneMeter 0.1% ma wypełnienie (clientWidth) ≥ 2 px i suma stref = szerokość tracku ±0.5 px; żadna zone-meter-label nie wychodzi poza box zone-meter; axe bez naruszeń
+- Istnieje .changeset/*.md z 'tally-charts': patch, a PROGRESS.md ma sekcję T09.1 z decyzjami
+- Przechodzą pnpm lint, pnpm typecheck, pnpm test, pnpm build, api:check (bez zmian w packages/tally-charts/api), pnpm size i check:dev-strip; pnpm test:e2e przechodzi bez --update-snapshots, a git status nie pokazuje nowych ani zmienionych plików PNG
