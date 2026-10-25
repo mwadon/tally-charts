@@ -228,3 +228,67 @@ broke half way is completed by the next one. Pages in the CMS that have no fixtu
 listed as `/slug [locale]`), and a slug of `content/navigation.json` without a fixture is
 skipped as `no fixture`. The labels, groups and order of the sidebar stay in
 `content/navigation.json`; the seed doesn't touch the menu of the layout.
+
+## 11. Docs on Vercel [MAINTAINER]
+
+Hosts `apps/docs` on Vercel with the content from glökki, a preview deploy for every PR and a
+webhook that refreshes the site when a page is published. Done once, by the owner of the Vercel
+project. Everything the build needs is in `apps/docs/vercel.json` (framework, install and build
+command); it holds no secret and no value of any variable.
+
+1. **Import the repository**: Vercel → Add New → Project → GitHub → `mwadon/tally-charts`. Then in
+   the project settings:
+   - **Root Directory**: `apps/docs`, with **Include files outside the root directory in the Build
+     Step** turned on (the build needs the whole workspace: `packages/tally-charts` and the root
+     lockfile).
+   - **Node.js Version**: `24.x` (Settings → Build and Deployment), the same as CI.
+   - **Framework Preset, Install Command and Build Command**: don't override them in the UI. They
+     come from `apps/docs/vercel.json`: `pnpm install --frozen-lockfile`, then
+     `pnpm --filter tally-charts build && pnpm --filter docs build` (the library goes first, because
+     the docs resolve `tally-charts` to its `dist`). If a field shows "Override" turned on, turn it
+     off.
+2. **Environment variables** (Settings → Environment Variables). Names and meaning:
+   `apps/docs/.env.example`.
+
+   | Variable                 | Production                      | Preview                          | Notes                                                                                  |
+   | ------------------------ | ------------------------------- | -------------------------------- | -------------------------------------------------------------------------------------- |
+   | `CMS_BASE_URL`           | address of glökki               | the same                         | Without it the site reads the JSON fixtures, not the CMS.                              |
+   | `CMS_TENANT`             | tenant slug                     | the same                         | Sent as `X-Tenant-Slug`.                                                               |
+   | `CMS_API_KEY`            | delivery key of the tenant      | the same                         | Server only: don't prefix it with `NEXT_PUBLIC_`.                                      |
+   | `NEXT_PUBLIC_CMS_TENANT` | tenant slug                     | the same                         | Read by the visual editor in the browser.                                              |
+   | `REVALIDATE_SECRET`      | random                          | a different random value         | `openssl rand -hex 32`. Separate for Production and Preview.                           |
+   | `PREVIEW_SECRET`         | random                          | a different random value         | `openssl rand -hex 32`. Separate for Production and Preview.                           |
+   | `SITE_URL`               | the production URL of the site  | the same production URL          | Canonical links, Open Graph and `sitemap.xml`. Without it they point at `localhost:3100`. |
+   | `APP_ENV`                | `production`                    | leave empty (don't set it)       | Only `production` allows indexing; see step 3.                                         |
+
+   `CMS_ADMIN_API_KEY` never goes to Vercel: it is for `pnpm --filter docs seed` and lives only on
+   the maintainer's machine (§10).
+3. **Preview deploys**: Vercel builds every PR with the Preview values. Without `APP_ENV=production`
+   the site sends `noindex`, `robots.txt` answers `Disallow: /` and block errors are visible, so a
+   preview is never indexed and shows what is broken. `SITE_URL` stays the production URL there
+   on purpose (the code doesn't read `VERCEL_URL`). Optionally turn on Deployment Protection
+   (Settings → Deployment Protection) so that only the team opens the previews.
+4. **Webhook from glökki**: in the tenant's webhooks add, for the publish event,
+   `POST https://<domain>/api/revalidate` with the header `Authorization: Bearer <REVALIDATE_SECRET>`
+   (or `x-revalidate-secret: <REVALIDATE_SECRET>`) of Production. Check it by hand:
+
+   ```sh
+   curl -i -X POST https://<domain>/api/revalidate -H "Authorization: Bearer $REVALIDATE_SECRET"
+   # 200 {"revalidated":true}
+   curl -i -X POST https://<domain>/api/revalidate
+   # 401 {"revalidated":false}
+   ```
+
+   Then change a text on a page in glökki, publish it and check that the change is visible on the
+   production site within 60 seconds.
+5. **Draft preview**: in glökki set the preview URL to `https://<domain>/preview?slug=<slug>` (the
+   slug `home` opens `/`, any other `/docs/<slug>`), sending `PREVIEW_SECRET` in
+   `Authorization: Bearer`, in `x-preview-secret` or as `?secret=`. A wrong secret answers 401, an
+   unknown slug 400. After the seed (§10) open the visual editor once to sync the block registry.
+6. **Check the domain**: the changesets link `https://tally-charts.vercel.app/docs/migration-1-0`
+   (`grep -l 'tally-charts.vercel.app' .changeset/*.md` lists three of them). The production URL of
+   the project must be exactly `https://tally-charts.vercel.app`. If it is another one:
+   - replace the address in those changesets (a PR that changes no file in `packages/`),
+   - set `SITE_URL` to the new address in Production and Preview,
+   - update the address in `PROGRESS.md` and `CLAUDE.md` where it is mentioned,
+   - redeploy the project so the new `SITE_URL` takes effect.
