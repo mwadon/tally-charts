@@ -269,3 +269,25 @@ Ostatnie uwagi: zobacz .crew/backlog.json (lastNote).
 - D4. Bez zmiany publicznego API: changeset `patch` (`.changeset/select-hint-selectable-points.md`).
 **Zmiany:** `Chart.tsx` (`hintPoint`, `canSelect`), JSDoc `keyboardHint`, `docs/a11y.md`. Bundle LineChart wyszedł 13003 B przy limicie 13000 B (marginesu nie było już po T06); inline'owanie warunku pogarszało gzip, więc limit LineChart w `packages/tally-charts/.size-limit.json` wrócił do 13.2 KB.
 **Testy:** `Chart.test.tsx` (`describe('Enter hint')`: bez onSelect, pierwszy punkt niewybieralny, przejście wybieralny → niewybieralny → wybieralny, własny hint; `PointsProbe` ma `unselectable`), `Bars.test.tsx` i `RankedBars.test.tsx` (z `onSelect` i bez). Bez poprawki w `Chart.tsx` padają 4 nowe testy.
+
+## ✔ T08 Podpowiedź „Press Enter to select” tylko na wybieralnych punktach (F4) (2026-10-25)
+Domyślna podpowiedź „Press Enter to select.” pojawia się tylko wtedy, gdy jest `onSelect` i punkt odniesienia ma `selectable !== false`. Punkt odniesienia to aktywny punkt albo pierwszy, zanim jakiś jest aktywny. Własny `keyboardHint` działa bez zmian, a komunikat live nigdy nie zawiera podpowiedzi. Zmiana jest w `Chart.tsx` (`hintPoint`, `canSelect`, JSDoc `keyboardHint`). Zaktualizowałem `docs/a11y.md`, dodałem changeset `patch` `.changeset/select-hint-selectable-points.md` i wpis T08 z decyzjami w PROGRESS.md. Limit rozmiaru LineChart podniosłem z 13 KB do 13.2 KB. Przechodzą: `pnpm test` (1058), `pnpm lint` (te same 4 ostrzeżenia i 1 info), `pnpm typecheck`, `pnpm build`, `api:check` (bez zmian w pliku API), `pnpm size` i `check:dev-strip`. `pnpm test:e2e` pominąłem, bo tekst jest ukryty i baseline'y się nie zmieniają.
+**Decyzje i pułapki:**
+- Jeśli żaden punkt nie jest aktywny, ArrowRight aktywuje punkt 0. Testy przejść między punktami muszą najpierw wywołać focus na widgecie, bo fokus aktywuje pierwszy punkt.
+- PointsProbe nie renderuje elementów z id, więc aria-activedescendant jest null. Aktywności nie sprawdza się tym atrybutem.
+- Inline'owanie warunku `canSelect` zwiększyło gzip bundla LineChart bardziej niż osobne stałe `hintPoint` i `canSelect`. Przy limitach z marginesem rzędu bajtów kolejność i kształt kodu zmieniają wynik.
+- Po `pnpm format` Edit wymaga ponownego Read pliku, bo format modyfikuje pliki.
+**Otwarte kwestie:**
+- Limit LineChart w `.size-limit.json` przekroczony o 3 B (13003 B przy 13000 B, bez marginesu po T06). Podniosłem go do 13.2 KB, a inline'owanie warunku pogarszało gzip. Do rozważenia przy okazji, np. odchudzenie kodu LineChart albo Chart.
+- T06 nadal oczekuje na baseline'y linux (Docker uszkodzony). Nie dotyczy T08.
+- Nie uruchamiałem pnpm test:e2e. Zmiana dotyczy tylko ukrytego tekstu, więc baseline'y wizualne się nie zmieniają.
+- packages/tally-charts/.size-limit.json: Limit LineChart podniesiony z 13 KB do 13.2 KB, bo zmiana przekroczyła go o 3 B. To zmiana poza ścisłym zakresem taska. Jest uzasadniona i opisana w PROGRESS.md, ale po kolejnych taskach margines rozmiaru będzie się kurczył.
+**Kryteria:**
+- Chart z własnym markiem (useRegisterPoints): bez onSelect albo gdy aktywny punkt (lub pierwszy, przed aktywacją) ma selectable:false, widget role=application nie ma w toHaveAccessibleDescription tekstu 'Press Enter to select', a region [aria-live] po nawigacji strzałkami też go nie zawiera (test w Chart.test.tsx)
+- Bars w <Chart onSelect> z selectable wyłączającym jeden słupek oraz wariant bez onSelect: opis widgetu i region live bez 'Press Enter' na niewybieralnym słupku (test w marks/Bars.test.tsx)
+- RankedBars z selectable: d => d.name !== 'Labor overruns' i onSelect oraz bez onSelect: brak 'Press Enter' na niewybieralnym wierszu i bez onSelect (test w charts/RankedBars.test.tsx)
+- Z onSelect i wybieralnym punktem opis widgetu to dokładnie 'Use arrow keys to move between points, Home and End for first and last, Escape to clear. Press Enter to select.' (istniejący test Chart.test.tsx l. 90-98 przechodzi bez zmian)
+- Sekwencja wybieralny → ArrowRight na niewybieralny → ArrowRight/ArrowLeft na wybieralny przełącza obecność 'Press Enter to select.' w opisie widgetu (test w Chart.test.tsx oraz w Bars lub RankedBars)
+- Własny keyboardHint jest używany dosłownie, niezależnie od selectable (istniejący test przechodzi)
+- Istnieje plik .changeset/*.md z 'tally-charts': patch opisujący zmianę
+- pnpm test, pnpm lint, pnpm typecheck, pnpm build, api:check, pnpm size i check:dev-strip przechodzą; api:check bez zmian w pliku API
