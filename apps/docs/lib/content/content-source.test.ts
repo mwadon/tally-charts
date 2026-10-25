@@ -127,6 +127,14 @@ describe.each(sources)('ContentSource (%s)', (_name, create) => {
     expect(await create().getPage('nope')).toBeNull()
   })
 
+  test('getPage returns null for anything but a plain slug, without reading from outside', async () => {
+    const source = create()
+    for (const slug of ['../navigation', 'a/b', '..', '', 'Line-Chart']) {
+      expect(await source.getPage(slug)).toBeNull()
+    }
+    expect(fetchMock).not.toHaveBeenCalled()
+  })
+
   test('listPages lists the slugs', async () => {
     expect(await create().listPages()).toEqual([listItem])
   })
@@ -206,6 +214,14 @@ describe('glökki', () => {
     )
     expect(offsets).toEqual(['0', '100', '200'])
     expect(new URL(String(fetchMock.mock.calls[0]?.[0])).searchParams.get('limit')).toBe('100')
+  })
+
+  test('a page of an unexpected shape fails with its slug', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => json({ data: [{ nope: true }] })),
+    )
+    await expect(create().getPage('line-chart')).rejects.toThrow(/line-chart/)
   })
 
   test('an API error other than 404 is thrown', async () => {
