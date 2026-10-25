@@ -2319,3 +2319,94 @@ Poprawka T37 po review: uzupełniłem luki treści z usuniętego README. Mechani
 - PROGRESS.md ma sekcję T37 z tabelą mapowania każdej usuniętej sekcji README na slug strony, uzasadnieniem przeniesienia testu tokenów (D2), założeniem domeny (D1) i otwartą kwestią ponownego seeda glökki
 - Jest changeset `patch` dla `tally-charts` opisujący skrócony README i homepage
 - Przechodzą z kodem 0: `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build`, `pnpm --filter tally-charts api:check` (bez zmian w `packages/tally-charts/api`), `check:dts`, `check:treeshake`, `pnpm size`, `pnpm --filter docs typecheck`, `pnpm --filter docs test`, `pnpm --filter docs check:content` (API coverage 52/52), `pnpm --filter docs build` i `pnpm --filter docs test:e2e`
+
+## ✔ T38 Gotowość release candidate 1.0.0-rc.0 i przygotowanie audytu a11y (F20, F21) (2026-10-25)
+Audyt changesetów, dry-run `changeset version`, lokalne odpowiedniki jobów CI, skrypty i szablon ręcznego audytu a11y oraz checklista maintainera. `packages/`, `api/` i baseline'y nietknięte (`git diff --stat` na tych ścieżkach jest pusty). Nic nie jest commitowane ani publikowane.
+
+### (a) Audyt changesetów: F1–F8 (+F18) → plik → bump
+Przejrzałem diffy commitów T05–T15, T09.1, T10, T11, Q1-01 (eksporty, propsy, domyślne, `data-ch-part`, zachowanie, ostrzeżenia dev, `package.json`, `api/*.api.md`). Brak zmiany bez opisu poza lukami niżej.
+
+| F | Zmiana widoczna dla użytkownika | `.changeset/*.md` | Bump |
+|---|---|---|---|
+| F1 | `RankedBars` domyślny `fill='solid'` | `ranked-bars-solid-fill` | major |
+| F2 | `LineChart` prop `underlay` | `line-chart-underlay` | minor |
+| F3 | wymagana nazwa wykresu (`ChartName`, `*Props` jako aliasy typów) | `required-chart-name` | major |
+| F4 | podpowiedź „Press Enter to select.” tylko na wybieralnych punktach | `select-hint-selectable-points` | patch |
+| F5 | `ZoneMeter`/`ShareBar`: No data dla nieskończonych wartości, ostrzeżenia, min. szerokość, `share-empty`, etykiety | `small-pieces-edge-cases` (uzupełniony) | patch |
+| F6 | niepoprawna data przerywa linię (`Line`/`Band`/`Area`/`LineChart`), `thinTicks` zachowuje wyróżniony tick | `line-breaks-on-invalid-date` | major |
+| F6 | RunwayChart: `pointercancel`/`pointerleave`/touch, kontrolowany `activeId`, zduplikowane `id` | `runway-pointer-fixes` | patch |
+| F7 | stabilność: co jest API, a co nie (stringi, `--_ch-*`), znane ograniczenia a11y | `stability-docs` (uzupełniony) | patch |
+| F8 | `/* @__PURE__ */`, stałe RunwayChart | `treeshake-pure` | patch |
+| F8 | `.d.ts` bez gołego `import "d3-time"` | `dts-no-side-effect-import` | patch |
+| F8 | `createDateFormatter` + 3 typy w `tally-charts/core` | `core-date-formatter` | minor |
+| F8 | TSDoc `createFormatter`, model API Extractora | `api-doc-model` | patch |
+| F18 | krótki README, `homepage` | `readme-short` | patch |
+
+**Luki znalezione i uzupełnione (istniejące pliki, bez nowych changesetów):**
+- `small-pieces-edge-cases` (F5): brakowało (1) ShareBar: segment z udziałem > 0 ma ≥ 2 px (CSS `min-width: 3px`, bez zmiany; przypięte e2e), (2) nowej publicznej części `data-ch-part="share-empty"` (`<p>No data</p>`) zamiast listy legendy, (3) zmiany zachowania: pasek, w którym wszystkie segmenty są ujemne albo nieskończone, pokazuje „No data” (wcześniej lista z 0%), (4) że strefy `ZoneMeter` mają tylko inline `width` (bez `left`), a track jest flexem, (5) zakotwiczenia skrajnych etykiet `ZoneMeter` (kod bez zmian od 0.x, T09.1 D5 dodał test). Dopisane; ostrzeżenie ZoneMeter o `NaN`/`±Infinity` i ShareBar o nieskończonej wartości były już opisane.
+- `stability-docs` (F7): zdanie „Documentation only” nie mówiło wprost, że brzmienie wbudowanych angielskich stringów i `--_ch-*` nie są API od 1.0 (SPEC F23 liczy to jako zmianę łamiącą, jest to na stronie `migration-1-0`). Dopisany akapit „Not public API from 1.0” z linkiem `https://tally-charts.vercel.app/docs/migration-1-0`. **Bump zostaje `patch`:** kod się nie zmienia, a to dokumentacja kontraktu. Wystarczy zdanie i link, a ostrzeżenie migracyjne niesie strona migracji (sekcja „Built-in strings are not API”).
+- Typy bumpów bez zmian.
+
+### (b) Dry-run `changeset version` (jednorazowa kopia, nie repo)
+`git archive HEAD | tar -x` do `mktemp -d`, nad tym zmienione changesety z drzewa roboczego (`cp .changeset/*.md`), `git init && git add -A && git commit`, `<repo>/node_modules/.bin/changeset version` (changesets 3.0.3, pre mode `rc`). Kopia usunięta (`rm -rf`).
+- `packages/tally-charts/package.json` → `"version": "1.0.0-rc.0"`.
+- `CHANGELOG.md`: sekcja `## 1.0.0-rc.0` z nagłówkami **Major Changes**, **Minor Changes**, **Patch Changes**; wpisy **3 Major, 2 Minor, 8 Patch = 13** (tyle, ile oczekujących changesetów). Fraza charakterystyczna każdego z 13 plików występuje dokładnie raz w CHANGELOG (`createDateFormatter` 3×: wpis plus nazwy typów).
+- Linków `https://tally-charts.vercel.app/docs/migration-1-0` w sekcji rc.0: **4** (3 major + stability-docs).
+- Changesety przeszły do `.changeset/pre/` tylko w kopii.
+- W repo po dry-runie: `git status` pokazuje zmiany tylko w `.changeset/small-pieces-edge-cases.md`, `.changeset/stability-docs.md`, `docs/a11y.md` i PROGRESS.md. Brak zmian w `packages/tally-charts/package.json`, `CHANGELOG.md`, `.changeset/pre.json` i brak katalogu `.changeset/pre/`. Zmiana nie jest commitowana.
+
+### (c) Lokalne odpowiedniki jobów CI (wszystko wykonane przy HEAD + zmiany T38)
+**GitHub: niepotwierdzone, main lokalnie +178 commitów nad origin/main** (ostatni zielony run na GitHubie b534bd5 z 2026-10-24 jest sprzed pracy nad 1.0). „CI na main zielone” = lokalne odpowiedniki niżej + punkt 1 checklisty maintainera po pushu.
+
+| Job | Co uruchomiłem | Wynik |
+|---|---|---|
+| check | `pnpm typecheck`, `pnpm lint` (7 ostrzeżeń, 1 info, bez błędów), `pnpm build`, `REQUIRE_DIST=1 pnpm test`, `api:check`, `pnpm size`, `check:dev-strip`, `check:treeshake`, `check:dts` | exit 0; test: 83 plików, **1154** testów; całość 28 s (jest cache turbo/pnpm, build 1 s) |
+| workflows | `pnpm check:workflows`, `pnpm test:scripts`, `docker run rhysd/actionlint:1.7.7 -color` | exit 0; test:scripts 18 pass, 0 fail; actionlint exit 0 |
+| react18 | osobna kopia (`git archive` + zmienione changesety), `pnpm install --frozen-lockfile`, `pnpm --filter tally-charts add -D react@18.3.1 react-dom@18.3.1` (react 18.3.1 potwierdzony), `pnpm test` | exit 0; 82 plików pass + 1 pominięty (`dts-parse`, bez `REQUIRE_DIST`, jak w CI), **1153** pass + 1 skipped; 23 s |
+| e2e (Storybook, linux) | `docker run mcr.microsoft.com/playwright:v1.64.0-noble`, kopia repo bez `node_modules`/`.git`, `pnpm install --frozen-lockfile`, `CI=true pnpm test:e2e`, **bez** `--update-snapshots`, port 6007 wolny | przebieg 2: exit 0, **333/333**, 83 s. Przebieg 1: 332/333, jeden błąd: `charts-runwaychart--stacked-dark matches its screenshot` (34042 px różnicy, ratio 0.07), równolegle chodziły react18 i `pnpm install` na hoście. Test powtórzony 4× osobno w kontenerze (`-g runwaychart --repeat-each=4`): 32/32 pass, a pełny przebieg 2 też przeszedł. Traktuję jako flaky pod obciążeniem, baseline'u nie ruszałem. |
+| docs (linux) | kroki joba w kontenerze Playwright: `pnpm build`, `docs gen`, `docs typecheck`, `pnpm lint`, `docs test` (**698**), `docs check:content` (API coverage **52/52**), `docs build`, `CI=true docs test:e2e` (**448/448**, 2.4 min), bez aktualizacji baseline'ów (komenda z komentarza nad jobem ma `--update-snapshots`, więc użyłem samych kroków joba) | exit 0; całość 198 s; w tym reflow 320 px na linuxie |
+
+### (d) Decyzje
+- **D-8 (potwierdzona dla RC): dist-tag `rc`, nie `next`.** Litera F9/T38 mówi „next”, ale changesets 3.0.3 odrzuca `--tag` w pre mode (opis D-8 wyżej, `docs/releasing.md` §5), więc `1.0.0-rc.N` idzie na `rc`, a `latest` zostaje 0.9.0. Checklista weryfikuje `rc` i brak `next`.
+- „CI zielone” = lokalne odpowiedniki jobów + potwierdzenie na GitHubie po pushu (punkt maintainera), bo agent nie robi push, a main jest +178 commitów nad origin.
+- `stability-docs` zostaje `patch` z linkiem do `migration-1-0` (kod się nie zmienia). Nowych changesetów nie dodałem, bo audyt nie znalazł zmiany bez opisu.
+- `apps/docs/content/accessibility.json` **bez zmian** (strona ma skrót; pełne skrypty VoiceOver/NVDA/HC/400% i szablon wyników są w `docs/a11y.md` w repo). Link do pliku na GitHubie nie został dodany, żeby nie ruszać fiksturek i seeda (zob. otwarte kwestie).
+- JAWS jawnie poza zakresem (`docs/a11y.md`).
+
+### (e) Audyt a11y: co jest w `docs/a11y.md`
+- §Manual checklist (kotwica `manual-checklist` bez zmian): 7 punktów; RunwayChart (`Reference/Usage runway`) w Tab-through i w 400%; punkty 4–7 odsyłają do skryptów; zdanie o uruchamianiu na RC na stronach docs i w Storybooku, bez JAWS.
+- `### VoiceOver script`: nowy blok **RunwayChart** (`reference-usage-runway--light`, ma `onSelect`; wariant bez `onSelect`: `charts-runwaychart--stacked-light`). Frazy sprawdzone w uruchomionym Storybooku Playwrightem (`ariaSnapshot`, `aria-activedescendant` po każdym klawiszu): lista „Usage runway”, opis „4 accounts run out before reset; Pro plan first, Fri 01:45, then locked 10 h.”, wiersze „Pro plan Runs out Fri 01:45 Resets Fri 11:22”, ↓, Home/End („Starter Reconnect to forecast”), Enter (`aria-selected`, nagłówek szczegółu), Escape, legenda, ukryta tabela („Name, Detail, Runs out, Resets, Projected at reset, Status”).
+- Nowe: `### NVDA script (Windows VM, Firefox or Chrome)`, `### Windows high contrast script`, `### 400% zoom script`, `## Manual results` z pustym szablonem i regułą blockerów z SPEC F21. Frazy NVDA/HC/400% nie były uruchamiane na NVDA ani Windows (nie ma ich tu): to oczekiwania z kodu i CSS (`@media (forced-colors: active)`), nie wyniki.
+
+### (f) Checklista maintainera dla RC 1.0.0-rc.0
+Wszystko poniżej wymaga maintainera; agent niczego tu nie potwierdził.
+- [ ] 0. Zamknąć T17: trusted publisher na npmjs.com (repo `mwadon/tally-charts`, workflow `release.yml`, environment `npm-publish`), environment `npm-publish` na GitHubie z reviewerem i gałęzią `main`, zgoda Actions na tworzenie i zatwierdzanie PR, `npm deprecate tally-charts@0.0.0-stage …` (`docs/releasing.md` §9). Bez tego publikacja RC nie przejdzie.
+- [ ] 1. Push `main` i `gh run list --branch main --workflow CI --limit 1`: `success` dla check, workflows, react18, e2e i docs (lokalnie main +178 nad origin; ostatni zielony run b534bd5 jest sprzed 1.0).
+- [ ] 2. Zmergować Version PR „1.0.0-rc.0”. W diffie sprawdzić `packages/tally-charts/CHANGELOG.md` (sekcja `## 1.0.0-rc.0`: 3 Major, 2 Minor, 8 Patch, 4 linki do `migration-1-0`), `package.json` → `1.0.0-rc.0` i `.changeset/pre/` z 13 plikami.
+- [ ] 3. Zatwierdzić job `publish` w environment `npm-publish` (Actions › Release › Review deployments, `docs/releasing.md` §4).
+- [ ] 4. `npm view tally-charts dist-tags`: `latest: 0.9.0`, `rc: 1.0.0-rc.0`, brak `next` (D-8: dist-tag `rc` zamiast `next` z litery F9).
+- [ ] 5. Provenance (`docs/releasing.md` §8): `npm view tally-charts@1.0.0-rc.0 --json | jq .dist.attestations` niepuste (albo `npm audit signatures` w projekcie zależnym), plakietka Provenance na npmjs.com, tag `v1.0.0-rc.0` i GitHub Release oznaczony jako prerelease.
+- [ ] 6. Bump `tally-charts` w glokki-cms/editor do `1.0.0-rc.0`: zielone CI edytora i działający ekran Performance.
+- [ ] 7. Ręczny audyt a11y według `docs/a11y.md` (§Manual checklist, skrypty VO/NVDA/HC/400%) i wpis w §Manual results. Blocker (zmiana API albo wykres nieużywalny z czytnikiem) → poprawka i następny rc; reszta → backlog 1.0.x.
+- [ ] 8. Opcjonalnie przed rc.0: `pnpm --filter docs seed` (15 fiksturek z T37 zmienionych, produkcja czyta glökki) i weryfikacja domeny `https://tally-charts.vercel.app` (T36/T37).
+
+Format linii potwierdzenia (wypełnia maintainer, agent jej nie wpisuje):
+`T38 RC: <YYYY-MM-DD> <login> — T17 zamknięte: <tak/nie>; CI main: <run URL, success/failure>; Version PR: <URL>; npm dist-tags: latest=<…> rc=<…>; provenance: <tak/nie>; tag/prerelease: <v1.0.0-rc.0, tak/nie>; edytor: <wersja, CI zielone/nie>; audyt a11y: <data wpisu w Manual results, blockery: brak/lista>`
+
+### Bramki końcowe
+`pnpm lint` (exit 0, 7 ostrzeżeń, 1 info), `pnpm test:scripts` (18 pass), `pnpm check:workflows`: exit 0 (też po edycjach changesetów i a11y.md). `git diff --stat -- packages/tally-charts/src packages/tally-charts/api apps/storybook/e2e/__screenshots__ apps/docs/e2e/__screenshots__` pusty. `docs test`/`check:content` uruchomione w jobie docs (przed edycją `docs/a11y.md`, który nie jest czytany przez żaden test ani fiksturę).
+
+**Decyzje i pułapki:**
+- Dry-run robi się na kopii z dołożonymi niezacommitowanymi changesetami (`git archive HEAD` ich nie ma); CLI z `node_modules` repo, żeby nie pobierać nic z sieci. `changeset version` w repo zmieniłby `package.json`, CHANGELOG i przeniósł pliki do `.changeset/pre/`.
+- `pnpm --filter tally-charts add -D react@18.3.1 …` zmienia package.json i lockfile, więc tylko w osobnej kopii.
+- Komenda docker z komentarza nad jobami e2e/docs ma `--update-snapshots=all` i kopiuje PNG na zewnątrz po sukcesie; do weryfikacji bez zmian baseline'ów używam samych kroków joba w kontenerze z repo zamontowanym `:ro`.
+- Wynik e2e Storybooka jest wrażliwy na obciążenie hosta: jeden zrzut runway (stacked-dark) różnił się przy równoległej instalacji; nie uruchamiaj kilku ciężkich jobów naraz przy ocenie baseline'ów.
+- W Storybooku Escape w RunwayChart gasi podświetlenie (`data-ch-active`), ale `aria-activedescendant` listboxa zostaje na wierszu kursora; skrypt VO opisuje to zachowanie takie, jakie jest.
+
+**Otwarte kwestie:**
+- Maintainer: checklista (f), w tym T17 (krok 0), który blokuje publikację.
+- Maintainer: `pnpm --filter docs seed` (15 fiksturek z T37 zmieniło się od ostatniego seeda). `accessibility.json` nie zmieniony w T38, więc nie dochodzi do tej listy. Strona ma tylko skrót; jeśli ma linkować pełne skrypty, dodać zdanie z linkiem do `docs/a11y.md` na GitHubie i przejść `docs test`, `check:content`, e2e axe/reflow oraz reseed.
+- Flaky: jeden zrzut `charts-runwaychart--stacked-dark` (linux) różnił się raz w pełnym przebiegu (34042 px), a w 4 powtórzeniach i drugim pełnym przebiegu przeszedł. Jeśli wróci w CI GitHuba, zbadać źródło (czas/animacja/kolejność ładowania fontów) zamiast odświeżać baseline.
+- RunwayChart: po Escape `aria-activedescendant` zostaje na wierszu kursora, więc czytnik nie dostaje sygnału, że aktywny wiersz się wyczyścił. Zgodne z opisanym kontraktem (kursor zostaje), ale warto rozważyć w 1.x.
+- Frazy NVDA, HC i 400% w `docs/a11y.md` są oczekiwaniami z kodu i CSS; pierwszy przebieg maintainera może je skorygować.
+- Lint zgłasza 7 ostrzeżeń (T09.1 podawał 4); nie badane, nie dotyczą T38 (żaden plik z `packages/` ani `apps/` nie zmieniony).
