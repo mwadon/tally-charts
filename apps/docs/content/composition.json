@@ -192,7 +192,7 @@
       "id": "n46",
       "type": "prose",
       "props": {
-        "markdown": "Defaults follow the reference cards, so they differ by chart:\n\n- Heights: `Chart` 240, `LineChart` 280, `DotHistogram` 220, `WaffleColumns` 200, `BridgeChart` 360.\n- Band padding: 0.2 on a band scale, 0.35 on `BarChart`, 0.45 on `BridgeChart`, 0.3 on `WaffleColumns`.\n- Tick counts: 5, and 6 on `DotHistogram`.\n- Tones: `InlineBar`, `RangeMeter` and `DotCount` use `loss`, `Meter` uses `accent`."
+        "markdown": "Defaults follow the reference cards, so they differ by chart:\n\n- Heights: `Chart` 240, `LineChart` 280, `DotHistogram` 220, `WaffleColumns` 200, `BridgeChart` 360.\n- Band padding: 0.2 on a band scale, 0.35 on `BarChart`, 0.45 on `BridgeChart`, 0.3 on `WaffleColumns`.\n- Tick counts: 5, and 6 on `DotHistogram`.\n- Tones: `InlineBar`, `Meter`, `RangeMeter` and `DotCount` default to `accent` (`RangeMeter`'s reference to `neutral`). `loss` is chosen explicitly."
       }
     },
     {
