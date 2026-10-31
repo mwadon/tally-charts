@@ -50,8 +50,20 @@ export function checkDocsUrl(root) {
   } catch {
     problems.push('.changeset: directory is missing or unreadable')
   }
+  // In pre mode `changeset version` moves consumed changesets to .changeset/pre/.
+  try {
+    for (const name of readdirSync(join(changesetDir, 'pre')).sort()) {
+      if (name.endsWith('.md')) files.push(`.changeset/pre/${name}`)
+    }
+  } catch {
+    // No prerelease has consumed a changeset yet.
+  }
+  const migrationFile = (name) =>
+    files.includes(`.changeset/pre/${name}.md`)
+      ? `.changeset/pre/${name}.md`
+      : `.changeset/${name}.md`
   for (const name of MIGRATION_CHANGESETS) {
-    const file = `.changeset/${name}.md`
+    const file = migrationFile(name)
     if (!files.includes(file)) files.push(file)
   }
 
@@ -88,7 +100,7 @@ export function checkDocsUrl(root) {
 
   const migration = `${DOCS_URL}/docs/migration-1-0`
   for (const name of MIGRATION_CHANGESETS) {
-    const file = `.changeset/${name}.md`
+    const file = migrationFile(name)
     const text = texts.get(file)
     if (text !== undefined && !text.includes(migration)) {
       problems.push(`${file}: link ${migration} is missing`)

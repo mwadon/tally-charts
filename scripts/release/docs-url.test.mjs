@@ -123,6 +123,26 @@ describe('checkDocsUrl', () => {
     ])
   })
 
+  it('accepts a migration changeset moved to .changeset/pre by a prerelease', () => {
+    const name = MIGRATION_CHANGESETS[0]
+    const root = fixture({
+      [`.changeset/${name}.md`]: null,
+      [`.changeset/pre/${name}.md`]: `See the migration guide: ${DOCS_URL}/docs/migration-1-0\n`,
+    })
+    assert.deepEqual(checkDocsUrl(root), [])
+  })
+
+  it('reports a foreign host and a missing link in .changeset/pre', () => {
+    const name = MIGRATION_CHANGESETS[0]
+    const root = fixture({
+      [`.changeset/${name}.md`]: null,
+      [`.changeset/pre/${name}.md`]: 'See https://tally-charts.vercel.app/docs/migration-1-0\n',
+    })
+    const problems = checkDocsUrl(root).join('\n')
+    assert.match(problems, new RegExp(`pre/${name}\\.md: host tally-charts\\.vercel\\.app`))
+    assert.match(problems, new RegExp(`pre/${name}\\.md: link .* is missing`))
+  })
+
   it('reports a missing migration changeset by file name', () => {
     const name = MIGRATION_CHANGESETS[1]
     const root = fixture({ [`.changeset/${name}.md`]: null })
