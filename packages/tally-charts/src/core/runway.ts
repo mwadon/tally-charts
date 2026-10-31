@@ -312,6 +312,15 @@ export function runwayFacts(times: RunwayTimes, end: number): RunwayFacts {
   }
 }
 
+/** The words of the default status, so the caller can translate them. */
+export interface RunwayStatusText {
+  disconnected: string
+  noForecast: string
+  runsOut: (date: string) => string
+  atReset: (percent: number) => string
+  resets: (date: string) => string
+}
+
 /** The default two-line status (spec §3.2). */
 export function statusLines(
   facts: RunwayFacts,
@@ -319,19 +328,20 @@ export function statusLines(
   now: number,
   end: number,
   f: RunwayDateFormats,
+  text: RunwayStatusText,
 ): string[] {
-  if (disconnected) return ['Disconnected']
+  if (disconnected) return [text.disconnected]
   const lines: string[] = []
   if (facts.runsOutAt) {
-    lines.push(`Runs out ${runwayDate(facts.runsOutAt.getTime(), now, end, f).text}`)
+    lines.push(text.runsOut(runwayDate(facts.runsOutAt.getTime(), now, end, f).text))
   } else if (facts.forecast && Number.isFinite(facts.usedAtReset)) {
-    lines.push(`~${Math.round(facts.usedAtReset * 100)}% at reset`)
+    lines.push(text.atReset(Math.round(facts.usedAtReset * 100)))
   } else {
-    lines.push('No forecast')
+    lines.push(text.noForecast)
   }
   if (facts.resetAt) {
     const d = runwayDate(facts.resetAt.getTime(), now, end, f)
-    lines.push(`Resets ${d.text}${d.beyond ? ' →' : ''}`)
+    lines.push(text.resets(`${d.text}${d.beyond ? ' →' : ''}`))
   }
   return lines
 }

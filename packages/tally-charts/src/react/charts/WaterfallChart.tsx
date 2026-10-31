@@ -15,6 +15,7 @@ import { Axis, type AxisFormat } from '../marks/Axis'
 import { Bars, type BarsProps } from '../marks/Bars'
 import { Connector, type ConnectorLink } from '../marks/Connector'
 import { RowLabels } from '../marks/RowLabels'
+import { formatMessage } from '../messages'
 import { Tooltip } from '../overlays/Tooltip'
 import type { TooltipSegment } from '../types'
 import {
@@ -307,7 +308,7 @@ export function WaterfallChart<S extends WaterfallStep = WaterfallStep>({
     r.kind === 'step' && r.tone !== 'neutral' ? r.tone : undefined
   const ariaOf = (r: WaterfallRow<S>) =>
     r.kind === 'step'
-      ? `${r.label}, ${r.text}, running total ${fmt(r.to)}`
+      ? formatMessage(messages.runningTotal, { label: r.label, text: r.text, total: fmt(r.to) })
       : `${r.label}, ${r.text}`
   const segmentsOf = (r: WaterfallRow<S>): TooltipSegment[] =>
     r.kind === 'step'
@@ -322,9 +323,9 @@ export function WaterfallChart<S extends WaterfallStep = WaterfallStep>({
   const table: DataTableSpec<WaterfallRow<S>> | undefined = dataTable
     ? {
         columns: [
-          { header: 'Item', value: (r) => r.label },
-          { header: 'Change', value: (r) => (r.kind === 'step' ? r.text : '') },
-          { header: 'Total', value: (r) => (r.valid ? fmt(r.to) : '') },
+          { header: messages.headerItem, value: (r) => r.label },
+          { header: messages.headerChange, value: (r) => (r.kind === 'step' ? r.text : '') },
+          { header: messages.headerTotal, value: (r) => (r.valid ? fmt(r.to) : '') },
         ],
       }
     : undefined

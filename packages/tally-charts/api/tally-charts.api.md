@@ -242,15 +242,63 @@ export interface ChartContextValue {
 
 // @public
 export interface ChartMessages {
+    binAll: string;
+    binOver: string;
+    binRange: string;
+    binUnder: string;
+    deltaDown: string;
+    deltaFlat: string;
+    deltaUp: string;
+    headerActual: string;
+    headerCategory: string;
+    headerChange: string;
+    headerColumn: string;
+    headerDate: string;
+    headerDetail: string;
+    headerDetails: string;
+    headerDifference: string;
+    headerGroup: string;
+    headerItem: string;
+    headerName: string;
+    headerPeriod: string;
+    headerPlan: string;
+    headerProjectedAtReset: string;
+    headerRange: string;
+    headerResets: string;
+    headerRow: string;
+    headerRunsOut: string;
+    headerStatus: string;
+    headerTotal: string;
+    headerValue: string;
+    heatmapName: string;
     keyboardHint: string;
     keyboardHintSelect: string;
+    legendLocked: string;
+    legendNoForecast: string;
+    legendProjectedUse: string;
+    legendReset: string;
+    legendRunsOut: string;
+    legendUnderShare: string;
     noData: string;
     noValue: string;
     now: string;
+    onPlan: string;
+    peak: string;
+    planActual: string;
     position: string;
+    resetMark: string;
+    runningTotal: string;
+    statusAtReset: string;
+    statusDisconnected: string;
+    statusNoForecast: string;
+    statusResets: string;
+    statusRunsOut: string;
     target: string;
     targetLabel: string;
     total: string;
+    valueAbove: string;
+    valueAgainst: string;
+    valueBelow: string;
 }
 
 // @public

@@ -4,7 +4,7 @@ import type { FormatSpec } from '../../core/format'
 import { inferLinearDomain } from '../../core/scale'
 import type { Accessor, Fill, Id, PerItem, Tone } from '../../core/types'
 import { Chart, type ChartName } from '../Chart'
-import { useFormat } from '../ChartsProvider'
+import { useFormat, useMessages } from '../ChartsProvider'
 import { type Margin, useChartContext } from '../context'
 import type { DataTableColumn, DataTableSpec } from '../DataTable'
 import { Bars } from '../marks/Bars'
@@ -163,6 +163,7 @@ export function RankedBars<D>({
   ...chart
 }: RankedBarsProps<D>) {
   const { create } = useFormat()
+  const messages = useMessages()
   const fmt = useMemo(() => create(format), [create, format])
   const stacked = layout === 'stacked'
   const rowH = rowHeight ?? (stacked ? 52 : 40)
@@ -241,10 +242,10 @@ export function RankedBars<D>({
   let table: DataTableSpec<RankedRow<D>> | undefined
   if (dataTable) {
     const columns: DataTableColumn<RankedRow<D>>[] = [
-      { header: headerOf(label, 'Item'), value: (r) => r.label },
-      { header: headerOf(value, 'Value'), value: (r) => r.text },
+      { header: headerOf(label, messages.headerItem), value: (r) => r.label },
+      { header: headerOf(value, messages.headerValue), value: (r) => r.text },
     ]
-    if (meta) columns.push({ header: headerOf(meta, 'Details'), value: (r) => r.meta })
+    if (meta) columns.push({ header: headerOf(meta, messages.headerDetails), value: (r) => r.meta })
     table = { columns }
   }
 

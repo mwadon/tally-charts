@@ -14,7 +14,7 @@ import { DAY, type TimeInput, toTime } from '../../core/time'
 import type { Accessor, Tone } from '../../core/types'
 import { createWarner, DEV } from '../../core/warn'
 import { Chart, type ChartName } from '../Chart'
-import { useFormat, useLocale } from '../ChartsProvider'
+import { useFormat, useLocale, useMessages } from '../ChartsProvider'
 import { type Margin, useChartContext } from '../context'
 import type { DataTableColumn, DataTableSpec } from '../DataTable'
 import { Axis, type AxisFormat } from '../marks/Axis'
@@ -251,6 +251,7 @@ export function LineChart<D>({
   ...chart
 }: LineChartProps<D>) {
   const { create } = useFormat()
+  const messages = useMessages()
   const { locale } = useLocale()
   const warn = useMemo(() => createWarner(), [])
   const fmt = useMemo(() => create(format), [create, format])
@@ -377,7 +378,9 @@ export function LineChart<D>({
   if (dataTable) {
     const columns: DataTableColumn<LineRow<D>>[] = [
       {
-        header: timeX ? headerOf(timeX.field, 'Date') : headerOf(x, 'Category'),
+        header: timeX
+          ? headerOf(timeX.field, messages.headerDate)
+          : headerOf(x, messages.headerCategory),
         value: (r) => r.label,
       },
       ...series.map(
@@ -389,7 +392,7 @@ export function LineChart<D>({
     ]
     if (band) {
       columns.push({
-        header: band.label ?? 'Range',
+        header: band.label ?? messages.headerRange,
         value: (r) =>
           Number.isFinite(r.low) && Number.isFinite(r.high) ? `${fmt(r.low)}–${fmt(r.high)}` : '',
       })

@@ -6,11 +6,12 @@ import { CHAR_WIDTH } from '../../core/text'
 import type { Accessor, Id, Tone } from '../../core/types'
 import { createWarner, DEV } from '../../core/warn'
 import { type ChartName, FittedChart } from '../Chart'
-import { useFormat } from '../ChartsProvider'
+import { useFormat, useMessages } from '../ChartsProvider'
 import { type Margin, useChartContext } from '../context'
 import type { DataTableSpec } from '../DataTable'
 import { Bars } from '../marks/Bars'
 import { RowDividers, RowLabels } from '../marks/RowLabels'
+import { formatMessage } from '../messages'
 import { Tooltip } from '../overlays/Tooltip'
 import type { TooltipSegment } from '../types'
 import {
@@ -251,7 +252,7 @@ export function ComparisonBars<D>({
   format,
   domain,
   tolerance = 0,
-  onPlanLabel = 'On plan',
+  onPlanLabel,
   good = 'down',
   layout = 'auto',
   rowHeight = 56,
@@ -271,6 +272,7 @@ export function ComparisonBars<D>({
   ...chart
 }: ComparisonBarsProps<D>) {
   const { create } = useFormat()
+  const messages = useMessages()
   const warn = useMemo(() => createWarner(), [])
   const fmt = useMemo(() => create(format), [create, format])
   const signed = useMemo(() => create(format, { signed: true }), [create, format])
@@ -300,7 +302,11 @@ export function ComparisonBars<D>({
         kept: status === 'over' ? p : a,
         status,
         change: known ? `${fmt(p)} → ${fmt(a)}` : '',
-        delta: !known ? '' : status === 'on-plan' ? onPlanLabel : signed(a - p),
+        delta: !known
+          ? ''
+          : status === 'on-plan'
+            ? (onPlanLabel ?? messages.onPlan)
+            : signed(a - p),
         deltaTone:
           status === 'on-plan'
             ? 'neutral'
@@ -322,6 +328,7 @@ export function ComparisonBars<D>({
     fmt,
     signed,
     onPlanLabel,
+    messages.onPlan,
     overTone,
     underTone,
   ])
@@ -361,7 +368,12 @@ export function ComparisonBars<D>({
   const ariaOf = (r: ComparisonRow<D>) =>
     r.status === 'unknown'
       ? r.label
-      : `${r.label}, plan ${fmt(r.plan)}, actual ${fmt(r.actual)}, ${r.delta}`
+      : formatMessage(messages.planActual, {
+          label: r.label,
+          plan: fmt(r.plan),
+          actual: fmt(r.actual),
+          delta: r.delta,
+        })
   const segmentsOf = (r: ComparisonRow<D>): TooltipSegment[] => [
     { value: r.label },
     { value: r.change },
@@ -371,10 +383,10 @@ export function ComparisonBars<D>({
   const table: DataTableSpec<ComparisonRow<D>> | undefined = dataTable
     ? {
         columns: [
-          { header: headerOf(label, 'Item'), value: (r) => r.label },
-          { header: headerOf(plan, 'Plan'), value: (r) => fmt(r.plan) },
-          { header: headerOf(actual, 'Actual'), value: (r) => fmt(r.actual) },
-          { header: 'Difference', value: (r) => r.delta },
+          { header: headerOf(label, messages.headerItem), value: (r) => r.label },
+          { header: headerOf(plan, messages.headerPlan), value: (r) => fmt(r.plan) },
+          { header: headerOf(actual, messages.headerActual), value: (r) => fmt(r.actual) },
+          { header: messages.headerDifference, value: (r) => r.delta },
         ],
       }
     : undefined

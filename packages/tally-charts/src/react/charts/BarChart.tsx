@@ -4,7 +4,7 @@ import type { BandScaleSpec, LinearScaleSpec } from '../../core/scale'
 import type { TickSpec } from '../../core/ticks'
 import type { Accessor, Fill, Id, PerItem, Tone } from '../../core/types'
 import { Chart, type ChartName } from '../Chart'
-import { useFormat } from '../ChartsProvider'
+import { useFormat, useMessages } from '../ChartsProvider'
 import type { Margin } from '../context'
 import type { DataTableSpec } from '../DataTable'
 import { Axis, type AxisFormat } from '../marks/Axis'
@@ -101,6 +101,7 @@ export function BarChart<D>({
   ...chart
 }: BarChartProps<D>) {
   const { create } = useFormat()
+  const messages = useMessages()
   const vertical = orientation === 'vertical'
   const band: BandScaleSpec<D> = { type: 'band', field: x, padding }
   const linear: LinearScaleSpec<D> = { field: y, domain }
@@ -120,10 +121,13 @@ export function BarChart<D>({
     table = {
       columns: [
         {
-          header: headerOf(x, 'Category'),
+          header: headerOf(x, messages.headerCategory),
           value: (d, i) => String((getLabel ? getLabel(d, i) : getCategory(d, i)) ?? ''),
         },
-        { header: headerOf(y, 'Value'), value: (d, i) => formatValue(toNumber(getValue(d, i))) },
+        {
+          header: headerOf(y, messages.headerValue),
+          value: (d, i) => formatValue(toNumber(getValue(d, i))),
+        },
       ],
     }
   }

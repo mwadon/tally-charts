@@ -252,7 +252,7 @@ export function Chart<D>({
   const hint =
     keyboardHint ??
     (messages.keyboardHint && canSelect
-      ? `${messages.keyboardHint} ${messages.keyboardHintSelect}`
+      ? [messages.keyboardHint, messages.keyboardHintSelect].filter(Boolean).join(' ')
       : messages.keyboardHint)
   const describedBy = [description ? descId : '', hint ? hintId : ''].filter(Boolean).join(' ')
 

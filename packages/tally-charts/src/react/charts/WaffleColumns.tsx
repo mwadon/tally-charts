@@ -6,7 +6,7 @@ import type { Accessor, Id, Tone } from '../../core/types'
 import { packWaffle } from '../../core/waffle'
 import { createWarner, DEV, type Warn } from '../../core/warn'
 import { Chart, type ChartName } from '../Chart'
-import { useFormat } from '../ChartsProvider'
+import { useFormat, useMessages } from '../ChartsProvider'
 import { type Margin, useChartContext } from '../context'
 import type { DataTableColumn, DataTableSpec } from '../DataTable'
 import { type DotItem, Dots } from '../marks/Dots'
@@ -213,6 +213,7 @@ export function WaffleColumns<D>({
   ...chart
 }: WaffleColumnsProps<D>) {
   const { create } = useFormat()
+  const messages = useMessages()
   const warn = useMemo(() => createWarner(), [])
   const fmt = useMemo(() => create(format), [create, format])
 
@@ -275,7 +276,7 @@ export function WaffleColumns<D>({
     peakRow && callout
       ? typeof callout === 'function'
         ? callout(peakRow.datum)
-        : [{ value: 'Peak' }, { value: peakRow.label }, { value: fmt(peakRow.value) }]
+        : [{ value: messages.peak }, { value: peakRow.label }, { value: fmt(peakRow.value) }]
       : undefined
   const across = Number.isFinite(wide) && wide >= 1 ? Math.floor(wide) : 2
   const m: Margin = {
@@ -287,10 +288,11 @@ export function WaffleColumns<D>({
   let table: DataTableSpec<WaffleRow<D>> | undefined
   if (dataTable) {
     const columns: DataTableColumn<WaffleRow<D>>[] = [
-      { header: headerOf(x, 'Period'), value: (r) => r.label },
-      { header: headerOf(y, 'Value'), value: (r) => fmt(r.value) },
+      { header: headerOf(x, messages.headerPeriod), value: (r) => r.label },
+      { header: headerOf(y, messages.headerValue), value: (r) => fmt(r.value) },
     ]
-    if (group) columns.push({ header: headerOf(group, 'Group'), value: (r) => r.group })
+    if (group)
+      columns.push({ header: headerOf(group, messages.headerGroup), value: (r) => r.group })
     table = { columns }
   }
 

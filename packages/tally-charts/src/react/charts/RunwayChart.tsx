@@ -20,6 +20,7 @@ import {
   type RunwayCell,
   type RunwayDateFormats,
   type RunwayFacts,
+  type RunwayStatusText,
   runwayCells,
   runwayDate,
   runwayFacts,
@@ -34,6 +35,7 @@ import { DEFAULT_HATCH, patternId, readHatchGeometry } from '../../theme/pattern
 import type { ChartName } from '../Chart'
 import { useFormat, useMessages } from '../ChartsProvider'
 import { DataTable } from '../DataTable'
+import { formatMessage } from '../messages'
 import { PatternDefs } from '../PatternDefs'
 import { cx } from '../ui/util'
 import { useIsoLayoutEffect } from '../useIsoLayoutEffect'
@@ -245,6 +247,17 @@ export function RunwayChart({
     [date, timeZone],
   )
 
+  const statusText = useMemo(
+    (): RunwayStatusText => ({
+      disconnected: messages.statusDisconnected,
+      noForecast: messages.statusNoForecast,
+      runsOut: (date) => formatMessage(messages.statusRunsOut, { date }),
+      atReset: (percent) => formatMessage(messages.statusAtReset, { percent }),
+      resets: (date) => formatMessage(messages.statusResets, { date }),
+    }),
+    [messages],
+  )
+
   const model = useMemo((): RowModel[] => {
     if (!valid) return []
     const { bounds, cut } = cellBounds([d0, d1], cellMs)
@@ -259,7 +272,7 @@ export function RunwayChart({
       }
       const times = normalizeRow(row, warn)
       const facts = runwayFacts(times, d1)
-      const lines = statusLines(facts, !!row.disconnected, now, d1, formats)
+      const lines = statusLines(facts, !!row.disconnected, now, d1, formats, statusText)
       // `undefined` keeps the default; `null` (or any other node) replaces it.
       const custom = row.status !== undefined ? row.status : status?.(row, facts)
       const own = custom !== undefined
@@ -294,7 +307,7 @@ export function RunwayChart({
       )
     }
     return built
-  }, [valid, d0, d1, now, cellMs, rows, edges, levels, formats, status, warn])
+  }, [valid, d0, d1, now, cellMs, rows, edges, levels, formats, statusText, status, warn])
 
   const [innerActive, setInnerActive] = useState<string | null>(null)
   const controlled = activeId !== undefined
@@ -425,16 +438,16 @@ export function RunwayChart({
     {
       caption: title,
       columns: [
-        { header: 'Name', value: (m) => m.row.label },
-        { header: 'Detail', value: (m) => m.row.sublabel ?? '' },
-        { header: 'Runs out', value: (m) => dateText(m.facts.runsOutAt) },
-        { header: 'Resets', value: (m) => dateText(m.facts.resetAt) },
+        { header: messages.headerName, value: (m) => m.row.label },
+        { header: messages.headerDetail, value: (m) => m.row.sublabel ?? '' },
+        { header: messages.headerRunsOut, value: (m) => dateText(m.facts.runsOutAt) },
+        { header: messages.headerResets, value: (m) => dateText(m.facts.resetAt) },
         {
-          header: 'Projected at reset',
+          header: messages.headerProjectedAtReset,
           value: (m) =>
             Number.isFinite(m.facts.usedAtReset) ? `${Math.round(m.facts.usedAtReset * 100)}%` : '',
         },
-        { header: 'Status', value: (m) => m.statusText },
+        { header: messages.headerStatus, value: (m) => m.statusText },
       ],
     },
     dataTable,
@@ -596,6 +609,7 @@ const RunwayStrip = /* @__PURE__ */ memo(function RunwayStrip({
   nowX: number | null
   hatchFill: string
 }) {
+  const { resetMark } = useMessages()
   const [d0, d1] = x.domain()
   const first = model.cells[0]
   const cellWidth = first ? x(first.end) - x(first.start) : 0
@@ -605,9 +619,10 @@ const RunwayStrip = /* @__PURE__ */ memo(function RunwayStrip({
   const reset = resetAt?.getTime()
   const inside = (t: number | undefined): t is number => t !== undefined && t >= d0 && t < d1
   const resetX = inside(reset) ? x(reset) : null
-  // "reset" in 12px text is about 33px wide; it only goes right of the tick (plan ruling 2).
+  // "reset" in 12px text is about 33px wide; it only goes right of the tick (plan ruling 2). A
+  // translation is measured the same way.
   const labelFits =
-    resetX !== null && resetX + 6 + estimateWidth({ label: 'reset' } as Tick) <= width
+    resetX !== null && resetX + 6 + estimateWidth({ label: resetMark } as Tick) <= width
   return (
     <svg
       aria-hidden="true"
@@ -650,7 +665,7 @@ const RunwayStrip = /* @__PURE__ */ memo(function RunwayStrip({
           y={STRIP_HEIGHT / 2}
           dominantBaseline="central"
         >
-          reset
+          {resetMark}
         </text>
       ) : null}
     </svg>
@@ -717,6 +732,7 @@ function RunwayAxis({
 }
 
 function RunwayLegend({ edges, levels }: { edges: readonly number[]; levels: readonly number[] }) {
+  const messages = useMessages()
   const shares = [...edges, 1].map((b) => Math.round(b * 100)).join(', ')
   const swatch = (attrs: Record<string, string | undefined>, color?: string) => (
     <span
@@ -731,7 +747,7 @@ function RunwayLegend({ edges, levels }: { edges: readonly number[]; levels: rea
     <ul className="ch-legend ch-runway-legend" data-ch-part="legend">
       <li className="ch-legend-item" data-ch-part="legend-item">
         <span className="ch-legend-label" data-ch-part="legend-label">
-          Projected use
+          {messages.legendProjectedUse}
         </span>
         {levels.map((level) => (
           <span key={level}>
@@ -741,12 +757,14 @@ function RunwayLegend({ edges, levels }: { edges: readonly number[]; levels: rea
             )}
           </span>
         ))}
-        <span className="ch-legend-label" data-ch-part="legend-label">{`under ${shares}%`}</span>
+        <span className="ch-legend-label" data-ch-part="legend-label">
+          {formatMessage(messages.legendUnderShare, { shares })}
+        </span>
       </li>
       <li className="ch-legend-item" data-ch-part="legend-item">
         {swatch({ 'data-ch-tone': 'loss', 'data-ch-shape': 'runs-out' }, 'var(--ch-loss)')}
         <span className="ch-legend-label" data-ch-part="legend-label">
-          Runs out
+          {messages.legendRunsOut}
         </span>
       </li>
       <li className="ch-legend-item" data-ch-part="legend-item">
@@ -755,19 +773,19 @@ function RunwayLegend({ edges, levels }: { edges: readonly number[]; levels: rea
           'var(--ch-loss)',
         )}
         <span className="ch-legend-label" data-ch-part="legend-label">
-          Locked until reset
+          {messages.legendLocked}
         </span>
       </li>
       <li className="ch-legend-item" data-ch-part="legend-item">
         {swatch({ 'data-ch-shape': 'tick' })}
         <span className="ch-legend-label" data-ch-part="legend-label">
-          Reset
+          {messages.legendReset}
         </span>
       </li>
       <li className="ch-legend-item" data-ch-part="legend-item">
         {swatch({ 'data-ch-shape': 'empty' })}
         <span className="ch-legend-label" data-ch-part="legend-label">
-          New window, no forecast
+          {messages.legendNoForecast}
         </span>
       </li>
     </ul>

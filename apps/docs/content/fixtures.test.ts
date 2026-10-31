@@ -212,7 +212,14 @@ test('stability states the semver promise, what is public and what is not', asyn
   for (const phrase of ['tally-charts/core', '--ch-*', 'data-ch-part', 'data-ch-*', 'theme.css']) {
     expect(after('Public API'), phrase).toContain(phrase)
   }
-  for (const phrase of ['ch-*', '--_ch-*', '--_ch-swatch-color', 'i18n', 'size', 'DOM structure']) {
+  for (const phrase of [
+    'ch-*',
+    '--_ch-*',
+    '--_ch-swatch-color',
+    'messages',
+    'size',
+    'DOM structure',
+  ]) {
     expect(after('Not public'), phrase).toContain(phrase)
   }
   expect(after('Styling that survives upgrades')).toContain('[data-ch-part')

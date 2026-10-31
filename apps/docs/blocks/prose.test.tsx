@@ -22,6 +22,14 @@ test('renders GFM: table, strikethrough and task list', () => {
   expect((boxes[0] as HTMLInputElement).checked).toBe(true)
 })
 
+test('puts a table in a scrollable, focusable region so it cannot widen the page', () => {
+  const { container } = render(<Prose markdown={'| a | b |\n| - | - |\n| 1 | 2 |'} />)
+  const region = container.querySelector('[role="region"]')
+  expect(region?.getAttribute('tabindex')).toBe('0')
+  expect(region?.getAttribute('aria-label')).toBe('Table')
+  expect(region?.querySelector('table')).not.toBeNull()
+})
+
 test('ignores raw HTML: no script, img or onerror in the output', () => {
   const markdown = [
     '<script>alert(1)</script>',

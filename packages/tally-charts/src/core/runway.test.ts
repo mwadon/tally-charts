@@ -299,6 +299,13 @@ describe('status text', () => {
   })
 
   it('covers the four cases', () => {
+    const text = {
+      disconnected: 'Disconnected',
+      noForecast: 'No forecast',
+      runsOut: (date: string) => `Runs out ${date}`,
+      atReset: (percent: number) => `~${percent}% at reset`,
+      resets: (date: string) => `Resets ${date}`,
+    }
     const base = {
       usedAtReset: Number.NaN,
       runsOutBeyond: false,
@@ -318,10 +325,11 @@ describe('status text', () => {
         now,
         end,
         f,
+        text,
       ),
     ).toEqual(['Runs out Fri 03:24', 'Resets Fri 11:22'])
     expect(
-      statusLines({ ...base, resetAt: reset, usedAtReset: 0.534 }, false, now, end, f),
+      statusLines({ ...base, resetAt: reset, usedAtReset: 0.534 }, false, now, end, f, text),
     ).toEqual(['~53% at reset', 'Resets Fri 11:22'])
     expect(
       statusLines(
@@ -330,13 +338,15 @@ describe('status text', () => {
         now,
         end,
         f,
+        text,
       ),
     ).toEqual(['~60% at reset', 'Resets Nov 9 →'])
-    expect(statusLines({ ...base, forecast: false, resetAt: reset }, false, now, end, f)).toEqual([
-      'No forecast',
-      'Resets Fri 11:22',
+    expect(
+      statusLines({ ...base, forecast: false, resetAt: reset }, false, now, end, f, text),
+    ).toEqual(['No forecast', 'Resets Fri 11:22'])
+    expect(statusLines({ ...base, forecast: false }, true, now, end, f, text)).toEqual([
+      'Disconnected',
     ])
-    expect(statusLines({ ...base, forecast: false }, true, now, end, f)).toEqual(['Disconnected'])
   })
 
   it('derives the facts, reading the projection at reset', () => {

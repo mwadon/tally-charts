@@ -78,7 +78,7 @@ A new additive prop `underlay?: ReactNode` in `LineChartProps`. It is drawn unde
 #### F7. Public API and stability documented (A3, A6, A7, A9)
 A new "Stability and semver" page (on the docs site, and in short in the README) defines what is public API.
 - [ ] **Public:** exports from `tally-charts` and `tally-charts/core`, the `--ch-*` tokens, `data-ch-part`, the `data-ch-*` state and variant attributes, `theme.css`.
-- [ ] **Not public:** `ch-*` class names, `--_ch-*` variables (including `--_ch-swatch-color`), DOM structure outside parts, **the wording of built-in English strings** (they may change in a minor release until the i18n hook arrives in 1.x), and size budgets.
+- [ ] **Not public:** `ch-*` class names, `--_ch-*` variables (including `--_ch-swatch-color`), DOM structure outside parts, **the wording of built-in English strings** (they may change in a minor release; `ChartsProvider messages` translates them, and its keys are public while the English defaults are not), and size budgets.
 - [ ] `docs/a11y.md` §Known limits contains:
   - the hover tooltip with `pointer-events:auto` covering neighbouring hit areas, and custom content inside an aria-hidden overlay (accepted under WCAG 1.4.13);
   - Heatmap `breaks` and RunwayChart levels being lower-inclusive only, with `inclusive` planned for 1.x.
@@ -283,7 +283,7 @@ Agents write the content as JSON fixtures in `DeliveryPage` format. The source m
 
 ## 4. Out of scope
 
-- New chart types, an i18n hook for built-in strings, a smaller Stat variant, `inclusive` for Heatmap and RunwayChart, a public token for tinting text by tone, a `status` callback story and a named projection point type in RunwayChart (bucket I → 1.x).
+- New chart types, a smaller Stat variant, `inclusive` for Heatmap and RunwayChart, a public token for tinting text by tone, a `status` callback story and a named projection point type in RunwayChart (bucket I → 1.x).
 - The remaining E items (unbounded tick count, reversed time domain, inline time `x` re-sorting, Region out of domain, the `TimeInput` message, `unwrapPoint`, the `fitTimeTicks` cap, the ComparisonBars and Waterfall issues), all of F (visual polish) and the remaining G items (→ 1.0.x).
 - JAWS testing.
 - Translations of the docs site (English only). Versioned docs (one version, the current `main`). Site search. Analytics and A/B tests in glokki. Forms. A custom domain (the maintainer can add one later as config only).

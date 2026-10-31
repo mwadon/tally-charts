@@ -50,10 +50,10 @@ These can change in any release, minor or patch, without a migration note.
   elements without `data-ch-part`. A selector like `figure > div:nth-child(2)` can break in a
   minor release. A part keeps its name, and it stays in the chart; what sits around it may move.
 - **Wording of the built-in English strings.** Keyboard hints, announcements, "No data", data
-  table headers and similar. The text can change in a minor release until an i18n hook arrives in
-  1.x. You don't have to wait: `keyboardHint` and `dataTable` (`caption`, `columns`) already let
-  you replace the main ones. Don't assert on the built-in text in your tests; assert on text you
-  set.
+  table headers and similar. The text can change in a minor release. You can replace all of it:
+  `ChartsProvider messages` translates every built-in string by key (the keys are public, the
+  English defaults are not), and `keyboardHint` and `dataTable` (`caption`, `columns`) do it for
+  one chart. Don't assert on the built-in text in your tests; assert on text you set.
 - **Size budgets.** The limits in `.size-limit.js` are a CI guard for the maintainers. A chart
   can grow or shrink in a release, and a budget can be raised in a minor.
 - **Development warnings.** Their text. Warnings exist only in development builds and are removed

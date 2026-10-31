@@ -3,10 +3,20 @@ import { describe, expect, it, vi } from 'vitest'
 import { thresholds } from '../core/thresholds'
 import { Chart } from './Chart'
 import { ChartsProvider, useMessages } from './ChartsProvider'
+import { BarChart } from './charts/BarChart'
+import { BridgeChart } from './charts/BridgeChart'
+import { ComparisonBars } from './charts/ComparisonBars'
+import { DotHistogram } from './charts/DotHistogram'
 import { Heatmap } from './charts/Heatmap'
+import { LineChart } from './charts/LineChart'
+import { RankedBars } from './charts/RankedBars'
 import { RunwayChart } from './charts/RunwayChart'
+import { StripPlot } from './charts/StripPlot'
+import { WaffleColumns } from './charts/WaffleColumns'
+import { WaterfallChart } from './charts/WaterfallChart'
 import { Bars } from './marks/Bars'
 import { DEFAULT_MESSAGES, formatMessage } from './messages'
+import { Delta } from './ui/Delta'
 import { InlineBar } from './ui/InlineBar'
 import { Meter } from './ui/Meter'
 import { RangeMeter } from './ui/RangeMeter'
@@ -37,6 +47,22 @@ describe('useMessages', () => {
       </ChartsProvider>,
     )
     expect(screen.getByText('same')).toBeInTheDocument()
+  })
+  it('keeps the default of a key whose value is undefined', () => {
+    function Noun() {
+      const m = useMessages()
+      return (
+        <span>
+          {m.noData}|{m.now}
+        </span>
+      )
+    }
+    render(
+      <ChartsProvider messages={{ noData: undefined, now: 'Teraz' }}>
+        <Noun />
+      </ChartsProvider>,
+    )
+    expect(screen.getByText('No data|Teraz')).toBeInTheDocument()
   })
   it('a nested provider replaces its parent, not merges', () => {
     function Noun() {
@@ -208,5 +234,259 @@ describe('messages in the built-in text', () => {
       </ChartsProvider>,
     )
     expect(hint()).toBeUndefined()
+  })
+
+  it('keyboardHintSelect left empty adds no trailing space', () => {
+    const { container } = render(
+      <ChartsProvider messages={{ keyboardHintSelect: '' }}>
+        {plot({ onSelect: () => {} })}
+      </ChartsProvider>,
+    )
+    const text = container.querySelector('[id$="-hint"]')?.textContent
+    expect(text).toBe(DEFAULT_MESSAGES.keyboardHint)
+  })
+})
+
+describe('table headers', () => {
+  const headerKeys = Object.keys(DEFAULT_MESSAGES).filter((k) => k.startsWith('header'))
+  const marked = Object.fromEntries(headerKeys.map((k) => [k, `«${k}»`]))
+  const t = new Date('2026-01-05T00:00:00Z').getTime()
+  const runwayRows = [
+    {
+      id: 'a',
+      label: 'A',
+      sublabel: 'sub',
+      projection: [
+        { at: t, used: 0.5 },
+        { at: t + 36e5, used: 1 },
+      ],
+      runsOutAt: t + 36e5,
+      resetAt: t + 3 * 36e5,
+    },
+  ]
+  const heads = (container: HTMLElement) =>
+    [...container.querySelectorAll('table thead th')].map((th) => th.textContent)
+  type Row = { a: string; v: number; g: string; w: number }
+  // Function accessors, so every header comes from its fallback and none from a field name.
+  const by = {
+    a: (d: Row) => d.a,
+    v: (d: Row) => d.v,
+    g: (d: Row) => d.g,
+    w: (d: Row) => d.w,
+  }
+  const data: Row[] = [
+    { a: 'x', v: 1, g: 'p', w: 2 },
+    { a: 'y', v: 2, g: 'q', w: 3 },
+  ]
+  const common = { width: 500, title: 'T', animate: false } as const
+
+  it('every header key reaches some chart table', () => {
+    const seen = new Set<string | null>()
+    const take = (node: React.ReactElement) => {
+      const { container, unmount } = render(
+        <ChartsProvider messages={marked}>{node}</ChartsProvider>,
+      )
+      for (const h of heads(container)) seen.add(h)
+      // The row header of a Heatmap is read, not tabulated.
+      for (const el of container.querySelectorAll('.ch-sr-only')) seen.add(el.textContent)
+      unmount()
+    }
+    take(<BarChart<Row> data={data} x={by.a} y={by.v} {...common} />)
+    take(
+      <LineChart<Row>
+        data={data}
+        x={by.a}
+        series={[{ id: 's', label: 'S', value: 'v' }]}
+        band={{ low: 'v', high: 'w' }}
+        {...common}
+      />,
+    )
+    take(
+      <LineChart<{ at: string; v: number }>
+        data={[
+          { at: '2026-01-01', v: 1 },
+          { at: '2026-01-02', v: 2 },
+        ]}
+        x={{ type: 'time', field: (d) => d.at }}
+        series={[{ id: 's', label: 'S', value: 'v' }]}
+        {...common}
+      />,
+    )
+    take(
+      <DotHistogram<Row>
+        data={data}
+        value={by.v}
+        label={by.a}
+        toneBy={thresholds([1.5], ['loss', 'gain'], ['Low', 'High'])}
+        {...common}
+      />,
+    )
+    take(<ComparisonBars<Row> data={data} label={by.a} plan={by.v} actual={by.w} {...common} />)
+    take(<RankedBars<Row> data={data} label={by.a} value={by.v} meta={by.g} {...common} />)
+    take(
+      <StripPlot<Row>
+        data={data}
+        label={by.a}
+        series={[{ id: 's', label: 'S', value: 'v' }]}
+        {...common}
+      />,
+    )
+    take(<WaffleColumns<Row> data={data} x={by.a} y={by.v} group={by.g} {...common} />)
+    take(
+      <BridgeChart
+        start={{ label: 'Plan', value: 10 }}
+        steps={[{ label: 'Leak', value: -3 }]}
+        {...common}
+      />,
+    )
+    take(
+      <WaterfallChart
+        start={{ label: 'Plan', value: 10 }}
+        steps={[{ label: 'Leak', value: -3 }]}
+        {...common}
+      />,
+    )
+    take(
+      <RunwayChart
+        rows={runwayRows}
+        domain={[t, t + 24 * 36e5]}
+        now={t}
+        initialWidth={600}
+        title="R"
+      />,
+    )
+    take(
+      <Heatmap<Row> data={data} breaks={[1.5]} row={by.a} column={by.g} value={by.v} title="H" />,
+    )
+    const missing = headerKeys.filter((k) => !seen.has(`«${k}»`))
+    expect(missing).toEqual([])
+  })
+
+  it('a German headerTotal reaches the Waterfall table; a dataTable.columns entry wins', () => {
+    const waterfall = (columns?: Record<string, string>) => (
+      <ChartsProvider messages={{ headerTotal: 'Summe' }}>
+        <WaterfallChart
+          start={{ label: 'Plan', value: 10 }}
+          steps={[{ label: 'Leak', value: -3 }]}
+          dataTable={columns ? { columns } : true}
+          {...common}
+        />
+      </ChartsProvider>
+    )
+    const { container, rerender } = render(waterfall())
+    expect(heads(container)).toEqual(['Item', 'Change', 'Summe'])
+    rerender(waterfall({ Summe: 'Gesamt' }))
+    expect(heads(container)).toEqual(['Item', 'Change', 'Gesamt'])
+  })
+
+  it('a header taken from a string accessor keeps the field name', () => {
+    const { container } = render(
+      <ChartsProvider messages={marked}>
+        <BarChart<Row> data={data} x="a" y="v" {...common} />
+      </ChartsProvider>,
+    )
+    expect(heads(container)).toEqual(['A', 'V'])
+  })
+})
+
+describe('other translated text', () => {
+  const pl = {
+    deltaUp: 'W górę',
+    onPlan: 'Zgodnie z planem',
+    runningTotal: '{label}: {text} (razem {total})',
+    planActual: '{label}: plan {plan}, wykonanie {actual}',
+    binUnder: 'Poniżej {value}',
+    binRange: '{from} do {to}',
+    binOver: '{value} i więcej',
+    statusRunsOut: 'Kończy się {date}',
+    statusAtReset: '{percent}% do resetu',
+    legendLocked: 'Zablokowane',
+  }
+
+  it('Delta reads the translated direction', () => {
+    const { container } = render(
+      <ChartsProvider messages={pl}>
+        <Delta value={2} />
+      </ChartsProvider>,
+    )
+    expect(container.querySelector('.ch-sr-only')?.textContent).toBe('W górę ')
+  })
+
+  it('Heatmap bins and the RunwayChart status and legend use their templates', () => {
+    const rowsH = [
+      { r: 'a', c: 'x', v: 1 },
+      { r: 'a', c: 'y', v: 9 },
+    ]
+    const { container, unmount } = render(
+      <ChartsProvider messages={pl}>
+        <Heatmap data={rowsH} row="r" column="c" value="v" breaks={[3, 6]} title="H" />
+      </ChartsProvider>,
+    )
+    expect(container.textContent).toContain('Poniżej 3')
+    expect(container.textContent).toContain('3 do 6')
+    expect(container.textContent).toContain('6 i więcej')
+    unmount()
+    const t = Date.UTC(2026, 0, 5)
+    const r = render(
+      <ChartsProvider messages={pl}>
+        <RunwayChart
+          rows={[
+            {
+              id: 'a',
+              label: 'A',
+              projection: [
+                { at: t, used: 0.5 },
+                { at: t + 36e5, used: 1 },
+              ],
+              runsOutAt: t + 36e5,
+            },
+          ]}
+          domain={[t, t + 24 * 36e5]}
+          now={t}
+          initialWidth={600}
+          title="R"
+        />
+      </ChartsProvider>,
+    )
+    expect(r.container.textContent).toContain('Kończy się ')
+    expect(r.container.textContent).toContain('Zablokowane')
+    expect(r.container.textContent).not.toContain('Runs out ')
+  })
+
+  it('ComparisonBars and WaterfallChart read their rows from the templates', () => {
+    const c = render(
+      <ChartsProvider messages={pl}>
+        <ComparisonBars
+          data={[{ n: 'A', p: 5, a: 5 }]}
+          label="n"
+          plan="p"
+          actual="a"
+          width={400}
+          title="C"
+          animate={false}
+        />
+      </ChartsProvider>,
+    )
+    expect(c.container.textContent).toContain('Zgodnie z planem')
+    fireEvent.keyDown(screen.getByRole('application'), { key: 'ArrowRight' })
+    expect(c.container.querySelector('[aria-live]')?.textContent).toContain(
+      'A: plan 5, wykonanie 5',
+    )
+    c.unmount()
+    const w = render(
+      <ChartsProvider messages={pl}>
+        <WaterfallChart
+          start={{ label: 'Plan', value: 10 }}
+          steps={[{ label: 'Leak', value: -3 }]}
+          width={400}
+          title="W"
+          animate={false}
+        />
+      </ChartsProvider>,
+    )
+    const figure = screen.getByRole('application')
+    fireEvent.keyDown(figure, { key: 'ArrowRight' })
+    fireEvent.keyDown(figure, { key: 'ArrowRight' })
+    expect(w.container.querySelector('[aria-live]')?.textContent).toContain('Leak: −3 (razem 7)')
   })
 })

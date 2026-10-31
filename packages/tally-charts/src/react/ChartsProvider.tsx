@@ -43,6 +43,16 @@ export interface ChartsProviderProps {
   children?: ReactNode
 }
 
+// A key set to `undefined` keeps its default; a plain spread would let it erase the string.
+function withDefaults(messages: Partial<ChartMessages>): ChartMessages {
+  const merged: ChartMessages = { ...DEFAULT_MESSAGES }
+  for (const key of Object.keys(messages) as (keyof ChartMessages)[]) {
+    const value = messages[key]
+    if (value !== undefined) merged[key] = value
+  }
+  return merged
+}
+
 export function ChartsProvider({
   locale = DEFAULT_LOCALE,
   currency = DEFAULT_CURRENCY,
@@ -50,10 +60,7 @@ export function ChartsProvider({
   children,
 }: ChartsProviderProps) {
   const value = useMemo(() => ({ locale, currency }), [locale, currency])
-  const merged = useMemo(
-    () => (messages ? { ...DEFAULT_MESSAGES, ...messages } : DEFAULT_MESSAGES),
-    [messages],
-  )
+  const merged = useMemo(() => (messages ? withDefaults(messages) : DEFAULT_MESSAGES), [messages])
   return (
     <LocaleContext.Provider value={value}>
       <MessagesContext.Provider value={merged}>{children}</MessagesContext.Provider>

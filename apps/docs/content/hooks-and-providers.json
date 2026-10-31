@@ -56,6 +56,44 @@
       }
     },
     {
+      "id": "n19",
+      "type": "heading",
+      "props": {
+        "text": "Translating the built-in text",
+        "level": "2",
+        "anchor": "messages"
+      }
+    },
+    {
+      "id": "n20",
+      "type": "prose",
+      "props": {
+        "markdown": "`locale` changes numbers and dates; `messages` changes the words the charts speak on their own: \"No data\", the keyboard hint, the \"1 of 6\" position, target text, the column headers of the hidden data table and the default Runway status. Pass an object of plain strings, with `{placeholders}` where a value goes. Any key you leave out keeps its English default, and a key set to `undefined` does too. The strings are not functions, so a Server Component can pass them to the provider."
+      }
+    },
+    {
+      "id": "n21",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "hooks-and-providers/polish-messages",
+        "defaultView": "preview"
+      }
+    },
+    {
+      "id": "n22",
+      "type": "prose",
+      "props": {
+        "markdown": "The order of precedence is the prop of one chart (`empty`, `keyboardHint`, `targetLabel`, `totalLabel`, `dataTable.columns`), then the provider's `messages`, then English. A column header taken from a string accessor (`y=\"grossMargin\"` reads \"Gross margin\") stays the field name; `messages` supplies the header only when the accessor is a function or the chart names the column itself. A nested provider replaces its parent's messages instead of merging with them.\n\nThe provider remembers your object by identity. An inline object, `messages={{ noData: '…' }}` in a Client Component, is a new object on every render of the parent, so every chart under it renders again. Define the object outside the component or wrap it in `useMemo`. In a Server Component this does not matter.\n\nThe unit suffixes of the `pts` and `hours` format presets are not messages; use a custom `format` function for those units in another language (see [Formatting](/docs/formatting)). The wording of the English defaults below is not public API and can change in a minor release; the keys are."
+      }
+    },
+    {
+      "id": "n23",
+      "type": "prose",
+      "props": {
+        "markdown": "| Key | English default | Where it is used |\n| --- | --- | --- |\n| `noData` | `No data` | An empty chart, bar or meter. Also the cell text for a missing heatmap value. |\n| `noValue` | `no value` | A table cell with nothing in it, read by screen readers next to the dash. |\n| `keyboardHint` | `Use arrow keys to move between points, Home and End for first and last, Escape to clear.` | Read when a chart takes keyboard focus. An empty string removes the hint. |\n| `keyboardHintSelect` | `Press Enter to select.` | Appended to `keyboardHint`, after one space, when the point can be selected. |\n| `position` | `{index} of {total}` | The live-region position of a point. Placeholders: `{index}`, `{total}`. |\n| `target` | `target {value}` | A target in a spoken value, such as \"40, target 50\". Placeholder: `{value}`. |\n| `targetLabel` | `Target {value}` | The default text under a Meter's target tick. Placeholder: `{value}`. |\n| `now` | `Now` | The Now line of a RunwayChart. |\n| `total` | `Total` | The total column and row of a Heatmap, and the end row of a WaterfallChart. |\n| `headerItem` | `Item` | A column header of a chart's hidden data table. A header taken from a string accessor keeps the field name. |\n| `headerValue` | `Value` | A data-table column header. |\n| `headerCategory` | `Category` | A data-table column header. |\n| `headerDate` | `Date` | A data-table column header. |\n| `headerPeriod` | `Period` | A data-table column header. |\n| `headerGroup` | `Group` | A data-table column header. |\n| `headerDetails` | `Details` | A data-table column header. |\n| `headerColumn` | `Column` | A data-table column header. |\n| `headerChange` | `Change` | A data-table column header. |\n| `headerTotal` | `Total` | A data-table column header. |\n| `headerPlan` | `Plan` | A data-table column header. |\n| `headerActual` | `Actual` | A data-table column header. |\n| `headerDifference` | `Difference` | The ComparisonBars data-table column of plan minus actual. |\n| `headerRange` | `Range` | The data-table column of a LineChart band. |\n| `headerRow` | `Row` | The row name of a Heatmap that has no label. |\n| `headerName` | `Name` | A RunwayChart data-table column header. |\n| `headerDetail` | `Detail` | A RunwayChart data-table column header. |\n| `headerRunsOut` | `Runs out` | A RunwayChart data-table column header. |\n| `headerResets` | `Resets` | A RunwayChart data-table column header. |\n| `headerProjectedAtReset` | `Projected at reset` | A RunwayChart data-table column header. |\n| `headerStatus` | `Status` | A RunwayChart data-table column header. |\n| `statusDisconnected` | `Disconnected` | Default status of a RunwayChart row whose source is disconnected. |\n| `statusNoForecast` | `No forecast` | Default status of a RunwayChart row without a forecast. |\n| `statusRunsOut` | `Runs out {date}` | Default status line of a RunwayChart row. Placeholder: `{date}`. |\n| `statusAtReset` | `~{percent}% at reset` | Default status line when a RunwayChart row does not run out. Placeholder: `{percent}`. |\n| `statusResets` | `Resets {date}` | Default status line of a RunwayChart row's reset. Placeholder: `{date}`. |\n| `legendProjectedUse` | `Projected use` | RunwayChart legend. |\n| `legendUnderShare` | `under {shares}%` | RunwayChart legend, after the shades. Placeholder: `{shares}`, the level edges as percentages, such as \"25, 50, 75, 100\". |\n| `legendRunsOut` | `Runs out` | RunwayChart legend. |\n| `legendLocked` | `Locked until reset` | RunwayChart legend. |\n| `legendReset` | `Reset` | RunwayChart legend. |\n| `legendNoForecast` | `New window, no forecast` | RunwayChart legend. |\n| `onPlan` | `On plan` | The change a ComparisonBars row shows when actual is within the tolerance. |\n| `planActual` | `{label}, plan {plan}, actual {actual}, {delta}` | A ComparisonBars row read aloud. Placeholders: `{label}`, `{plan}`, `{actual}`, `{delta}`. |\n| `runningTotal` | `{label}, {text}, running total {total}` | A WaterfallChart step read aloud. Placeholders: `{label}`, `{text}`, `{total}`. |\n| `peak` | `Peak` | The first line of a WaffleColumns callout. |\n| `binAll` | `All values` | The default Heatmap legend label when there are no breaks. |\n| `binUnder` | `Under {value}` | The lowest Heatmap legend bin. Placeholder: `{value}`. |\n| `binRange` | `{from} to {to}` | A middle Heatmap legend bin. Placeholders: `{from}`, `{to}`. |\n| `binOver` | `{value} and up` | The highest Heatmap legend bin. Placeholder: `{value}`. |\n| `valueAgainst` | `{value} against {reference}` | A RangeMeter's value against its reference, read aloud. Placeholders: `{value}`, `{reference}`. |\n| `valueAbove` | `above {max}` | A ZoneMeter value above its maximum. Placeholder: `{max}`. |\n| `valueBelow` | `below {min}` | A ZoneMeter value below its minimum. Placeholder: `{min}`. |\n| `resetMark` | `reset` | The label next to the reset tick of a RunwayChart row. |\n| `heatmapName` | `Heatmap` | The accessible name of a scrolling Heatmap that has no title. |\n| `deltaUp` | `Up` | Read before a Delta's value when it went up. |\n| `deltaDown` | `Down` | Read before a Delta's value when it went down. |\n| `deltaFlat` | `No change` | Read before a Delta's value when it did not change. |"
+      }
+    },
+    {
       "id": "n6",
       "type": "heading",
       "props": {

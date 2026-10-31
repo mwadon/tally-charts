@@ -4,6 +4,7 @@ import { toNumber } from '../../core/number'
 import { binIndex, type ThresholdInclusive, type Thresholds } from '../../core/thresholds'
 import { createWarner, DEV } from '../../core/warn'
 import { useFormat, useMessages } from '../ChartsProvider'
+import { formatMessage } from '../messages'
 import { cx, toneVar, toPercent } from './util'
 
 /**
@@ -85,7 +86,15 @@ export function ZoneMeter({
   const zone = finite ? zones.bins[binIndex(v, edges, zones.inclusive)]?.label : undefined
   const valueText = !finite
     ? messages.noData
-    : [fmt(v), v > max ? `above ${fmt(max)}` : v < min ? `below ${fmt(min)}` : undefined, zone]
+    : [
+        fmt(v),
+        v > max
+          ? formatMessage(messages.valueAbove, { max: fmt(max) })
+          : v < min
+            ? formatMessage(messages.valueBelow, { min: fmt(min) })
+            : undefined,
+        zone,
+      ]
         .filter(Boolean)
         .join(', ')
   const drawn = zones.bins

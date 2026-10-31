@@ -10,7 +10,7 @@ import type { TickSpec } from '../../core/ticks'
 import type { Accessor, Id, Tone } from '../../core/types'
 import { createWarner, DEV, type Warn } from '../../core/warn'
 import { Chart, type ChartName } from '../Chart'
-import { useFormat } from '../ChartsProvider'
+import { useFormat, useMessages } from '../ChartsProvider'
 import { type Margin, useChartContext } from '../context'
 import type { DataTableColumn, DataTableSpec } from '../DataTable'
 import { Axis, type AxisFormat } from '../marks/Axis'
@@ -195,6 +195,7 @@ export function DotHistogram<D>({
   ...chart
 }: DotHistogramProps<D>) {
   const { create } = useFormat()
+  const messages = useMessages()
   const warn = useMemo(() => createWarner(), [])
   const fmt: Formatter = useMemo(() => create(format), [create, format])
 
@@ -251,12 +252,12 @@ export function DotHistogram<D>({
   let table: DataTableSpec<HistogramRow<D>> | undefined
   if (dataTable) {
     const columns: DataTableColumn<HistogramRow<D>>[] = [
-      { header: headerOf(label, 'Item'), value: (r) => r.name },
-      { header: headerOf(value, 'Value'), value: (r) => fmt(r.value) },
+      { header: headerOf(label, messages.headerItem), value: (r) => r.name },
+      { header: headerOf(value, messages.headerValue), value: (r) => fmt(r.value) },
     ]
     if (toneBy && typeof toneBy !== 'function') {
       columns.push({
-        header: 'Group',
+        header: messages.headerGroup,
         value: (r) => r.group ?? '',
       })
     }

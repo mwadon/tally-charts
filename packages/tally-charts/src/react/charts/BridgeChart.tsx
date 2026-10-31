@@ -8,7 +8,7 @@ import { fits, type Tick } from '../../core/ticks'
 import type { Id, Tone } from '../../core/types'
 import { createWarner, DEV } from '../../core/warn'
 import { Chart, type ChartName } from '../Chart'
-import { useFormat } from '../ChartsProvider'
+import { useFormat, useMessages } from '../ChartsProvider'
 import { type Margin, useChartContext } from '../context'
 import type { DataTableSpec } from '../DataTable'
 import { Area } from '../marks/Area'
@@ -260,6 +260,7 @@ export function BridgeChart<S extends BridgeStep = BridgeStep>({
   ...chart
 }: BridgeChartProps<S>) {
   const { create } = useFormat()
+  const messages = useMessages()
   const warn = useMemo(() => createWarner(), [])
   const fmt = useMemo(() => create(format), [create, format])
   const signed = useMemo(() => create(format, { signed: true }), [create, format])
@@ -350,9 +351,9 @@ export function BridgeChart<S extends BridgeStep = BridgeStep>({
   const table: DataTableSpec<BridgeRow<S>> | undefined = dataTable
     ? {
         columns: [
-          { header: 'Column', value: (r) => r.label },
-          { header: 'Change', value: (r) => r.note },
-          { header: 'Total', value: (r) => fmt(r.total) },
+          { header: messages.headerColumn, value: (r) => r.label },
+          { header: messages.headerChange, value: (r) => r.note },
+          { header: messages.headerTotal, value: (r) => fmt(r.total) },
         ],
       }
     : undefined

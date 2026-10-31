@@ -17,6 +17,7 @@ import type { Accessor, SeqLevel, Tone } from '../../core/types'
 import { createWarner, DEV, type Warn } from '../../core/warn'
 import type { ChartName } from '../Chart'
 import { useFormat, useMessages } from '../ChartsProvider'
+import { type ChartMessages, formatMessage } from '../messages'
 import { Legend } from '../ui/Legend'
 import { cx } from '../ui/util'
 import { useIsoLayoutEffect } from '../useIsoLayoutEffect'
@@ -130,14 +131,22 @@ function cleanBreaks(breaks: readonly number[], warn: Warn): number[] {
   return edges
 }
 
-function defaultLabels(breaks: readonly number[], fmt: Formatter): string[] {
+function defaultLabels(
+  breaks: readonly number[],
+  fmt: Formatter,
+  messages: ChartMessages,
+): string[] {
   const first = breaks[0]
   const last = breaks[breaks.length - 1]
-  if (first === undefined || last === undefined) return ['All values']
+  if (first === undefined || last === undefined) return [messages.binAll]
   return [
-    `Under ${fmt(first)}`,
-    ...breaks.slice(1).map((b, i) => `${fmt(breaks[i] as number)} to ${fmt(b)}`),
-    `${fmt(last)} and up`,
+    formatMessage(messages.binUnder, { value: fmt(first) }),
+    ...breaks
+      .slice(1)
+      .map((b, i) =>
+        formatMessage(messages.binRange, { from: fmt(breaks[i] as number), to: fmt(b) }),
+      ),
+    formatMessage(messages.binOver, { value: fmt(last) }),
   ]
 }
 
@@ -204,8 +213,8 @@ export function Heatmap<D>({
     if (DEV && binLabels) {
       warn('heatmap-labels', 'Heatmap `binLabels` needs one label per bin; using the defaults.')
     }
-    return defaultLabels(edges, fmt)
-  }, [binLabels, edges, fmt, warn])
+    return defaultLabels(edges, fmt, messages)
+  }, [binLabels, edges, fmt, messages, warn])
 
   const model = useMemo((): HeatmapModel<D> => {
     const getRow = resolveAccessor(row)
@@ -441,7 +450,7 @@ export function Heatmap<D>({
               role: 'group',
               ...(labelledBy
                 ? { 'aria-labelledby': labelledBy }
-                : { 'aria-label': title || 'Heatmap' }),
+                : { 'aria-label': title || messages.heatmapName }),
             }
           : null)}
       >
@@ -464,7 +473,7 @@ export function Heatmap<D>({
         >
           <div role="row" className="ch-heatmap-row" data-ch-part="heatmap-row">
             <div role="columnheader" className="ch-heatmap-corner" data-ch-part="heatmap-corner">
-              <span className="ch-sr-only">{rowLabel || headerOf(row, 'Row')}</span>
+              <span className="ch-sr-only">{rowLabel || headerOf(row, messages.headerRow)}</span>
             </div>
             {model.columns.map((name) => (
               <div

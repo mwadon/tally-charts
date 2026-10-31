@@ -1,6 +1,6 @@
 import type { FormatSpec } from '../../core/format'
 import type { Tone } from '../../core/types'
-import { useFormat } from '../ChartsProvider'
+import { useFormat, useMessages } from '../ChartsProvider'
 import { cx, toneVar } from './util'
 
 /** Also the values of `data-ch-direction`. */
@@ -20,12 +20,17 @@ export interface DeltaProps {
 }
 
 const ARROWS: Record<DeltaDirection, string> = { up: '▲', down: '▼', flat: '–' }
-const WORDS: Record<DeltaDirection, string> = { up: 'Up', down: 'Down', flat: 'No change' }
 
 /** A change pill: ▲/▼ plus the size of the change, toned by whether it's good news. */
 export function Delta({ value, format, good = 'up', tone, signed = false, className }: DeltaProps) {
   const { create } = useFormat()
+  const messages = useMessages()
   if (!Number.isFinite(value)) return null
+  const words: Record<DeltaDirection, string> = {
+    up: messages.deltaUp,
+    down: messages.deltaDown,
+    flat: messages.deltaFlat,
+  }
   const direction: DeltaDirection = value === 0 ? 'flat' : value > 0 ? 'up' : 'down'
   const resolved: Tone =
     tone ?? (direction === 'flat' ? 'neutral' : direction === good ? 'gain' : 'loss')
@@ -48,7 +53,7 @@ export function Delta({ value, format, good = 'up', tone, signed = false, classN
       >
         {ARROWS[direction]}
       </span>
-      <span className="ch-sr-only">{WORDS[direction]} </span>
+      <span className="ch-sr-only">{words[direction]} </span>
       <span className="ch-delta-value" data-ch-part="delta-value">
         {text}
       </span>

@@ -46,12 +46,11 @@ export function Region({ from, to, tone = 'accent', fill = 'solid' }: RegionProp
     b = categoryCenter(x, to ?? domain[domain.length - 1])
     half = categoryStep(x) / 2
   }
-  const last = to ?? 'the end'
   if (a === undefined || b === undefined) {
     if (DEV) {
       ctx.warn(
         'region-domain',
-        `Region from "${from}" to "${String(last)}" is not on the x scale and was not drawn.`,
+        `Region from "${from}" to "${String(to ?? 'the end')}" is not on the x scale and was not drawn.`,
       )
     }
     return null
