@@ -2,7 +2,11 @@ import { ticks } from 'd3-array'
 import type { LinearScale } from './linear'
 import type { BandScale, PointScale } from './scale'
 
-export type TickSpec = 'all' | 'ends' | number
+/**
+ * Which ticks to label: all of them, the ends, about `n`, or, on a linear scale, exactly the listed
+ * values. A list is sorted and deduplicated, and a value outside the domain (or `extent`) is dropped.
+ */
+export type TickSpec = 'all' | 'ends' | number | readonly number[]
 export type TickAnchor = 'start' | 'middle' | 'end'
 
 export interface Tick {
@@ -71,7 +75,17 @@ export function linearTicks(
 ): Tick[] {
   const [lo, hi] = extent ?? scale.domain()
   const count = typeof spec === 'number' ? spec : 5
-  const values = spec === 'ends' ? [lo, hi] : extent ? ticks(lo, hi, count) : scale.ticks(count)
+  const min = Math.min(lo, hi)
+  const max = Math.max(lo, hi)
+  // `typeof`, because Array.isArray doesn't narrow a readonly array.
+  const values =
+    typeof spec === 'object'
+      ? [...new Set(spec)].filter((v) => v >= min && v <= max).sort((a, b) => a - b)
+      : spec === 'ends'
+        ? [lo, hi]
+        : extent
+          ? ticks(lo, hi, count)
+          : scale.ticks(count)
   return values.map((value) => ({
     value,
     position: scale(value),

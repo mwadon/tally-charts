@@ -52,6 +52,46 @@ describe('linearTicks', () => {
     expect(linearTicks(scale, 'ends', String, [0, 60]).map((t) => t.position)).toEqual([100, 700])
     expect(linearTicks(scale, 3, String, [0, 60]).map((t) => t.value)).toEqual([0, 20, 40, 60])
   })
+
+  describe('with a list of values', () => {
+    it('labels exactly those values, sorted and without duplicates', () => {
+      const ticks = linearTicks(linearScale([0, 40], [0, 400]), [30, 10, 30, 20], (v) => `${v}%`)
+      expect(ticks.map((t) => t.value)).toEqual([10, 20, 30])
+      expect(ticks.map((t) => t.position)).toEqual([100, 200, 300])
+      expect(ticks.map((t) => t.label)).toEqual(['10%', '20%', '30%'])
+    })
+
+    it('drops values outside the domain and values that are not finite', () => {
+      const spec = [-5, 0, Number.NaN, 40, 41, Number.POSITIVE_INFINITY]
+      const ticks = linearTicks(linearScale([0, 40], [0, 400]), spec, String)
+      expect(ticks.map((t) => t.value)).toEqual([0, 40])
+    })
+
+    it('keeps values inside a reversed domain', () => {
+      const ticks = linearTicks(linearScale([40, 0], [0, 400]), [10, 50, 30], String)
+      expect(ticks.map((t) => t.value)).toEqual([10, 30])
+      expect(ticks.map((t) => t.position)).toEqual([300, 100])
+    })
+
+    it('limits the values to an extent narrower than the domain', () => {
+      const ticks = linearTicks(linearScale([-10, 60], [0, 700]), [-5, 0, 60], String, [0, 60])
+      expect(ticks.map((t) => t.value)).toEqual([0, 60])
+    })
+
+    it('gives two scales with the same domain and range the same positions', () => {
+      const fractions = [0, 0.25, 0.5, 0.75, 1] as const
+      const positions = (flip: boolean) =>
+        linearTicks(linearScale([0, 1], [flip ? 400 : 0, flip ? 0 : 400]), fractions, String).map(
+          (t) => t.position,
+        )
+      expect(positions(false)).toEqual([0, 100, 200, 300, 400])
+      expect(positions(true)).toEqual([400, 300, 200, 100, 0])
+    })
+
+    it('returns no ticks for an empty list', () => {
+      expect(linearTicks(linearScale([0, 40], [0, 400]), [], String)).toEqual([])
+    })
+  })
 })
 
 describe('thinTicks', () => {

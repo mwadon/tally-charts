@@ -51,7 +51,6 @@ export interface AxisProps {
     // (undocumented)
     side: AxisSide;
     thin?: boolean;
-    // (undocumented)
     ticks?: TickSpec;
     tone?: Tone;
 }
@@ -1254,8 +1253,8 @@ export interface Thresholds {
 // @public
 export function thresholds(breaks: readonly number[], tones: readonly Tone[], labels: readonly string[], options?: ThresholdOptions): Thresholds;
 
-// @public (undocumented)
-export type TickSpec = 'all' | 'ends' | number;
+// @public
+export type TickSpec = 'all' | 'ends' | number | readonly number[];
 
 // @public
 export type TimeInput = Date | number | string;

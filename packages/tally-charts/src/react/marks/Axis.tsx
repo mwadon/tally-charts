@@ -42,6 +42,11 @@ export type AxisFormat = FormatPreset | FormatPresetSpec | DateFormatSpec | Axis
 
 export interface AxisProps {
   side: AxisSide
+  /**
+   * Default 'all'. A list of values works on a linear scale only; elsewhere it gives the default
+   * ticks and a development warning. Values outside the domain or `extent` are dropped, and `thin`
+   * can still drop labels that overlap.
+   */
   ticks?: TickSpec
   format?: AxisFormat
   /** Drop labels that would overlap. Default true. */
@@ -238,6 +243,12 @@ export function Axis({
   if (!ctx) return null
   const resolved = horizontal ? ctx.x : ctx.y
   const custom = typeof format === 'function' ? format : undefined
+  if (DEV && typeof spec === 'object' && resolved.kind !== 'linear') {
+    ctx.warn(
+      'axis-tick-list',
+      'Axis `ticks` as a list of values needs a linear scale; the default ticks are used instead.',
+    )
+  }
 
   let raw: Tick[]
   let timeLabel: TimeLabels | undefined

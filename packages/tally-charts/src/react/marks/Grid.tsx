@@ -3,7 +3,10 @@ import { DEV } from '../../core/warn'
 import { useChartContext } from '../context'
 
 export interface GridProps {
-  /** Same as the y axis `ticks`. Default 'all' (about 5). */
+  /**
+   * Same as the y axis `ticks`, including a list of values, of which those outside the y domain or
+   * `extent` are dropped. Default 'all' (about 5).
+   */
   ticks?: TickSpec
   /** Value range to rule, like the axis `extent`. Default: the y domain. */
   extent?: readonly [number, number]

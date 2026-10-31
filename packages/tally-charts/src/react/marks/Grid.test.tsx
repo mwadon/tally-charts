@@ -50,6 +50,11 @@ describe('<Grid>', () => {
     ])
   })
 
+  it('rules a line at each value of a list', () => {
+    const { container } = renderGrid({ ticks: [32, 38, 38, 50] })
+    expect(lines(container).map((l) => l.getAttribute('y1'))).toEqual(['80', '20'])
+  })
+
   it('warns without a linear y scale', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     const { container } = render(

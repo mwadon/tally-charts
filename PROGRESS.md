@@ -2640,3 +2640,8 @@ Uwagi: BridgeChart (14.89 kB z 15) i Small UI pieces (4.87 kB z 5) mają mały z
 | Small UI pieces | 4.87 kB | 4.26 kB | 5 kB |
 | Sparkline | 1.67 kB | 1.03 kB | 3 kB |
 | RunwayChart | 9.41 kB | 8.89 kB | 15 kB |
+
+## Lista wartości w `ticks` (2026-10-31)
+`TickSpec` przyjmuje `readonly number[]` na skali liniowej (`linearTicks`): lista jest sortowana i bez duplikatów, wartości spoza domeny albo `extent` odpadają. Na skalach band, point i time lista daje domyślne wartości i ostrzeżenie dev `axis-tick-list`. `thin` nadal może usunąć nakładające się etykiety, a `niceDomain` w `LineChart` nie bierze listy pod uwagę. LineChart 13.68 kB z 14 kB.
+
+**Bez `viewBox` przed hydracją.** Propozycja `viewBox` + `preserveAspectRatio="none"` w SSR (`Chart.tsx`) odrzucona po porównaniu statycznych zrzutów przy 320 i 1280 px: słupki i linie trafiają prawie na docelowe miejsca, ale przy 320 px etykiety są ściśnięte o połowę i ledwo czytelne, kropki stają się kreskami, a szrafura zmienia kąt. Bez JS ten stan zostałby na stałe. Przeskok szerokości przed hydracją pozostaje znanym ograniczeniem.
