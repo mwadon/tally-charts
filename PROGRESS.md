@@ -2479,6 +2479,18 @@ T38 gotowy, bez commitów. Wszystkie lokalne odpowiedniki jobów CI kończą si�
 
 ## ⛔ T39 [MAINTAINER] Publikacja 1.0.0-rc.0 i weryfikacja w edytorze glokki — ZABLOKOWANY
 T39 nadal ZABLOKOWANY i czeka na maintainera. Powtórzyłem komendy tylko do odczytu (2026-10-25): dist-tags to `{ latest: '0.9.0' }`, `tally-charts@1.0.0-rc.0` daje E404, workflow Release nie istnieje na GitHubie, environments ma `total_count` 0, lokalny main jest 181 commitów nad origin/main, release `v1.0.0-rc.0` nie istnieje, a edytor ma pin `0.9.0`. Zmieniłem w PROGRESS.md tylko to, o co prosił review: ustaliłem przyczynę czerwonego CI edytora (`gh run view 40185618013 --repo glokki-cms/editor`, adnotacje) i wpisałem ją do tabeli „Stan zastany” oraz do kroku 6. Joby w glokki-cms/editor nie startują, bo „recent account payments have failed or your spending limit needs to be increased”. To problem z billingiem GitHub Actions tej organizacji, nie kodu ani tally-charts. Poprawiłem też zalecenie w kroku 6: najpierw uregulować Billing & plans glokki-cms i zrobić re-run CI na main, potem bump. Sekcja nie jest oznaczona ✔. Zawiera blokery (T17 i brak pusha), checklistę kroków 0–7 i pustą linię potwierdzenia, której agent nie wypełnia. `git status --short` pokazuje wyłącznie ` M PROGRESS.md`; `packages/tally-charts/package.json`, CHANGELOG, `.changeset/` i repo edytora są nietknięte.
+
+**Do sprawdzenia w edytorze glokki (krok 6, po bumpie do rc; praca „editor additions”, `docs/superpowers/specs/2026-10-31-tally-charts-1.0-editor-additions-design.md`)**
+- [ ] Sparkline: wykres w kafelku, `endpoint` jako kropka HTML bez rozciągnięcia, `target`, pusta seria daje „<label>: No data”.
+- [ ] `ChartsProvider messages`: tłumaczenia po polsku (`noData`, `position`, `target`) w rootowym layoucie serwerowym z `next-intl`; same stringi przechodzą przez granicę serwer/klient; nagłówki tabeli danych.
+- [ ] `Target position`: próg 73 w koszu „70–79” (`position={0.3}`) na wykresie z osią kategorii.
+- [ ] `y2`, `scale="y2"`, `Axis tone`: wykres ruchu z drugą osią po prawej, oś w tonie serii, tooltip i klawiatura niosą obie serie, tabela danych ma obie kolumny.
+- [ ] `color`: `devices-card` i `sources-card` (ShareBar, Legend) oraz złoty słupek szczytu (`Bars` z `fill="solid"`), także w trybie wysokiego kontrastu.
+- [ ] `InlineBar width="100%"` oraz wysokość 4 px przez CSS na `inline-bar` i `meter-track`.
+- [ ] `valueLabel="max"` z `variant="pill"` (`valueLabelVariant`): pigułka nad najwyższym słupkiem mieści się w marginesie.
+- [ ] `LineChart interactive={false}`: brak tab stopu i tooltipa.
+- [ ] Odwrócone `y` (`domain: [10, 1]`): wykres pozycji z Search Console, linia, oś i kolejność strzałek.
+- [ ] Nowe domyślne: `InlineBar`, `Meter`, `RangeMeter` i `DotCount` nie są już domyślnie różowe; ekran Performance dostaje `tone="loss"` albo `fill="hatch"` tam, gdzie różowy był zamierzony.
 Ostatnie uwagi: zobacz .crew/backlog.json (lastNote).
 
 ## ⛔ Q1-02 [MAINTAINER] Zapisanie decyzji bramki F10 (design strony docs) — ZABLOKOWANY
@@ -2578,3 +2590,30 @@ Rozmiary (`pnpm size`, gzip), przed -> po: LineChart 13.19 -> 13.36 kB (limit 14
 `Chart` takes `y2`, a second linear scale, resolved only when set and reported by `useChart()`. `Line`, `Area`, `Band`, `Bars`, `ValueLabel`, `Target` and `Axis` take `scale="y2"` through one helper, `valueContext` (`react/marks/value-scale.ts`), which returns the same object for `y` and a copy with `y` swapped for `y2` otherwise, so the marks' geometry doesn't fork. `Bars` has a thin outer component so its hooks are skipped when there's no `y2`; `Line`, `Band`, `Area` and `Axis` resolve the context before any early return. `Axis` also gets `tone`, which uses the existing `data-ch-tone-text` rule, so `theme.css` didn't change. A horizontal `Axis` with `scale="y2"` warns and keeps labelling `x`. Docs and the reference story are Task 13.
 
 Rozmiary (`pnpm size`, gzip), przed -> po: Chart + Bars + Axis + Target + Tooltip 12.39 -> 12.58 kB (+0.19, budżet +1, czyli do 13.39), LineChart 13.97 -> 14.15 kB (limit podniesiony z 14 do 14.15, dozwolone do 14.5), BridgeChart 14.89 kB (limit 15), WaterfallChart 14.18 kB (limit 15), BarChart 13.71 kB (limit 15). Pozostałe limity bez zmian.
+
+## Editor additions complete (2026-10-31)
+Wszystkie 14 tasków planu „tally-charts 1.0: additions for the glokki editor” jest na gałęzi `editor-additions`. Spec: `docs/superpowers/specs/2026-10-31-tally-charts-1.0-editor-additions-design.md`, w SPEC.md jako M7 (F24 do F33). Zakres: domyślne bez różu w `InlineBar`, `Meter`, `RangeMeter` i `DotCount` (changeset `major`), `ChartsProvider messages`, `Target position`, odwrócone `y`, `Sparkline`, `color`, `InlineBar width="100%"`, `valueLabel="max"` z `variant="pill"`, druga oś `y2` z `scale="y2"` i `Axis tone`, `LineChart interactive={false}`, pisownia glokki. Zmiany z changesetami w pre mode `rc`.
+
+**Limit LineChart wzrósł z 14 kB do 14.2 kB.** Powód: `ChartsProvider messages` (Task 3, 13.19 do 13.36 kB) i druga oś (Task 12, 13.97 do 14.15 kB) dodają kod, który `LineChart` bundluje razem z `Chart`, `Line`, `Axis` i `Target`. `check:treeshake` potwierdza, że to jego własny graf importów, więc to uczciwy pomiar, a nie martwy kod. Maintainer dopuścił do 14.5 kB na i18n i drugą oś; limit wzrósł najpierw do 14.15 kB (Task 12), potem do 14.2 kB (Task 13), tuż nad pomiarem. Zapas to 0.05 kB, więc każdy kolejny dodatek do `Chart` albo `Line` wymaga kolejnego podniesienia (do 14.5 kB) albo odchudzenia. Pozostałe limity bez zmian. `Chart + Bars + Axis + Target + Tooltip` urósł z 11.48 kB (przed Task 3) do 12.58 kB, z czego druga oś to 0.19 kB (budżet Task 12: do 1 kB od rozmiaru sprzed taska).
+
+Rozmiary końcowe (`pnpm size`, gzip, rolldown):
+
+| Wpis | Rozmiar | Limit |
+|---|---|---|
+| tally-charts/core | 2 kB | 8 kB |
+| Chart + Bars + Axis + Target + Tooltip | 12.58 kB | 15 kB |
+| BarChart | 13.71 kB | 15 kB |
+| ComparisonBars | 12.68 kB | 15 kB |
+| RankedBars | 12.28 kB | 15 kB |
+| WaterfallChart | 14.18 kB | 15 kB |
+| BridgeChart | 14.89 kB | 15 kB |
+| DotHistogram | 13.54 kB | 15 kB |
+| StripPlot | 13.18 kB | 15 kB |
+| WaffleColumns | 11.45 kB | 15 kB |
+| LineChart | 14.15 kB | 14.2 kB (był 14) |
+| Heatmap | 4.8 kB | 15 kB |
+| Small UI pieces | 4.87 kB | 5 kB |
+| Sparkline | 1.67 kB | 3 kB (nowy wpis) |
+| RunwayChart | 9.41 kB | 15 kB |
+
+Uwagi: BridgeChart (14.89 kB z 15) i Small UI pieces (4.87 kB z 5) mają mały zapas.

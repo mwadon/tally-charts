@@ -1,4 +1,5 @@
 // @vitest-environment node
+// biome-ignore-all lint/suspicious/noTemplateCurlyInString: the cases are source text, which holds `${}`
 import fs from 'node:fs'
 import path from 'node:path'
 import ts from 'typescript'

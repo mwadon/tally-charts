@@ -281,6 +281,53 @@ Agents write the content as JSON fixtures in `DeliveryPage` format. The source m
   It also lists the additive changes: `underlay`, `createDateFormatter` in core, the hint only on selectable points.
 - [ ] Each "after" example is a file in `apps/docs/examples/migration/` (type-checked).
 
+### M7. Additions for the glokki editor (before the freeze)
+
+Design: `docs/superpowers/specs/2026-10-31-tally-charts-1.0-editor-additions-design.md`. These items were added after M1 to M6 were specified, so that the editor needs no workaround once the API freezes. Section numbers in brackets refer to that design.
+
+#### F24. Small pieces are never pink by default [design §1]
+`InlineBar` `tone` defaults to `'accent'` and `fill` to `'solid'`; `Meter` `fill` to `'solid'`; `RangeMeter` `tone` to `'accent'` and `referenceTone` to `'neutral'`; `DotCount` `tone` to `'accent'`.
+- [x] Each new default has a unit test, and an explicit prop still gives the old look.
+- [x] The reference examples and stories keep their look with explicit `fill="hatch"`, `tone="loss"` or `referenceTone="accent"`.
+- [x] Changeset `major` with a before and after snippet for each component, an entry on `migration-1-0`, TSDoc, and visual baselines refreshed on both platforms.
+
+#### F25. `ChartsProvider messages` [design §2]
+- [x] `messages` takes `Partial<ChartMessages>` with `{placeholders}`; a missing key keeps its English default. A per-chart prop wins over provider messages, which win over English.
+- [x] `ChartMessages` and `DEFAULT_MESSAGES` are exported; the docs list every key.
+- [x] Every user-visible English string in `react/` and the strings that `core/` passes to the screen come from the message table. `react/messages-literals.test.ts` fails on a new literal outside `react/messages.ts`.
+- [x] The format preset suffixes (`' pts'`, `' h'`) stay in English; the docs say to pass a custom `format`.
+- [x] `docs/stability.md` and F7 no longer say the hook arrives in 1.x.
+
+#### F26. `Target` on a category axis [design §3]
+- [x] `position` (0 to 1, default 0.5) places a `Target` inside a band or point category; `x` is the category key.
+- [x] An unknown category warns (`target-category`) and draws nothing; a `position` outside 0 to 1 is clamped with a warning; on linear and time scales it warns once and is ignored.
+
+#### F27. Reversed Y scale [design §4]
+- [x] `y={{ domain: [10, 1] }}` is tested for `createScale`, `Axis`, `Grid`, `Line`, `Area`, `Band`, `Target`, the pointer and keyboard order, and `Bars`; found bugs are fixed.
+- [x] TSDoc on `domain` and a docs example with a story.
+
+#### F28. `Sparkline` [design §5]
+- [x] A plain component with no `Chart` context, no width measuring and no effects; the endpoint is an HTML element, never an SVG `circle`; output is identical on server and client.
+- [x] A size-limit entry (3 kB) with a treeshake fixture, an SSR test, a story with baselines, and an example and `PropsTable` on `small-pieces`.
+
+#### F29. `color` outside the tones [design §6]
+- [x] `color` on `ShareSegment`, `LegendItem`, `SharePart` and `Bars`; on `Bars` only with `fill="solid"` (a hatched bar keeps its tone and warns `bars-color-fill`). Forced-colors mode still wins.
+
+#### F30. Size of small bars [design §7]
+- [x] `InlineBar` `width` accepts a string, so `width="100%"` works.
+- [x] Height is plain CSS on `inline-bar` and `meter-track`; the recipe is on `small-pieces` and an e2e computed-style check covers 4 px.
+
+#### F31. Peak label in BarChart [design §8]
+- [x] `at="max"` on `ValueLabel` and `valueLabel="max"` on `BarChart`; `variant="pill"` (and `valueLabelVariant`) draws an SVG pill that renders in SSR.
+
+#### F32. Second Y axis [design §9]
+- [x] `y2` on `Chart` (linear only) and `scale="y2"` on `Line`, `Area`, `Band`, `Bars`, `ValueLabel`, `Target` and `Axis`; `Axis` gets `tone`; `useChart()` reports `y2`. Misuse warns (`y2-scale`, `y2-orientation`, `y2-missing`).
+- [x] A dual-axis section on the composition guide with a data table, a docs example, and a story that recreates the editor's traffic chart.
+- [x] `Chart + Bars + Axis + Target + Tooltip` grew by at most 1 kB gzip.
+
+#### F33. `LineChart interactive={false}` [design §10]
+- [x] With `false` the chart registers no points, has no tab stop and no tooltip.
+
 ## 4. Out of scope
 
 - New chart types, a smaller Stat variant, `inclusive` for Heatmap and RunwayChart, a public token for tinting text by tone, a `status` callback story and a named projection point type in RunwayChart (bucket I → 1.x).
