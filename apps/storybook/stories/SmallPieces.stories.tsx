@@ -18,14 +18,21 @@ function SmallPieces() {
         {margins.map((m) => (
           <div key={m} className="piece-row">
             <span className="piece-label">{fmt.percent(m)}</span>
-            <InlineBar value={m} max={40} target={38} label={`Margin ${fmt.percent(m)}`} />
+            <InlineBar
+              value={m}
+              max={40}
+              target={38}
+              tone="loss"
+              fill="hatch"
+              label={`Margin ${fmt.percent(m)}`}
+            />
           </div>
         ))}
       </section>
       <section aria-label="Job counts" className="piece-grid">
-        <DotCount count={29} label="29 jobs" />
-        <DotCount count={17} label="17 jobs" />
-        <DotCount count={23} label="23 jobs" />
+        <DotCount count={29} tone="loss" label="29 jobs" />
+        <DotCount count={17} tone="loss" label="17 jobs" />
+        <DotCount count={23} tone="loss" label="23 jobs" />
       </section>
       <section aria-label="Parts of a whole" className="piece-grid">
         <ShareBar

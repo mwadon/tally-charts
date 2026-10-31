@@ -6450,7 +6450,7 @@
             {
               "kind": "PropertySignature",
               "canonicalReference": "tally-charts!DotCountProps#tone:member",
-              "docComment": "/**\n * Default 'loss'.\n */\n",
+              "docComment": "/**\n * Default 'accent'.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -8423,7 +8423,7 @@
             {
               "kind": "PropertySignature",
               "canonicalReference": "tally-charts!InlineBarProps#fill:member",
-              "docComment": "/**\n * Default 'hatch'.\n */\n",
+              "docComment": "/**\n * Default 'solid'.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -8587,7 +8587,7 @@
             {
               "kind": "PropertySignature",
               "canonicalReference": "tally-charts!InlineBarProps#tone:member",
-              "docComment": "/**\n * Default 'loss'.\n */\n",
+              "docComment": "/**\n * Default 'accent'.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -10716,7 +10716,7 @@
             {
               "kind": "PropertySignature",
               "canonicalReference": "tally-charts!MeterProps#fill:member",
-              "docComment": "/**\n * Default 'hatch'.\n */\n",
+              "docComment": "/**\n * Default 'solid'.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -11829,7 +11829,7 @@
             {
               "kind": "PropertySignature",
               "canonicalReference": "tally-charts!RangeMeterProps#referenceTone:member",
-              "docComment": "/**\n * Ring color. Default 'accent'.\n */\n",
+              "docComment": "/**\n * Ring color. Default 'neutral'.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -11884,7 +11884,7 @@
             {
               "kind": "PropertySignature",
               "canonicalReference": "tally-charts!RangeMeterProps#tone:member",
-              "docComment": "/**\n * Dot, gap and value label color. Default 'loss'.\n */\n",
+              "docComment": "/**\n * Dot, gap and value label color. Default 'accent'.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",

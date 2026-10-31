@@ -24,6 +24,7 @@ function GrossMargin() {
         max={45}
         target={38}
         format="percent"
+        fill="hatch"
         label="Gross margin against the 38% target"
         minLabel="20%"
         targetLabel="Target 38%"

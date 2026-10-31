@@ -13,9 +13,9 @@ export interface RangeMeterProps {
   min?: number
   /** Default 100. */
   max?: number
-  /** Dot, gap and value label color. Default 'loss'. */
+  /** Dot, gap and value label color. Default 'accent'. */
   tone?: Tone
-  /** Ring color. Default 'accent'. */
+  /** Ring color. Default 'neutral'. */
   referenceTone?: Tone
   /** Default 'number'. */
   format?: FormatSpec
@@ -38,8 +38,8 @@ export function RangeMeter({
   reference,
   min = 0,
   max = 100,
-  tone = 'loss',
-  referenceTone = 'accent',
+  tone = 'accent',
+  referenceTone = 'neutral',
   format,
   label,
   valueLabel,

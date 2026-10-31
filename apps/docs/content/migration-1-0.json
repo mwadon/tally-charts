@@ -37,7 +37,7 @@
       "id": "n3",
       "type": "prose",
       "props": {
-        "markdown": "Four changes can break a build or change what a chart draws. Go through them in order."
+        "markdown": "Five changes can break a build or change what a chart draws. Go through them in order."
       }
     },
     {
@@ -77,6 +77,55 @@
       "type": "chart-example",
       "props": {
         "exampleId": "migration/ranked-bars-hatch",
+        "defaultView": "preview"
+      }
+    },
+    {
+      "id": "n60",
+      "type": "heading",
+      "props": {
+        "text": "Small pieces are never pink by default",
+        "level": "3",
+        "anchor": "small-pieces-defaults"
+      }
+    },
+    {
+      "id": "n61",
+      "type": "prose",
+      "props": {
+        "markdown": "Pink means loss, and the library only draws it when you ask. Four small pieces were pink or hatched with no props, even when nothing was lost. In 1.0 they use the accent color, and solid is an actual value:\n\n- `InlineBar`: `tone` is `'accent'` (was `'loss'`) and `fill` is `'solid'` (was `'hatch'`).\n- `Meter`: `fill` is `'solid'` (was `'hatch'`).\n- `RangeMeter`: `tone` is `'accent'` (was `'loss'`) and `referenceTone` is `'neutral'` (was `'accent'`). The hatched gap stays.\n- `DotCount`: `tone` is `'accent'` (was `'loss'`).\n\nTo keep the 0.9 look, pass the old values."
+      }
+    },
+    {
+      "id": "n62",
+      "type": "code-block",
+      "props": {
+        "code": "<InlineBar value={12.3} max={40} label=\"Margin\" />\n<Meter value={34} min={20} max={45} label=\"Gross margin\" />\n<RangeMeter value={12.3} reference={36} max={40} label=\"Margin\" />\n<DotCount count={29} />",
+        "lang": "tsx",
+        "filename": "Before (0.9)"
+      }
+    },
+    {
+      "id": "n63",
+      "type": "prose",
+      "props": {
+        "markdown": "After, with the old look pinned:"
+      }
+    },
+    {
+      "id": "n64",
+      "type": "code-block",
+      "props": {
+        "code": "<InlineBar value={12.3} max={40} tone=\"loss\" fill=\"hatch\" label=\"Margin\" />\n<Meter value={34} min={20} max={45} fill=\"hatch\" label=\"Gross margin\" />\n<RangeMeter value={12.3} reference={36} max={40} tone=\"loss\" referenceTone=\"accent\" label=\"Margin\" />\n<DotCount count={29} tone=\"loss\" />",
+        "lang": "tsx",
+        "filename": "After"
+      }
+    },
+    {
+      "id": "n65",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "migration/small-pieces-pinned",
         "defaultView": "preview"
       }
     },

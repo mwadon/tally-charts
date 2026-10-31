@@ -10,9 +10,9 @@ export interface InlineBarProps {
   min?: number
   /** Draws a target tick. */
   target?: number
-  /** Default 'loss'. */
+  /** Default 'accent'. */
   tone?: Tone
-  /** Default 'hatch'. */
+  /** Default 'solid'. */
   fill?: Fill
   /** Width in px. Default 64. */
   width?: number
@@ -29,8 +29,8 @@ export function InlineBar({
   max,
   min = 0,
   target,
-  tone = 'loss',
-  fill = 'hatch',
+  tone = 'accent',
+  fill = 'solid',
   width = 64,
   format,
   label,

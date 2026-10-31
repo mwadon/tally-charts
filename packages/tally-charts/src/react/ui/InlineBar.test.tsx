@@ -15,12 +15,24 @@ describe('<InlineBar>', () => {
     expect(container.querySelector('.ch-inline-bar-target')).toHaveStyle({ left: '75%' })
   })
 
-  it('defaults to a hatched loss fill and omits the tick without a target', () => {
+  it('defaults to a solid accent fill and omits the tick without a target', () => {
     const { container } = render(<InlineBar value={10} max={40} label="m" />)
+    const fill = container.querySelector('.ch-inline-bar-fill')
+    expect(fill).toHaveAttribute('data-ch-fill', 'solid')
+    expect(fill).toHaveAttribute('data-ch-tone', 'accent')
+    expect(container.querySelector('[data-ch-part="inline-bar"]')).toHaveStyle({
+      '--_ch-swatch-color': 'var(--ch-accent)',
+    })
+    expect(container.querySelector('.ch-inline-bar-target')).toBeNull()
+  })
+
+  it('still applies an explicit loss tone and hatch fill', () => {
+    const { container } = render(
+      <InlineBar value={10} max={40} tone="loss" fill="hatch" label="m" />,
+    )
     const fill = container.querySelector('.ch-inline-bar-fill')
     expect(fill).toHaveAttribute('data-ch-fill', 'hatch')
     expect(fill).toHaveAttribute('data-ch-tone', 'loss')
-    expect(container.querySelector('.ch-inline-bar-target')).toBeNull()
   })
 
   it('draws no fill for a missing value and keeps a finite target tick', () => {

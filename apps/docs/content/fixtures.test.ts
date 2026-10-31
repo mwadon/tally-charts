@@ -229,7 +229,7 @@ test.each(['accessibility', 'stability'])(
   },
 )
 
-test('migration-1-0 lists four breaking changes with code before and an example after', async () => {
+test('migration-1-0 lists five breaking changes with code before and an example after', async () => {
   const { page, blocks, headings, after, all } = await pageText('migration-1-0')
 
   expect(page?.title).toBe('Migration to 1.0')

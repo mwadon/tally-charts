@@ -18,11 +18,16 @@ describe('<Meter>', () => {
     expect(container.querySelector('[data-ch-part="meter-target"]')).toHaveStyle({ left: '75%' })
   })
 
-  it('hatches the fill in the tone by default', () => {
+  it('fills solid in the accent tone by default', () => {
     const { container } = render(<Meter value={30} label="m" />)
     const fill = container.querySelector('.ch-meter-fill')
-    expect(fill).toHaveAttribute('data-ch-fill', 'hatch')
+    expect(fill).toHaveAttribute('data-ch-fill', 'solid')
     expect(fill).toHaveAttribute('data-ch-tone', 'accent')
+  })
+
+  it('still hatches the fill when asked', () => {
+    const { container } = render(<Meter value={30} fill="hatch" label="m" />)
+    expect(container.querySelector('.ch-meter-fill')).toHaveAttribute('data-ch-fill', 'hatch')
   })
 
   it('labels the start and the target, and hides labels set to null', () => {

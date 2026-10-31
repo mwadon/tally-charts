@@ -14,7 +14,7 @@ export interface MeterProps {
   target?: number
   /** Default 'accent'. */
   tone?: Tone
-  /** Default 'hatch'. */
+  /** Default 'solid'. */
   fill?: Fill
   /** Default 'number'. */
   format?: FormatSpec
@@ -34,7 +34,7 @@ export function Meter({
   max = 100,
   target,
   tone = 'accent',
-  fill = 'hatch',
+  fill = 'solid',
   format,
   label,
   minLabel,

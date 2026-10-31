@@ -44,6 +44,8 @@ export default function EstimateVsActual() {
             reference={36}
             max={40}
             format="percent"
+            tone="loss"
+            referenceTone="accent"
             label="Margin, actual against estimated"
             valueLabel="Actual 12.3%"
             referenceLabel="Estimated 36.0%"

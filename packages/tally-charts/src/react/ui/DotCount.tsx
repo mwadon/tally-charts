@@ -9,7 +9,7 @@ export interface DotCountProps {
   max?: number
   /** Dots per row. Default 15. */
   perRow?: number
-  /** Default 'loss'. */
+  /** Default 'accent'. */
   tone?: Tone
   /** Text after the dots. Default: the formatted count. `null` hides it (the count stays readable). */
   label?: ReactNode | null
@@ -21,7 +21,7 @@ export function DotCount({
   count,
   max = 30,
   perRow = 15,
-  tone = 'loss',
+  tone = 'accent',
   label,
   className,
 }: DotCountProps) {
