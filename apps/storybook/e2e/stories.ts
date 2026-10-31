@@ -54,6 +54,7 @@ export const STORIES = [
   'charts-runwaychart--stacked-dark',
   'charts-linechart--underlay-light',
   'charts-linechart--underlay-dark',
+  'charts-linechart--reversed-position',
 ]
 
 // Stories that need a viewport other than the default 800px: wide references plus the 320px edge cases.

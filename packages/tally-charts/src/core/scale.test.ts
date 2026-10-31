@@ -62,6 +62,15 @@ describe('createScale', () => {
     expect(s.scale(26)).toBe(0)
   })
 
+  it('keeps a descending explicit domain: the first value sits at the bottom of a y axis', () => {
+    const s = createScale({ domain: [10, 1] }, rows, 'y', 90, noop)
+    if (s.kind !== 'linear') throw new Error('expected a linear scale')
+    expect(s.scale.domain()).toEqual([10, 1])
+    expect(s.scale(1)).toBe(0)
+    expect(s.scale(10)).toBe(90)
+    expect(s.scale(5.5)).toBe(45)
+  })
+
   it('exposes the field getter', () => {
     const s = createScale({ field: 'margin' }, rows, 'y', 100, noop)
     expect(s.field?.(rows[0], 0)).toBe(36)

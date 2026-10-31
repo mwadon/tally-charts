@@ -43,7 +43,7 @@ export function Target({
   }
   let pos: number
   if (resolved.kind === 'linear' || resolved.kind === 'time') {
-    if (position !== undefined && DEV) {
+    if (DEV && position !== undefined) {
       ctx.warn(
         'target-position',
         '`position` only applies on a band or point scale and was ignored.',

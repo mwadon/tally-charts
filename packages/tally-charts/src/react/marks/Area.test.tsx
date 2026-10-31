@@ -137,4 +137,24 @@ describe('<Area>', () => {
     expect(path(container)).toBeNull()
     expect(warn).toHaveBeenCalledWith(expect.stringContaining('Area needs'))
   })
+
+  it('turns the fade over when the line is below the baseline', () => {
+    const { container } = render(
+      <Chart<Row>
+        title="Test chart"
+        data={rows}
+        width={300}
+        height={100}
+        margin={{ top: 0, right: 0, bottom: 0, left: 0 }}
+        x={{ type: 'band', field: 'k', padding: 0 }}
+        y={{ field: 'v', domain: [-100, 0] }}
+        animate={false}
+      >
+        <Area<Row> y={(d) => -(d.v ?? 0)} />
+      </Chart>,
+    )
+    const gradient = container.querySelector('[data-ch-part="area-group"] linearGradient')
+    expect(gradient).toHaveAttribute('y1', '1')
+    expect(gradient).toHaveAttribute('y2', '0')
+  })
 })

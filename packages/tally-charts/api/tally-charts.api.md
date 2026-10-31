@@ -742,7 +742,6 @@ export interface LinearScale {
 
 // @public (undocumented)
 export interface LinearScaleSpec<D> {
-    // (undocumented)
     domain?: readonly [number, number];
     // (undocumented)
     field?: Accessor<D, number>;

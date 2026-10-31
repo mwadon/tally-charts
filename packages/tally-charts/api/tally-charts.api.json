@@ -11043,7 +11043,7 @@
             {
               "kind": "PropertySignature",
               "canonicalReference": "tally-charts!LinearScaleSpec#domain:member",
-              "docComment": "",
+              "docComment": "/**\n * Explicit `[min, max]`; the order may be reversed. `y={{ domain: [10, 1] }}` puts 1 at the top\n * and 10 at the bottom, e.g. for search positions where 1 is best. Axis, Grid, Line, Area, Band,\n * Target and the pointer and keyboard follow it. `Bars` hang from the edge nearest zero, here\n * the top, so a reversed scale is rarely right for bars.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",

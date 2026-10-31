@@ -21,13 +21,13 @@ test('/docs/composition is a page, and the sidebar links to it', async ({ page }
   await expect(nav.locator('.nav-soon', { hasText: 'Composition' })).toHaveCount(0)
 })
 
-test('/docs/composition shows all five examples and a props table for Chart and the 18 blocks', async ({
+test('/docs/composition shows all six examples and a props table for Chart and the 18 blocks', async ({
   page,
 }) => {
   await page.goto('/docs/composition')
   await revealCharts(page)
 
-  await expect(page.locator('[data-ch-root]')).toHaveCount(5)
+  await expect(page.locator('[data-ch-root]')).toHaveCount(6)
   await expect(page.getByRole('region', { name: /^Props of / })).toHaveCount(19)
 })
 

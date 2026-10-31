@@ -46,3 +46,34 @@ type Story = StoryObj<typeof meta>
 
 export const UnderlayLight: Story = { parameters: { theme: 'light' } }
 export const UnderlayDark: Story = { parameters: { theme: 'dark' } }
+
+type Position = { week: string; position: number }
+
+// Average search position: 1 is best, so the domain runs from 10 down to 1 and the line climbs.
+const positions: Position[] = [9.4, 8.8, 8.1, 7.2, 6.9, 5.6, 5.9, 4.3, 3.8, 3.1].map(
+  (position, i) => ({ week: `W${i + 1}`, position }),
+)
+
+export const ReversedPosition: Story = {
+  render: () => (
+    <article className="card">
+      <header className="card-header card-header-stack">
+        <h2 className="card-title">Average position</h2>
+        <span className="card-meta">Weekly, 1 is best</span>
+      </header>
+      <LineChart<Position>
+        title="Average search position by week"
+        description="The page climbed from an average position of 9.4 in W1 to 3.1 in W10."
+        data={positions}
+        x="week"
+        series={[{ id: 'position', label: 'Average position', value: 'position' }]}
+        domain={[10, 1]}
+        target={{ value: 3, label: 'Goal: top 3' }}
+        format={{ preset: 'number', digits: 1 }}
+        yAxis={5}
+        height={240}
+      />
+    </article>
+  ),
+  parameters: { theme: 'light' },
+}

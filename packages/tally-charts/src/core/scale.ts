@@ -17,6 +17,12 @@ import { DEV, type Warn } from './warn'
 export interface LinearScaleSpec<D> {
   type?: 'linear'
   field?: Accessor<D, number>
+  /**
+   * Explicit `[min, max]`; the order may be reversed. `y={{ domain: [10, 1] }}` puts 1 at the top
+   * and 10 at the bottom, e.g. for search positions where 1 is best. Axis, Grid, Line, Area, Band,
+   * Target and the pointer and keyboard follow it. `Bars` hang from the edge nearest zero, here
+   * the top, so a reversed scale is rarely right for bars.
+   */
   domain?: readonly [number, number]
   /** Round an inferred domain to tick values. Default true; explicit domains are never niced. */
   nice?: boolean

@@ -92,7 +92,8 @@ export type LineChartProps<D> = ChartName &
     target?: number | { value: number; label?: string }
     /**
      * Value domain. Default: every series, the band and the target, rounded to nice ticks; zero
-     * isn't forced.
+     * isn't forced. The order may be reversed: `[10, 1]` puts 1 at the top, for positions where 1
+     * is best.
      */
     domain?: readonly [number, number]
     /** Default 'number'. */

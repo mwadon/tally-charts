@@ -100,10 +100,14 @@ export function Area<D>({
         baseline,
       )
   if (!path) return null
+  // The fade runs toward the baseline. When the line is below it (negative values, or a reversed
+  // scale whose baseline is the top edge) the gradient is turned over so the strong end stays
+  // at the line.
+  const flipped = baseline <= Math.min(...columns.map((c) => c.y).filter(Number.isFinite))
   return (
     <g data-ch-part="area-group">
       <defs>
-        <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
+        <linearGradient id={gradientId} x1="0" y1={flipped ? 1 : 0} x2="0" y2={flipped ? 0 : 1}>
           <stop offset="0" style={{ stopColor: `var(--ch-${tone})`, stopOpacity: opacity }} />
           <stop offset="1" style={{ stopColor: `var(--ch-${tone})`, stopOpacity: 0 }} />
         </linearGradient>

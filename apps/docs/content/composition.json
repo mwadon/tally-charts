@@ -125,6 +125,28 @@
       }
     },
     {
+      "id": "n52",
+      "type": "prose",
+      "props": {
+        "markdown": "A value axis can run backwards. Where 1 is the best result, as with a search position or a league table, give `y` a descending domain: `y={{ domain: [10, 1] }}` on `Chart`, or `domain={[10, 1]}` on `LineChart`. Then 1 sits at the top, 10 at the bottom, and the line climbs as the result improves. `Axis`, `Grid`, `Line`, `Area`, `Band`, `Target`, the pointer and the arrow keys all follow the domain, and the arrow keys still step through the data in order. Explicit domains are never niced, so pick ends that suit the ticks."
+      }
+    },
+    {
+      "id": "n53",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "composition/reversed-position",
+        "defaultView": "preview"
+      }
+    },
+    {
+      "id": "n54",
+      "type": "prose",
+      "props": {
+        "markdown": "`Bars` are the exception. A bar grows from the baseline, the domain value nearest zero, which on a reversed scale is the top edge: a bar for position 5 hangs from the top and is 4/9 of the plot tall, and a bar for position 1 has no length. That is consistent but rarely what a ranking wants, so use a line or dots for reversed scales."
+      }
+    },
+    {
       "id": "n12",
       "type": "heading",
       "props": {

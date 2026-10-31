@@ -129,7 +129,8 @@ describe('<Target>', () => {
       const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
       const { container } = band(<Target x="30–39" position={1.5} />)
       expect(x1(container)).toBeCloseTo(4 * step, 6)
-      expect(warn).toHaveBeenCalled()
+      expect(warn).toHaveBeenCalledTimes(1)
+      expect(String(warn.mock.calls[0]?.[0])).toContain('Target position 1.5 is outside 0 to 1')
       warn.mockRestore()
     })
 
@@ -141,7 +142,10 @@ describe('<Target>', () => {
         </Chart>,
       )
       expect(x1(container)).toBe(250)
-      expect(warn).toHaveBeenCalled()
+      expect(warn).toHaveBeenCalledTimes(1)
+      expect(String(warn.mock.calls[0]?.[0])).toContain(
+        '`position` only applies on a band or point scale',
+      )
       warn.mockRestore()
     })
 
