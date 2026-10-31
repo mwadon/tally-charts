@@ -114,7 +114,7 @@ afterEach(async () => {
 const sources: [string, () => ContentSource][] = [
   ['fixtures', () => createFixtureSource({ dir })],
   [
-    'glökki',
+    'glokki',
     () =>
       createGlokkiSource({
         baseUrl: 'https://cms.test/',
@@ -182,7 +182,7 @@ describe('fixtures', () => {
   })
 })
 
-describe('glökki', () => {
+describe('glokki', () => {
   const create = () => sources[1]?.[1]() as ContentSource
 
   test('requests the by-slug URL with the API key and tenant headers', async () => {
@@ -268,7 +268,7 @@ describe('glökki', () => {
   })
 })
 
-describe('glökki delivery slugs', () => {
+describe('glokki delivery slugs', () => {
   // The delivery API answers with the slug as stored: a leading `/`.
   const slashed = () =>
     vi.fn(async (input: string | URL | Request) => {
@@ -308,7 +308,7 @@ describe('getContentSource', () => {
     expect(getContentSource({ CMS_TENANT: 'acme' }).kind).toBe('fixtures')
   })
 
-  test('with CMS_BASE_URL, CMS_TENANT and CMS_API_KEY it uses glökki', () => {
+  test('with CMS_BASE_URL, CMS_TENANT and CMS_API_KEY it uses glokki', () => {
     const env = { CMS_BASE_URL: 'https://cms.test', CMS_TENANT: 'acme', CMS_API_KEY: 'k' }
     expect(getContentSource(env).kind).toBe('cms')
   })
@@ -322,13 +322,13 @@ describe('getContentSource', () => {
     )
   })
 
-  test('with preview and CMS_BASE_URL it is still glökki, without it still fixtures', () => {
+  test('with preview and CMS_BASE_URL it is still glokki, without it still fixtures', () => {
     const env = { CMS_BASE_URL: 'https://cms.test', CMS_TENANT: 'acme', CMS_API_KEY: 'k' }
     expect(getContentSource(env, true).kind).toBe('cms')
     expect(getContentSource({}, true).kind).toBe('fixtures')
   })
 
-  describe('glökki reads through the client', () => {
+  describe('glokki reads through the client', () => {
     const env = { CMS_BASE_URL: 'https://cms.test', CMS_TENANT: 'acme', CMS_API_KEY: 'k' }
     const readEverything = async (preview?: boolean) => {
       const source = getContentSource(env, preview)

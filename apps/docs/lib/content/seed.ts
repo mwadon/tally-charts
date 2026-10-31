@@ -9,7 +9,7 @@ export interface RemotePage {
   title: string
   locale: string
   /**
-   * glökki's page status. Editing a published page sets it back to `draft` (the live version
+   * glokki's page status. Editing a published page sets it back to `draft` (the live version
    * keeps being served), so `published` means "live and no unpublished changes".
    */
   status: string
@@ -33,7 +33,7 @@ export interface Written {
   updatedAt: string
 }
 
-/** The glökki operations the seed needs; `glokki-mcp.ts` implements them, tests fake them. */
+/** The glokki operations the seed needs; `glokki-mcp.ts` implements them, tests fake them. */
 export interface SeedClient {
   listPages(): Promise<RemotePage[]>
   getPage(pageId: string): Promise<RemoteDetail>

@@ -190,22 +190,22 @@ without it.
 
 ## 10. Docs content (seed) [MAINTAINER]
 
-`pnpm --filter docs seed` copies the pages of `apps/docs/content/*.json` into the glökki tenant and
+`pnpm --filter docs seed` copies the pages of `apps/docs/content/*.json` into the glokki tenant and
 publishes them, so the CMS can be the source of the content of the docs site. It talks to the
-glökki MCP server (`$CMS_BASE_URL/api/mcp/mcp`). Run it from your machine, never from the site's
+glokki MCP server (`$CMS_BASE_URL/api/mcp/mcp`). Run it from your machine, never from the site's
 server or from CI.
 
 Needs, in the environment (see `apps/docs/.env.example`):
 
-- `CMS_BASE_URL`: the address of the glökki CMS.
-- `CMS_ADMIN_API_KEY`: an admin key from glökki, Settings → API Keys, with the scopes
+- `CMS_BASE_URL`: the address of the glokki CMS.
+- `CMS_ADMIN_API_KEY`: an admin key from glokki, Settings → API Keys, with the scopes
   `mcp:connect`, `admin:pages:read`, `admin:pages:write` and `admin:pages:publish`. Without it (or
   without `CMS_BASE_URL`) the script exits with code 1 and names the missing variable, also with
   `--dry-run`: the plan is computed from what the CMS holds.
 
 Steps:
 
-0. **Create the tenant and the keys** (once, in glökki):
+0. **Create the tenant and the keys** (once, in glokki):
    - Tenant with the slug `tally-charts`. That value goes to `CMS_TENANT` and
      `NEXT_PUBLIC_CMS_TENANT` (§11, and `check:content` below).
    - A **delivery key** with the scope `delivery:read`. It goes to `CMS_API_KEY`: on Vercel (§11)
@@ -214,7 +214,7 @@ Steps:
      `admin:pages:publish`. It goes to `CMS_ADMIN_API_KEY`, only on the maintainer's machine (never
      to Vercel or CI).
 1. **Sync the block registry**: after every deploy of the docs site that adds or changes blocks,
-   open any page in the glökki visual editor once. glökki works from a stored snapshot of the
+   open any page in the glokki visual editor once. glokki works from a stored snapshot of the
    block registry that only the editor refreshes; until then `add_block` and `publish_page`
    refuse the block types (`REGISTRY_NOT_SYNCED`, `BLOCK_TYPE_NOT_FOUND`).
 2. **Check the plan**: `pnpm --filter docs seed --dry-run` prints one line per page
@@ -246,7 +246,7 @@ skipped as `no fixture`. The labels, groups and order of the sidebar stay in
 
 ## 11. Docs on Vercel [MAINTAINER]
 
-Hosts `apps/docs` on Vercel with the content from glökki, a preview deploy for every PR and a
+Hosts `apps/docs` on Vercel with the content from glokki, a preview deploy for every PR and a
 webhook that refreshes the site when a page is published. Done once, by the owner of the Vercel
 project. Everything the build needs is in `apps/docs/vercel.json` (framework, install and build
 command); it holds no secret and no value of any variable.
@@ -272,7 +272,7 @@ command); it holds no secret and no value of any variable.
 
    | Variable                 | Production                      | Preview                          | Notes                                                                                  |
    | ------------------------ | ------------------------------- | -------------------------------- | -------------------------------------------------------------------------------------- |
-   | `CMS_BASE_URL`           | address of glökki               | the same                         | Without it the site reads the JSON fixtures, not the CMS.                              |
+   | `CMS_BASE_URL`           | address of glokki               | the same                         | Without it the site reads the JSON fixtures, not the CMS.                              |
    | `CMS_TENANT`             | tenant slug                     | the same                         | Sent as `X-Tenant-Slug`.                                                               |
    | `CMS_API_KEY`            | delivery key of the tenant      | the same                         | Server only: don't prefix it with `NEXT_PUBLIC_`.                                      |
    | `NEXT_PUBLIC_CMS_TENANT` | tenant slug                     | the same                         | Read by the visual editor in the browser.                                              |
@@ -288,7 +288,7 @@ command); it holds no secret and no value of any variable.
    preview is never indexed and shows what is broken. `SITE_URL` stays the production URL there
    on purpose (the code doesn't read `VERCEL_URL`). Optionally turn on Deployment Protection
    (Settings → Deployment Protection) so that only the team opens the previews.
-4. **Webhook from glökki**: in the tenant's webhooks add, for the publish event,
+4. **Webhook from glokki**: in the tenant's webhooks add, for the publish event,
    `POST https://<domain>/api/revalidate` with the header `Authorization: Bearer <REVALIDATE_SECRET>`
    (or `x-revalidate-secret: <REVALIDATE_SECRET>`) of Production. Check it by hand:
 
@@ -299,18 +299,18 @@ command); it holds no secret and no value of any variable.
    # 401 {"revalidated":false}
    ```
 
-   Then change a text on a page in glökki, publish it and check that the change is visible on the
+   Then change a text on a page in glokki, publish it and check that the change is visible on the
    production site within 60 seconds. The webhook calls `revalidateTag('cms', 'max')`, which works
    as stale-while-revalidate: the first request after the webhook still gets the old page and
    starts a refresh in the background, the new content shows on the next request. So reload the
    page right after publishing, wait a few seconds and reload again; the change must be visible
    at the latest 60 s after publishing (note the measured time for step 7).
 
-   To make sure the site reads the CMS and not the JSON fixtures, change a text only in glökki
+   To make sure the site reads the CMS and not the JSON fixtures, change a text only in glokki
    (not in `apps/docs/content/*.json`), for example add a word to a heading, publish and see it
    on the site. A change that exists only in the CMS can't come from the fixtures. Without
    `CMS_BASE_URL` the site always shows the fixtures.
-5. **Draft preview**: in glökki set the preview URL to `https://<domain>/preview?slug=<slug>` (the
+5. **Draft preview**: in glokki set the preview URL to `https://<domain>/preview?slug=<slug>` (the
    slug `home` opens `/`, any other `/docs/<slug>`), sending `PREVIEW_SECRET` in
    `Authorization: Bearer`, in `x-preview-secret` or as `?secret=`. A wrong secret answers 401, an
    unknown slug 400. After the seed (§10) open the visual editor once to sync the block registry.

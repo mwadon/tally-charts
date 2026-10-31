@@ -1,7 +1,7 @@
 # tally-charts 1.0: candidate list (input for brainstorming)
 
 State on 2026-10-25: 0.9.0 is on npm (`latest`, tag v0.9.0, e66a522). The repo is public. The first
-app, the glökki editor Performance screen, is merged (glokki-cms/editor#653).
+app, the glokki editor Performance screen, is merged (glokki-cms/editor#653).
 
 The original 1.0 definition (main spec §roadmap, 0.6 spec §1) is "Docs site, npm publish
 (changesets release workflow), public repo; no breaking changes". npm publish and the public repo

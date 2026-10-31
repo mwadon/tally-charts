@@ -1,6 +1,6 @@
 /**
  * `pnpm --filter docs seed [--dry-run] [--content-dir <dir>]`: creates or updates the pages of
- * `content/*.json` in glökki through its MCP server and publishes them. A second run changes
+ * `content/*.json` in glokki through its MCP server and publishes them. A second run changes
  * nothing. Needs `CMS_BASE_URL` and `CMS_ADMIN_API_KEY`, also with `--dry-run`: the plan is
  * computed from what the CMS holds, which is only read. Pages that have no fixture are left alone.
  */

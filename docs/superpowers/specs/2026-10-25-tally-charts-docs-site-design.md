@@ -288,7 +288,7 @@ Light: fg, ratio on `--ch-surface`, on `--ch-tooltip-bg`, on the actual backgrou
 ## 11. Decisions
 
 1. **File name and routes.** This file; the placeholder routes are `/` and `/docs/line-chart`. Content is
-   static, in TSX and objects in the repo. No CMS, no `ContentSource`, no glökki dependency, no `CMS_*`
+   static, in TSX and objects in the repo. No CMS, no `ContentSource`, no glokki dependency, no `CMS_*`
    variables (that is F11 and F12).
 2. **Dark mode** follows `prefers-color-scheme` because `theme.css` already does that. `?theme=light|dark`
    sets `data-ch-theme` on `<html>` through a small inline script in `<head>`, before first paint, so

@@ -27,7 +27,7 @@ const toolResultSchema = z.looseObject({
   content: z.array(z.looseObject({ type: z.string(), text: z.string().optional() })).default([]),
 })
 
-// The shapes of the tool results, as returned by the glökki server (app/api/mcp in the editor
+// The shapes of the tool results, as returned by the glokki server (app/api/mcp in the editor
 // repo): `search_pages` rows and `get_page` call the status `status`, a write returns `updatedAt`.
 // This is the only place that knows them.
 const pageRowSchema = z.looseObject({
@@ -98,7 +98,7 @@ function parseMessage(body: string, contentType: string, id: number) {
 }
 
 /**
- * A `SeedClient` over the glökki MCP server (streamable HTTP at `<baseUrl>/api/mcp/mcp`): the
+ * A `SeedClient` over the glokki MCP server (streamable HTTP at `<baseUrl>/api/mcp/mcp`): the
  * handshake on the first call, then `Mcp-Session-Id` on every request. Waits and retries when
  * the server says it is rate limited (HTTP 429/503 with `Retry-After`, or the tool errors
  * `RATE_LIMITED` / `RATE_LIMIT_UNAVAILABLE`, which `publish_page` has: 10 calls a minute per key).

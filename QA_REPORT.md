@@ -97,7 +97,7 @@ Do tego `PROGRESS.md` na main nadal ma nagłówki ✔ dla bramek, których nikt 
 - **Nie spełnione, wymaga maintainera (taski już są, nie duplikuję):**
   - F9 i trusted publisher: Q2-01 blocked;
   - F10, bramka designu: Q1-02 blocked, a linia 3 dokumentu designu to nadal „proposal, waiting…”;
-  - F15 i F17, tenant glökki, seed, Vercel i webhook: Q1-04 blocked, strona daje DEPLOYMENT_NOT_FOUND;
+  - F15 i F17, tenant glokki, seed, Vercel i webhook: Q1-04 blocked, strona daje DEPLOYMENT_NOT_FOUND;
   - F20, RC: T39 blocked, 193 commity nie są wypchnięte, a CI na GitHubie nie jest potwierdzone;
   - F21 i F22: T40–T43 todo.
 - **D-8:** dist-tag `rc` zamiast `next` jest zapisany w PROGRESS (changesets 3 odrzuca `--tag` w pre mode). `latest` się nie ruszy, więc to zgodne z fallbackiem ze SPEC.

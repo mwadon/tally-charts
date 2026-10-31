@@ -10,10 +10,10 @@ export function readSeedEnv(env: Env): SeedEnv {
   const { CMS_BASE_URL: baseUrl, CMS_ADMIN_API_KEY: apiKey } = env
   const problems: string[] = []
   if (!baseUrl)
-    problems.push('CMS_BASE_URL is not set: use the address of the glökki CMS (https://…)')
+    problems.push('CMS_BASE_URL is not set: use the address of the glokki CMS (https://…)')
   if (!apiKey) {
     problems.push(
-      'CMS_ADMIN_API_KEY is not set: create an admin key in glökki (Settings → API Keys, scopes mcp:connect, admin:pages:read, admin:pages:write, admin:pages:publish)',
+      'CMS_ADMIN_API_KEY is not set: create an admin key in glokki (Settings → API Keys, scopes mcp:connect, admin:pages:read, admin:pages:write, admin:pages:publish)',
     )
   }
   if (!baseUrl || !apiKey) throw new Error(problems.join('\n'))

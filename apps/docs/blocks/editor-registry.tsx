@@ -136,7 +136,7 @@ function EditorInstall({ heading, command = 'npm i tally-charts' }: InstallProps
 /**
  * Always a link. The server `LinkRow` disables links to docs pages that do not exist yet, using
  * the navigation of the content source; that is read on the server (fixtures from the file
- * system, glökki with an API key), so it is not available in the browser. The editor shows every
+ * system, glokki with an API key), so it is not available in the browser. The editor shows every
  * link as it was typed.
  */
 function EditorLinkRow({ heading, items }: LinkRowProps) {

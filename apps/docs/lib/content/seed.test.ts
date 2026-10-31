@@ -40,7 +40,7 @@ interface Stored {
 }
 
 /**
- * glökki in memory: it mints the ids of the nodes, adds a key from `defaultProps` to every block,
+ * glokki in memory: it mints the ids of the nodes, adds a key from `defaultProps` to every block,
  * rejects a stale `expectedUpdatedAt`, and sets a published page back to `draft` on any content
  * write, as the real server does.
  */
@@ -480,7 +480,7 @@ describe('locales', () => {
 describe('the CMS as a content source', () => {
   afterEach(() => vi.unstubAllGlobals())
 
-  /** The delivery API of glökki as it answers: slugs with a leading `/`. */
+  /** The delivery API of glokki as it answers: slugs with a leading `/`. */
   function deliveryOf(cms: FakeCms) {
     const published = () => [...cms.pages.values()].filter((p) => p.status === 'published')
     const json = (body: unknown, status = 200) =>

@@ -11,7 +11,7 @@ test('returns the base url and the admin key', () => {
 
 test('a missing key names CMS_ADMIN_API_KEY and its scopes', () => {
   expect(() => readSeedEnv({ CMS_BASE_URL: 'https://cms.example' })).toThrow(
-    /CMS_ADMIN_API_KEY is not set: create an admin key in glökki \(Settings → API Keys, scopes mcp:connect, admin:pages:read, admin:pages:write, admin:pages:publish\)/,
+    /CMS_ADMIN_API_KEY is not set: create an admin key in glokki \(Settings → API Keys, scopes mcp:connect, admin:pages:read, admin:pages:write, admin:pages:publish\)/,
   )
 })
 

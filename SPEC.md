@@ -1,6 +1,6 @@
 # SPEC: tally-charts 1.0
 
-Source of the requirements: `docs/superpowers/specs/2026-10-25-tally-charts-1.0-candidates.md` (b534bd5), split into buckets A–I, plus two rounds of the interview (2026-10-25). Status at the start: `tally-charts@0.9.0` is on npm (`latest`), the repo github.com/mwadon/tally-charts is public, and the first integration (the glökki editor, Performance screen) is merged.
+Source of the requirements: `docs/superpowers/specs/2026-10-25-tally-charts-1.0-candidates.md` (b534bd5), split into buckets A–I, plus two rounds of the interview (2026-10-25). Status at the start: `tally-charts@0.9.0` is on npm (`latest`), the repo github.com/mwadon/tally-charts is public, and the first integration (the glokki editor, Performance screen) is merged.
 
 ## 1. Goal
 
@@ -10,7 +10,7 @@ Release `tally-charts@1.0.0`: the first version with strict semver. That means:
 2. **Fix the observable behaviour bugs** that would otherwise freeze along with the API.
 3. **Packaging.** It is verified: tree-shaking, `.d.ts`, `api:check`, size budgets.
 4. **Release automation.** Publishing from CI through changesets plus npm trusted publishing (OIDC, provenance), without OTP and without a laptop.
-5. **Docs site.** A Next.js app in `apps/docs` with content managed in the **glökki** headless CMS. Live examples and props tables come from the repo, so they can't drift from the API. The work starts with a design for the home page and the docs pages, which the maintainer approves.
+5. **Docs site.** A Next.js app in `apps/docs` with content managed in the **glokki** headless CMS. Live examples and props tables come from the repo, so they can't drift from the API. The work starts with a design for the home page and the docs pages, which the maintainer approves.
 6. **Manual accessibility pass** (VoiceOver, NVDA, Windows high contrast, 400% zoom) before 1.0.0.
 
 Release path: the 1.0 changes → `1.0.0-rc.0` (dist-tag `next`) → the editor checks it → `1.0.0` (`latest`).
@@ -19,9 +19,9 @@ Release path: the 1.0 changes → `1.0.0-rc.0` (dist-tag `next`) → the editor 
 
 | Role | Who | What they do in this scope |
 |---|---|---|
-| **Library user** | A React developer building a dashboard (e.g. the glökki editor team) | Installs the package, reads the docs site, migrates from 0.9 to 1.0. |
-| **Docs editor** | The maintainer, possibly others with glökki access later | Edits pages, navigation, prose and the home page in the glökki visual editor. Publishes. Can't break examples or props tables (they come from the repo). |
-| **Maintainer** | Mateusz Wadoń | Approves the design (gate), approves publishes in the `npm-publish` environment, configures npm/Vercel/glökki, runs the manual a11y pass. |
+| **Library user** | A React developer building a dashboard (e.g. the glokki editor team) | Installs the package, reads the docs site, migrates from 0.9 to 1.0. |
+| **Docs editor** | The maintainer, possibly others with glokki access later | Edits pages, navigation, prose and the home page in the glokki visual editor. Publishes. Can't break examples or props tables (they come from the repo). |
+| **Maintainer** | Mateusz Wadoń | Approves the design (gate), approves publishes in the `npm-publish` environment, configures npm/Vercel/glokki, runs the manual a11y pass. |
 | **Agents** | The agent team | Implement the code, tests, CI, docs content as fixtures, and the design. They don't do git operations or anything that needs maintainer credentials. |
 | **Docs site visitor** | Anyone, no login | Reads the docs, copies code, views live examples in light and dark. |
 
@@ -131,7 +131,7 @@ A new `.github/workflows/release.yml`.
 - [ ] Screenshots of the home page and the doc page at 1280 and 375 px, light and dark (8 PNGs), in `docs/superpowers/specs/assets/docs-site/`.
 - [ ] **[MAINTAINER] Gate:** the maintainer approves the design. The approval is recorded in PROGRESS.md. M5 doesn't start until then (except F12 and F13, which don't depend on the look).
 
-### M5. Docs site on glökki (D, step 2)
+### M5. Docs site on glokki (D, step 2)
 
 #### F11. The `apps/docs` app and the content source
 - [ ] `apps/docs` is a Next.js App Router workspace app that depends on `tally-charts` through `workspace:*` and on `@glokki-cms/sdk`, `@glokki-cms/react` and `zod`.
@@ -144,7 +144,7 @@ A new `.github/workflows/release.yml`.
   - `/sitemap.xml`;
   - `/robots.txt`.
 - [ ] **Content source:** a `ContentSource` module with two implementations:
-  - glökki (`createClient`, with `CMS_BASE_URL`, `CMS_TENANT` and `CMS_API_KEY` set);
+  - glokki (`createClient`, with `CMS_BASE_URL`, `CMS_TENANT` and `CMS_API_KEY` set);
   - fixtures from `apps/docs/content/*.json` (when `CMS_BASE_URL` is unset).
 
   Both return the same `DeliveryPage` / navigation types. A unit test runs on both implementations against mocked data.
@@ -156,7 +156,7 @@ A new `.github/workflows/release.yml`.
 - [ ] The header shows the `tally-charts` version from the workspace package.json, a GitHub link and an npm link.
 - [ ] `.env.example` contains `CMS_BASE_URL`, `CMS_TENANT`, `CMS_API_KEY`, `NEXT_PUBLIC_CMS_TENANT`, `APP_ENV`, `REVALIDATE_SECRET` and `SITE_URL` with descriptions, and no values.
 
-#### F12. glökki blocks
+#### F12. glokki blocks
 Blocks are defined with `defineBlock` (Zod schema plus a React component) and collected in `createBlockRegistry`.
 
 | Block | Props (Zod) | Behaviour |
@@ -215,8 +215,8 @@ Agents write the content as JSON fixtures in `DeliveryPage` format. The source m
 - [ ] Each chart page has a description of when to use the chart, at least 2 `ChartExample`s, a `PropsTable`, and a section on keyboard and screen readers.
 - [ ] `content/navigation.json` defines the sidebar in groups: Start, Guides, Charts, Building blocks, Reference.
 - [ ] `check:content` passes, including API coverage.
-- [ ] The script `pnpm --filter docs seed` (admin API / glökki MCP, key from env) creates or updates the pages and navigation in the tenant from the fixtures. It is idempotent: a second run changes nothing. It has a `--dry-run` mode that prints the plan. Test: dry-run against a mock.
-- [ ] **[MAINTAINER]** creates the `tally-charts` tenant and keys in glökki (delivery:read for the site, admin for the seed), runs `seed`, and configures a webhook to `/api/revalidate`. From then on the CMS is the content source, and the fixtures are test data.
+- [ ] The script `pnpm --filter docs seed` (admin API / glokki MCP, key from env) creates or updates the pages and navigation in the tenant from the fixtures. It is idempotent: a second run changes nothing. It has a `--dry-run` mode that prints the plan. Test: dry-run against a mock.
+- [ ] **[MAINTAINER]** creates the `tally-charts` tenant and keys in glokki (delivery:read for the site, admin for the seed), runs `seed`, and configures a webhook to `/api/revalidate`. From then on the CMS is the content source, and the fixtures are test data.
 
 #### F16. Home page
 - [ ] Sections in this order:
@@ -238,7 +238,7 @@ Agents write the content as JSON fixtures in `DeliveryPage` format. The source m
   - internal links on all pages resolve;
   - visual baselines for the home page and `line-chart`.
 - [ ] **[MAINTAINER]** creates a Vercel project from `apps/docs` (monorepo, build `pnpm --filter tally-charts build && pnpm --filter docs build`) with the env vars, and turns on preview deploys for PRs. Agents add `apps/docs/vercel.json` (if needed) and the instructions in `docs/releasing.md` §Docs.
-- [ ] The site is publicly reachable at `*.vercel.app` and shows content from glökki. A change published in glökki is visible within 60 s, thanks to the webhook and revalidation (a manual check by the maintainer).
+- [ ] The site is publicly reachable at `*.vercel.app` and shows content from glokki. A change published in glokki is visible within 60 s, thanks to the webhook and revalidation (a manual check by the maintainer).
 
 #### F18. Shorter README and links
 - [ ] `packages/tally-charts/README.md` contains: one sentence of description, install, the `theme.css` import, a minimal example, a short "Stability" section (with a link), and links to the docs site, GitHub and the CHANGELOG. It is at most ~120 lines. The removed content lives on the site.
@@ -286,7 +286,7 @@ Agents write the content as JSON fixtures in `DeliveryPage` format. The source m
 - New chart types, an i18n hook for built-in strings, a smaller Stat variant, `inclusive` for Heatmap and RunwayChart, a public token for tinting text by tone, a `status` callback story and a named projection point type in RunwayChart (bucket I → 1.x).
 - The remaining E items (unbounded tick count, reversed time domain, inline time `x` re-sorting, Region out of domain, the `TimeInput` message, `unwrapPoint`, the `fitTimeTicks` cap, the ComparisonBars and Waterfall issues), all of F (visual polish) and the remaining G items (→ 1.0.x).
 - JAWS testing.
-- Translations of the docs site (English only). Versioned docs (one version, the current `main`). Site search. Analytics and A/B tests in glökki. Forms. A custom domain (the maintainer can add one later as config only).
+- Translations of the docs site (English only). Versioned docs (one version, the current `main`). Site search. Analytics and A/B tests in glokki. Forms. A custom domain (the maintainer can add one later as config only).
 - Publishing Storybook (it stays an internal dev, e2e and visual-baseline tool).
 - Changes in the glokki-cms/editor repo (outside the RC bump done by the maintainer).
 - An image logo or brand identity beyond the text wordmark.
@@ -300,9 +300,9 @@ Agents write the content as JSON fixtures in `DeliveryPage` format. The source m
 - `tally-charts/core`: new export `createDateFormatter` (the existing `DateFormatOptions` / `DateFormatSpec` / `DateFormatter` types).
 
 ### 5.2 Docs site
-- **`DeliveryPage`** (glökki): `id`, `slug`, `locale` (always `en`), `title`, `componentTree: ComponentNode[]`, `seo`, `publishedAt`. The fixtures have exactly this shape.
+- **`DeliveryPage`** (glokki): `id`, `slug`, `locale` (always `en`), `title`, `componentTree: ComponentNode[]`, `seo`, `publishedAt`. The fixtures have exactly this shape.
 - **`ComponentNode`**: `id`, `type` (block key from F12), `props`, `children?`, `slot?`.
-- **Navigation**: groups `{ label, items: { label, slug }[] }`, from glökki `navigation` or `content/navigation.json`.
+- **Navigation**: groups `{ label, items: { label, slug }[] }`, from glokki `navigation` or `content/navigation.json`.
 - **Example registry** (generated): `Record<ExampleId, { load: () => Promise<Component>, source: string, title: string, rscSafe: boolean }>`.
 - **API model** (generated from `.api.json`): `Record<Symbol, { kind: 'component' | 'function' | 'hook', package: 'tally-charts' | 'tally-charts/core', props|params: { name, type, required, default?, description }[] }>`.
 - **Tokens / palettes**: read from the package's `TOKENS` and palettes at build time.
@@ -317,7 +317,7 @@ pnpm 12 workspace, Node ≥ 22 (CI 24), TypeScript 6, Biome, Vitest 5, Playwrigh
 
 ### 6.2 Docs site: data flow
 ```
-glökki (editor on glokki.com) ── delivery API ──▶ ContentSource ──▶ CMSPage(registry) ──▶ blocks
+glokki (editor on glokki.com) ── delivery API ──▶ ContentSource ──▶ CMSPage(registry) ──▶ blocks
                                          ▲ fixtures (no CMS_BASE_URL: CI, dev)
 repo: apps/docs/examples/*.tsx ─┐
       api/*.api.json ───────────┼─ gen ─▶ examples.generated.ts / api.generated.json ─▶ ChartExample / PropsTable
@@ -325,7 +325,7 @@ repo: apps/docs/examples/*.tsx ─┐
 ```
 - Text, structure, navigation and SEO come from the CMS. Everything tied to code comes from the repo, referenced by id.
 - The docs site always uses `tally-charts` from the workspace, so the docs match `main`.
-- Hosting: Vercel (the default `*.vercel.app` domain), static generation plus on-demand revalidation (`cms` tag, glökki webhook → `/api/revalidate`).
+- Hosting: Vercel (the default `*.vercel.app` domain), static generation plus on-demand revalidation (`cms` tag, glokki webhook → `/api/revalidate`).
 
 ### 6.3 Releases
 - `.github/workflows/ci.yml`: check, react18, e2e (Storybook), docs (new).
@@ -353,7 +353,7 @@ repo: apps/docs/examples/*.tsx ─┐
   - prefers-reduced-motion is respected.
 - **Docs site performance:** Lighthouse (mobile, `next start`, fixtures) on `/` and `/docs/line-chart`: Performance ≥ 90, Accessibility 100, SEO ≥ 95. Examples below the fold load lazily.
 - **Security:** no secrets in the repo; markdown from the CMS is sanitized (no raw HTML or scripts); the revalidation endpoint is protected by a secret; the delivery key has delivery:read scope only.
-- **Determinism and CI with no network:** the docs build and tests run on fixtures, with no access to glökki. The visual baselines are stable (live charts with fixed data, no animation in e2e).
+- **Determinism and CI with no network:** the docs build and tests run on fixtures, with no access to glokki. The visual baselines are stable (live charts with fixed data, no animation in e2e).
 - **SEO:** a sitemap, canonical URLs, OG; `noindex` outside production.
 
 ## 8. Definition of done for the whole project
@@ -361,7 +361,7 @@ repo: apps/docs/examples/*.tsx ─┐
 1. F1–F23 have all their criteria checked. The [MAINTAINER] tasks are confirmed in PROGRESS.md.
 2. CI on `main` is green: check, react18, e2e, docs.
 3. `tally-charts@1.0.0` is on npm under `latest`, published from CI with provenance. `0.0.0-stage` is deprecated. There is no npm token in the repo.
-4. The docs site is publicly reachable and serves content from glökki. It has every page from F15. `check:content` (including API coverage) passes against the live CMS.
+4. The docs site is publicly reachable and serves content from glokki. It has every page from F15. `check:content` (including API coverage) passes against the live CMS.
 5. The README is shortened and `homepage` points at the site.
 6. The manual a11y pass results are recorded in `docs/a11y.md`, with no open blockers.
 7. The 1.0.x backlog (the rest of E, F and G, plus non-blocking a11y findings) and the 1.x backlog (bucket I) are written into PROGRESS.md.
@@ -375,8 +375,8 @@ repo: apps/docs/examples/*.tsx ─┐
 | D-3 | `createDateFormatter` goes into `tally-charts/core` already in 1.0. | Additive, and needed on the Formatting page. Could move to 1.1 if it turns out to have open questions. |
 | D-4 | Props tables come from the API Extractor docModel (`.api.json`), not from parsing `.api.md`. | A structured model with TSDoc. It needs `docModel.enabled: true`, with no change to the public API. |
 | D-5 | The `api:check` stale-dist check works by comparing mtimes, not by building first. | CI already builds, so there's no double build. |
-| D-6 | Prose in the CMS is a `markdown` field (textarea), not glökki `richtext`. | The format of richtext data isn't documented clearly enough. If the agent confirms the format in the SDK docs during F12, it can switch `Prose` to richtext and record that here. |
-| D-7 | Docs site slugs are flat (`/docs/<slug>`); the hierarchy lives only in the navigation. | The glökki route pattern is `[slug]`. Simpler static generation. |
+| D-6 | Prose in the CMS is a `markdown` field (textarea), not glokki `richtext`. | The format of richtext data isn't documented clearly enough. If the agent confirms the format in the SDK docs during F12, it can switch `Prose` to richtext and record that here. |
+| D-7 | Docs site slugs are flat (`/docs/<slug>`); the hierarchy lives only in the navigation. | The glokki route pattern is `[slug]`. Simpler static generation. |
 | D-8 | The RC is published in pre mode `rc` (version `1.0.0-rc.N`) to dist-tag **`next`** (`changeset publish --tag next`). | As agreed with the maintainer. If changesets ignores `--tag` in pre mode, the fallback is dist-tag `rc`, recorded in PROGRESS.md; what matters is that `latest` doesn't move. |
 | D-9 | The 9 reference compositions are ported to `apps/docs/examples/reference/`. Storybook keeps its own stories (it may import from there later, optionally). | Live examples on the site without depending on the Storybook build. |
 | D-10 | The docs site shows the docs of `main` (workspace), not the version on npm. | Simpler. The header shows the version. Versioned docs are out of scope. |

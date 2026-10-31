@@ -5,7 +5,7 @@ import type { Navigation } from './types'
 
 export const slugPattern = /^[a-z0-9]+(-[a-z0-9]+)*$/
 
-/** Groups, labels and order of the sidebar. glökki only lists published pages, so this lives in the repo. */
+/** Groups, labels and order of the sidebar. glokki only lists published pages, so this lives in the repo. */
 export const navigationConfigSchema = z.object({
   groups: z.array(
     z.object({

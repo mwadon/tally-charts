@@ -50,7 +50,7 @@ test('without ?_editor=1 the server content stays and nothing is wrapped as a bl
   await expect(page.locator('[data-block-id]')).toHaveCount(0)
 })
 
-// The glökki iframe adds `_editorOrigin` and sends the tree. Opened as the top window with its own
+// The glokki iframe adds `_editorOrigin` and sends the tree. Opened as the top window with its own
 // origin, the page is its own parent and receives that message from the test.
 test('in SDK editor mode the blocks sent by the parent are wrapped in data-block-id', async ({
   page,

@@ -18,7 +18,7 @@ export interface Navigation {
   groups: NavigationGroup[]
 }
 
-/** Where page content comes from: the glökki CMS in production, JSON fixtures everywhere else. */
+/** Where page content comes from: the glokki CMS in production, JSON fixtures everywhere else. */
 export interface ContentSource {
   kind: 'cms' | 'fixtures'
   /** The published page, or `null` when there is none for `slug`. */

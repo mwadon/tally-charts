@@ -6,14 +6,14 @@ import type { ComponentNode } from '../../lib/content'
 
 interface EditorCanvasProps {
   componentTree: ComponentNode[]
-  /** Path of the page in the site, sent to glökki in the handshake. */
+  /** Path of the page in the site, sent to glokki in the handshake. */
   pageSlug: string
 }
 
 /**
- * The page inside the glökki visual editor. Without the `_editorOrigin` parameter the provider
+ * The page inside the glokki visual editor. Without the `_editorOrigin` parameter the provider
  * stays out of editor mode and renders `componentTree` as given (no handshake), which is how the
- * page looks when `?_editor=1` is opened outside the glökki iframe.
+ * page looks when `?_editor=1` is opened outside the glokki iframe.
  *
  * `blockRegistry` is left out on purpose: the server one pulls Shiki into the browser. The
  * handshake then lists the registered types from `editorRegistry`.

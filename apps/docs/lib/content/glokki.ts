@@ -12,7 +12,7 @@ import type { ContentSource, DeliveryPage, DeliveryPageListItem } from './types'
 export const CMS_TAG = 'cms'
 const PAGE_SIZE = 100
 
-// glökki stores and delivers a slug with a leading `/` (`/home`); the site and the fixtures use it
+// glokki stores and delivers a slug with a leading `/` (`/home`); the site and the fixtures use it
 // without (`home`). A slug that arrives without one is left alone.
 const bare = <T>(slug: T): T => (typeof slug === 'string' ? (slug.replace(/^\//, '') as T) : slug)
 
@@ -27,7 +27,7 @@ interface GlokkiOptions {
 }
 
 /**
- * Published pages from the glökki delivery API. Every fetch is tagged `cms` for `revalidateTag`;
+ * Published pages from the glokki delivery API. Every fetch is tagged `cms` for `revalidateTag`;
  * with `preview` it is `no-store` instead, so an editor always sees the latest draft.
  */
 export function createGlokkiSource({
@@ -65,7 +65,7 @@ export function createGlokkiSource({
       if (!page) return null
       const parsed = deliveryPageSchema.safeParse({ ...page, slug: bare(page.slug) })
       if (!parsed.success)
-        throw new Error(`glökki page "${slug}": ${z.prettifyError(parsed.error)}`)
+        throw new Error(`glokki page "${slug}": ${z.prettifyError(parsed.error)}`)
       return parsed.data as unknown as DeliveryPage
     },
     listPages,

@@ -16,8 +16,8 @@ export type {
 type Env = Record<string, string | undefined>
 
 /**
- * glökki when `CMS_BASE_URL` is set (then `CMS_TENANT` and `CMS_API_KEY` are required), JSON
- * fixtures from `content/` otherwise. `preview` reads drafts from glökki, uncached (fixtures have no
+ * glokki when `CMS_BASE_URL` is set (then `CMS_TENANT` and `CMS_API_KEY` are required), JSON
+ * fixtures from `content/` otherwise. `preview` reads drafts from glokki, uncached (fixtures have no
  * drafts and ignore it). `cache` shares the source between the calls of one render, which is why
  * the arguments are primitives or the one `process.env` object.
  */

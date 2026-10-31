@@ -52,7 +52,7 @@ test('CMSPageEditor renders the blocks of line-chart.json from the fallback tree
   expect(errors).not.toHaveBeenCalled()
 })
 
-// Only the SDK's editor mode (`_editor=1` together with `_editorOrigin`, as in the glökki iframe)
+// Only the SDK's editor mode (`_editor=1` together with `_editorOrigin`, as in the glokki iframe)
 // wraps blocks in `[data-block-id]`; the fallback tree above is rendered without wrappers.
 test('in editor mode the tree from the CMS is rendered as blocks with data-block-id', async () => {
   const origin = 'http://cms.test'

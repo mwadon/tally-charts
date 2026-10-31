@@ -1,6 +1,6 @@
 /**
  * `pnpm --filter docs check:content [--content-dir <dir>]`: validates the pages of the fixtures
- * (and of glökki, when `CMS_BASE_URL` is set). A public symbol without a PropsTable is an error.
+ * (and of glokki, when `CMS_BASE_URL` is set). A public symbol without a PropsTable is an error.
  * `--require-coverage` and `CHECK_CONTENT_REQUIRE_COVERAGE` are still accepted and change nothing.
  * Needs `pnpm build`: the examples import `tally-charts` from `dist`.
  */

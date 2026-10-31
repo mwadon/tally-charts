@@ -1,6 +1,6 @@
 # tally-charts 0.9: fixes from the first integration
 
-Source: the glökki editor Performance screen (glokki-cms/editor#653), the first real app on
+Source: the glokki editor Performance screen (glokki-cms/editor#653), the first real app on
 tally-charts 0.8.0. All changes are additive; the API freeze holds.
 
 ## 1. `thresholds()` upper-inclusive bins

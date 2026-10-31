@@ -18,7 +18,7 @@ export interface SourceReport extends CheckResult {
 }
 
 /**
- * The fixtures in `contentDir` always, plus glökki when `CMS_BASE_URL` is set (then `CMS_TENANT`
+ * The fixtures in `contentDir` always, plus glokki when `CMS_BASE_URL` is set (then `CMS_TENANT`
  * and `CMS_API_KEY` are required, as in `getContentSource`, which is not used here: with the env
  * it returns the CMS only, and it is wrapped in React's `cache`).
  */
