@@ -1,4 +1,4 @@
-import { ChartsProvider, Meter, RankedBars } from 'tally-charts'
+import { type ChartMessages, ChartsProvider, Meter, RankedBars } from 'tally-charts'
 import type { ExampleMeta } from '../types'
 
 export const meta = {
@@ -18,7 +18,7 @@ const plan = [
 // object can cross from a Server Component to the provider. In a Client Component, define it
 // outside the component (or in useMemo): a new object on every render re-renders every chart
 // below the provider.
-const pl = {
+const pl: Partial<ChartMessages> = {
   noData: 'Brak danych',
   keyboardHint:
     'Strzałki przesuwają między punktami, Home i End skaczą na początek i na koniec, Escape czyści.',
@@ -27,7 +27,7 @@ const pl = {
   targetLabel: 'Cel {value}',
   headerItem: 'Pozycja',
   headerValue: 'Wartość',
-  headerDetails: 'Szczegóły',
+  headerRankedDetails: 'Szczegóły',
 }
 
 export default function PolishMessages() {
