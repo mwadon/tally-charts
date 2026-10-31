@@ -35,8 +35,8 @@ const days: Day[] = [
 
 const peak = days.filter((d) => d.peak)
 
-// Both domains are explicit and both axes ask for 4 ticks, so the 5 tick lines of each axis sit at
-// the same heights: 0, 300, 600, 900, 1200 views against 0, 150, 300, 450, 600 visitors.
+// Both domains are explicit and both axes ask for 6 ticks, so the 7 tick lines sit at the same
+// heights: 0, 200 ... 1200 views against 0, 100 ... 600 visitors.
 // Functions as props (fill, color, segments, the data table), so the file is a client component.
 export default function DualAxisTraffic() {
   return (
