@@ -691,7 +691,7 @@ export interface InlineBarProps {
     tone?: Tone;
     // (undocumented)
     value: number;
-    width?: number;
+    width?: number | string;
 }
 
 // @public (undocumented)

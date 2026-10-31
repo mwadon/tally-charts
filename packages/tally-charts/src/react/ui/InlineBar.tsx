@@ -15,8 +15,8 @@ export interface InlineBarProps {
   tone?: Tone
   /** Default 'solid'. */
   fill?: Fill
-  /** Width in px. Default 64. */
-  width?: number
+  /** A number is px; a string is any CSS length, e.g. "100%" to fill a table cell. Default 64. */
+  width?: number | string
   /** Default 'number'. */
   format?: FormatSpec
   /** Start of the accessible name, e.g. "Margin". */

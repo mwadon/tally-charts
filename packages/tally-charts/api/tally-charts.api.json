@@ -10348,7 +10348,7 @@
             {
               "kind": "PropertySignature",
               "canonicalReference": "tally-charts!InlineBarProps#width:member",
-              "docComment": "/**\n * Width in px. Default 64.\n */\n",
+              "docComment": "/**\n * A number is px; a string is any CSS length, e.g. \"100%\" to fill a table cell. Default 64.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -10356,7 +10356,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "number"
+                  "text": "number | string"
                 },
                 {
                   "kind": "Content",

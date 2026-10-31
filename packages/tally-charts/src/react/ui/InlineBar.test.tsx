@@ -43,4 +43,12 @@ describe('<InlineBar>', () => {
     expect(container.querySelector('.ch-inline-bar-fill')).toBeNull()
     expect(container.querySelector('.ch-inline-bar-target')).toHaveStyle({ left: '75%' })
   })
+
+  it('sets a percent width as an inline style and keeps a number in px', () => {
+    const { container, rerender } = render(<InlineBar value={10} max={40} width="100%" label="m" />)
+    const bar = container.querySelector('[data-ch-part="inline-bar"]') as HTMLElement
+    expect(bar.style.width).toBe('100%')
+    rerender(<InlineBar value={10} max={40} width={56} label="m" />)
+    expect(bar.style.width).toBe('56px')
+  })
 })

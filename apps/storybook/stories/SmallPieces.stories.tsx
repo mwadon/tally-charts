@@ -7,6 +7,7 @@ import {
   fmt,
   InlineBar,
   Legend,
+  Meter,
   ShareBar,
   Sparkline,
   Stat,
@@ -271,7 +272,30 @@ type Story = StoryObj<typeof meta>
 
 export const Default: Story = {}
 
+// Bars that fill a 200px table cell, and slim ones. e2e/small-bars.spec.ts measures both.
+function SmallBarsStory() {
+  return (
+    <div className="card piece-grid">
+      <table>
+        <tbody>
+          <tr>
+            <th scope="row">Margin</th>
+            <td data-testid="bar-cell" style={{ width: 200 }}>
+              <InlineBar value={22} max={40} target={30} width="100%" label="Margin" />
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div data-testid="meter-box" style={{ width: 200 }}>
+        <Meter label="Sales target" value={68} max={100} target={80} />
+      </div>
+    </div>
+  )
+}
+
 export const Sparklines: Story = { render: () => <SparklineStory /> }
+
+export const SmallBars: Story = { render: () => <SmallBarsStory /> }
 
 export const Colors: Story = { render: () => <ColorsStory /> }
 
