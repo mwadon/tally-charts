@@ -315,7 +315,7 @@ export function WaterfallChart<S extends WaterfallStep = WaterfallStep>({
       ? [
           { value: r.label },
           { value: r.text, tone: toneOfText(r) },
-          { value: fmt(r.to), label: 'total' },
+          { value: fmt(r.to), label: messages.totalRunning },
         ]
       : [{ value: r.label }, { value: r.text }]
   const axisFmt: AxisFormat | undefined = axisFormat ?? format

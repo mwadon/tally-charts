@@ -40,7 +40,7 @@ export default function PolishMessages() {
           value="hours"
           meta="jobs"
           format="hours"
-          title={meta.title}
+          title="Planowane godziny według technika"
           description="Tomasz Brodzki ma zaplanowane 62 godziny przy 9 zleceniach, Priya Nowak 31 godzin przy 4."
         />
         <Meter label="Plan sprzedaży" value={68} max={100} target={80} format="percent" />

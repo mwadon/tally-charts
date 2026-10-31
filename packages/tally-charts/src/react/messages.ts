@@ -91,6 +91,10 @@ export interface ChartMessages {
   planActual: string
   /** A WaterfallChart step read aloud. Placeholders: `{label}`, `{text}`, `{total}`. */
   runningTotal: string
+  /** What a screen reader calls an interactive chart (`aria-roledescription`). */
+  chartRole: string
+  /** The label of the running total in a WaterfallChart tooltip. */
+  totalRunning: string
   /** The first line of a WaffleColumns callout. */
   peak: string
   /** The default Heatmap legend label when there are no breaks. */
@@ -165,6 +169,8 @@ export const DEFAULT_MESSAGES: ChartMessages = {
   onPlan: 'On plan',
   planActual: '{label}, plan {plan}, actual {actual}, {delta}',
   runningTotal: '{label}, {text}, running total {total}',
+  chartRole: 'chart',
+  totalRunning: 'total',
   peak: 'Peak',
   binAll: 'All values',
   binUnder: 'Under {value}',

@@ -246,6 +246,7 @@ export interface ChartMessages {
     binOver: string;
     binRange: string;
     binUnder: string;
+    chartRole: string;
     deltaDown: string;
     deltaFlat: string;
     deltaUp: string;
@@ -296,6 +297,7 @@ export interface ChartMessages {
     target: string;
     targetLabel: string;
     total: string;
+    totalRunning: string;
     valueAbove: string;
     valueAgainst: string;
     valueBelow: string;

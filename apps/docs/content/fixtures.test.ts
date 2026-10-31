@@ -216,7 +216,7 @@ test('stability states the semver promise, what is public and what is not', asyn
     'ch-*',
     '--_ch-*',
     '--_ch-swatch-color',
-    'messages',
+    'ChartsProvider messages',
     'size',
     'DOM structure',
   ]) {

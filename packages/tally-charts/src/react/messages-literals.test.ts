@@ -32,6 +32,9 @@ const ARIA_NOT_TEXT = new Set([
 // The mark's name, passed on so that its error and warning messages can say who is speaking.
 const NAME_CALLEES = new Set(['useChartContext', 'useSeriesScales', 'timeX'])
 
+// Properties whose string value reaches the screen: tooltip segments, ticks, table cells.
+const SHOWN_KEYS = new Set(['label', 'text', 'value'])
+
 const hasLetters = (text: string) => /\p{L}/u.test(text)
 
 /** The user-visible literals of one source file, as `line: text`. */
@@ -84,6 +87,22 @@ function findLiterals(fileName: string, source: string): string[] {
 
     if (ts.isTemplateExpression(node) && CSS_FUNCTION.test(node.getText(sf).slice(1, -1))) return
 
+    // Whatever its shape, a literal that is shown as the text of a property, or as a JSX child
+    // expression, is words: `{ label: 'total' }`, `aria-label: 'x'`, `{'x'}`.
+    if (ts.isStringLiteralLike(node) && hasLetters(node.text) && !inWarning(node)) {
+      const parent = node.parent
+      const key =
+        ts.isPropertyAssignment(parent) && parent.initializer === node
+          ? parent.name.getText(sf).replace(/^['"]|['"]$/g, '')
+          : undefined
+      if (
+        (key !== undefined && (SHOWN_KEYS.has(key) || key.startsWith('aria-'))) ||
+        ts.isJsxExpression(parent)
+      ) {
+        if (!(key !== undefined && ARIA_NOT_TEXT.has(key))) report(node, node.text)
+      }
+    }
+
     let text: string | undefined
     if (ts.isJsxText(node) || ts.isStringLiteralLike(node) || ts.isTemplateLiteralToken(node)) {
       text = node.text
@@ -125,6 +144,12 @@ describe('findLiterals', () => {
     expect(find("const a = <i aria-label='Close' />")).toHaveLength(1)
     expect(find('const a = <i aria-valuetext={`${v} of ten`} />')).toHaveLength(1)
     expect(find("const a = <span className='ch-sr-only'>{n ?? 'Up'}</span>")).toHaveLength(1)
+  })
+  it('flags a lowercase word shown as a label, text or JSX child', () => {
+    expect(find("const s = { value: 1, label: 'total' }")).toHaveLength(1)
+    expect(find("const s = { text: 'ok' }")).toHaveLength(1)
+    expect(find("const s = { 'aria-label': 'close' }")).toHaveLength(1)
+    expect(find("const a = <b>{'ok'}</b>")).toHaveLength(1)
   })
   it('flags text in a template chunk', () => {
     expect(find('const s = `${a}, plan ${b}`')).toHaveLength(1)

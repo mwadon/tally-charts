@@ -305,7 +305,7 @@ export function Chart<D>({
             {...(interactive
               ? {
                   role: 'application',
-                  'aria-roledescription': 'chart',
+                  'aria-roledescription': messages.chartRole,
                   'aria-labelledby': nameId,
                   'aria-describedby': describedBy || undefined,
                   tabIndex: 0,

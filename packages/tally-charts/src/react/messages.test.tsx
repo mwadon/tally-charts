@@ -236,6 +236,15 @@ describe('messages in the built-in text', () => {
     expect(hint()).toBeUndefined()
   })
 
+  it('chartRole is translated', () => {
+    const { container } = render(
+      <ChartsProvider messages={{ chartRole: 'wykres' }}>{plot()}</ChartsProvider>,
+    )
+    fireEvent.focus(container.querySelector('[data-ch-part="plot"]') as Element)
+    expect(
+      container.querySelector('[aria-roledescription]')?.getAttribute('aria-roledescription'),
+    ).toBe('wykres')
+  })
   it('keyboardHintSelect left empty adds no trailing space', () => {
     const { container } = render(
       <ChartsProvider messages={{ keyboardHintSelect: '' }}>
@@ -394,6 +403,7 @@ describe('other translated text', () => {
     deltaUp: 'W górę',
     onPlan: 'Zgodnie z planem',
     runningTotal: '{label}: {text} (razem {total})',
+    totalRunning: 'razem',
     planActual: '{label}: plan {plan}, wykonanie {actual}',
     binUnder: 'Poniżej {value}',
     binRange: '{from} do {to}',
@@ -488,5 +498,6 @@ describe('other translated text', () => {
     fireEvent.keyDown(figure, { key: 'ArrowRight' })
     fireEvent.keyDown(figure, { key: 'ArrowRight' })
     expect(w.container.querySelector('[aria-live]')?.textContent).toContain('Leak: −3 (razem 7)')
+    expect(w.container.querySelector('[data-ch-part="tooltip"]')?.textContent).toContain('razem')
   })
 })

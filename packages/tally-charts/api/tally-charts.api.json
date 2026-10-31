@@ -4020,6 +4020,33 @@
             },
             {
               "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!ChartMessages#chartRole:member",
+              "docComment": "/**\n * What a screen reader calls an interactive chart (`aria-roledescription`).\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "chartRole: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "chartRole",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
               "canonicalReference": "tally-charts!ChartMessages#deltaDown:member",
               "docComment": "/**\n * Read before a Delta's value when it went down.\n */\n",
               "excerptTokens": [
@@ -5363,6 +5390,33 @@
               "isOptional": false,
               "releaseTag": "Public",
               "name": "total",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!ChartMessages#totalRunning:member",
+              "docComment": "/**\n * The label of the running total in a WaterfallChart tooltip.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "totalRunning: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "totalRunning",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2
