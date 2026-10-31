@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useRef, useState } from 'react'
 import type { Id } from '../core/types'
+import { DEFAULT_MESSAGES, formatMessage } from './messages'
 import type { ActiveSource, ChartPoint, PointGroup, TooltipSegment } from './types'
 import { useIsoLayoutEffect } from './useIsoLayoutEffect'
 
@@ -85,13 +86,17 @@ export function navigate(
  * What the live region says for a point: "{series}, {n} of {total}, {label}". The position counts
  * within the point's series, and the series is left out when every point shares it.
  */
-export function announcement(points: readonly ChartPoint[], point: ChartPoint): string {
+export function announcement(
+  points: readonly ChartPoint[],
+  point: ChartPoint,
+  position: string = DEFAULT_MESSAGES.position,
+): string {
   const peers = points.filter((p) => p.series === point.series)
   const several = points.some((p) => p.series !== point.series)
   const at = peers.indexOf(point)
   return [
     several ? point.series : undefined,
-    at < 0 ? undefined : `${at + 1} of ${peers.length}`,
+    at < 0 ? undefined : formatMessage(position, { index: at + 1, total: peers.length }),
     point.label,
   ]
     .filter(Boolean)

@@ -15,6 +15,7 @@ import {
   type Formatter,
   type Formatters,
 } from '../core/format'
+import { type ChartMessages, DEFAULT_MESSAGES } from './messages'
 
 interface LocaleContextValue {
   locale: string
@@ -26,19 +27,43 @@ const LocaleContext = /* @__PURE__ */ createContext<LocaleContextValue>({
   currency: DEFAULT_CURRENCY,
 })
 
+const MessagesContext = /* @__PURE__ */ createContext<ChartMessages>(DEFAULT_MESSAGES)
+
 export interface ChartsProviderProps {
   locale?: string
   currency?: string
+  /**
+   * Built-in text such as "No data" or the keyboard hint, in your language. Keys left out keep
+   * their English default. A nested provider replaces its parent's messages instead of merging.
+   * Memoised by object identity, so an inline object re-renders every chart under it on each
+   * render of the parent: hoist it or wrap it in `useMemo`. A per-chart prop (`empty`,
+   * `keyboardHint`, `targetLabel`, `totalLabel`) wins over these.
+   */
+  messages?: Partial<ChartMessages>
   children?: ReactNode
 }
 
 export function ChartsProvider({
   locale = DEFAULT_LOCALE,
   currency = DEFAULT_CURRENCY,
+  messages,
   children,
 }: ChartsProviderProps) {
   const value = useMemo(() => ({ locale, currency }), [locale, currency])
-  return <LocaleContext.Provider value={value}>{children}</LocaleContext.Provider>
+  const merged = useMemo(
+    () => (messages ? { ...DEFAULT_MESSAGES, ...messages } : DEFAULT_MESSAGES),
+    [messages],
+  )
+  return (
+    <LocaleContext.Provider value={value}>
+      <MessagesContext.Provider value={merged}>{children}</MessagesContext.Provider>
+    </LocaleContext.Provider>
+  )
+}
+
+/** Internal: the provider's messages, or `DEFAULT_MESSAGES` itself without one. */
+export function useMessages(): ChartMessages {
+  return useContext(MessagesContext)
 }
 
 /** Internal: the provider's locale and currency, for formatters that aren't number presets. */

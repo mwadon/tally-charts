@@ -3897,6 +3897,266 @@
           "extendsTokenRanges": []
         },
         {
+          "kind": "Interface",
+          "canonicalReference": "tally-charts!ChartMessages:interface",
+          "docComment": "/**\n * The text the charts speak and show on their own. Strings may hold `{placeholders}`; a key left\n * out of `ChartsProvider messages` keeps its English default.\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "interface ChartMessages "
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "ChartMessages",
+          "preserveMemberOrder": false,
+          "members": [
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!ChartMessages#keyboardHint:member",
+              "docComment": "/**\n * Read when a chart takes keyboard focus. An empty string removes the hint.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "keyboardHint: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "keyboardHint",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!ChartMessages#keyboardHintSelect:member",
+              "docComment": "/**\n * Appended to `keyboardHint`, after one space, when the point can be selected.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "keyboardHintSelect: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "keyboardHintSelect",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!ChartMessages#noData:member",
+              "docComment": "/**\n * An empty chart, bar or meter. Also the cell text for a missing heatmap value.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "noData: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "noData",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!ChartMessages#noValue:member",
+              "docComment": "/**\n * A table cell with nothing in it, read by screen readers next to the dash.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "noValue: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "noValue",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!ChartMessages#now:member",
+              "docComment": "/**\n * The Now line of a RunwayChart.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "now: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "now",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!ChartMessages#position:member",
+              "docComment": "/**\n * The live-region position of a point. Placeholders: `{index}`, `{total}`.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "position: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "position",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!ChartMessages#target:member",
+              "docComment": "/**\n * A target in a spoken value, such as \"40, target 50\". Placeholder: `{value}`.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "target: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "target",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!ChartMessages#targetLabel:member",
+              "docComment": "/**\n * The default text under a Meter's target tick. Placeholder: `{value}`.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "targetLabel: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "targetLabel",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!ChartMessages#total:member",
+              "docComment": "/**\n * The total column and row of a Heatmap, and the end row of a WaterfallChart.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "total: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "total",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            }
+          ],
+          "extendsTokenRanges": []
+        },
+        {
           "kind": "TypeAlias",
           "canonicalReference": "tally-charts!ChartName:type",
           "docComment": "/**\n * The accessible name every chart needs: a `title` or an `aria-labelledby` that points at an\n * element which already names the chart (a visible heading, say). Give at least one; with both,\n * `aria-labelledby` names the chart and `title` stays the default caption of the data table.\n */\n",
@@ -4546,7 +4806,7 @@
           "overloadIndex": 1,
           "parameters": [
             {
-              "parameterName": "{ locale, currency, children }",
+              "parameterName": "{ locale, currency, messages, children }",
               "parameterTypeTokenRange": {
                 "startIndex": 0,
                 "endIndex": 0
@@ -4658,6 +4918,47 @@
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!ChartsProviderProps#messages:member",
+              "docComment": "/**\n * Built-in text such as \"No data\" or the keyboard hint, in your language. Keys left out keep\n * their English default. A nested provider replaces its parent's messages instead of merging.\n * Memoised by object identity, so an inline object re-renders every chart under it on each\n * render of the parent: hoist it or wrap it in `useMemo`. A per-chart prop (`empty`,\n * `keyboardHint`, `targetLabel`, `totalLabel`) wins over these.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "messages?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Partial",
+                  "canonicalReference": "!Partial:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "ChartMessages",
+                  "canonicalReference": "tally-charts!ChartMessages:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "messages",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 5
               }
             }
           ],
@@ -5988,6 +6289,29 @@
           "releaseTag": "Public",
           "name": "DateFormatter",
           "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 2
+          }
+        },
+        {
+          "kind": "Variable",
+          "canonicalReference": "tally-charts!DEFAULT_MESSAGES:var",
+          "docComment": "",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "DEFAULT_MESSAGES: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ChartMessages",
+              "canonicalReference": "tally-charts!ChartMessages:interface"
+            }
+          ],
+          "isReadonly": true,
+          "releaseTag": "Public",
+          "name": "DEFAULT_MESSAGES",
+          "variableTypeTokenRange": {
             "startIndex": 1,
             "endIndex": 2
           }

@@ -32,7 +32,7 @@ import type { Tone } from '../../core/types'
 import { createWarner, DEV } from '../../core/warn'
 import { DEFAULT_HATCH, patternId, readHatchGeometry } from '../../theme/patterns'
 import type { ChartName } from '../Chart'
-import { useFormat } from '../ChartsProvider'
+import { useFormat, useMessages } from '../ChartsProvider'
 import { DataTable } from '../DataTable'
 import { PatternDefs } from '../PatternDefs'
 import { cx } from '../ui/util'
@@ -168,6 +168,7 @@ export function RunwayChart({
 }: RunwayChartProps) {
   const warn = useMemo(() => createWarner(), [])
   const { date } = useFormat()
+  const messages = useMessages()
   const reactId = useId()
   const baseId = `ch-${(chartId ?? reactId).replace(/[^a-zA-Z0-9_-]/g, '')}`
   const titleId = `${baseId}-title`
@@ -410,7 +411,7 @@ export function RunwayChart({
     return (
       <div {...rootProps}>
         <div data-ch-part="empty" className="ch-empty">
-          {empty ?? 'No data'}
+          {empty ?? messages.noData}
         </div>
       </div>
     )
@@ -669,6 +670,7 @@ function RunwayAxis({
   zone: TimeZone
   weekday: (ms: number) => string
 }) {
+  const { now } = useMessages()
   const [d0, d1] = x.domain()
   const days = (zone === 'utc' ? unixDay : timeDay).range(new Date(d0 - DAY), new Date(d1))
   const ticks: Tick[] = []
@@ -693,7 +695,7 @@ function RunwayAxis({
             textAnchor={nowAnchor}
             dominantBaseline="central"
           >
-            Now
+            {now}
           </text>
           <line data-ch-part="runway-now" x1={nowX} x2={nowX} y1={18} y2={AXIS_HEIGHT} />
         </>

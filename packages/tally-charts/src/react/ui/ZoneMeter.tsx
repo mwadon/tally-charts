@@ -3,7 +3,7 @@ import type { FormatSpec } from '../../core/format'
 import { toNumber } from '../../core/number'
 import { binIndex, type ThresholdInclusive, type Thresholds } from '../../core/thresholds'
 import { createWarner, DEV } from '../../core/warn'
-import { useFormat } from '../ChartsProvider'
+import { useFormat, useMessages } from '../ChartsProvider'
 import { cx, toneVar, toPercent } from './util'
 
 /**
@@ -54,6 +54,7 @@ export function ZoneMeter({
   className,
 }: ZoneMeterProps) {
   const { create } = useFormat()
+  const messages = useMessages()
   const fmt = create(format)
   if (DEV && typeof value === 'number' && !Number.isFinite(value)) {
     warn(
@@ -83,7 +84,7 @@ export function ZoneMeter({
   const edges = zones.bins.slice(1).map((b) => b.min)
   const zone = finite ? zones.bins[binIndex(v, edges, zones.inclusive)]?.label : undefined
   const valueText = !finite
-    ? 'No data'
+    ? messages.noData
     : [fmt(v), v > max ? `above ${fmt(max)}` : v < min ? `below ${fmt(min)}` : undefined, zone]
         .filter(Boolean)
         .join(', ')

@@ -241,6 +241,19 @@ export interface ChartContextValue {
 }
 
 // @public
+export interface ChartMessages {
+    keyboardHint: string;
+    keyboardHintSelect: string;
+    noData: string;
+    noValue: string;
+    now: string;
+    position: string;
+    target: string;
+    targetLabel: string;
+    total: string;
+}
+
+// @public
 export type ChartName = {
     title: string;
     'aria-labelledby'?: string;
@@ -310,6 +323,7 @@ export interface ChartsProviderProps {
     currency?: string;
     // (undocumented)
     locale?: string;
+    messages?: Partial<ChartMessages>;
 }
 
 // @public
@@ -416,6 +430,9 @@ export type DateFormatSpec = 'auto' | 'day' | 'month' | 'quarter' | 'year' | Int
 
 // @public
 export type DateFormatter = (ms: number) => string;
+
+// @public (undocumented)
+export const DEFAULT_MESSAGES: ChartMessages;
 
 // @public
 export function Delta(input: DeltaProps): JSX.Element | null;

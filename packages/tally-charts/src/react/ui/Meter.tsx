@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react'
 import type { FormatSpec } from '../../core/format'
 import type { Fill, Tone } from '../../core/types'
-import { useFormat } from '../ChartsProvider'
+import { useFormat, useMessages } from '../ChartsProvider'
+import { formatMessage } from '../messages'
 import { cx, toneVar, toPercent } from './util'
 
 export interface MeterProps {
@@ -42,15 +43,16 @@ export function Meter({
   className,
 }: MeterProps) {
   const { create } = useFormat()
+  const messages = useMessages()
   const fmt = create(format)
   const finite = Number.isFinite(value)
   const p = finite ? toPercent(value, min, max) : 0
   const t = target === undefined ? undefined : toPercent(target, min, max)
   const valueText = !finite
-    ? 'No data'
+    ? messages.noData
     : target === undefined
       ? fmt(value)
-      : `${fmt(value)}, target ${fmt(target)}`
+      : `${fmt(value)}, ${formatMessage(messages.target, { value: fmt(target) })}`
   const showMin = minLabel !== null
   const showTarget = t !== undefined && target !== undefined && targetLabel !== null
   return (
@@ -90,7 +92,7 @@ export function Meter({
               data-ch-part="meter-target-label"
               style={{ left: `${t}%`, transform: `translateX(-${t}%)` }}
             >
-              {targetLabel ?? `Target ${fmt(target)}`}
+              {targetLabel ?? formatMessage(messages.targetLabel, { value: fmt(target) })}
             </span>
           ) : null}
         </div>

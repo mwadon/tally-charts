@@ -1,3 +1,5 @@
+import { useMessages } from './ChartsProvider'
+
 export interface DataTableColumn<D> {
   header: string
   value: (d: D, i: number) => string
@@ -14,12 +16,16 @@ export interface DataTableProps<D> extends DataTableSpec<D> {
 }
 
 /** An empty cell: a dash, read as "no value". */
-const NO_VALUE = (
-  <>
-    <span aria-hidden="true">—</span>
-    <span className="ch-sr-only">no value</span>
-  </>
-)
+function NoValue() {
+  return (
+    <>
+      <span aria-hidden="true">—</span>
+      <span className="ch-sr-only">{useMessages().noValue}</span>
+    </>
+  )
+}
+
+const NO_VALUE = /* @__PURE__ */ <NoValue />
 
 /**
  * The chart's data as a visually hidden table, for screen-reader users. The first column holds

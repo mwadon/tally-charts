@@ -1,6 +1,7 @@
 import type { FormatSpec } from '../../core/format'
 import type { Fill, Tone } from '../../core/types'
-import { useFormat } from '../ChartsProvider'
+import { useFormat, useMessages } from '../ChartsProvider'
+import { formatMessage } from '../messages'
 import { cx, toneVar, toPercent } from './util'
 
 export interface InlineBarProps {
@@ -37,15 +38,16 @@ export function InlineBar({
   className,
 }: InlineBarProps) {
   const { create } = useFormat()
+  const messages = useMessages()
   const fmt = create(format)
   const hasValue = Number.isFinite(value)
   const hasTarget = target !== undefined && Number.isFinite(target)
   const p = toPercent(value, min, max)
   const t = hasTarget ? toPercent(target, min, max) : undefined
   const name = !hasValue
-    ? `${label}: No data`
+    ? `${label}: ${messages.noData}`
     : hasTarget
-      ? `${label}: ${fmt(value)}, target ${fmt(target)}`
+      ? `${label}: ${fmt(value)}, ${formatMessage(messages.target, { value: fmt(target) })}`
       : `${label}: ${fmt(value)}`
   return (
     <span

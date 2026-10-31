@@ -12,7 +12,7 @@ import { createScale, type ScaleSpec } from '../core/scale'
 import type { Id } from '../core/types'
 import { createWarner, DEV, type Warn } from '../core/warn'
 import { DEFAULT_HATCH, DEFAULT_RADIUS, readHatchGeometry, readRadius } from '../theme/patterns'
-import { useFormat } from './ChartsProvider'
+import { useFormat, useMessages } from './ChartsProvider'
 import { ChartContext, type InternalChartContext, type Margin } from './context'
 import { DataTable, type DataTableSpec } from './DataTable'
 import { announcement, type InteractionOptions, navigate, useInteraction } from './interaction'
@@ -154,6 +154,7 @@ export function Chart<D>({
   )
 
   const formatters = useFormat()
+  const messages = useMessages()
   // Marks register `datum` as a row of `data`, so the points the store hands back are ChartPoint<D>.
   const interaction = useInteraction({
     activeId,
@@ -233,7 +234,7 @@ export function Chart<D>({
 
   const spoken =
     interaction.source === 'keyboard' && interaction.activePoint
-      ? announcement(interaction.points, interaction.activePoint)
+      ? announcement(interaction.points, interaction.activePoint, messages.position)
       : ''
   const titleId = `${chartId}-title`
   // An element the caller names wins over the hidden `title` span, as in ARIA.
@@ -250,9 +251,9 @@ export function Chart<D>({
   const canSelect = onSelect !== undefined && hintPoint?.selectable !== false
   const hint =
     keyboardHint ??
-    `Use arrow keys to move between points, Home and End for first and last, Escape to clear.${
-      canSelect ? ' Press Enter to select.' : ''
-    }`
+    (messages.keyboardHint && canSelect
+      ? `${messages.keyboardHint} ${messages.keyboardHintSelect}`
+      : messages.keyboardHint)
   const describedBy = [description ? descId : '', hint ? hintId : ''].filter(Boolean).join(' ')
 
   // While measuring, CSS keeps the box at the right height before the real width is known.
@@ -292,7 +293,7 @@ export function Chart<D>({
       ) : null}
       {isEmpty ? (
         <div data-ch-part="empty" className="ch-empty">
-          {empty ?? 'No data'}
+          {empty ?? messages.noData}
         </div>
       ) : (
         <ChartContext.Provider value={ctx}>

@@ -8,7 +8,7 @@ import type { TickSpec } from '../../core/ticks'
 import type { Fill, Id, Tone } from '../../core/types'
 import { createWarner, DEV } from '../../core/warn'
 import { Chart, type ChartName } from '../Chart'
-import { useFormat } from '../ChartsProvider'
+import { useFormat, useMessages } from '../ChartsProvider'
 import { type Margin, useChartContext } from '../context'
 import type { DataTableSpec } from '../DataTable'
 import { Axis, type AxisFormat } from '../marks/Axis'
@@ -207,11 +207,12 @@ export function WaterfallChart<S extends WaterfallStep = WaterfallStep>({
   ...chart
 }: WaterfallChartProps<S>) {
   const { create } = useFormat()
+  const messages = useMessages()
   const warn = useMemo(() => createWarner(), [])
   const fmt = useMemo(() => create(format), [create, format])
   const signed = useMemo(() => create(format, { signed: true }), [create, format])
   const startValid = Number.isFinite(start.value)
-  const endLabel = end?.label ?? 'Total'
+  const endLabel = end?.label ?? messages.total
 
   const rows = useMemo((): WaterfallRow<S>[] => {
     if (!startValid) return []

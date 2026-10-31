@@ -16,7 +16,7 @@ import { binLevels, levelFor, MAX_BREAKS, sequentialBreaks } from '../../core/th
 import type { Accessor, SeqLevel, Tone } from '../../core/types'
 import { createWarner, DEV, type Warn } from '../../core/warn'
 import type { ChartName } from '../Chart'
-import { useFormat } from '../ChartsProvider'
+import { useFormat, useMessages } from '../ChartsProvider'
 import { Legend } from '../ui/Legend'
 import { cx } from '../ui/util'
 import { useIsoLayoutEffect } from '../useIsoLayoutEffect'
@@ -150,7 +150,7 @@ function NoData() {
   return (
     <>
       <span aria-hidden="true">–</span>
-      <span className="ch-sr-only">No data</span>
+      <span className="ch-sr-only">{useMessages().noData}</span>
     </>
   )
 }
@@ -166,7 +166,7 @@ export function Heatmap<D>({
   binLabels,
   format,
   totals = true,
-  totalLabel = 'Total',
+  totalLabel,
   rowLabel,
   legend = true,
   tone,
@@ -182,11 +182,12 @@ export function Heatmap<D>({
   chartId,
 }: HeatmapProps<D>) {
   const { create } = useFormat()
+  const messages = useMessages()
   const warn = useMemo(() => createWarner(), [])
   const fmt = useMemo(() => create(format), [create, format])
   const reactId = useId()
   // An empty name would leave an empty header (axe empty-table-header): fall back to the default.
-  const totalName = totalLabel || 'Total'
+  const totalName = totalLabel || messages.total
   const baseId = `ch-${(chartId ?? reactId).replace(/[^a-zA-Z0-9_-]/g, '')}`
   const titleId = `${baseId}-title`
   // An element the caller names wins over the hidden `title` span, as in ARIA.
@@ -412,7 +413,7 @@ export function Heatmap<D>({
     return (
       <div {...rootProps}>
         <div data-ch-part="empty" className="ch-empty">
-          {empty ?? 'No data'}
+          {empty ?? messages.noData}
         </div>
       </div>
     )
