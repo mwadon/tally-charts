@@ -15,7 +15,7 @@ import {
   type Formatter,
   type Formatters,
 } from '../core/format'
-import { type ChartMessages, DEFAULT_MESSAGES } from './messages'
+import type { ChartMessages } from './messages'
 
 interface LocaleContextValue {
   locale: string
@@ -27,30 +27,21 @@ const LocaleContext = /* @__PURE__ */ createContext<LocaleContextValue>({
   currency: DEFAULT_CURRENCY,
 })
 
-const MessagesContext = /* @__PURE__ */ createContext<ChartMessages>(DEFAULT_MESSAGES)
+const MessagesContext = /* @__PURE__ */ createContext<Partial<ChartMessages>>({})
 
 export interface ChartsProviderProps {
   locale?: string
   currency?: string
   /**
    * Built-in text such as "No data" or the keyboard hint, in your language. Keys left out keep
-   * their English default. A nested provider replaces its parent's messages instead of merging.
+   * their English default. A nested provider without this prop inherits its parent's messages; one
+   * with it replaces them, and any key it leaves out goes back to English, not to the parent's text.
    * Memoised by object identity, so an inline object re-renders every chart under it on each
    * render of the parent: hoist it or wrap it in `useMemo`. A per-chart prop (`empty`,
    * `keyboardHint`, `targetLabel`, `totalLabel`) wins over these.
    */
   messages?: Partial<ChartMessages>
   children?: ReactNode
-}
-
-// A key set to `undefined` keeps its default; a plain spread would let it erase the string.
-function withDefaults(messages: Partial<ChartMessages>): ChartMessages {
-  const merged: ChartMessages = { ...DEFAULT_MESSAGES }
-  for (const key of Object.keys(messages) as (keyof ChartMessages)[]) {
-    const value = messages[key]
-    if (value !== undefined) merged[key] = value
-  }
-  return merged
 }
 
 export function ChartsProvider({
@@ -60,16 +51,19 @@ export function ChartsProvider({
   children,
 }: ChartsProviderProps) {
   const value = useMemo(() => ({ locale, currency }), [locale, currency])
-  const merged = useMemo(() => (messages ? withDefaults(messages) : DEFAULT_MESSAGES), [messages])
+  const inherited = useContext(MessagesContext)
   return (
     <LocaleContext.Provider value={value}>
-      <MessagesContext.Provider value={merged}>{children}</MessagesContext.Provider>
+      <MessagesContext.Provider value={messages ?? inherited}>{children}</MessagesContext.Provider>
     </LocaleContext.Provider>
   )
 }
 
-/** Internal: the provider's messages, or `DEFAULT_MESSAGES` itself without one. */
-export function useMessages(): ChartMessages {
+/**
+ * Internal: the caller's messages as given, without defaults. Read each key as
+ * `messages.noData ?? NO_DATA`, so that a bundle holds only the strings it can show.
+ */
+export function useMessages(): Partial<ChartMessages> {
   return useContext(MessagesContext)
 }
 

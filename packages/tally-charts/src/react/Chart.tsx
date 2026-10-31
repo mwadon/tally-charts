@@ -8,7 +8,7 @@ import {
   useRef,
   useState,
 } from 'react'
-import { createScale, type ScaleSpec } from '../core/scale'
+import { createScale, type LinearScaleSpec, type ScaleSpec } from '../core/scale'
 import type { Id } from '../core/types'
 import { createWarner, DEV, type Warn } from '../core/warn'
 import { DEFAULT_HATCH, DEFAULT_RADIUS, readHatchGeometry, readRadius } from '../theme/patterns'
@@ -16,6 +16,7 @@ import { useFormat, useMessages } from './ChartsProvider'
 import { ChartContext, type InternalChartContext, type Margin } from './context'
 import { DataTable, type DataTableSpec } from './DataTable'
 import { announcement, type InteractionOptions, navigate, useInteraction } from './interaction'
+import { CHART_ROLE, KEYBOARD_HINT, KEYBOARD_HINT_SELECT, NO_DATA, POSITION } from './messages'
 import { PatternDefs } from './PatternDefs'
 import type { ChartPoint } from './types'
 import { useIsoLayoutEffect } from './useIsoLayoutEffect'
@@ -45,10 +46,12 @@ export type ChartProps<D> = ChartName & {
   y?: ScaleSpec<D>
   /**
    * A second value scale, linear only, for marks with `scale="y2"`. It shares the plot's height
-   * with `y`; the grid stays on `y`, and ticks of the two aren't aligned. Ignored, with a warning,
-   * when it isn't linear or when `y` is a band or point scale.
+   * with `y`; the grid stays on `y`, and ticks of the two aren't aligned. `<Axis side="right">`
+   * draws in the right margin, which is 0 by default, so set `margin.right` to fit its labels.
+   * Ignored, with a warning, when `y` is a band or point scale, or, from JavaScript, when it isn't
+   * linear.
    */
-  y2?: ScaleSpec<D>
+  y2?: LinearScaleSpec<D>
   /** Fixed width in px; turns off container measuring. */
   width?: number
   /** Width used for server rendering and the first client render. Default 640. */
@@ -260,7 +263,7 @@ export function Chart<D>({
 
   const spoken =
     interaction.source === 'keyboard' && interaction.activePoint
-      ? announcement(interaction.points, interaction.activePoint, messages.position)
+      ? announcement(interaction.points, interaction.activePoint, messages.position ?? POSITION)
       : ''
   const titleId = `${chartId}-title`
   // An element the caller names wins over the hidden `title` span, as in ARIA.
@@ -275,11 +278,12 @@ export function Chart<D>({
   // activate the first, so that is the one it must be right for.
   const hintPoint = interaction.activePoint ?? interaction.points[0]
   const canSelect = onSelect !== undefined && hintPoint?.selectable !== false
+  const defaultHint = messages.keyboardHint ?? KEYBOARD_HINT
   const hint =
     keyboardHint ??
-    (messages.keyboardHint && canSelect
-      ? [messages.keyboardHint, messages.keyboardHintSelect].filter(Boolean).join(' ')
-      : messages.keyboardHint)
+    (defaultHint && canSelect
+      ? [defaultHint, messages.keyboardHintSelect ?? KEYBOARD_HINT_SELECT].filter(Boolean).join(' ')
+      : defaultHint)
   const describedBy = [description ? descId : '', hint ? hintId : ''].filter(Boolean).join(' ')
 
   // While measuring, CSS keeps the box at the right height before the real width is known.
@@ -319,7 +323,7 @@ export function Chart<D>({
       ) : null}
       {isEmpty ? (
         <div data-ch-part="empty" className="ch-empty">
-          {empty ?? messages.noData}
+          {empty ?? messages.noData ?? NO_DATA}
         </div>
       ) : (
         <ChartContext.Provider value={ctx}>
@@ -331,7 +335,7 @@ export function Chart<D>({
             {...(interactive
               ? {
                   role: 'application',
-                  'aria-roledescription': messages.chartRole,
+                  'aria-roledescription': messages.chartRole ?? CHART_ROLE,
                   'aria-labelledby': nameId,
                   'aria-describedby': describedBy || undefined,
                   tabIndex: 0,

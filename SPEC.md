@@ -283,7 +283,7 @@ Agents write the content as JSON fixtures in `DeliveryPage` format. The source m
 
 ### M7. Additions for the glokki editor (before the freeze)
 
-Design: `docs/superpowers/specs/2026-10-31-tally-charts-1.0-editor-additions-design.md`. These items were added after M1 to M6 were specified, so that the editor needs no workaround once the API freezes. Section numbers in brackets refer to that design.
+Design: `docs/superpowers/specs/2026-10-31-tally-charts-1.0-editor-additions-design.md`. These items were added after M1 to M6 were specified, so that the editor needs no workaround once the API freezes. Section numbers in brackets refer to that design. The checklist under T39 in `PROGRESS.md` names these features for the check in the editor.
 
 #### F24. Small pieces are never pink by default [design §1]
 `InlineBar` `tone` defaults to `'accent'` and `fill` to `'solid'`; `Meter` `fill` to `'solid'`; `RangeMeter` `tone` to `'accent'` and `referenceTone` to `'neutral'`; `DotCount` `tone` to `'accent'`.
@@ -405,7 +405,7 @@ repo: apps/docs/examples/*.tsx ─┐
 
 ## 8. Definition of done for the whole project
 
-1. F1–F23 have all their criteria checked. The [MAINTAINER] tasks are confirmed in PROGRESS.md.
+1. F1–F33 have all their criteria checked. The [MAINTAINER] tasks are confirmed in PROGRESS.md.
 2. CI on `main` is green: check, react18, e2e, docs.
 3. `tally-charts@1.0.0` is on npm under `latest`, published from CI with provenance. `0.0.0-stage` is deprecated. There is no npm token in the repo.
 4. The docs site is publicly reachable and serves content from glokki. It has every page from F15. `check:content` (including API coverage) passes against the live CMS.

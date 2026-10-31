@@ -1121,6 +1121,7 @@
 [data-ch-part="sparkline"] {
   position: relative;
   display: block;
+  width: 100%;
   min-width: 0;
 }
 

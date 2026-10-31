@@ -15,6 +15,7 @@ import { Axis, type AxisFormat } from '../marks/Axis'
 import { type DotItem, Dots } from '../marks/Dots'
 import { NearestPointer } from '../marks/NearestPointer'
 import { RowLabels } from '../marks/RowLabels'
+import { HEADER_ITEM } from '../messages'
 import { Tooltip } from '../overlays/Tooltip'
 import { toneVar } from '../ui/util'
 import {
@@ -260,7 +261,7 @@ export function StripPlot<D>({
   const table: DataTableSpec<StripRow<D>> | undefined = dataTable
     ? {
         columns: [
-          { header: headerOf(label, messages.headerItem), value: (r) => r.name },
+          { header: headerOf(label, messages.headerItem ?? HEADER_ITEM), value: (r) => r.name },
           ...series.map((s, si) => ({
             header: s.label,
             value: (r: StripRow<D>) => fmt(r.values[si] ?? Number.NaN),

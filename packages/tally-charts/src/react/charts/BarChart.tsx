@@ -11,6 +11,7 @@ import { Axis, type AxisFormat } from '../marks/Axis'
 import { Bars } from '../marks/Bars'
 import { Target } from '../marks/Target'
 import { ValueLabel } from '../marks/ValueLabel'
+import { HEADER_CATEGORY, HEADER_VALUE } from '../messages'
 import { Tooltip } from '../overlays/Tooltip'
 import {
   type ChartPassThroughProps,
@@ -127,11 +128,11 @@ export function BarChart<D>({
     table = {
       columns: [
         {
-          header: headerOf(x, messages.headerCategory),
+          header: headerOf(x, messages.headerCategory ?? HEADER_CATEGORY),
           value: (d, i) => String((getLabel ? getLabel(d, i) : getCategory(d, i)) ?? ''),
         },
         {
-          header: headerOf(y, messages.headerValue),
+          header: headerOf(y, messages.headerValue ?? HEADER_VALUE),
           value: (d, i) => formatValue(toNumber(getValue(d, i))),
         },
       ],

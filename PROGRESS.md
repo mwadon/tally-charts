@@ -2617,3 +2617,26 @@ Rozmiary końcowe (`pnpm size`, gzip, rolldown):
 | RunwayChart | 9.41 kB | 15 kB |
 
 Uwagi: BridgeChart (14.89 kB z 15) i Small UI pieces (4.87 kB z 5) mają mały zapas.
+
+## Editor additions: poprawki po końcowym review (2026-10-31)
+21 uwag z końcowego review gałęzi `editor-additions`. Główne zmiany: każda angielska wartość domyślna to osobna stała w `react/messages.ts`, kontekst trzyma surowy `Partial` wywołującego, a miejsca użycia piszą `messages.noData ?? NO_DATA` (`withDefaults` usunięte; `messages-literals.test.ts` pilnuje tego wzorca). Klucze przemianowane przed zamrożeniem: `runningTotal` na `waterfallStep`, `totalRunning` na `runningTotalLabel`, `headerDetail` na `headerRunwayDetail`, `headerDetails` na `headerRankedDetails`. `DEFAULT_MESSAGES` jest `Readonly`. Zagnieżdżony provider bez `messages` dziedziczy po rodzicu, z `messages` zastępuje. `y2` ma typ `LinearScaleSpec<D>`. `Sparkline`: odwrócona `domain`, izolowane punkty jako kropki, `target` poza `domain` nierysowany z ostrzeżeniem `sparkline-target-domain`, `width: 100%` na korzeniu. Etykieta pionowego `Target` przechodzi na lewą stronę reguły, gdy nie mieści się do prawej krawędzi wykresu i mieści się w plocie po lewej.
+
+**Limit LineChart wrócił do 14 kB (D-11).** Pomiar 14.15 -> 13.61 kB po samym rozbiciu stałych, 13.65 kB na końcu. Podniesienie do 14.2 kB z poprzedniego wpisu jest nieaktualne.
+
+| Wpis | Przed | Po | Limit |
+|---|---|---|---|
+| tally-charts/core | 2 kB | 2 kB | 8 kB |
+| Chart + Bars + Axis + Target + Tooltip | 12.58 kB | 12.04 kB | 15 kB |
+| BarChart | 13.71 kB | 13.18 kB | 15 kB |
+| ComparisonBars | 12.68 kB | 12.17 kB | 15 kB |
+| RankedBars | 12.28 kB | 11.73 kB | 15 kB |
+| WaterfallChart | 14.18 kB | 13.65 kB | 15 kB |
+| BridgeChart | 14.89 kB | 14.33 kB | 15 kB |
+| DotHistogram | 13.54 kB | 13.02 kB | 15 kB |
+| StripPlot | 13.18 kB | 12.62 kB | 15 kB |
+| WaffleColumns | 11.45 kB | 10.89 kB | 15 kB |
+| LineChart | 14.15 kB | 13.65 kB | 14 kB |
+| Heatmap | 4.8 kB | 4.2 kB | 15 kB |
+| Small UI pieces | 4.87 kB | 4.26 kB | 5 kB |
+| Sparkline | 1.67 kB | 1.03 kB | 3 kB |
+| RunwayChart | 9.41 kB | 8.89 kB | 15 kB |

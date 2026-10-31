@@ -138,6 +138,39 @@ describe('<Area>', () => {
     expect(warn).toHaveBeenCalledWith(expect.stringContaining('Area needs'))
   })
 
+  describe('the direction of the fade', () => {
+    const gradientOf = (values: number[], domain: readonly [number, number]) => {
+      const data = values.map((v, i) => ({ k: `k${i}`, v }))
+      const { container } = render(
+        <Chart
+          title="Test chart"
+          data={data}
+          width={300}
+          height={100}
+          margin={{ top: 0, right: 0, bottom: 0, left: 0 }}
+          x={{ type: 'band', field: 'k', padding: 0 }}
+          y={{ field: 'v', domain }}
+          animate={false}
+        >
+          <Area />
+        </Chart>,
+      )
+      return container.querySelector('[data-ch-part="area-group"] linearGradient')
+    }
+
+    it('runs down from the line for positive data', () => {
+      const gradient = gradientOf([10, 30, 20], [0, 40])
+      expect(gradient).toHaveAttribute('y1', '0')
+      expect(gradient).toHaveAttribute('y2', '1')
+    })
+
+    it('keeps that direction for a line on both sides of the baseline', () => {
+      const gradient = gradientOf([-10, 30, -20], [-40, 40])
+      expect(gradient).toHaveAttribute('y1', '0')
+      expect(gradient).toHaveAttribute('y2', '1')
+    })
+  })
+
   it('turns the fade over when the line is below the baseline', () => {
     const { container } = render(
       <Chart<Row>

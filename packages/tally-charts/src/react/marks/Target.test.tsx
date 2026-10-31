@@ -1,5 +1,6 @@
 import { render } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
+import { estimateWidth, type Tick } from '../../core/ticks'
 import { Chart } from '../Chart'
 import { Target } from './Target'
 
@@ -40,6 +41,99 @@ describe('<Target>', () => {
     expect(line).toHaveAttribute('x1', '100')
     expect(line).toHaveAttribute('y2', '100')
     expect(container.querySelector('[data-ch-part="target-label"]')).toHaveAttribute('x', '106')
+  })
+
+  describe('the label of an x rule', () => {
+    const label = 'Target 95'
+    const width = estimateWidth({ label } as Tick)
+    const textOf = (container: HTMLElement) =>
+      container.querySelector('[data-ch-part="target-label"]')
+    const onLinear = (x: number, right = 0) =>
+      render(
+        <Chart
+          {...frame}
+          margin={{ ...frame.margin, right }}
+          x={{ domain: [0, 200 - right] }}
+          y={{ domain: [0, 1] }}
+        >
+          <Target x={x} label={label} />
+        </Chart>,
+      ).container
+
+    it('stays to the right of the rule while it fits', () => {
+      const x = 200 - 6 - width
+      const text = textOf(onLinear(x))
+      expect(text).toHaveAttribute('text-anchor', 'start')
+      expect(text).toHaveAttribute('x', String(x + 6))
+    })
+
+    it('moves to the left of the rule when it would pass the chart edge', () => {
+      const x = 200 - 6 - width + 1
+      const text = textOf(onLinear(x))
+      expect(text).toHaveAttribute('text-anchor', 'end')
+      expect(text).toHaveAttribute('x', String(x - 6))
+    })
+
+    it('counts the right margin as room', () => {
+      // The plot ends at 180; the label may reach 200.
+      const x = 200 - 6 - width
+      expect(textOf(onLinear(x, 20))).toHaveAttribute('text-anchor', 'start')
+      expect(textOf(onLinear(x + 1, 20))).toHaveAttribute('text-anchor', 'end')
+    })
+
+    it('stays on the right when the left side would leave the plot', () => {
+      // A 70 px chart: neither side fits, and the left one would run over the axis labels.
+      const { container } = render(
+        <Chart {...frame} width={70} x={{ domain: [0, 70] }} y={{ domain: [0, 1] }}>
+          <Target x={30} label={label} />
+        </Chart>,
+      )
+      expect(textOf(container)).toHaveAttribute('text-anchor', 'start')
+      expect(textOf(container)).toHaveAttribute('x', '36')
+    })
+
+    it('flips on the last category at width 320 and not on the first', () => {
+      const categories = [
+        '0-9',
+        '10-19',
+        '20-29',
+        '30-39',
+        '40-49',
+        '50-59',
+        '60-69',
+        '70-79',
+        '80-89',
+        '90-99',
+      ]
+      const chart = (x: string) =>
+        render(
+          <Chart
+            {...frame}
+            width={320}
+            data={categories.map((range) => ({ range, n: 1 }))}
+            x={{ type: 'band', field: 'range' }}
+            y={{ field: 'n' }}
+          >
+            <Target x={x} label={label} />
+          </Chart>,
+        ).container
+      const last = chart('90-99')
+      const lastX = Number(last.querySelector('[data-ch-part="target"]')?.getAttribute('x1'))
+      expect(textOf(last)).toHaveAttribute('text-anchor', 'end')
+      expect(textOf(last)).toHaveAttribute('x', String(lastX - 6))
+      expect(textOf(chart('0-9'))).toHaveAttribute('text-anchor', 'start')
+    })
+
+    it('flips on a time scale too, at either labelPosition', () => {
+      const day = 864e5
+      const { container } = render(
+        <Chart {...frame} x={{ type: 'time', domain: [0, 10 * day] }} y={{ domain: [0, 1] }}>
+          <Target x={9 * day} label={label} labelPosition="start" />
+        </Chart>,
+      )
+      expect(textOf(container)).toHaveAttribute('text-anchor', 'end')
+      expect(textOf(container)).toHaveAttribute('dominant-baseline', 'auto')
+    })
   })
 
   it('draws a short tick for the tick variant', () => {

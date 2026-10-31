@@ -231,6 +231,38 @@ function SparklineStory() {
   )
 }
 
+// Where a Sparkline's width comes from, and values with no neighbour. e2e/sparkline.spec.ts measures
+// these; there is no baseline.
+function SparklineLayoutsStory() {
+  return (
+    <div style={{ width: 400, background: 'var(--ch-surface)' }}>
+      <div data-testid="in-block">
+        <Sparkline values={trend} label="In a block" />
+      </div>
+      <div data-testid="in-flex" style={{ display: 'flex', gap: 8 }}>
+        <Sparkline values={trend} label="In a flex row" />
+      </div>
+      <div data-testid="in-flex-sibling" style={{ display: 'flex', gap: 8 }}>
+        <Sparkline values={trend} label="In a flex row with a sibling" />
+        <span style={{ flex: 'none', width: 100 }}>Clicks</span>
+      </div>
+      <table data-testid="in-table" style={{ width: '100%' }}>
+        <tbody>
+          <tr>
+            <td style={{ width: '50%' }}>Clicks</td>
+            <td data-testid="in-cell">
+              <Sparkline values={trend} label="In a table cell" />
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <div data-testid="isolated" style={{ padding: 8 }}>
+        <Sparkline values={[1, null, 3, null, 5]} label="Isolated values" height={40} />
+      </div>
+    </div>
+  )
+}
+
 // `color` on a share bar, a legend and solid bars. A forced-colors e2e checks that system colors win.
 const channels = [
   { label: 'Search', value: 5120, tone: 'accent', color: '#4285f4' },
@@ -301,6 +333,8 @@ function SmallBarsStory() {
 }
 
 export const Sparklines: Story = { render: () => <SparklineStory /> }
+
+export const SparklineLayouts: Story = { render: () => <SparklineLayoutsStory /> }
 
 export const SmallBars: Story = { render: () => <SmallBarsStory /> }
 

@@ -6,6 +6,7 @@ import type {
   BridgeStart,
   BridgeStep,
   CalloutProps,
+  ChartMessages,
   ChartName,
   ChartPoint,
   ChartProps,
@@ -15,6 +16,7 @@ import type {
   HeatmapProps,
   LegendItem,
   LegendProps,
+  LinearScaleSpec,
   LineChartProps,
   RankedBarsProps,
   RunwayChartProps,
@@ -27,6 +29,7 @@ import type {
   WaterfallStep,
   WaterfallTotal,
 } from './index'
+import { DEFAULT_MESSAGES } from './index'
 
 type Week = { week: string; margin: number }
 type Callback = (id: never, point: never) => void
@@ -53,6 +56,14 @@ describe('public types', () => {
     >()
     expectTypeOf<Selected<BridgeChartProps>>().toEqualTypeOf<ChartPoint<BridgeStep | BridgeStart>>()
     expectTypeOf<ChartPoint['datum']>().toEqualTypeOf<unknown>()
+  })
+
+  it('types y2 as linear only and the default messages as read-only', () => {
+    expectTypeOf<ChartProps<Week>['y2']>().toEqualTypeOf<LinearScaleSpec<Week> | undefined>()
+    expectTypeOf(DEFAULT_MESSAGES).toEqualTypeOf<Readonly<ChartMessages>>()
+    // @ts-expect-error The defaults can't be written to.
+    const write = () => (DEFAULT_MESSAGES.noData = 'x')
+    expect(write).toBeTypeOf('function')
   })
 
   it('accepts readonly arrays', () => {

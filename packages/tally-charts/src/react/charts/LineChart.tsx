@@ -25,6 +25,7 @@ import { NearestPointer } from '../marks/NearestPointer'
 import { Region } from '../marks/Region'
 import { timeX } from '../marks/series'
 import { Target } from '../marks/Target'
+import { HEADER_CATEGORY, HEADER_DATE, HEADER_RANGE } from '../messages'
 import { Tooltip } from '../overlays/Tooltip'
 import type { ChartPoint, TooltipSegment } from '../types'
 import { useRegisterPoints } from '../useRegisterPoints'
@@ -125,8 +126,8 @@ export type LineChartProps<D> = ChartName &
     tooltip?: ChartTooltip<D>
     /**
      * Default true. With false the chart is static: no points are registered, so it has no tab
-     * stop, no keyboard hint, no pointer response and no tooltip (`tooltip` is ignored). The
-     * title and the data table stay.
+     * stop, no keyboard hint, no pointer response and no tooltip (`tooltip` is ignored), and
+     * `onSelect` and `onActiveChange` never fire. The title and the data table stay.
      */
     interactive?: boolean
     /**
@@ -387,8 +388,8 @@ export function LineChart<D>({
     const columns: DataTableColumn<LineRow<D>>[] = [
       {
         header: timeX
-          ? headerOf(timeX.field, messages.headerDate)
-          : headerOf(x, messages.headerCategory),
+          ? headerOf(timeX.field, messages.headerDate ?? HEADER_DATE)
+          : headerOf(x, messages.headerCategory ?? HEADER_CATEGORY),
         value: (r) => r.label,
       },
       ...series.map(
@@ -400,7 +401,7 @@ export function LineChart<D>({
     ]
     if (band) {
       columns.push({
-        header: band.label ?? messages.headerRange,
+        header: band.label ?? messages.headerRange ?? HEADER_RANGE,
         value: (r) =>
           Number.isFinite(r.low) && Number.isFinite(r.high) ? `${fmt(r.low)}–${fmt(r.high)}` : '',
       })

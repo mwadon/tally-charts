@@ -1,6 +1,6 @@
 import { useCallback, useMemo, useRef, useState } from 'react'
 import type { Id } from '../core/types'
-import { DEFAULT_MESSAGES, formatMessage } from './messages'
+import { formatMessage, POSITION } from './messages'
 import type { ActiveSource, ChartPoint, PointGroup, TooltipSegment } from './types'
 import { useIsoLayoutEffect } from './useIsoLayoutEffect'
 
@@ -89,7 +89,7 @@ export function navigate(
 export function announcement(
   points: readonly ChartPoint[],
   point: ChartPoint,
-  position: string = DEFAULT_MESSAGES.position,
+  position: string = POSITION,
 ): string {
   const peers = points.filter((p) => p.series === point.series)
   const several = points.some((p) => p.series !== point.series)

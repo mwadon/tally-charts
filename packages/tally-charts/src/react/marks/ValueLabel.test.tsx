@@ -1,6 +1,7 @@
 import { render } from '@testing-library/react'
 import { renderToString } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
+import { estimateWidth } from '../../core/ticks'
 import { Chart } from '../Chart'
 import { ValueLabel } from './ValueLabel'
 
@@ -134,7 +135,8 @@ describe('<ValueLabel>', () => {
       ])
       const label = container.querySelector('[data-ch-part="value-label"]')
       expect(texts(container)).toEqual(['20.0'])
-      expect(Number(label?.getAttribute('x'))).toBeLessThan(100)
+      // Two 100 px bands: the first one's centre.
+      expect(label).toHaveAttribute('x', '50')
     })
 
     it('renders nothing, without crashing, when no value is finite', () => {
@@ -161,6 +163,10 @@ describe('<ValueLabel>', () => {
       { week: 'W2', margin: 10 },
       { week: 'W3', margin: 20 },
     ]
+    const pillWidth = (text: string) =>
+      estimateWidth({ value: 0, position: 0, label: text, anchor: 'middle' }) + 2 * 8
+    const pillOf = (container: HTMLElement) =>
+      container.querySelector('rect[data-ch-part="value-label-pill"]')
     const chart = (
       at: 'first' | 'last' | 'max',
       margin = { top: 24, right: 0, bottom: 0, left: 0 },
@@ -182,8 +188,8 @@ describe('<ValueLabel>', () => {
       const { container } = render(chart('max'))
       const rect = container.querySelector('rect[data-ch-part="value-label-pill"]')
       expect(rect).not.toBeNull()
-      // "30.0" is 4 chars at 6.5 px each, plus 8 px of padding on both sides.
-      expect(rect).toHaveAttribute('width', String(4 * 6.5 + 16))
+      // The estimated width of "30.0", plus 8 px of padding on both sides.
+      expect(rect).toHaveAttribute('width', String(pillWidth('30.0')))
       expect(rect).toHaveAttribute('height', '18')
       expect(texts(container)).toEqual(['30.0'])
     })
@@ -212,6 +218,77 @@ describe('<ValueLabel>', () => {
       const y = Number(rect?.getAttribute('y'))
       expect(y).toBe(-6 - 18)
       expect(y).toBeGreaterThanOrEqual(-24)
+    })
+
+    describe('on horizontal bars', () => {
+      const horizontal = (
+        data: readonly { week: string; margin: number }[],
+        domain: readonly [number, number],
+        at: 'first' | 'last' = 'first',
+      ) =>
+        render(
+          <Chart
+            title="Test chart"
+            data={data}
+            width={200}
+            height={120}
+            margin={{ top: 0, right: 10, bottom: 0, left: 10 }}
+            x={{ field: 'margin', domain }}
+            y={{ type: 'band', field: 'week', padding: 0 }}
+          >
+            <ValueLabel at={at} variant="pill" format={(v) => v.toFixed(1)} />
+          </Chart>,
+        ).container
+
+      it('sits past the bar end, centred on the band', () => {
+        const rect = pillOf(horizontal([{ week: 'W1', margin: 10 }], [0, 30]))
+        // 10 of 30 on a 180 px plot is 60, plus the offset of 6.
+        expect(rect).toHaveAttribute('x', '66')
+        expect(rect).toHaveAttribute('y', String(120 / 2 - 18 / 2))
+      })
+
+      it('is clamped at the right of the chart', () => {
+        const rect = pillOf(horizontal([{ week: 'W1', margin: 30 }], [0, 30]))
+        expect(rect).toHaveAttribute('x', String(180 + 10 - pillWidth('30.0')))
+      })
+
+      it('sits before the end of a negative bar', () => {
+        const rect = pillOf(horizontal([{ week: 'W1', margin: -10 }], [-30, 30]))
+        // -10 is at 60, the bar grows left from zero at 90: the pill ends the offset before 60.
+        expect(rect).toHaveAttribute('x', String(60 - 6 - pillWidth('-10.0')))
+      })
+
+      it('is clamped at the left of the chart', () => {
+        const rect = pillOf(horizontal([{ week: 'W1', margin: -30 }], [-30, 30]))
+        expect(rect).toHaveAttribute('x', '-10')
+      })
+    })
+
+    describe('on a negative vertical bar', () => {
+      const down = (height: number) =>
+        render(
+          <Chart
+            title="Test chart"
+            data={[{ week: 'W1', margin: -10 }]}
+            width={200}
+            height={height}
+            margin={{ top: 0, right: 0, bottom: 0, left: 0 }}
+            x={{ type: 'band', field: 'week', padding: 0 }}
+            y={{ field: 'margin', domain: [-20, 0] }}
+          >
+            <ValueLabel at="first" variant="pill" format={(v) => v.toFixed(1)} />
+          </Chart>,
+        ).container
+
+      it('sits below the bar end when it fits', () => {
+        // The bar hangs from the top and ends at half of the plot.
+        expect(pillOf(down(120))).toHaveAttribute('y', String(60 + 6))
+      })
+
+      it('goes back above the bar end when it would leave the plot', () => {
+        // Half of 40 leaves 20 px below the bar, less than the offset and the pill's 18 px.
+        expect(pillOf(down(40))).toHaveAttribute('y', String(20 - 6 - 18))
+      })
     })
 
     it('leaves the text markup unchanged by default', () => {

@@ -43,6 +43,7 @@ const phrases = [
   'RowLabels need a band scale',
   'RowLabels need a row field',
   'RowDividers need a band scale',
+  'Sparkline target ',
   'Target needs an',
   'Target category ',
   'Target position ',

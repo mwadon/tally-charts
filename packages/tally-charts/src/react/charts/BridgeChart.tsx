@@ -15,6 +15,7 @@ import { Area } from '../marks/Area'
 import { Axis } from '../marks/Axis'
 import { Bars } from '../marks/Bars'
 import { ColumnHighlight } from '../marks/ColumnHighlight'
+import { HEADER_CHANGE, HEADER_COLUMN, HEADER_TOTAL } from '../messages'
 import { Callout } from '../overlays/Callout'
 import { Tooltip } from '../overlays/Tooltip'
 import type { TooltipSegment } from '../types'
@@ -351,9 +352,9 @@ export function BridgeChart<S extends BridgeStep = BridgeStep>({
   const table: DataTableSpec<BridgeRow<S>> | undefined = dataTable
     ? {
         columns: [
-          { header: messages.headerColumn, value: (r) => r.label },
-          { header: messages.headerChange, value: (r) => r.note },
-          { header: messages.headerTotal, value: (r) => fmt(r.total) },
+          { header: messages.headerColumn ?? HEADER_COLUMN, value: (r) => r.label },
+          { header: messages.headerChange ?? HEADER_CHANGE, value: (r) => r.note },
+          { header: messages.headerTotal ?? HEADER_TOTAL, value: (r) => fmt(r.total) },
         ],
       }
     : undefined

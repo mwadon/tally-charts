@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import type { ReactNode } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { createScale, type ScaleSpec } from '../../core/scale'
+import { createScale, type LinearScaleSpec } from '../../core/scale'
 import { Chart } from '../Chart'
 import { type InternalChartContext, useChart } from '../context'
 import { Area } from './Area'
@@ -38,8 +38,11 @@ const frame = {
   animate: false,
 }
 
-function renderDual(children: ReactNode, options: { y2?: ScaleSpec<Row>; activeId?: string } = {}) {
-  const y2 = 'y2' in options ? options.y2 : ({ field: 'u' } as ScaleSpec<Row>)
+function renderDual(
+  children: ReactNode,
+  options: { y2?: LinearScaleSpec<Row>; activeId?: string } = {},
+) {
+  const y2 = 'y2' in options ? options.y2 : ({ field: 'u' } as LinearScaleSpec<Row>)
   const { activeId } = options
   return render(
     <Chart<Row>
@@ -275,7 +278,7 @@ describe('scale="y2" without a y2', () => {
   it('keeps hook order when y2 comes and goes', () => {
     const errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
     const { rerender, container } = renderDual(all, { y2: undefined })
-    const chart = (y2: ScaleSpec<Row> | undefined) => (
+    const chart = (y2: LinearScaleSpec<Row> | undefined) => (
       <Chart<Row>
         {...frame}
         data={rows}
@@ -308,13 +311,25 @@ describe('a y2 the chart cannot use', () => {
     expect(onScale).toHaveBeenLastCalledWith('linear')
   })
 
+  // The type rejects these; the warning is for JavaScript callers.
   it.each([
     ['band', { type: 'band', field: 'day' }],
     ['point', { type: 'point', field: 'day' }],
     ['time', { type: 'time', field: 'day' }],
   ] as const)('warns y2-scale for a %s y2 and has no scale', (_, y2) => {
     const onScale = vi.fn()
-    renderDual(<Probe onScale={onScale} />, { y2 })
+    render(
+      <Chart<Row>
+        {...frame}
+        data={rows}
+        x={{ type: 'band', field: 'day', padding: 0 }}
+        y={{ field: 'v' }}
+        // @ts-expect-error `y2` is linear only.
+        y2={y2}
+      >
+        <Probe onScale={onScale} />
+      </Chart>,
+    )
     expect(y2Warnings()).toHaveLength(1)
     expect(y2Warnings()[0]).toContain('linear')
     expect(onScale).toHaveBeenLastCalledWith(undefined)
@@ -347,6 +362,7 @@ describe('y2 with nothing to scale', () => {
         data={[]}
         x={{ type: 'band', field: 'day' }}
         y={{ field: 'v' }}
+        // @ts-expect-error `y2` is linear only.
         y2={{ type: 'band', field: 'day' }}
       >
         <Line scale="y2" />
@@ -383,7 +399,7 @@ describe('y2 with nothing to scale', () => {
         <ValueLabel scale="y2" />
         <Axis side="right" scale="y2" />
       </>,
-      { y2: { field: 'bad' } as ScaleSpec<Row> },
+      { y2: { field: 'bad' } as LinearScaleSpec<Row> },
     )
     expect(parts(container, 'bar')).toHaveLength(3)
     expect(container.innerHTML).not.toContain('NaN')
@@ -397,7 +413,7 @@ describe('y2 with nothing to scale', () => {
 })
 
 describe('reversed y2', () => {
-  const y2 = { field: 'u', domain: [1000, 0] } as ScaleSpec<Row>
+  const y2 = { field: 'u', domain: [1000, 0] } as LinearScaleSpec<Row>
 
   it('puts the larger value at the bottom', () => {
     const { container } = renderDual(<Line scale="y2" />, { y2 })
@@ -506,7 +522,7 @@ describe('a point y', () => {
 })
 
 describe('Bars that stay mounted', () => {
-  const chart = (y2: ScaleSpec<Row>, scale?: 'y2') => (
+  const chart = (y2: LinearScaleSpec<Row>, scale?: 'y2') => (
     <Chart<Row>
       {...frame}
       data={rows}

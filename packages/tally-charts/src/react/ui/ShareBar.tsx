@@ -1,6 +1,7 @@
 import type { CSSProperties } from 'react'
 import type { FormatSpec } from '../../core/format'
 import { useFormat, useMessages } from '../ChartsProvider'
+import { NO_DATA } from '../messages'
 import { type ShareSegment, shareLayout } from './share'
 import { cx, toneVar } from './util'
 
@@ -44,7 +45,7 @@ export function ShareBar({
         : {
             role: 'img',
             'aria-label': empty
-              ? `${label}: ${messages.noData}`
+              ? `${label}: ${messages.noData ?? NO_DATA}`
               : parts.length
                 ? `${label}: ${parts
                     .map((p) => `${p.label} ${p.percentText} (${fmt(p.value)})`)
@@ -80,7 +81,7 @@ export function ShareBar({
       {bar}
       {empty ? (
         <p className="ch-share-empty" data-ch-part="share-empty">
-          {messages.noData}
+          {messages.noData ?? NO_DATA}
         </p>
       ) : (
         <ul className="ch-share-list" data-ch-part="share-list">

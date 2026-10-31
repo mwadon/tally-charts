@@ -17,7 +17,18 @@ import type { Accessor, SeqLevel, Tone } from '../../core/types'
 import { createWarner, DEV, type Warn } from '../../core/warn'
 import type { ChartName } from '../Chart'
 import { useFormat, useMessages } from '../ChartsProvider'
-import { type ChartMessages, formatMessage } from '../messages'
+import {
+  BIN_ALL,
+  BIN_OVER,
+  BIN_RANGE,
+  BIN_UNDER,
+  type ChartMessages,
+  formatMessage,
+  HEADER_ROW,
+  HEATMAP_NAME,
+  NO_DATA,
+  TOTAL,
+} from '../messages'
 import { Legend } from '../ui/Legend'
 import { cx } from '../ui/util'
 import { useIsoLayoutEffect } from '../useIsoLayoutEffect'
@@ -111,7 +122,7 @@ const PAGE = 5
  * index past the last column. The NUL keeps them apart from cell ids ("row:column") and from each
  * other, even for an empty row or column name.
  */
-const TOTAL = '\u0000total'
+const TOTAL_KEY = '\u0000total'
 
 /** The breaks Heatmap bins by (see `heatmapLevel`), warning about what it had to clean up. */
 function cleanBreaks(breaks: readonly number[], warn: Warn): number[] {
@@ -134,19 +145,20 @@ function cleanBreaks(breaks: readonly number[], warn: Warn): number[] {
 function defaultLabels(
   breaks: readonly number[],
   fmt: Formatter,
-  messages: ChartMessages,
+  messages: Partial<ChartMessages>,
 ): string[] {
   const first = breaks[0]
   const last = breaks[breaks.length - 1]
-  if (first === undefined || last === undefined) return [messages.binAll]
+  if (first === undefined || last === undefined) return [messages.binAll ?? BIN_ALL]
   return [
-    formatMessage(messages.binUnder, { value: fmt(first) }),
-    ...breaks
-      .slice(1)
-      .map((b, i) =>
-        formatMessage(messages.binRange, { from: fmt(breaks[i] as number), to: fmt(b) }),
-      ),
-    formatMessage(messages.binOver, { value: fmt(last) }),
+    formatMessage(messages.binUnder ?? BIN_UNDER, { value: fmt(first) }),
+    ...breaks.slice(1).map((b, i) =>
+      formatMessage(messages.binRange ?? BIN_RANGE, {
+        from: fmt(breaks[i] as number),
+        to: fmt(b),
+      }),
+    ),
+    formatMessage(messages.binOver ?? BIN_OVER, { value: fmt(last) }),
   ]
 }
 
@@ -159,7 +171,7 @@ function NoData() {
   return (
     <>
       <span aria-hidden="true">–</span>
-      <span className="ch-sr-only">{useMessages().noData}</span>
+      <span className="ch-sr-only">{useMessages().noData ?? NO_DATA}</span>
     </>
   )
 }
@@ -196,7 +208,7 @@ export function Heatmap<D>({
   const fmt = useMemo(() => create(format), [create, format])
   const reactId = useId()
   // An empty name would leave an empty header (axe empty-table-header): fall back to the default.
-  const totalName = totalLabel || messages.total
+  const totalName = totalLabel || (messages.total ?? TOTAL)
   const baseId = `ch-${(chartId ?? reactId).replace(/[^a-zA-Z0-9_-]/g, '')}`
   const titleId = `${baseId}-title`
   // An element the caller names wins over the hidden `title` span, as in ARIA.
@@ -303,13 +315,13 @@ export function Heatmap<D>({
   const refs = useRef(new Map<string, HTMLElement>())
 
   // Keyboard positions: the column totals row first (when shown), then the data rows; the data
-  // columns, then the row total column. Data cells are keyed by id, totals by TOTAL keys.
+  // columns, then the row total column. Data cells are keyed by id, totals by TOTAL_KEY keys.
   const top = totals ? 1 : 0
   const lastRow = model.rows.length - 1 + top
   const lastColumn = model.columns.length - 1 + (totals ? 1 : 0)
   const keyAt = (g: number, c: number): string => {
-    if (g < top) return `${TOTAL}\u0000${c}`
-    return model.cells[g - top]?.[c]?.id ?? `${model.rows[g - top]}${TOTAL}`
+    if (g < top) return `${TOTAL_KEY}\u0000${c}`
+    return model.cells[g - top]?.[c]?.id ?? `${model.rows[g - top]}${TOTAL_KEY}`
   }
   const keys = new Set<string>()
   for (let g = 0; g <= lastRow; g++) for (let c = 0; c <= lastColumn; c++) keys.add(keyAt(g, c))
@@ -422,7 +434,7 @@ export function Heatmap<D>({
     return (
       <div {...rootProps}>
         <div data-ch-part="empty" className="ch-empty">
-          {empty ?? messages.noData}
+          {empty ?? messages.noData ?? NO_DATA}
         </div>
       </div>
     )
@@ -450,7 +462,7 @@ export function Heatmap<D>({
               role: 'group',
               ...(labelledBy
                 ? { 'aria-labelledby': labelledBy }
-                : { 'aria-label': title || messages.heatmapName }),
+                : { 'aria-label': title || (messages.heatmapName ?? HEATMAP_NAME) }),
             }
           : null)}
       >
@@ -473,7 +485,9 @@ export function Heatmap<D>({
         >
           <div role="row" className="ch-heatmap-row" data-ch-part="heatmap-row">
             <div role="columnheader" className="ch-heatmap-corner" data-ch-part="heatmap-corner">
-              <span className="ch-sr-only">{rowLabel || headerOf(row, messages.headerRow)}</span>
+              <span className="ch-sr-only">
+                {rowLabel || headerOf(row, messages.headerRow ?? HEADER_ROW)}
+              </span>
             </div>
             {model.columns.map((name) => (
               <div
@@ -507,7 +521,7 @@ export function Heatmap<D>({
                 <span className="ch-sr-only">{totalName}</span>
               </div>
               {model.columns.map((name, j) => total(0, j, model.columnTotals[j], name))}
-              {total(0, model.columns.length, sum(model.rowTotals), TOTAL)}
+              {total(0, model.columns.length, sum(model.rowTotals), TOTAL_KEY)}
             </div>
           ) : null}
           {model.cells.map((rowCells, r) => (
@@ -546,7 +560,7 @@ export function Heatmap<D>({
                   {valueText(cell.value)}
                 </div>
               ))}
-              {totals ? total(r + top, rowCells.length, model.rowTotals[r], TOTAL) : null}
+              {totals ? total(r + top, rowCells.length, model.rowTotals[r], TOTAL_KEY) : null}
             </div>
           ))}
         </div>

@@ -9,6 +9,7 @@ import { type Margin, useChartContext } from '../context'
 import type { DataTableColumn, DataTableSpec } from '../DataTable'
 import { Bars } from '../marks/Bars'
 import { RowLabels, type RowLabelsProps } from '../marks/RowLabels'
+import { HEADER_ITEM, HEADER_RANKED_DETAILS, HEADER_VALUE } from '../messages'
 import { Tooltip } from '../overlays/Tooltip'
 import {
   type ChartPassThroughProps,
@@ -242,10 +243,14 @@ export function RankedBars<D>({
   let table: DataTableSpec<RankedRow<D>> | undefined
   if (dataTable) {
     const columns: DataTableColumn<RankedRow<D>>[] = [
-      { header: headerOf(label, messages.headerItem), value: (r) => r.label },
-      { header: headerOf(value, messages.headerValue), value: (r) => r.text },
+      { header: headerOf(label, messages.headerItem ?? HEADER_ITEM), value: (r) => r.label },
+      { header: headerOf(value, messages.headerValue ?? HEADER_VALUE), value: (r) => r.text },
     ]
-    if (meta) columns.push({ header: headerOf(meta, messages.headerDetails), value: (r) => r.meta })
+    if (meta)
+      columns.push({
+        header: headerOf(meta, messages.headerRankedDetails ?? HEADER_RANKED_DETAILS),
+        value: (r) => r.meta,
+      })
     table = { columns }
   }
 

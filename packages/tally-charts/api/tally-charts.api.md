@@ -263,8 +263,6 @@ export interface ChartMessages {
     headerChange: string;
     headerColumn: string;
     headerDate: string;
-    headerDetail: string;
-    headerDetails: string;
     headerDifference: string;
     headerGroup: string;
     headerItem: string;
@@ -273,9 +271,11 @@ export interface ChartMessages {
     headerPlan: string;
     headerProjectedAtReset: string;
     headerRange: string;
+    headerRankedDetails: string;
     headerResets: string;
     headerRow: string;
     headerRunsOut: string;
+    headerRunwayDetail: string;
     headerStatus: string;
     headerTotal: string;
     headerValue: string;
@@ -296,7 +296,7 @@ export interface ChartMessages {
     planActual: string;
     position: string;
     resetMark: string;
-    runningTotal: string;
+    runningTotalLabel: string;
     statusAtReset: string;
     statusDisconnected: string;
     statusNoForecast: string;
@@ -305,10 +305,10 @@ export interface ChartMessages {
     target: string;
     targetLabel: string;
     total: string;
-    totalRunning: string;
     valueAbove: string;
     valueAgainst: string;
     valueBelow: string;
+    waterfallStep: string;
 }
 
 // @public
@@ -350,7 +350,7 @@ export type ChartProps<D> = ChartName & {
     data?: readonly D[];
     x?: ScaleSpec<D>;
     y?: ScaleSpec<D>;
-    y2?: ScaleSpec<D>;
+    y2?: LinearScaleSpec<D>;
     width?: number;
     initialWidth?: number;
     height?: number;
@@ -490,8 +490,8 @@ export type DateFormatSpec = 'auto' | 'day' | 'month' | 'quarter' | 'year' | Int
 // @public
 export type DateFormatter = (ms: number) => string;
 
-// @public (undocumented)
-export const DEFAULT_MESSAGES: ChartMessages;
+// @public
+export const DEFAULT_MESSAGES: Readonly<ChartMessages>;
 
 // @public
 export function Delta(input: DeltaProps): JSX.Element | null;
@@ -1200,7 +1200,6 @@ export function Target(input: TargetProps): JSX.Element | null;
 
 // @public (undocumented)
 export interface TargetProps {
-    // (undocumented)
     label?: string;
     // (undocumented)
     labelPosition?: 'start' | 'end';

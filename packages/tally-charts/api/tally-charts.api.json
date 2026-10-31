@@ -4471,60 +4471,6 @@
             },
             {
               "kind": "PropertySignature",
-              "canonicalReference": "tally-charts!ChartMessages#headerDetail:member",
-              "docComment": "/**\n * A RunwayChart data-table column header.\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "headerDetail: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "string"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "headerDetail",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              }
-            },
-            {
-              "kind": "PropertySignature",
-              "canonicalReference": "tally-charts!ChartMessages#headerDetails:member",
-              "docComment": "/**\n * A data-table column header.\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "headerDetails: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "string"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "headerDetails",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              }
-            },
-            {
-              "kind": "PropertySignature",
               "canonicalReference": "tally-charts!ChartMessages#headerDifference:member",
               "docComment": "/**\n * The ComparisonBars data-table column of plan minus actual.\n */\n",
               "excerptTokens": [
@@ -4741,6 +4687,33 @@
             },
             {
               "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!ChartMessages#headerRankedDetails:member",
+              "docComment": "/**\n * The data-table column of a RankedBars `meta`.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "headerRankedDetails: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "headerRankedDetails",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
               "canonicalReference": "tally-charts!ChartMessages#headerResets:member",
               "docComment": "/**\n * A RunwayChart data-table column header.\n */\n",
               "excerptTokens": [
@@ -4815,6 +4788,33 @@
               "isOptional": false,
               "releaseTag": "Public",
               "name": "headerRunsOut",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!ChartMessages#headerRunwayDetail:member",
+              "docComment": "/**\n * The data-table column of a RunwayChart row's `sublabel`.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "headerRunwayDetail: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "headerRunwayDetail",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2
@@ -5362,12 +5362,12 @@
             },
             {
               "kind": "PropertySignature",
-              "canonicalReference": "tally-charts!ChartMessages#runningTotal:member",
-              "docComment": "/**\n * A WaterfallChart step read aloud. Placeholders: `{label}`, `{text}`, `{total}`.\n */\n",
+              "canonicalReference": "tally-charts!ChartMessages#runningTotalLabel:member",
+              "docComment": "/**\n * The label of the running total in a WaterfallChart tooltip.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
-                  "text": "runningTotal: "
+                  "text": "runningTotalLabel: "
                 },
                 {
                   "kind": "Content",
@@ -5381,7 +5381,7 @@
               "isReadonly": false,
               "isOptional": false,
               "releaseTag": "Public",
-              "name": "runningTotal",
+              "name": "runningTotalLabel",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2
@@ -5605,33 +5605,6 @@
             },
             {
               "kind": "PropertySignature",
-              "canonicalReference": "tally-charts!ChartMessages#totalRunning:member",
-              "docComment": "/**\n * The label of the running total in a WaterfallChart tooltip.\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "totalRunning: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "string"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "totalRunning",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              }
-            },
-            {
-              "kind": "PropertySignature",
               "canonicalReference": "tally-charts!ChartMessages#valueAbove:member",
               "docComment": "/**\n * A ZoneMeter value above its maximum. Placeholder: `{max}`.\n */\n",
               "excerptTokens": [
@@ -5706,6 +5679,33 @@
               "isOptional": false,
               "releaseTag": "Public",
               "name": "valueBelow",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!ChartMessages#waterfallStep:member",
+              "docComment": "/**\n * A WaterfallChart step read aloud. Placeholders: `{label}`, `{text}`, `{total}`.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "waterfallStep: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "waterfallStep",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2
@@ -6202,8 +6202,8 @@
             },
             {
               "kind": "Reference",
-              "text": "ScaleSpec",
-              "canonicalReference": "tally-charts!ScaleSpec:type"
+              "text": "LinearScaleSpec",
+              "canonicalReference": "tally-charts!LinearScaleSpec:interface"
             },
             {
               "kind": "Content",
@@ -6490,7 +6490,7 @@
             {
               "kind": "PropertySignature",
               "canonicalReference": "tally-charts!ChartsProviderProps#messages:member",
-              "docComment": "/**\n * Built-in text such as \"No data\" or the keyboard hint, in your language. Keys left out keep\n * their English default. A nested provider replaces its parent's messages instead of merging.\n * Memoised by object identity, so an inline object re-renders every chart under it on each\n * render of the parent: hoist it or wrap it in `useMemo`. A per-chart prop (`empty`,\n * `keyboardHint`, `targetLabel`, `totalLabel`) wins over these.\n */\n",
+              "docComment": "/**\n * Built-in text such as \"No data\" or the keyboard hint, in your language. Keys left out keep\n * their English default. A nested provider without this prop inherits its parent's messages; one\n * with it replaces them, and any key it leaves out goes back to English, not to the parent's text.\n * Memoised by object identity, so an inline object re-renders every chart under it on each\n * render of the parent: hoist it or wrap it in `useMemo`. A per-chart prop (`empty`,\n * `keyboardHint`, `targetLabel`, `totalLabel`) wins over these.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -7863,7 +7863,7 @@
         {
           "kind": "Variable",
           "canonicalReference": "tally-charts!DEFAULT_MESSAGES:var",
-          "docComment": "",
+          "docComment": "/**\n * The English text of every key in `ChartMessages`. The wording isn't public and can change in any\n * release; override a key through `ChartsProvider messages`.\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
@@ -7871,8 +7871,21 @@
             },
             {
               "kind": "Reference",
+              "text": "Readonly",
+              "canonicalReference": "!Readonly:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
               "text": "ChartMessages",
               "canonicalReference": "tally-charts!ChartMessages:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ">"
             }
           ],
           "isReadonly": true,
@@ -7880,7 +7893,7 @@
           "name": "DEFAULT_MESSAGES",
           "variableTypeTokenRange": {
             "startIndex": 1,
-            "endIndex": 2
+            "endIndex": 5
           }
         },
         {
@@ -16802,7 +16815,7 @@
             {
               "kind": "PropertySignature",
               "canonicalReference": "tally-charts!SparklineProps#domain:member",
-              "docComment": "/**\n * Default the extent of the values and the target.\n */\n",
+              "docComment": "/**\n * Default the extent of the values and the target. The first value is the bottom edge and the\n * second the top, so `[10, 1]` puts 1 at the top, as on `Chart`. Values outside it are clamped.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -16910,7 +16923,7 @@
             {
               "kind": "PropertySignature",
               "canonicalReference": "tally-charts!SparklineProps#target:member",
-              "docComment": "/**\n * Draws a thin rule at this value.\n */\n",
+              "docComment": "/**\n * Draws a thin rule at this value. Outside an explicit `domain` it isn't drawn, with a warning.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -17728,7 +17741,7 @@
             {
               "kind": "PropertySignature",
               "canonicalReference": "tally-charts!TargetProps#label:member",
-              "docComment": "",
+              "docComment": "/**\n * Text at the rule. On a vertical rule it sits to the right, or to the left when it wouldn't\n * fit before the chart's right edge and does fit inside the plot on that side.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",

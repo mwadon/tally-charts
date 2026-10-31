@@ -279,7 +279,7 @@
       "id": "n27",
       "type": "prose",
       "props": {
-        "markdown": "The wording of the strings the library writes itself, such as the keyboard hint, is not part of the public API and can change in a minor release (see [Stability](/docs/stability)). Pass your own `keyboardHint`, or another text you control, wherever you need to know the exact words. In tests, don’t search by the built-in text: find the chart by its `title` and role."
+        "markdown": "The wording of the strings the library writes itself, such as the keyboard hint, is not part of the public API and can change in a minor release (see [Stability](/docs/stability)). Pass your own `keyboardHint`, or another text you control, wherever you need to know the exact words, and use [`ChartsProvider messages`](/docs/hooks-and-providers#messages) to translate any of them by key. In tests, don’t search by the built-in text: find the chart by its `title` and role."
       }
     },
     {
@@ -412,6 +412,22 @@
         "exampleId": "migration/select-hint",
         "defaultView": "preview",
         "height": 294
+      }
+    },
+    {
+      "id": "n66",
+      "type": "heading",
+      "props": {
+        "text": "Also new in 1.0",
+        "level": "3",
+        "anchor": "also-new"
+      }
+    },
+    {
+      "id": "n67",
+      "type": "prose",
+      "props": {
+        "markdown": "- `ChartsProvider messages`: every built-in string in your language, by key. See [Translating the built-in text](/docs/hooks-and-providers#messages).\n- `Sparkline`: a line of values for KPI rows and table cells, with no measuring and no effects. See [Small pieces](/docs/small-pieces).\n- `y2` on `Chart`, `scale=\"y2\"` on `Line`, `Area`, `Band`, `Bars`, `ValueLabel`, `Target` and `Axis`, and `tone` on `Axis`. See [Two value axes](/docs/composition#dual-axis).\n- `position` on `Target`, to place a rule within a category of a band or point scale, and `y` as a category. See [Composition](/docs/composition).\n- A reversed `y` scale, `y={{ domain: [10, 1] }}`, is now documented behaviour. See [Composition](/docs/composition).\n- `color` on `ShareBar` segments, `Legend` items and solid `Bars`, for any CSS colour outside the tones.\n- `width` on `InlineBar` takes a string, so `width=\"100%\"` works. See [Small pieces](/docs/small-pieces).\n- `at=\"max\"` and `variant=\"pill\"` on `ValueLabel`; `valueLabel=\"max\"` and `valueLabelVariant` on `BarChart`.\n- `interactive` on `LineChart`: `interactive={false}` draws a static chart. See [LineChart](/docs/line-chart)."
       }
     },
     {

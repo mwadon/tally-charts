@@ -35,7 +35,29 @@ import { DEFAULT_HATCH, patternId, readHatchGeometry } from '../../theme/pattern
 import type { ChartName } from '../Chart'
 import { useFormat, useMessages } from '../ChartsProvider'
 import { DataTable } from '../DataTable'
-import { formatMessage } from '../messages'
+import {
+  formatMessage,
+  HEADER_NAME,
+  HEADER_PROJECTED_AT_RESET,
+  HEADER_RESETS,
+  HEADER_RUNS_OUT,
+  HEADER_RUNWAY_DETAIL,
+  HEADER_STATUS,
+  LEGEND_LOCKED,
+  LEGEND_NO_FORECAST,
+  LEGEND_PROJECTED_USE,
+  LEGEND_RESET,
+  LEGEND_RUNS_OUT,
+  LEGEND_UNDER_SHARE,
+  NO_DATA,
+  NOW,
+  RESET_MARK,
+  STATUS_AT_RESET,
+  STATUS_DISCONNECTED,
+  STATUS_NO_FORECAST,
+  STATUS_RESETS,
+  STATUS_RUNS_OUT,
+} from '../messages'
 import { PatternDefs } from '../PatternDefs'
 import { cx } from '../ui/util'
 import { useIsoLayoutEffect } from '../useIsoLayoutEffect'
@@ -249,11 +271,11 @@ export function RunwayChart({
 
   const statusText = useMemo(
     (): RunwayStatusText => ({
-      disconnected: messages.statusDisconnected,
-      noForecast: messages.statusNoForecast,
-      runsOut: (date) => formatMessage(messages.statusRunsOut, { date }),
-      atReset: (percent) => formatMessage(messages.statusAtReset, { percent }),
-      resets: (date) => formatMessage(messages.statusResets, { date }),
+      disconnected: messages.statusDisconnected ?? STATUS_DISCONNECTED,
+      noForecast: messages.statusNoForecast ?? STATUS_NO_FORECAST,
+      runsOut: (date) => formatMessage(messages.statusRunsOut ?? STATUS_RUNS_OUT, { date }),
+      atReset: (percent) => formatMessage(messages.statusAtReset ?? STATUS_AT_RESET, { percent }),
+      resets: (date) => formatMessage(messages.statusResets ?? STATUS_RESETS, { date }),
     }),
     [messages],
   )
@@ -424,7 +446,7 @@ export function RunwayChart({
     return (
       <div {...rootProps}>
         <div data-ch-part="empty" className="ch-empty">
-          {empty ?? messages.noData}
+          {empty ?? messages.noData ?? NO_DATA}
         </div>
       </div>
     )
@@ -438,16 +460,22 @@ export function RunwayChart({
     {
       caption: title,
       columns: [
-        { header: messages.headerName, value: (m) => m.row.label },
-        { header: messages.headerDetail, value: (m) => m.row.sublabel ?? '' },
-        { header: messages.headerRunsOut, value: (m) => dateText(m.facts.runsOutAt) },
-        { header: messages.headerResets, value: (m) => dateText(m.facts.resetAt) },
+        { header: messages.headerName ?? HEADER_NAME, value: (m) => m.row.label },
         {
-          header: messages.headerProjectedAtReset,
+          header: messages.headerRunwayDetail ?? HEADER_RUNWAY_DETAIL,
+          value: (m) => m.row.sublabel ?? '',
+        },
+        {
+          header: messages.headerRunsOut ?? HEADER_RUNS_OUT,
+          value: (m) => dateText(m.facts.runsOutAt),
+        },
+        { header: messages.headerResets ?? HEADER_RESETS, value: (m) => dateText(m.facts.resetAt) },
+        {
+          header: messages.headerProjectedAtReset ?? HEADER_PROJECTED_AT_RESET,
           value: (m) =>
             Number.isFinite(m.facts.usedAtReset) ? `${Math.round(m.facts.usedAtReset * 100)}%` : '',
         },
-        { header: messages.headerStatus, value: (m) => m.statusText },
+        { header: messages.headerStatus ?? HEADER_STATUS, value: (m) => m.statusText },
       ],
     },
     dataTable,
@@ -609,7 +637,7 @@ const RunwayStrip = /* @__PURE__ */ memo(function RunwayStrip({
   nowX: number | null
   hatchFill: string
 }) {
-  const { resetMark } = useMessages()
+  const resetMark = useMessages().resetMark ?? RESET_MARK
   const [d0, d1] = x.domain()
   const first = model.cells[0]
   const cellWidth = first ? x(first.end) - x(first.start) : 0
@@ -685,7 +713,7 @@ function RunwayAxis({
   zone: TimeZone
   weekday: (ms: number) => string
 }) {
-  const { now } = useMessages()
+  const now = useMessages().now ?? NOW
   const [d0, d1] = x.domain()
   const days = (zone === 'utc' ? unixDay : timeDay).range(new Date(d0 - DAY), new Date(d1))
   const ticks: Tick[] = []
@@ -747,7 +775,7 @@ function RunwayLegend({ edges, levels }: { edges: readonly number[]; levels: rea
     <ul className="ch-legend ch-runway-legend" data-ch-part="legend">
       <li className="ch-legend-item" data-ch-part="legend-item">
         <span className="ch-legend-label" data-ch-part="legend-label">
-          {messages.legendProjectedUse}
+          {messages.legendProjectedUse ?? LEGEND_PROJECTED_USE}
         </span>
         {levels.map((level) => (
           <span key={level}>
@@ -758,13 +786,13 @@ function RunwayLegend({ edges, levels }: { edges: readonly number[]; levels: rea
           </span>
         ))}
         <span className="ch-legend-label" data-ch-part="legend-label">
-          {formatMessage(messages.legendUnderShare, { shares })}
+          {formatMessage(messages.legendUnderShare ?? LEGEND_UNDER_SHARE, { shares })}
         </span>
       </li>
       <li className="ch-legend-item" data-ch-part="legend-item">
         {swatch({ 'data-ch-tone': 'loss', 'data-ch-shape': 'runs-out' }, 'var(--ch-loss)')}
         <span className="ch-legend-label" data-ch-part="legend-label">
-          {messages.legendRunsOut}
+          {messages.legendRunsOut ?? LEGEND_RUNS_OUT}
         </span>
       </li>
       <li className="ch-legend-item" data-ch-part="legend-item">
@@ -773,19 +801,19 @@ function RunwayLegend({ edges, levels }: { edges: readonly number[]; levels: rea
           'var(--ch-loss)',
         )}
         <span className="ch-legend-label" data-ch-part="legend-label">
-          {messages.legendLocked}
+          {messages.legendLocked ?? LEGEND_LOCKED}
         </span>
       </li>
       <li className="ch-legend-item" data-ch-part="legend-item">
         {swatch({ 'data-ch-shape': 'tick' })}
         <span className="ch-legend-label" data-ch-part="legend-label">
-          {messages.legendReset}
+          {messages.legendReset ?? LEGEND_RESET}
         </span>
       </li>
       <li className="ch-legend-item" data-ch-part="legend-item">
         {swatch({ 'data-ch-shape': 'empty' })}
         <span className="ch-legend-label" data-ch-part="legend-label">
-          {messages.legendNoForecast}
+          {messages.legendNoForecast ?? LEGEND_NO_FORECAST}
         </span>
       </li>
     </ul>

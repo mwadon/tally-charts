@@ -11,6 +11,7 @@ import { type Margin, useChartContext } from '../context'
 import type { DataTableColumn, DataTableSpec } from '../DataTable'
 import { type DotItem, Dots } from '../marks/Dots'
 import { NearestPointer } from '../marks/NearestPointer'
+import { HEADER_GROUP, HEADER_PERIOD, HEADER_VALUE, PEAK } from '../messages'
 import { Callout } from '../overlays/Callout'
 import { Tooltip } from '../overlays/Tooltip'
 import type { ChartPoint, TooltipSegment } from '../types'
@@ -276,7 +277,11 @@ export function WaffleColumns<D>({
     peakRow && callout
       ? typeof callout === 'function'
         ? callout(peakRow.datum)
-        : [{ value: messages.peak }, { value: peakRow.label }, { value: fmt(peakRow.value) }]
+        : [
+            { value: messages.peak ?? PEAK },
+            { value: peakRow.label },
+            { value: fmt(peakRow.value) },
+          ]
       : undefined
   const across = Number.isFinite(wide) && wide >= 1 ? Math.floor(wide) : 2
   const m: Margin = {
@@ -288,11 +293,14 @@ export function WaffleColumns<D>({
   let table: DataTableSpec<WaffleRow<D>> | undefined
   if (dataTable) {
     const columns: DataTableColumn<WaffleRow<D>>[] = [
-      { header: headerOf(x, messages.headerPeriod), value: (r) => r.label },
-      { header: headerOf(y, messages.headerValue), value: (r) => fmt(r.value) },
+      { header: headerOf(x, messages.headerPeriod ?? HEADER_PERIOD), value: (r) => r.label },
+      { header: headerOf(y, messages.headerValue ?? HEADER_VALUE), value: (r) => fmt(r.value) },
     ]
     if (group)
-      columns.push({ header: headerOf(group, messages.headerGroup), value: (r) => r.group })
+      columns.push({
+        header: headerOf(group, messages.headerGroup ?? HEADER_GROUP),
+        value: (r) => r.group,
+      })
     table = { columns }
   }
 

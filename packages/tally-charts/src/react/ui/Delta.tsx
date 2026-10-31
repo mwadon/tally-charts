@@ -1,6 +1,7 @@
 import type { FormatSpec } from '../../core/format'
 import type { Tone } from '../../core/types'
 import { useFormat, useMessages } from '../ChartsProvider'
+import { DELTA_DOWN, DELTA_FLAT, DELTA_UP } from '../messages'
 import { cx, toneVar } from './util'
 
 /** Also the values of `data-ch-direction`. */
@@ -27,9 +28,9 @@ export function Delta({ value, format, good = 'up', tone, signed = false, classN
   const messages = useMessages()
   if (!Number.isFinite(value)) return null
   const words: Record<DeltaDirection, string> = {
-    up: messages.deltaUp,
-    down: messages.deltaDown,
-    flat: messages.deltaFlat,
+    up: messages.deltaUp ?? DELTA_UP,
+    down: messages.deltaDown ?? DELTA_DOWN,
+    flat: messages.deltaFlat ?? DELTA_FLAT,
   }
   const direction: DeltaDirection = value === 0 ? 'flat' : value > 0 ? 'up' : 'down'
   const resolved: Tone =

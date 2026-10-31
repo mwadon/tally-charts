@@ -17,6 +17,7 @@ import { Axis, type AxisFormat } from '../marks/Axis'
 import { type DotItem, Dots } from '../marks/Dots'
 import { NearestPointer } from '../marks/NearestPointer'
 import { Target } from '../marks/Target'
+import { HEADER_GROUP, HEADER_ITEM, HEADER_VALUE } from '../messages'
 import { Callout } from '../overlays/Callout'
 import { Tooltip } from '../overlays/Tooltip'
 import type { TooltipSegment } from '../types'
@@ -252,12 +253,12 @@ export function DotHistogram<D>({
   let table: DataTableSpec<HistogramRow<D>> | undefined
   if (dataTable) {
     const columns: DataTableColumn<HistogramRow<D>>[] = [
-      { header: headerOf(label, messages.headerItem), value: (r) => r.name },
-      { header: headerOf(value, messages.headerValue), value: (r) => fmt(r.value) },
+      { header: headerOf(label, messages.headerItem ?? HEADER_ITEM), value: (r) => r.name },
+      { header: headerOf(value, messages.headerValue ?? HEADER_VALUE), value: (r) => fmt(r.value) },
     ]
     if (toneBy && typeof toneBy !== 'function') {
       columns.push({
-        header: messages.headerGroup,
+        header: messages.headerGroup ?? HEADER_GROUP,
         value: (r) => r.group ?? '',
       })
     }

@@ -2,7 +2,7 @@ import type { CSSProperties, ReactNode } from 'react'
 import type { FormatSpec } from '../../core/format'
 import type { Tone } from '../../core/types'
 import { useFormat, useMessages } from '../ChartsProvider'
-import { formatMessage } from '../messages'
+import { formatMessage, NO_DATA, VALUE_AGAINST } from '../messages'
 import { cx, toneVar, toPercent } from './util'
 
 export interface RangeMeterProps {
@@ -58,9 +58,9 @@ export function RangeMeter({
   const lo = Math.min(pv, pr)
   const hi = Math.max(pv, pr)
   const name = !hasValue
-    ? `${label}: ${messages.noData}`
+    ? `${label}: ${messages.noData ?? NO_DATA}`
     : hasReference
-      ? `${label}: ${formatMessage(messages.valueAgainst, { value: fmt(value), reference: fmt(reference) })}`
+      ? `${label}: ${formatMessage(messages.valueAgainst ?? VALUE_AGAINST, { value: fmt(value), reference: fmt(reference) })}`
       : `${label}: ${fmt(value)}`
   const style = {
     ...toneVar(tone),

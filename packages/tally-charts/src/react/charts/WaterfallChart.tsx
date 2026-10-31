@@ -15,7 +15,15 @@ import { Axis, type AxisFormat } from '../marks/Axis'
 import { Bars, type BarsProps } from '../marks/Bars'
 import { Connector, type ConnectorLink } from '../marks/Connector'
 import { RowLabels } from '../marks/RowLabels'
-import { formatMessage } from '../messages'
+import {
+  formatMessage,
+  HEADER_CHANGE,
+  HEADER_ITEM,
+  HEADER_TOTAL,
+  RUNNING_TOTAL_LABEL,
+  TOTAL,
+  WATERFALL_STEP,
+} from '../messages'
 import { Tooltip } from '../overlays/Tooltip'
 import type { TooltipSegment } from '../types'
 import {
@@ -213,7 +221,7 @@ export function WaterfallChart<S extends WaterfallStep = WaterfallStep>({
   const fmt = useMemo(() => create(format), [create, format])
   const signed = useMemo(() => create(format, { signed: true }), [create, format])
   const startValid = Number.isFinite(start.value)
-  const endLabel = end?.label ?? messages.total
+  const endLabel = end?.label ?? messages.total ?? TOTAL
 
   const rows = useMemo((): WaterfallRow<S>[] => {
     if (!startValid) return []
@@ -308,14 +316,18 @@ export function WaterfallChart<S extends WaterfallStep = WaterfallStep>({
     r.kind === 'step' && r.tone !== 'neutral' ? r.tone : undefined
   const ariaOf = (r: WaterfallRow<S>) =>
     r.kind === 'step'
-      ? formatMessage(messages.runningTotal, { label: r.label, text: r.text, total: fmt(r.to) })
+      ? formatMessage(messages.waterfallStep ?? WATERFALL_STEP, {
+          label: r.label,
+          text: r.text,
+          total: fmt(r.to),
+        })
       : `${r.label}, ${r.text}`
   const segmentsOf = (r: WaterfallRow<S>): TooltipSegment[] =>
     r.kind === 'step'
       ? [
           { value: r.label },
           { value: r.text, tone: toneOfText(r) },
-          { value: fmt(r.to), label: messages.totalRunning },
+          { value: fmt(r.to), label: messages.runningTotalLabel ?? RUNNING_TOTAL_LABEL },
         ]
       : [{ value: r.label }, { value: r.text }]
   const axisFmt: AxisFormat | undefined = axisFormat ?? format
@@ -323,9 +335,15 @@ export function WaterfallChart<S extends WaterfallStep = WaterfallStep>({
   const table: DataTableSpec<WaterfallRow<S>> | undefined = dataTable
     ? {
         columns: [
-          { header: messages.headerItem, value: (r) => r.label },
-          { header: messages.headerChange, value: (r) => (r.kind === 'step' ? r.text : '') },
-          { header: messages.headerTotal, value: (r) => (r.valid ? fmt(r.to) : '') },
+          { header: messages.headerItem ?? HEADER_ITEM, value: (r) => r.label },
+          {
+            header: messages.headerChange ?? HEADER_CHANGE,
+            value: (r) => (r.kind === 'step' ? r.text : ''),
+          },
+          {
+            header: messages.headerTotal ?? HEADER_TOTAL,
+            value: (r) => (r.valid ? fmt(r.to) : ''),
+          },
         ],
       }
     : undefined

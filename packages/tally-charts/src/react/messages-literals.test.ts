@@ -4,6 +4,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import ts from 'typescript'
 import { describe, expect, it } from 'vitest'
+import * as defaults from './messages'
 
 // Keeps `ChartsProvider messages` complete: a user-visible English literal in `react/` has to live
 // in `DEFAULT_MESSAGES`. The test walks every non-test source file and flags text that a reader or
@@ -104,8 +105,11 @@ function findLiterals(fileName: string, source: string): string[] {
       }
     }
 
+    // JSX text is always on screen, so a token-shaped word such as `<b>ok</b>` is still words.
+    if (ts.isJsxText(node) && hasLetters(node.text)) report(node, node.text)
+
     let text: string | undefined
-    if (ts.isJsxText(node) || ts.isStringLiteralLike(node) || ts.isTemplateLiteralToken(node)) {
+    if (ts.isStringLiteralLike(node) || ts.isTemplateLiteralToken(node)) {
       text = node.text
     }
     if (text !== undefined && hasLetters(text)) {
@@ -122,6 +126,60 @@ function findLiterals(fileName: string, source: string): string[] {
   }
   visit(sf)
   return [...new Set(found)]
+}
+
+const constName = (key: string) => key.replace(/[A-Z]/g, (c) => `_${c}`).toUpperCase()
+
+/**
+ * The reads of a message key in one source file. `useMessages()` holds only what the caller passed,
+ * so a read needs its own default: `messages.noData ?? NO_DATA`. TypeScript can't catch a missing
+ * one, because JSX accepts undefined. Returns the keys read, and the reads that break the rule.
+ */
+function checkMessageReads(fileName: string, source: string) {
+  const sf = ts.createSourceFile(
+    fileName,
+    source,
+    ts.ScriptTarget.Latest,
+    true,
+    fileName.endsWith('x') ? ts.ScriptKind.TSX : ts.ScriptKind.TS,
+  )
+  const keys: string[] = []
+  const problems: string[] = []
+  const isCoalesce = (node: ts.Node): node is ts.BinaryExpression =>
+    ts.isBinaryExpression(node) && node.operatorToken.kind === ts.SyntaxKind.QuestionQuestionToken
+  const isReader = (node: ts.Expression) =>
+    node.getText(sf) === 'messages' || node.getText(sf) === 'useMessages()'
+  const isHookDeps = (node: ts.Node) =>
+    ts.isArrayLiteralExpression(node.parent) &&
+    ts.isCallExpression(node.parent.parent) &&
+    /^use[A-Z]/.test(node.parent.parent.expression.getText(sf))
+
+  const visit = (node: ts.Node): void => {
+    if (ts.isPropertyAccessExpression(node) && isReader(node.expression)) {
+      const key = node.name.text
+      const line = sf.getLineAndCharacterOfPosition(node.getStart()).line + 1
+      keys.push(key)
+      // `prop ?? messages.noData ?? NO_DATA` parses as `(prop ?? messages.noData) ?? NO_DATA`.
+      const inner = isCoalesce(node.parent) && node.parent.right === node ? node.parent : node
+      const outer = inner.parent
+      const fallback = isCoalesce(outer) && outer.left === inner ? outer.right : undefined
+      if (fallback?.getText(sf) !== constName(key) && !isHookDeps(node)) {
+        problems.push(`${line}: ${key} needs \`?? ${constName(key)}\``)
+      }
+    }
+    if (
+      ts.isVariableDeclaration(node) &&
+      ts.isObjectBindingPattern(node.name) &&
+      node.initializer?.getText(sf) === 'useMessages()'
+    ) {
+      problems.push(
+        `${sf.getLineAndCharacterOfPosition(node.getStart()).line + 1}: destructured messages`,
+      )
+    }
+    ts.forEachChild(node, visit)
+  }
+  visit(sf)
+  return { keys, problems }
 }
 
 function sources(dir: string): string[] {
@@ -152,6 +210,11 @@ describe('findLiterals', () => {
     expect(find("const s = { 'aria-label': 'close' }")).toHaveLength(1)
     expect(find("const a = <b>{'ok'}</b>")).toHaveLength(1)
   })
+  it('flags a bare lowercase word, or a key name, as a JSX text child', () => {
+    expect(find('const a = <b>ok</b>')).toHaveLength(1)
+    expect(find('const a = <b>End</b>')).toHaveLength(1)
+    expect(find('const a = <b>{x}</b>')).toEqual([])
+  })
   it('flags text in a template chunk', () => {
     expect(find('const s = `${a}, plan ${b}`')).toHaveLength(1)
   })
@@ -178,5 +241,46 @@ describe('user-visible English in react/', () => {
       ),
     )
     expect(offenders, 'move these into DEFAULT_MESSAGES (react/messages.ts)').toEqual([])
+  })
+})
+
+describe('checkMessageReads', () => {
+  const problems = (code: string) => checkMessageReads('x.tsx', code).problems
+
+  it('accepts a read with its own default, after a prop or as a hook dependency', () => {
+    expect(problems('const a = messages.noData ?? NO_DATA')).toEqual([])
+    expect(problems('const a = useMessages().noData ?? NO_DATA')).toEqual([])
+    expect(problems('const a = empty ?? messages.noData ?? NO_DATA')).toEqual([])
+    expect(problems('useMemo(() => a, [messages.noData])')).toEqual([])
+  })
+  it('flags a read with no default, the wrong default or a destructured hook', () => {
+    expect(problems('const a = <b>{messages.noData}</b>')).toHaveLength(1)
+    expect(problems('const a = useMessages().noData')).toHaveLength(1)
+    expect(problems('const a = empty ?? messages.noData')).toHaveLength(1)
+    expect(problems('const a = messages.noData ?? NO_VALUE')).toHaveLength(1)
+    expect(problems('const a = [messages.noData]')).toHaveLength(1)
+    expect(problems('const { noData } = useMessages()')).toHaveLength(1)
+  })
+})
+
+describe('reads of a message key in react/', () => {
+  const checked = sources(reactDir).map((file) => ({
+    file,
+    ...checkMessageReads(file, fs.readFileSync(file, 'utf8')),
+  }))
+
+  it('each carry their own default', () => {
+    const offenders = checked.flatMap(({ file, problems }) =>
+      problems.map((p) => `${path.relative(reactDir, file)}:${p}`),
+    )
+    expect(offenders).toEqual([])
+  })
+  it('cover every key, and each default is the const named after its key', () => {
+    const read = new Set(checked.flatMap(({ keys }) => keys))
+    const all = Object.keys(defaults.DEFAULT_MESSAGES)
+    expect(all.filter((key) => !read.has(key))).toEqual([])
+    const named = defaults as unknown as Record<string, string>
+    const table = defaults.DEFAULT_MESSAGES as unknown as Record<string, string>
+    expect(all.filter((key) => named[constName(key)] !== table[key])).toEqual([])
   })
 })

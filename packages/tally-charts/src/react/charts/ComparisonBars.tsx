@@ -11,7 +11,15 @@ import { type Margin, useChartContext } from '../context'
 import type { DataTableSpec } from '../DataTable'
 import { Bars } from '../marks/Bars'
 import { RowDividers, RowLabels } from '../marks/RowLabels'
-import { formatMessage } from '../messages'
+import {
+  formatMessage,
+  HEADER_ACTUAL,
+  HEADER_DIFFERENCE,
+  HEADER_ITEM,
+  HEADER_PLAN,
+  ON_PLAN,
+  PLAN_ACTUAL,
+} from '../messages'
 import { Tooltip } from '../overlays/Tooltip'
 import type { TooltipSegment } from '../types'
 import {
@@ -305,7 +313,7 @@ export function ComparisonBars<D>({
         delta: !known
           ? ''
           : status === 'on-plan'
-            ? (onPlanLabel ?? messages.onPlan)
+            ? (onPlanLabel ?? messages.onPlan ?? ON_PLAN)
             : signed(a - p),
         deltaTone:
           status === 'on-plan'
@@ -368,7 +376,7 @@ export function ComparisonBars<D>({
   const ariaOf = (r: ComparisonRow<D>) =>
     r.status === 'unknown'
       ? r.label
-      : formatMessage(messages.planActual, {
+      : formatMessage(messages.planActual ?? PLAN_ACTUAL, {
           label: r.label,
           plan: fmt(r.plan),
           actual: fmt(r.actual),
@@ -383,10 +391,13 @@ export function ComparisonBars<D>({
   const table: DataTableSpec<ComparisonRow<D>> | undefined = dataTable
     ? {
         columns: [
-          { header: headerOf(label, messages.headerItem), value: (r) => r.label },
-          { header: headerOf(plan, messages.headerPlan), value: (r) => fmt(r.plan) },
-          { header: headerOf(actual, messages.headerActual), value: (r) => fmt(r.actual) },
-          { header: messages.headerDifference, value: (r) => r.delta },
+          { header: headerOf(label, messages.headerItem ?? HEADER_ITEM), value: (r) => r.label },
+          { header: headerOf(plan, messages.headerPlan ?? HEADER_PLAN), value: (r) => fmt(r.plan) },
+          {
+            header: headerOf(actual, messages.headerActual ?? HEADER_ACTUAL),
+            value: (r) => fmt(r.actual),
+          },
+          { header: messages.headerDifference ?? HEADER_DIFFERENCE, value: (r) => r.delta },
         ],
       }
     : undefined

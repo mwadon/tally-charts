@@ -1,4 +1,5 @@
 import { categoryCenter, categoryStep } from '../../core/scale'
+import { estimateWidth, type Tick } from '../../core/ticks'
 import { type TimeInput, toTime } from '../../core/time'
 import { DEV } from '../../core/warn'
 import { useChartContext, type ValueScale } from '../context'
@@ -18,6 +19,10 @@ export interface TargetProps {
    * Ignored, with a warning, on a linear or time scale.
    */
   position?: number
+  /**
+   * Text at the rule. On a vertical rule it sits to the right, or to the left when it wouldn't
+   * fit before the chart's right edge and does fit inside the plot on that side.
+   */
   label?: string
   labelPosition?: 'start' | 'end'
   variant?: 'line' | 'tick'
@@ -130,12 +135,16 @@ export function Target({
       </text>
     )
   } else if (label) {
+    // A label that would pass the chart's right edge moves to the other side of the rule, unless
+    // it would then leave the plot on the left, where the axis labels are.
+    const room = estimateWidth({ label } as Tick) + 6
+    const flip = pos + room > ctx.innerWidth + ctx.margin.right && pos >= room
     text = (
       <text
         data-ch-part="target-label"
-        x={pos + 6}
+        x={flip ? pos - 6 : pos + 6}
         y={atEnd ? 0 : ctx.innerHeight}
-        textAnchor="start"
+        textAnchor={flip ? 'end' : 'start'}
         dominantBaseline={atEnd ? 'hanging' : 'auto'}
       >
         {label}

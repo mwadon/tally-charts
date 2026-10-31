@@ -193,7 +193,7 @@ This covers `devices-card` and `sources-card`, and the gold peak bar in section 
 </Chart>
 ```
 
-- `y2?: ScaleSpec<D>` on `Chart`, linear only, otherwise warning `y2-scale` and no scale. With a band `y` (horizontal charts), warning `y2-orientation`. `y2` is resolved only when set, so charts without it do the same work as today.
+- `y2?: LinearScaleSpec<D>` on `Chart`, linear only (widening later is additive, narrowing would break). A JavaScript caller passing another kind gets warning `y2-scale` and no scale. With a band `y` (horizontal charts), warning `y2-orientation`. `y2` is resolved only when set, so charts without it do the same work as today.
 - `scale?: 'y' | 'y2'`, default `'y'`, on `Line`, `Area`, `Band`, `Bars`, `ValueLabel`, `Target` and `Axis`. `Grid` stays on `y`.
 - `scale="y2"` with no `y2` on the chart: warning `y2-missing`, the mark draws nothing.
 - Implement this with one internal helper that gives a mark its context with `y` swapped for `y2`, so that the marks' geometry code doesn't fork. Field fallback comes from the chosen scale.

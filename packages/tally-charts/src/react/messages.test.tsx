@@ -2,7 +2,7 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { thresholds } from '../core/thresholds'
 import { Chart } from './Chart'
-import { ChartsProvider, useMessages } from './ChartsProvider'
+import { ChartsProvider } from './ChartsProvider'
 import { BarChart } from './charts/BarChart'
 import { BridgeChart } from './charts/BridgeChart'
 import { ComparisonBars } from './charts/ComparisonBars'
@@ -35,52 +35,56 @@ describe('formatMessage', () => {
   })
 })
 
-describe('useMessages', () => {
-  function Probe() {
-    const m = useMessages()
-    return <span>{m === DEFAULT_MESSAGES ? 'same' : 'other'}</span>
-  }
-  it('returns DEFAULT_MESSAGES itself without a prop', () => {
-    render(
-      <ChartsProvider>
-        <Probe />
-      </ChartsProvider>,
-    )
-    expect(screen.getByText('same')).toBeInTheDocument()
-  })
+describe('nested ChartsProvider', () => {
+  // Reads noData and targetLabel, through a real component.
+  const probe = (
+    <>
+      <InlineBar value={Number.NaN} max={10} label="i" />
+      <Meter value={3} target={5} label="m" />
+    </>
+  )
+  const noData = () => screen.getByRole('img').getAttribute('aria-label')
+  const targetLabel = (container: HTMLElement) =>
+    container.querySelector('[data-ch-part="meter-target-label"]')?.textContent
+
   it('keeps the default of a key whose value is undefined', () => {
-    function Noun() {
-      const m = useMessages()
-      return (
-        <span>
-          {m.noData}|{m.now}
-        </span>
-      )
-    }
-    render(
-      <ChartsProvider messages={{ noData: undefined, now: 'Teraz' }}>
-        <Noun />
+    const { container } = render(
+      <ChartsProvider messages={{ noData: undefined, targetLabel: 'Cel {value}' }}>
+        {probe}
       </ChartsProvider>,
     )
-    expect(screen.getByText('No data|Teraz')).toBeInTheDocument()
+    expect(noData()).toBe('i: No data')
+    expect(targetLabel(container)).toBe('Cel 5')
   })
-  it('a nested provider replaces its parent, not merges', () => {
-    function Noun() {
-      const m = useMessages()
-      return (
-        <span>
-          {m.noData}|{m.now}
-        </span>
-      )
-    }
-    render(
-      <ChartsProvider messages={{ noData: 'A', now: 'Teraz' }}>
-        <ChartsProvider messages={{ noData: 'B' }}>
-          <Noun />
+  it('one with the prop replaces its parent: keys it leaves out go back to English', () => {
+    const { container } = render(
+      <ChartsProvider messages={{ noData: 'A', targetLabel: 'Cel {value}' }}>
+        <ChartsProvider messages={{ noData: 'B' }}>{probe}</ChartsProvider>
+      </ChartsProvider>,
+    )
+    expect(noData()).toBe('i: B')
+    expect(targetLabel(container)).toBe('Target 5')
+  })
+  it('one without the prop inherits its parent, and can still change the currency', () => {
+    const { container } = render(
+      <ChartsProvider messages={{ noData: 'A', targetLabel: 'Cel {value}' }}>
+        <ChartsProvider currency="EUR">
+          {probe}
+          <Meter value={3} target={5} format="currency" label="c" />
         </ChartsProvider>
       </ChartsProvider>,
     )
-    expect(screen.getByText('B|Now')).toBeInTheDocument()
+    expect(noData()).toBe('i: A')
+    const labels = container.querySelectorAll('[data-ch-part="meter-target-label"]')
+    expect([...labels].map((l) => l.textContent)).toEqual(['Cel 5', 'Cel €5'])
+  })
+  it('an empty messages object is a replacement too', () => {
+    render(
+      <ChartsProvider messages={{ noData: 'A' }}>
+        <ChartsProvider messages={{}}>{probe}</ChartsProvider>
+      </ChartsProvider>,
+    )
+    expect(noData()).toBe('i: No data')
   })
 })
 
@@ -402,8 +406,8 @@ describe('other translated text', () => {
   const pl = {
     deltaUp: 'W górę',
     onPlan: 'Zgodnie z planem',
-    runningTotal: '{label}: {text} (razem {total})',
-    totalRunning: 'razem',
+    waterfallStep: '{label}: {text} (razem {total})',
+    runningTotalLabel: 'razem',
     planActual: '{label}: plan {plan}, wykonanie {actual}',
     binUnder: 'Poniżej {value}',
     binRange: '{from} do {to}',

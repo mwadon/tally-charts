@@ -1,6 +1,6 @@
 import { render, screen } from '@testing-library/react'
 import { renderToString } from 'react-dom/server'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { Sparkline } from './Sparkline'
 
 const part = (c: HTMLElement, name: string) => c.querySelector(`[data-ch-part="${name}"]`)
@@ -57,10 +57,27 @@ describe('<Sparkline>', () => {
     expect(part(container, 'sparkline-endpoint')).toHaveStyle({ top: '50%' })
   })
 
-  it('draws one value as a dot only', () => {
+  it('draws one value as a zero-length subpath, which a round cap shows as a dot', () => {
     const { container } = render(<Sparkline values={[7]} label="c" endpoint />)
-    expect(part(container, 'sparkline-line')).toBeNull()
+    expect(part(container, 'sparkline-line')?.getAttribute('d')).toBe('M50,50h0')
     expect(part(container, 'sparkline-endpoint')).toHaveStyle({ left: '50%', top: '50%' })
+  })
+
+  it('draws every isolated value, alone or next to a longer run', () => {
+    const d = (values: (number | null)[]) =>
+      part(
+        render(<Sparkline values={values} label="c" />).container,
+        'sparkline-line',
+      )?.getAttribute('d')
+    expect(d([1, null, 3, null, 5])).toBe('M0,92h0M50,50h0M100,8h0')
+    expect(d([1, 2, null, 4])).toBe('M0,92L33.33,64M100,8h0')
+    expect(d([null, 2, null])).toBe('M50,50h0')
+  })
+
+  it('gives an isolated value no area', () => {
+    const { container } = render(<Sparkline values={[1, null, 3]} area label="c" />)
+    expect(part(container, 'sparkline-area')).toBeNull()
+    expect(part(container, 'sparkline-line')).not.toBeNull()
   })
 
   it('names the empty state and draws only the box', () => {
@@ -79,6 +96,45 @@ describe('<Sparkline>', () => {
     )
     expect(part(container, 'sparkline-line')?.getAttribute('d')).toBe('M0,92L50,50L100,8')
     expect(container.innerHTML).not.toContain('NaN')
+  })
+
+  it('maps a reversed domain as given, so its first value sits at the bottom', () => {
+    const { container } = render(
+      <Sparkline values={[1, 10]} domain={[10, 1]} target={4} endpoint label="c" />,
+    )
+    expect(part(container, 'sparkline-line')?.getAttribute('d')).toBe('M0,8L100,92')
+    expect(part(container, 'sparkline-endpoint')).toHaveStyle({ left: '100%', top: '92%' })
+    expect(part(container, 'sparkline-target')).toHaveAttribute('y1', '36')
+  })
+
+  it('clamps between the ends of a reversed domain', () => {
+    const { container } = render(<Sparkline values={[20, 0]} domain={[10, 1]} label="c" />)
+    expect(part(container, 'sparkline-line')?.getAttribute('d')).toBe('M0,92L100,8')
+  })
+
+  it('refuses a target outside an explicit domain, with one warning', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    for (const domain of [
+      [0, 5],
+      [5, 0],
+    ] as const) {
+      const { container } = render(
+        <Sparkline values={[1, 2]} domain={domain} target={9} label="c" />,
+      )
+      expect(part(container, 'sparkline-target')).toBeNull()
+      expect(part(container, 'sparkline-line')).not.toBeNull()
+    }
+    expect(warn).toHaveBeenCalledTimes(1)
+    expect(warn.mock.calls[0]?.[0]).toContain('Sparkline target 9 is outside the domain')
+    warn.mockRestore()
+  })
+
+  it('draws a target on the edge of an explicit domain, with no warning', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const { container } = render(<Sparkline values={[1, 2]} domain={[5, 0]} target={5} label="c" />)
+    expect(part(container, 'sparkline-target')).toHaveAttribute('y1', '92')
+    expect(warn).not.toHaveBeenCalled()
+    warn.mockRestore()
   })
 
   it('keeps NaN out of the markup for odd input', () => {
