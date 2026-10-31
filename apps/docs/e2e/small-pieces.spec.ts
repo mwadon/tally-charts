@@ -21,16 +21,17 @@ test('/docs/small-pieces is a page, and the sidebar links to it', async ({ page 
   await expect(nav.locator('.nav-soon', { hasText: 'Small pieces' })).toHaveCount(0)
 })
 
-test('/docs/small-pieces has a props table for each of the ten pieces', async ({ page }) => {
+test('/docs/small-pieces has a props table for each of the eleven pieces', async ({ page }) => {
   await page.goto('/docs/small-pieces')
 
   const regions = page.getByRole('region', { name: /^Props of / })
-  await expect(regions).toHaveCount(10)
+  await expect(regions).toHaveCount(11)
   for (const name of [
     'Stat',
     'Delta',
     'InlineBar',
     'DotCount',
+    'Sparkline',
     'Meter',
     'RangeMeter',
     'ZoneMeter',

@@ -1,5 +1,15 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
-import { Delta, DotCount, fmt, InlineBar, ShareBar, thresholds, ZoneMeter } from 'tally-charts'
+import {
+  Delta,
+  DotCount,
+  fmt,
+  InlineBar,
+  ShareBar,
+  Sparkline,
+  Stat,
+  thresholds,
+  ZoneMeter,
+} from 'tally-charts'
 
 // Table margin cells (02), job counts (05), change pills (01, 05, 06, 07), and parts of a whole and zones (09).
 const margins = [6.1, 7.7, 8.8, 12.3, 16.4, 19.8, 22.0]
@@ -164,6 +174,58 @@ function NestedDarkStory() {
   )
 }
 
+// Sparklines at three container widths: the endpoint must stay round and sit on the line's end.
+// e2e/sparkline.spec.ts measures it; the baseline covers the look.
+const trend = [212, 240, 228, 265, 301, 288, 320, 344, 331, 372, 398, 421]
+
+function SparklineStory() {
+  return (
+    <div className="card piece-grid">
+      <div style={{ width: 240, maxWidth: '100%' }}>
+        <Stat
+          label="Clicks"
+          value={421}
+          delta={<Delta value={12.5} format={{ preset: 'percent', digits: 1 }} />}
+        />
+        <Sparkline
+          values={trend}
+          label="Clicks, last 12 days"
+          tone="gain"
+          area
+          endpoint
+          height={36}
+        />
+      </div>
+      {[120, 240, 400].map((w) => (
+        <div key={w} data-testid={`sparkline-${w}`} style={{ width: w, maxWidth: '100%' }}>
+          <span className="piece-label">Clicks, {w}px wide</span>
+          <Sparkline values={trend} label={`Clicks at ${w}px`} tone="gain" area endpoint />
+        </div>
+      ))}
+      <div style={{ width: 240, maxWidth: '100%' }}>
+        <span className="piece-label">Refunds, a gap and a target</span>
+        <Sparkline
+          values={[14, 12, 15, 11, null, 9, 10, 8, 9, 7, 8, 6]}
+          label="Refunds with a gap"
+          tone="loss"
+          endpoint
+          target={10}
+          domain={[0, 16]}
+          height={40}
+        />
+      </div>
+      <div style={{ width: 240, maxWidth: '100%' }}>
+        <span className="piece-label">Flat</span>
+        <Sparkline values={[5, 5, 5, 5]} label="Flat" endpoint />
+      </div>
+      <div style={{ width: 240, maxWidth: '100%' }}>
+        <span className="piece-label">No data yet</span>
+        <Sparkline values={[null, null]} label="Nothing yet" />
+      </div>
+    </div>
+  )
+}
+
 const meta = {
   title: 'Primitives/Small pieces',
   component: SmallPieces,
@@ -173,6 +235,8 @@ export default meta
 type Story = StoryObj<typeof meta>
 
 export const Default: Story = {}
+
+export const Sparklines: Story = { render: () => <SparklineStory /> }
 
 export const EdgeCases: Story = { render: () => <EdgeCasesStory /> }
 

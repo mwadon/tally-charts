@@ -1105,6 +1105,51 @@
   background: color-mix(in srgb, var(--_ch-swatch-color) 45%, transparent);
 }
 
+/* ---------- Sparkline ---------- */
+/* A 100 x 100 drawing stretched over the root, so strokes are non-scaling; the endpoint is HTML
+   because the stretch would turn an SVG circle into an ellipse. */
+[data-ch-part="sparkline"] {
+  position: relative;
+  display: block;
+  min-width: 0;
+}
+
+[data-ch-part="sparkline"] > svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+[data-ch-part="sparkline-line"] {
+  fill: none;
+  stroke: var(--_ch-swatch-color);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+[data-ch-part="sparkline-area"] {
+  fill: color-mix(in srgb, var(--_ch-swatch-color) 18%, transparent);
+  stroke: none;
+}
+
+[data-ch-part="sparkline-target"] {
+  stroke: var(--ch-ink);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+
+[data-ch-part="sparkline-endpoint"] {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  margin: -4px 0 0 -4px;
+  border-radius: 50%;
+  background: var(--_ch-swatch-color);
+  box-shadow: 0 0 0 2px var(--ch-surface);
+}
+
 /* ---------- Heatmap ---------- */
 [data-ch-part="heatmap"] {
   display: grid;
@@ -1576,6 +1621,22 @@
   [data-ch-part="zone-meter-zone"],
   [data-ch-part="dot-count-dot"] {
     forced-color-adjust: none;
+  }
+
+  [data-ch-part="sparkline-line"],
+  [data-ch-part="sparkline-target"],
+  [data-ch-part="sparkline-area"],
+  [data-ch-part="sparkline-endpoint"] {
+    forced-color-adjust: none;
+  }
+
+  [data-ch-part="sparkline-area"] {
+    fill: GrayText;
+    fill-opacity: 0.25;
+  }
+
+  [data-ch-part="sparkline-endpoint"] {
+    box-shadow: 0 0 0 2px Canvas;
   }
 
   [data-ch-part="zone-meter-marker"] {

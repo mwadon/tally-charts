@@ -101,6 +101,14 @@ export default [
     gzip: true,
   },
   {
+    name: 'Sparkline',
+    path: 'dist/index.js',
+    import: '{ Sparkline }',
+    ignore: ['react', 'react-dom'],
+    limit: '3 KB',
+    gzip: true,
+  },
+  {
     name: 'RunwayChart',
     path: 'dist/index.js',
     import: '{ RunwayChart }',

@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { version } from 'react'
 import { renderToString } from 'react-dom/server'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import {
   DrillColumn,
   EstimateVsActual,
@@ -18,6 +18,7 @@ import {
 } from '../test/fixtures'
 import { Chart } from './react/Chart'
 import { RunwayChart } from './react/charts/RunwayChart'
+import { Sparkline } from './react/ui/Sparkline'
 
 describe('server rendering', () => {
   it('renders the 0.3 charts without a DOM, deterministically', () => {
@@ -155,5 +156,22 @@ describe('server rendering', () => {
     )
     expect(html).toContain('data-ch-layout="columns"')
     expect(html).toContain('data-ch-part="data-table"')
+  })
+
+  it('renders a Sparkline without a DOM, deterministically and without effect warnings', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const el = (
+      <Sparkline values={[3, 5, null, 8, 6]} label="Clicks" area endpoint target={4} height={32} />
+    )
+    const html = renderToString(el)
+    expect(html).toBe(renderToString(el))
+    expect(html).not.toContain('NaN')
+    expect(html).toContain('data-ch-part="sparkline-endpoint"')
+    expect(html).not.toContain('<circle')
+    expect(warn).not.toHaveBeenCalled()
+    expect(error).not.toHaveBeenCalled()
+    warn.mockRestore()
+    error.mockRestore()
   })
 })

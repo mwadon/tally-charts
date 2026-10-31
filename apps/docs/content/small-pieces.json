@@ -14,14 +14,14 @@
   "slug": "small-pieces",
   "seo": {
     "metaTitle": "Small pieces · tally-charts",
-    "metaDescription": "Stat, Delta, Meter, RangeMeter, ZoneMeter, InlineBar, DotCount, ShareBar, Legend and TooltipPill: the HTML pieces around your charts."
+    "metaDescription": "Stat, Delta, Meter, RangeMeter, ZoneMeter, InlineBar, DotCount, Sparkline, ShareBar, Legend and TooltipPill: the HTML pieces around your charts."
   },
   "componentTree": [
     {
       "id": "n1",
       "type": "prose",
       "props": {
-        "markdown": "The small pieces are the numbers and meters around your charts: a headline figure, a progress bar, a count of dots, a legend. They are plain HTML and CSS with no `<svg>`, they read the same `--ch-*` tokens as the charts, and you can use them anywhere on a page, in a table cell or a dashboard card, without a `Chart` around them."
+        "markdown": "The small pieces are the numbers and meters around your charts: a headline figure, a progress bar, a count of dots, a legend. They are plain HTML and CSS (`Sparkline` is the one exception, a single stretched `<svg>`), they read the same `--ch-*` tokens as the charts, and you can use them anywhere on a page, in a table cell or a dashboard card, without a `Chart` around them."
       }
     },
     {
@@ -67,6 +67,22 @@
       "type": "prose",
       "props": {
         "markdown": "Colored text in the small pieces, such as a toned value, mixes the tone with `--ch-ink` so that it stays readable. `--ch-tone-text-mix` is the share of the tone in that mix, 55% by default; see [Theming](/docs/theming)."
+      }
+    },
+    {
+      "id": "n32",
+      "type": "prose",
+      "props": {
+        "markdown": "`Sparkline` is a line of values for a KPI row or a table cell. It has no axes, no tooltip and no tab stop, and it fills the width of its container at a fixed `height` (28 px by default). A `null` breaks the line, `area` adds a soft fill, `target` draws a thin rule and `endpoint` puts a dot on the last value. The dot is an HTML element positioned in percent, so it stays round at any width. Without `domain` the scale spans the values and the target, and a flat series sits at mid height. With no value at all, the accessible name becomes `label: No data`."
+      }
+    },
+    {
+      "id": "n33",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "small-pieces/sparkline",
+        "defaultView": "preview",
+        "height": 452
       }
     },
     {
@@ -145,7 +161,7 @@
       "type": "callout",
       "props": {
         "tone": "info",
-        "markdown": "**No `<svg>` in these.** The small pieces are built from `div` and `span` elements, so they work in any layout, print cleanly and need no size. Only a chart needs a width and a height."
+        "markdown": "**Almost no `<svg>` in these.** The small pieces are built from `div` and `span` elements, so they work in any layout, print cleanly and need no size. `Sparkline` draws one `<svg>` that fills its container, so it needs a box with a width, but it never measures it. Only a chart needs a width and a height."
       }
     },
     {
@@ -192,6 +208,13 @@
       "type": "props-table",
       "props": {
         "symbol": "DotCount"
+      }
+    },
+    {
+      "id": "n34",
+      "type": "props-table",
+      "props": {
+        "symbol": "Sparkline"
       }
     },
     {

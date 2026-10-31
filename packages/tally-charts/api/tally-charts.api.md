@@ -1119,6 +1119,23 @@ export interface ShareSegment {
 }
 
 // @public
+export function Sparkline(input: SparklineProps): JSX.Element;
+
+// @public (undocumented)
+export interface SparklineProps {
+    area?: boolean;
+    // (undocumented)
+    className?: string;
+    domain?: readonly [number, number];
+    endpoint?: boolean;
+    height?: number;
+    label: string;
+    target?: number;
+    tone?: Tone;
+    values: readonly (number | null)[];
+}
+
+// @public
 export function Stat(input: StatProps): JSX.Element;
 
 // @public (undocumented)

@@ -22,6 +22,7 @@ export const STORIES = [
   'reference-gross-margin--dark',
   'primitives-small-pieces--default',
   'primitives-small-pieces--edge-cases',
+  'primitives-small-pieces--sparklines',
   'reference-why-it-is-under-target--light',
   'reference-why-it-is-under-target--dark',
   'reference-profit-bridge--light',
@@ -83,6 +84,7 @@ export const THEMELESS = new Set([
   'primitives-legend--default',
   'charts-barchart--horizontal',
   'primitives-small-pieces--default',
+  'primitives-small-pieces--sparklines',
   'reference-last-12-weeks--selectable',
 ])
 

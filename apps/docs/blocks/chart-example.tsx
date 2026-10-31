@@ -49,6 +49,7 @@ const NARROW_CHART_HEIGHTS: Readonly<Record<string, number>> = {
   'dot-histogram/invoice-days-overdue': 269,
   'heatmap/trial-conversion': 399,
   'runway-chart/gpu-budgets': 574,
+  'small-pieces/sparkline': 595,
 }
 
 /**

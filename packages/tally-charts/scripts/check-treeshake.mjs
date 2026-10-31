@@ -41,10 +41,12 @@ const FORBID = {
       'DotCount',
       'ShareBar',
       'ZoneMeter',
+      'Sparkline',
     ].map((piece) => `src/react/ui/${piece}.tsx`),
     'src/react/ui/share.ts',
   ],
   'Small UI pieces': NO_CHART_PARTS,
+  Sparkline: NO_CHART_PARTS,
   Stat: NO_CHART_PARTS,
 }
 
