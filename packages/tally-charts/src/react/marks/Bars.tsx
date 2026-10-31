@@ -4,7 +4,7 @@ import { type BarAlign, computeBars } from '../../core/bars'
 import type { FormatSpec } from '../../core/format'
 import type { Accessor, Fill, Id, PerItem, Tone } from '../../core/types'
 import { DEV } from '../../core/warn'
-import { paintFor } from '../../theme/patterns'
+import { type Paint, paintFor } from '../../theme/patterns'
 import { useChartContext } from '../context'
 import type { ChartPoint, TooltipSegment } from '../types'
 import { useRegisterPoints } from '../useRegisterPoints'
@@ -19,6 +19,13 @@ export interface BarsProps<D> {
   id?: Accessor<D, Id>
   tone?: PerItem<D, Tone>
   fill?: PerItem<D, Fill>
+  /**
+   * Any CSS color, including `var(--x)`, replacing the tone's paint; `tone` stays as the semantic
+   * name. Applies only to bars with `fill="solid"`: hatched bars paint from one pattern per tone,
+   * so they keep the tone and warn in development. Contrast in light and dark is up to you:
+   * `var(--x)` is the way to follow a theme. Forced-colors mode still uses system colors.
+   */
+  color?: PerItem<D, string | undefined>
   /** Corner radius in px. Default: the `--ch-radius` token (3px). */
   radius?: number
   /** Value format for tooltips and announcements. Default 'number'. */
@@ -111,6 +118,7 @@ export function Bars<D>(props: BarsProps<D>) {
 
   const toneOf = resolvePerItem<D, Tone>(props.tone ?? 'accent')
   const fillOf = resolvePerItem<D, Fill>(props.fill ?? 'solid')
+  const colorOf = props.color === undefined ? undefined : resolvePerItem(props.color)
   const vertical = layout.orientation === 'vertical'
   const radius = props.radius ?? ctx.radius
   const corner = (w: number, h: number) => Math.max(0, Math.min(radius, w / 2, h / 2))
@@ -123,7 +131,15 @@ export function Bars<D>(props: BarsProps<D>) {
         const datum = bar.datum as D
         const tone = toneOf(datum, bar.index, data)
         const fill = fillOf(datum, bar.index, data)
-        const paint = paintFor(ctx.chartId, tone, fill, bar.dir)
+        const color = colorOf?.(datum, bar.index, data)
+        if (DEV && color && fill !== 'solid') {
+          ctx.warn(
+            'bars-color-fill',
+            'Bars `color` only applies to fill="solid"; hatched bars keep their tone.',
+          )
+        }
+        const custom = color && fill === 'solid' ? color : undefined
+        const paint: Paint = custom ? { fill: custom } : paintFor(ctx.chartId, tone, fill, bar.dir)
         const active = bar.id === ctx.activeId
         // Geometry is also set as CSS so browsers that support it can transition x/y/width/height.
         const style = {
@@ -134,7 +150,9 @@ export function Bars<D>(props: BarsProps<D>) {
           fill: paint.fill,
           mask: paint.mask,
           // The tone, for the outline theme.css draws on hatched and soft bars.
-          '--_ch-swatch-color': `var(--ch-${tone})`,
+          '--_ch-swatch-color': custom ?? `var(--ch-${tone})`,
+          // Forced colors can't see a custom color; theme.css falls back to the tone's.
+          ...(custom ? { '--_ch-tone-paint': `var(--ch-${tone})` } : {}),
         } as CSSProperties
         const track = vertical
           ? { x: bar.x, y: 0, width: bar.width, height: ctx.innerHeight }
@@ -152,6 +170,7 @@ export function Bars<D>(props: BarsProps<D>) {
               data-ch-part="bar"
               data-ch-tone={tone}
               data-ch-fill={fill}
+              data-ch-colored={custom ? 'true' : undefined}
               data-ch-direction={bar.dir}
               data-ch-active={active ? 'true' : undefined}
               data-ch-dimmed={dimming && !active ? 'true' : undefined}

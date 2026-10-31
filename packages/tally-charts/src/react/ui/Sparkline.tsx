@@ -13,7 +13,10 @@ export interface SparklineProps {
   tone?: Tone
   /** Fills under the line. Default false. */
   area?: boolean
-  /** A dot on the last valid value. Default false. */
+  /**
+   * A dot on the last valid value. Default false. At the right edge the dot overhangs the box by
+   * about 6 px, so an `overflow: hidden` ancestor can clip it.
+   */
   endpoint?: boolean
   /** Draws a thin rule at this value. */
   target?: number

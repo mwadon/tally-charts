@@ -113,4 +113,13 @@ describe('shareLayout', () => {
       'ShareBar total Infinity is not a finite number; the sum is used.',
     )
   })
+
+  it('passes `color` on to the part, and leaves it out otherwise', () => {
+    const { parts } = shareLayout([
+      { label: 'A', value: 1, color: '#fc0' },
+      { label: 'B', value: 1 },
+    ])
+    expect(parts[0]?.color).toBe('#fc0')
+    expect(parts[1]).not.toHaveProperty('color')
+  })
 })

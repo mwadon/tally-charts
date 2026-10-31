@@ -1,12 +1,16 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
 import {
+  Bars,
+  Chart,
   Delta,
   DotCount,
   fmt,
   InlineBar,
+  Legend,
   ShareBar,
   Sparkline,
   Stat,
+  Tooltip,
   thresholds,
   ZoneMeter,
 } from 'tally-charts'
@@ -226,6 +230,37 @@ function SparklineStory() {
   )
 }
 
+// `color` on a share bar, a legend and solid bars. A forced-colors e2e checks that system colors win.
+const channels = [
+  { label: 'Search', value: 5120, tone: 'accent', color: '#4285f4' },
+  { label: 'Social', value: 2380, tone: 'accent-soft', color: '#e1306c' },
+  { label: 'Email', value: 1460, tone: 'warn', color: 'var(--ch-gain)' },
+  { label: 'Ads', value: 980, tone: 'neutral', fill: 'hatch', color: '#fc0' },
+] as const
+
+function ColorsStory() {
+  return (
+    <div className="card piece-grid">
+      <ShareBar label="Visits by source" segments={channels} />
+      <Legend
+        items={channels.map((c) => ({ label: c.label, tone: c.tone, color: c.color }))}
+        shape="dot"
+      />
+      <Chart
+        data={channels}
+        x={{ type: 'band', field: 'label', padding: 0.3 }}
+        y={{ field: 'value' }}
+        height={160}
+        title="Visits by source"
+        animate={false}
+      >
+        <Bars<(typeof channels)[number]> id="label" tone="accent" color={(d) => d.color} />
+        <Tooltip />
+      </Chart>
+    </div>
+  )
+}
+
 const meta = {
   title: 'Primitives/Small pieces',
   component: SmallPieces,
@@ -237,6 +272,8 @@ type Story = StoryObj<typeof meta>
 export const Default: Story = {}
 
 export const Sparklines: Story = { render: () => <SparklineStory /> }
+
+export const Colors: Story = { render: () => <ColorsStory /> }
 
 export const EdgeCases: Story = { render: () => <EdgeCasesStory /> }
 

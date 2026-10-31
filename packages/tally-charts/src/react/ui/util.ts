@@ -12,6 +12,8 @@ export function cx(base: string, extra?: string): string {
 }
 
 /** Points the private `--_ch-swatch-color` at a tone, so CSS can paint fills and tinted text with it. */
-export function toneVar(tone: Tone): CSSProperties {
-  return { '--_ch-swatch-color': `var(--ch-${tone})` } as CSSProperties
+export function toneVar(tone: Tone, color?: string): CSSProperties {
+  // Forced colors can't see a custom color, so the tone stays on hand for theme.css to fall back to.
+  if (!color) return { '--_ch-swatch-color': `var(--ch-${tone})` } as CSSProperties
+  return { '--_ch-swatch-color': color, '--_ch-tone-paint': `var(--ch-${tone})` } as CSSProperties
 }

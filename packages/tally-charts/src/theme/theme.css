@@ -1623,6 +1623,15 @@
     forced-color-adjust: none;
   }
 
+  /* A custom `color` is not a system color: fall back to the tone's, which the tokens above map. */
+  [data-ch-colored="true"] {
+    --_ch-swatch-color: var(--_ch-tone-paint) !important;
+  }
+
+  [data-ch-part="bar"][data-ch-colored="true"] {
+    fill: var(--_ch-tone-paint) !important;
+  }
+
   [data-ch-part="sparkline-line"],
   [data-ch-part="sparkline-target"],
   [data-ch-part="sparkline-area"],

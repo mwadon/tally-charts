@@ -8,6 +8,7 @@ import {
   Legend,
   Line,
   NearestPointer,
+  ShareBar,
   Tooltip,
   TooltipPill,
 } from 'tally-charts'
@@ -33,6 +34,15 @@ const months: Month[] = [
   { month: 'May', orders: 475, plan: 470 },
   { month: 'Jun', orders: 540, plan: 490 },
 ]
+
+// Traffic by source. The tones stay the semantic default; `color` paints a brand's own color.
+// Contrast in light and dark is up to you, and `var(--x)` is how a color follows a theme.
+const sources = [
+  { label: 'Search', value: 5120, tone: 'accent', color: '#4285f4' },
+  { label: 'Social', value: 2380, tone: 'accent-soft', color: '#e1306c' },
+  { label: 'Email', value: 1460, tone: 'warn', color: 'var(--ch-gain)' },
+  { label: 'Direct', value: 980, tone: 'neutral' },
+] as const
 
 // `Tooltip content` is a function, so this file is a client file. Legend and TooltipPill are
 // plain HTML: Legend sits beside the chart, TooltipPill is what the tooltip shows.
@@ -80,6 +90,7 @@ export default function LegendAndTooltip() {
           }}
         />
       </Chart>
+      <ShareBar label="Visits by source" segments={sources} />
     </div>
   )
 }

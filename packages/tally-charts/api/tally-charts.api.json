@@ -2011,6 +2011,38 @@
             },
             {
               "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!BarsProps#color:member",
+              "docComment": "/**\n * Any CSS color, including `var(--x)`, replacing the tone's paint; `tone` stays as the semantic\n * name. Applies only to bars with `fill=\"solid\"`: hatched bars paint from one pattern per tone,\n * so they keep the tone and warn in development. Contrast in light and dark is up to you:\n * `var(--x)` is the way to follow a theme. Forced-colors mode still uses system colors.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "color?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "PerItem",
+                  "canonicalReference": "tally-charts!PerItem:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<D, string | undefined>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "color",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              }
+            },
+            {
+              "kind": "PropertySignature",
               "canonicalReference": "tally-charts!BarsProps#data:member",
               "docComment": "/**\n * Defaults to <Chart data>.\n */\n",
               "excerptTokens": [
@@ -10417,6 +10449,33 @@
           "members": [
             {
               "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!LegendItem#color:member",
+              "docComment": "/**\n * Any CSS color, including `var(--x)`, replacing the tone's paint on the swatch; `tone` stays as\n * the semantic name. Ignored when `level` is set. Contrast in light and dark is up to you:\n * `var(--x)` is the way to follow a theme. Forced-colors mode still uses system colors.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "color?: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "color",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
               "canonicalReference": "tally-charts!LegendItem#count:member",
               "docComment": "",
               "excerptTokens": [
@@ -16235,6 +16294,33 @@
           "members": [
             {
               "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!ShareSegment#color:member",
+              "docComment": "/**\n * Any CSS color, including `var(--x)`, replacing the tone's paint on the bar and in the list;\n * `tone` stays as the semantic name. Contrast in light and dark is up to you: `var(--x)` is the\n * way to follow a theme. Forced-colors mode still uses system colors.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "color?: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "color",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
               "canonicalReference": "tally-charts!ShareSegment#fill:member",
               "docComment": "/**\n * Default 'solid'.\n */\n",
               "excerptTokens": [
@@ -16530,7 +16616,7 @@
             {
               "kind": "PropertySignature",
               "canonicalReference": "tally-charts!SparklineProps#endpoint:member",
-              "docComment": "/**\n * A dot on the last valid value. Default false.\n */\n",
+              "docComment": "/**\n * A dot on the last valid value. Default false. At the right edge the dot overhangs the box by\n * about 6 px, so an `overflow: hidden` ancestor can clip it.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",

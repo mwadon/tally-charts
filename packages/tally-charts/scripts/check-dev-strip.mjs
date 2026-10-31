@@ -48,6 +48,7 @@ const phrases = [
   'Target position ',
   '`position` only applies on a band or point scale',
   'Target value',
+  'Bars `color` only applies',
   'skipped an x value that is not a date',
   'skipped a date outside the x domain',
   'has no valid dates',

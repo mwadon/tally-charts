@@ -142,4 +142,31 @@ describe('<ShareBar>', () => {
     expect(container.querySelectorAll('[data-ch-part="share-segment"]')).toHaveLength(1)
     expect(screen.queryByText('No data')).toBeNull()
   })
+
+  it('paints a segment and its swatch with `color`, in solid and hatch, and keeps the tone', () => {
+    const { container } = render(
+      <ShareBar
+        label="Sources"
+        segments={[
+          { label: 'Search', value: 3, tone: 'accent', color: 'var(--brand)' },
+          { label: 'Ads', value: 2, tone: 'warn', fill: 'hatch', color: '#fc0' },
+          { label: 'Direct', value: 1, tone: 'neutral' },
+        ]}
+      />,
+    )
+    const segs = container.querySelectorAll<HTMLElement>('[data-ch-part="share-segment"]')
+    const swatches = container.querySelectorAll<HTMLElement>('[data-ch-part="share-swatch"]')
+    for (const [i, color] of [
+      [0, 'var(--brand)'],
+      [1, '#fc0'],
+    ] as const) {
+      expect(segs[i]?.style.getPropertyValue('--_ch-swatch-color')).toBe(color)
+      expect(swatches[i]?.style.getPropertyValue('--_ch-swatch-color')).toBe(color)
+      expect(segs[i]).toHaveAttribute('data-ch-colored', 'true')
+    }
+    expect(segs[0]).toHaveAttribute('data-ch-tone', 'accent')
+    expect(segs[1]).toHaveAttribute('data-ch-fill', 'hatch')
+    expect(segs[2]?.style.getPropertyValue('--_ch-swatch-color')).toBe('var(--ch-neutral)')
+    expect(segs[2]).not.toHaveAttribute('data-ch-colored')
+  })
 })

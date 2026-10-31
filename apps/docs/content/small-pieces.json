@@ -73,7 +73,7 @@
       "id": "n32",
       "type": "prose",
       "props": {
-        "markdown": "`Sparkline` is a line of values for a KPI row or a table cell. It has no axes, no tooltip and no tab stop, and it fills the width of its container at a fixed `height` (28 px by default). A `null` breaks the line, `area` adds a soft fill, `target` draws a thin rule and `endpoint` puts a dot on the last value. The dot is an HTML element positioned in percent, so it stays round at any width. Without `domain` the scale spans the values and the target, and a flat series sits at mid height. With no value at all, the accessible name becomes `label: No data`."
+        "markdown": "`Sparkline` is a line of values for a KPI row or a table cell. It has no axes, no tooltip and no tab stop, and it fills the width of its container at a fixed `height` (28 px by default). A `null` breaks the line, `area` adds a soft fill, `target` draws a thin rule and `endpoint` puts a dot on the last value. The dot is an HTML element positioned in percent, so it stays round at any width. It overhangs the box by about 6 px at the right edge, so an `overflow: hidden` ancestor can clip it. Without `domain` the scale spans the values and the target, and a flat series sits at mid height. With no value at all, the accessible name becomes `label: No data`."
       }
     },
     {
@@ -121,7 +121,7 @@
       "id": "n30",
       "type": "prose",
       "props": {
-        "markdown": "`ShareBar` draws one bar split by `value / total`, in the order of `segments`, with a list of the parts underneath (\"2,711 · 46%\"). `legendValue` is `'both'`, `'value'` or `'percent'`, and `legend={false}` keeps only the bar. A `total` larger than the sum of the parts leaves the rest as empty track.\n\n- The percents in the list add up to 100.\n- A part that rounds to 0% reads \"<1%\" and stays visible in the bar as a 3px sliver.\n- Segments without a `tone` take `accent`, `accent-soft`, `warn`, `neutral` and `gain` in turn, and never `loss`: pink is only ever chosen explicitly."
+        "markdown": "`ShareBar` draws one bar split by `value / total`, in the order of `segments`, with a list of the parts underneath (\"2,711 · 46%\"). `legendValue` is `'both'`, `'value'` or `'percent'`, and `legend={false}` keeps only the bar. A `total` larger than the sum of the parts leaves the rest as empty track.\n\n- The percents in the list add up to 100.\n- A part that rounds to 0% reads \"<1%\" and stays visible in the bar as a 3px sliver.\n- Segments without a `tone` take `accent`, `accent-soft`, `warn`, `neutral` and `gain` in turn, and never `loss`: pink is only ever chosen explicitly.\n\n`color` paints a segment, a `Legend` item or a solid `Bars` bar with any CSS colour, including `var(--x)`, when a tone is not enough, for example a brand colour. It replaces the tone's paint but not its name: `data-ch-tone` stays, and forced-colors mode still uses system colours. Contrast in light and dark is up to you, and `var(--x)` is how a colour follows a theme. On `Bars` it applies only to `fill=\"solid\"`; a hatched bar keeps its tone and warns in development, because hatching is drawn from one pattern per tone."
       }
     },
     {
@@ -146,7 +146,7 @@
       "props": {
         "exampleId": "small-pieces/legend-and-tooltip",
         "defaultView": "preview",
-        "height": 313
+        "height": 460
       }
     },
     {

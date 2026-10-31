@@ -136,6 +136,7 @@ export function Bars<D>(props: BarsProps<D>): JSX.Element;
 export interface BarsProps<D> {
     align?: BarAlign;
     ariaLabel?: (d: D, i: number) => string;
+    color?: PerItem<D, string | undefined>;
     data?: readonly D[];
     // (undocumented)
     fill?: PerItem<D, Fill>;
@@ -698,6 +699,7 @@ export function Legend(input: LegendProps): JSX.Element;
 
 // @public (undocumented)
 export interface LegendItem {
+    color?: string;
     // (undocumented)
     count?: ReactNode;
     dashed?: boolean;
@@ -1111,6 +1113,7 @@ export interface ShareBarProps {
 
 // @public (undocumented)
 export interface ShareSegment {
+    color?: string;
     fill?: Fill;
     id?: Id;
     label: string;

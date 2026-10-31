@@ -12,6 +12,12 @@ export interface ShareSegment {
   tone?: Tone
   /** Default 'solid'. */
   fill?: Fill
+  /**
+   * Any CSS color, including `var(--x)`, replacing the tone's paint on the bar and in the list;
+   * `tone` stays as the semantic name. Contrast in light and dark is up to you: `var(--x)` is the
+   * way to follow a theme. Forced-colors mode still uses system colors.
+   */
+  color?: string
 }
 
 export interface SharePart {
@@ -25,6 +31,8 @@ export interface SharePart {
   tone: Tone
   /** The segment's fill, or 'solid'. */
   fill: Fill
+  /** The segment's `color`, if it has one. */
+  color?: string
   /** Share of the whole in percent, unrounded, for widths. */
   share: number
   /** Whole percent from the largest remainder method. */
@@ -112,6 +120,7 @@ export function shareLayout(
       value,
       tone: s.tone ?? (SHARE_TONES[i % SHARE_TONES.length] as Tone),
       fill: s.fill ?? 'solid',
+      ...(s.color ? { color: s.color } : {}),
       share: shares[i] ?? 0,
       percent,
       percentText: percent === 0 && value > 0 ? '<1%' : `${percent}%`,

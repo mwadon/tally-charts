@@ -96,4 +96,25 @@ describe('<Legend>', () => {
       'band',
     )
   })
+
+  it('paints a swatch with `color` and keeps the tone, but `level` wins', () => {
+    render(
+      <Legend
+        items={[
+          { label: 'Search', tone: 'accent', color: 'var(--brand)' },
+          { label: 'Plain', tone: 'accent' },
+          { label: 'Bin', level: 3, color: '#fc0' },
+        ]}
+      />,
+    )
+    const swatch = (i: number) =>
+      screen.getAllByRole('listitem')[i]?.querySelector<HTMLElement>('.ch-swatch')
+    expect(swatch(0)?.style.getPropertyValue('--_ch-swatch-color')).toBe('var(--brand)')
+    expect(swatch(0)).toHaveAttribute('data-ch-tone', 'accent')
+    expect(swatch(0)).toHaveAttribute('data-ch-colored', 'true')
+    expect(swatch(1)?.style.getPropertyValue('--_ch-swatch-color')).toBe('var(--ch-accent)')
+    expect(swatch(1)).not.toHaveAttribute('data-ch-colored')
+    expect(swatch(2)?.style.getPropertyValue('--_ch-swatch-color')).toBe('var(--ch-seq-3)')
+    expect(swatch(2)).not.toHaveAttribute('data-ch-colored')
+  })
 })

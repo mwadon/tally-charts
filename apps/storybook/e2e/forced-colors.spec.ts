@@ -55,6 +55,31 @@ for (const colorScheme of ['light', 'dark'] as const) {
       })
     }
 
+    test(`a custom color gives way to system colors (${colorScheme})`, async ({ page }) => {
+      await openForced(page, 'primitives-small-pieces--colors', colorScheme)
+      const root = page.locator('#storybook-root')
+      // Segments and swatches are HTML with forced-color-adjust: none, so the fallback is theirs.
+      const html = await root.locator('[data-ch-colored="true"]:not(rect)').evaluateAll((els) =>
+        els.map((el) => {
+          const style = getComputedStyle(el)
+          return { color: style.backgroundColor, image: style.backgroundImage }
+        }),
+      )
+      // A hatch is a gradient over a transparent color; its stripes use the same variable.
+      const solid = html.filter(({ image }) => image === 'none').map(({ color }) => color)
+      expect(solid.length).toBeGreaterThan(0)
+      const bars = await root
+        .locator('rect[data-ch-part="bar"][data-ch-colored="true"]')
+        .evaluateAll((els) => els.map((el) => getComputedStyle(el).fill))
+      expect(bars.length).toBe(4)
+      const allowed = new Set([
+        await systemColor(page, 'Highlight'),
+        await systemColor(page, 'GrayText'),
+        await systemColor(page, 'CanvasText'),
+      ])
+      expect([...solid, ...bars].filter((color) => !allowed.has(color))).toEqual([])
+    })
+
     test('heatmap levels differ by border width and keep a focus ring', async ({ page }) => {
       await openForced(page, 'reference-where-it-leaks--light', colorScheme)
       const borders = await page

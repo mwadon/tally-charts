@@ -20,6 +20,12 @@ export interface LegendItem {
   marker?: 'dot' | 'ring'
   /** A sequential level (`--ch-seq-N`), e.g. a heatmap bin. Replaces `tone`. */
   level?: SeqLevel
+  /**
+   * Any CSS color, including `var(--x)`, replacing the tone's paint on the swatch; `tone` stays as
+   * the semantic name. Ignored when `level` is set. Contrast in light and dark is up to you:
+   * `var(--x)` is the way to follow a theme. Forced-colors mode still uses system colors.
+   */
+  color?: string
 }
 
 export interface LegendProps {
@@ -33,7 +39,8 @@ export function Legend({ items, shape = 'bar', className }: LegendProps) {
     <ul className={className ? `ch-legend ${className}` : 'ch-legend'} data-ch-part="legend">
       {items.map((item, i) => {
         const tone = item.tone ?? 'neutral'
-        const color = item.level ? `var(--ch-seq-${item.level})` : `var(--ch-${tone})`
+        const custom = item.level ? undefined : item.color
+        const color = item.level ? `var(--ch-seq-${item.level})` : (custom ?? `var(--ch-${tone})`)
         return (
           // biome-ignore lint/suspicious/noArrayIndexKey: labels may be non-string nodes; order is stable
           <li key={i} className="ch-legend-item" data-ch-part="legend-item">
@@ -47,7 +54,13 @@ export function Legend({ items, shape = 'bar', className }: LegendProps) {
               data-ch-shape={item.shape ?? shape}
               data-ch-dashed={item.dashed ? 'true' : undefined}
               data-ch-marker={item.marker}
-              style={{ '--_ch-swatch-color': color } as CSSProperties}
+              data-ch-colored={custom ? 'true' : undefined}
+              style={
+                {
+                  '--_ch-swatch-color': color,
+                  ...(custom ? { '--_ch-tone-paint': `var(--ch-${tone})` } : {}),
+                } as CSSProperties
+              }
             />
             <span className="ch-legend-label" data-ch-part="legend-label">
               {item.label}

@@ -204,6 +204,7 @@ const PARTS = [
 const STATES = [
   'active',
   'animate',
+  'colored',
   'dashed',
   'dimmed',
   'direction',

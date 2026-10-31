@@ -28,7 +28,7 @@ function renderBars(props: BarsProps<Week> = {}, chart: Partial<ChartProps<Week>
   )
 }
 
-const bars = (root: HTMLElement) => [...root.querySelectorAll('[data-ch-part="bar"]')]
+const bars = (root: HTMLElement) => [...root.querySelectorAll<SVGElement>('[data-ch-part="bar"]')]
 const hits = (root: HTMLElement) => [...root.querySelectorAll('[data-ch-part="bar-hit"]')]
 
 describe('<Bars>', () => {
@@ -333,5 +333,55 @@ describe('<Bars>', () => {
       </Chart>,
     )
     expect(container.querySelector('[data-ch-part="tooltip"]')).toHaveTextContent('W2custom')
+  })
+
+  describe('color', () => {
+    it('paints solid bars, constant or per item, and follows the prop', () => {
+      const { container, rerender } = renderBars({ fill: 'solid', color: '#fc0' })
+      expect(bars(container).map((b) => b.style.fill)).toEqual([
+        'rgb(255, 204, 0)',
+        'rgb(255, 204, 0)',
+      ])
+      expect(bars(container)[0]).toHaveAttribute('data-ch-tone', 'accent')
+      expect(bars(container)[0]).toHaveAttribute('data-ch-colored', 'true')
+      const perItem = (d: Week) => (d.week === 'W2' ? 'var(--gold)' : 'var(--other)')
+      const chart = (color: BarsProps<Week>['color']) => (
+        <Chart<Week>
+          title="Bars"
+          data={weeks}
+          width={200}
+          height={120}
+          margin={{ top: 0, right: 0, bottom: 0, left: 0 }}
+          x={{ type: 'band', field: 'week', padding: 0 }}
+          y={{ field: 'margin', domain: [0, 20] }}
+          animate={false}
+        >
+          <Bars<Week> color={color} />
+        </Chart>
+      )
+      rerender(chart(perItem))
+      expect(bars(container).map((b) => b.style.fill)).toEqual(['var(--other)', 'var(--gold)'])
+      rerender(chart('#00f'))
+      expect(bars(container).map((b) => b.style.fill)).toEqual(['rgb(0, 0, 255)', 'rgb(0, 0, 255)'])
+    })
+
+    it('keeps the tone pattern on hatched bars and warns once', () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+      const { container } = renderBars({ fill: 'hatch', color: '#fc0' })
+      for (const b of bars(container)) {
+        expect(b.style.fill).toMatch(/^url\(/)
+        expect(b).not.toHaveAttribute('data-ch-colored')
+      }
+      expect(warn).toHaveBeenCalledTimes(1)
+      expect(String(warn.mock.calls[0]?.[0])).toContain('Bars `color` only applies')
+    })
+
+    it('draws the same markup as before without color', () => {
+      const { container } = renderBars({})
+      const bar = bars(container)[0]
+      expect(bar).not.toHaveAttribute('data-ch-colored')
+      expect(bar?.style.fill).toBe('var(--ch-accent)')
+      expect(bar?.style.getPropertyValue('--_ch-swatch-color')).toBe('var(--ch-accent)')
+    })
   })
 })

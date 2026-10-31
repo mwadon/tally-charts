@@ -60,7 +60,8 @@ export function ShareBar({
             data-ch-part="share-segment"
             data-ch-tone={p.tone}
             data-ch-fill={p.fill}
-            style={{ ...toneVar(p.tone), flexBasis: `${p.share}%` } as CSSProperties}
+            data-ch-colored={p.color ? 'true' : undefined}
+            style={{ ...toneVar(p.tone, p.color), flexBasis: `${p.share}%` } as CSSProperties}
           />
         ) : null,
       )}
@@ -90,7 +91,8 @@ export function ShareBar({
                 data-ch-part="share-swatch"
                 data-ch-tone={p.tone}
                 data-ch-fill={p.fill}
-                style={toneVar(p.tone)}
+                data-ch-colored={p.color ? 'true' : undefined}
+                style={toneVar(p.tone, p.color)}
               />
               <span className="ch-share-label" data-ch-part="share-label">
                 {p.label}
