@@ -281,3 +281,35 @@ test('arrow keys and Enter select a runway row and update the detail panel', asy
   await expect(box.getByRole('option', { selected: true })).toHaveAccessibleName(/^Team seat Max /)
   await expect(page.getByTestId('runway-detail-title')).toHaveText('Team seat Max')
 })
+
+test.describe('dual axis traffic', () => {
+  test('the arrow keys announce both series, and the tooltip shows both', async ({ page }) => {
+    await open(page, 'reference-traffic-dual-axis--light')
+    const chart = page.locator('[data-ch-root]')
+    await page.keyboard.press('Tab')
+    await expect(chart.getByRole('application')).toBeFocused()
+    const live = chart.locator('[aria-live]')
+    await expect(live).toHaveText('1 of 14, Oct 18, 540 views, 260 unique visitors')
+    await expect(page.locator('[data-ch-part="tooltip"]')).toContainText('260 unique')
+    await page.keyboard.press('ArrowRight')
+    await expect(live).toHaveText('2 of 14, Oct 19, 610 views, 300 unique visitors')
+    await page.keyboard.press('End')
+    await expect(live).toHaveText('14 of 14, Oct 31, 920 views, 440 unique visitors')
+  })
+
+  test('the data table has a column for each series', async ({ page }) => {
+    await open(page, 'reference-traffic-dual-axis--light')
+    const table = page.locator('[data-ch-root] table')
+    await expect(table.locator('thead th')).toHaveText(['Day', 'Views', 'Unique visitors'])
+    await expect(table.locator('tbody tr')).toHaveCount(14)
+    await expect(table.locator('tbody tr').nth(6)).toContainText('1040')
+  })
+
+  test('both value axes label their own scale', async ({ page }) => {
+    await open(page, 'reference-traffic-dual-axis--light')
+    const labels = (side: string) =>
+      page.locator(`[data-ch-part="axis"][data-ch-side="${side}"] [data-ch-part="axis-label"]`)
+    await expect(labels('left')).toHaveText(['0', '200', '400', '600', '800', '1,000', '1,200'])
+    await expect(labels('right')).toHaveText(['0', '100', '200', '300', '400', '500', '600'])
+  })
+})

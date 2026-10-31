@@ -486,3 +486,81 @@ describe('without y2', () => {
     expect(y2Warnings()).toEqual([])
   })
 })
+
+describe('a point y', () => {
+  it('warns y2-orientation, like a band y', () => {
+    render(
+      <Chart<Row>
+        {...frame}
+        data={rows}
+        x={{ field: 'v' }}
+        y={{ type: 'point', field: 'day' }}
+        y2={{ field: 'u' }}
+      >
+        <Line />
+      </Chart>,
+    )
+    expect(y2Warnings()).toHaveLength(1)
+    expect(y2Warnings()[0]).toContain('band or point scale on <Chart y>')
+  })
+})
+
+describe('Bars that stay mounted', () => {
+  const chart = (y2: ScaleSpec<Row>, scale?: 'y2') => (
+    <Chart<Row>
+      {...frame}
+      data={rows}
+      x={{ type: 'band', field: 'day', padding: 0 }}
+      y={{ field: 'v' }}
+      y2={y2}
+    >
+      <Bars id="day" scale={scale} />
+    </Chart>
+  )
+
+  it('follows a changed y2 domain', () => {
+    const { container, rerender } = render(chart({ field: 'u', domain: [0, 1000] }, 'y2'))
+    expect(numbers(parts(container, 'bar'), 'height')).toEqual([25, 100, 50])
+    rerender(chart({ field: 'u', domain: [0, 2000] }, 'y2'))
+    expect(numbers(parts(container, 'bar'), 'height')).toEqual([12.5, 50, 25])
+  })
+
+  it('follows scale flipping between y and y2', () => {
+    const { container, rerender } = render(chart({ field: 'u' }))
+    expect(numbers(parts(container, 'bar'), 'height')).toEqual([100, 50, 20])
+    rerender(chart({ field: 'u' }, 'y2'))
+    expect(numbers(parts(container, 'bar'), 'height')).toEqual([25, 100, 50])
+    rerender(chart({ field: 'u' }))
+    expect(numbers(parts(container, 'bar'), 'height')).toEqual([100, 50, 20])
+    expect(y2Warnings()).toEqual([])
+  })
+})
+
+describe('Axis markup without tone', () => {
+  // The attributes from before the second axis: a group with a part and a side, and labels with a
+  // part, a position and an anchor. Nothing about tone or a style.
+  it.each([
+    ['left', ['-8', '100'], 'end', 'middle'],
+    ['right', ['308', '100'], 'start', 'middle'],
+    ['bottom', ['50', '108'], 'middle', 'hanging'],
+    ['top', ['50', '-8'], 'middle', 'auto'],
+  ] as const)('%s keeps its attributes', (side, [x, y], anchor, baseline) => {
+    const { container } = renderDual(<Axis side={side} ticks={2} />)
+    const group = parts(container, 'axis')[0] as SVGElement
+    expect(group.tagName).toBe('g')
+    expect(group.getAttributeNames().sort()).toEqual(['data-ch-part', 'data-ch-side'])
+    expect(group.getAttribute('data-ch-side')).toBe(side)
+    const label = parts(container, 'axis-label')[0] as SVGElement
+    expect(label.getAttributeNames().sort()).toEqual([
+      'data-ch-part',
+      'dominant-baseline',
+      'text-anchor',
+      'x',
+      'y',
+    ])
+    expect(label.getAttribute('x')).toBe(x)
+    expect(label.getAttribute('text-anchor')).toBe(anchor)
+    expect(label.getAttribute('dominant-baseline')).toBe(baseline)
+    expect(label.getAttribute('y')).toBe(y)
+  })
+})

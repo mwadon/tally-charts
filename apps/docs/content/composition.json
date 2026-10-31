@@ -210,6 +210,53 @@
       }
     },
     {
+      "id": "n55",
+      "type": "heading",
+      "props": {
+        "text": "Two value axes",
+        "level": "2",
+        "anchor": "dual-axis"
+      }
+    },
+    {
+      "id": "n56",
+      "type": "prose",
+      "props": {
+        "markdown": "Give `Chart` a `y2` scale and a mark can draw on it with `scale=\"y2\"`. `Line`, `Area`, `Band`, `Bars`, `ValueLabel`, `Target` and `Axis` take `scale`; `Grid` always stays on `y`. `y2` is linear only. `Axis` also takes `tone`, which tints its labels in a series' colour so a reader can tell which axis belongs to which series. Here views are hatched bars on the left scale, the busiest day is one solid bar with a pill, and unique visitors are a line on the right scale. A second one-row `Line` on the peak day draws the dot that stays on."
+      }
+    },
+    {
+      "id": "n57",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "composition/dual-axis-traffic",
+        "defaultView": "preview",
+        "height": 348
+      }
+    },
+    {
+      "id": "n58",
+      "type": "prose",
+      "props": {
+        "markdown": "`Bars` registers the points, so hover and the arrow keys step through the days, and `segments` and `ariaLabel` carry both series into the tooltip and the announcement. The line has `dots=\"none\"`, so it draws no active ring and the tooltip says what its values are. Always pass `dataTable.columns` with both series: a chart with two scales is the one a screen-reader user most needs the numbers of."
+      }
+    },
+    {
+      "id": "n59",
+      "type": "prose",
+      "props": {
+        "markdown": "**Matching the ticks.** The grid belongs to the left scale and nothing aligns the right axis to it, so the right axis's tick lines fall between the grid lines unless you line them up. Set both `domain`s explicitly so that one is a clean multiple of the other (`[0, 1200]` and `[0, 600]`), and give both axes the same `ticks` count (here 6, which both domains round to: 0 to 1,200 in 200s, 0 to 600 in 100s). The tick labels are nice numbers, so a count you ask for can come back different; check the result, and adjust the domains until the two axes tick the same number of times."
+      }
+    },
+    {
+      "id": "n60",
+      "type": "callout",
+      "props": {
+        "tone": "warning",
+        "markdown": "**Think twice before using two axes.** Two scales let you make any two series look correlated by choosing their ranges, and readers tend to read the crossing of two lines as meaningful when it is only a side effect of the axes. Use a second axis when the series measure related things in different units (views and visitors) and the comparison is not the point. If the point is that one series moves with the other, put them on one scale, index both to 100 or draw two charts that share an x axis."
+      }
+    },
+    {
       "id": "n44",
       "type": "heading",
       "props": {

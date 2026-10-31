@@ -23,7 +23,11 @@ export interface TargetProps {
   variant?: 'line' | 'tick'
   /** Length of the tick variant in px. Default 16. */
   tickLength?: number
-  /** The value scale `y` is on. Default 'y'. On `'y2'`, `y` is a number: that scale is linear. */
+  /**
+   * The value scale `y` is on. Default 'y'. On `'y2'`, `y` is a number: that scale is linear.
+   * It has no effect on an `x` rule when the chart has a `y2`, and with no `y2` it removes the
+   * rule, with a warning.
+   */
   scale?: ValueScale
 }
 

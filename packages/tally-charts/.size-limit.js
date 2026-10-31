@@ -72,16 +72,17 @@ export default [
     limit: '15 KB',
     gzip: true,
   },
-  // 14 KB (D-11, was 13.2 KB): `pnpm --filter tally-charts check:treeshake` confirms the LineChart
-  // bundle holds only its own import graph, so the 13193 B measured here is real and not padded by
-  // dead code from RunwayChart, ZoneMeter or ShareBar. That leaves 807 B for the F6 fixes. Budgets
-  // are a maintainers' guard, not API.
+  // 14.2 KB (D-11, was 13.2 KB): `pnpm --filter tally-charts check:treeshake` confirms the LineChart
+  // bundle holds only its own import graph, so the size measured here is real and not padded by
+  // dead code from RunwayChart, ZoneMeter or ShareBar. The maintainer allowed up to 14.5 KB for
+  // i18n and the second axis; the limit sits just above the measurement. Budgets are a
+  // maintainers' guard, not API.
   {
     name: 'LineChart',
     path: 'dist/index.js',
     import: '{ LineChart }',
     ignore: ['react', 'react-dom'],
-    limit: '14.15 KB',
+    limit: '14.2 KB',
     gzip: true,
   },
   {
