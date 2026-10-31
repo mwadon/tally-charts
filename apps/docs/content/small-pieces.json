@@ -66,14 +66,14 @@
       "id": "n40",
       "type": "prose",
       "props": {
-        "markdown": "`InlineBar` is 64 px wide by default. `width` takes a number (px) or any CSS length, so `width=\"100%\"` fills a table cell. Height has no prop: it is plain CSS on two public parts, `[data-ch-part=\"inline-bar\"]` (8 px) and `[data-ch-part=\"meter-track\"]` (12 px). The theme uses no `@layer`, so an override needs equal specificity and a later position in the cascade, or a stronger selector such as a class plus the attribute. The fill follows the track, and the target tick stays visible."
+        "markdown": "`InlineBar` is 64 px wide by default. `width` takes a number (px) or any CSS length, so `width=\"100%\"` fills a table cell. Height has no prop: it is plain CSS on two public parts, `[data-ch-part=\"inline-bar\"]` (8 px) and `[data-ch-part=\"meter-track\"]` (12 px). The theme uses no `@layer`, so an override needs equal specificity and a later position in the cascade, or a stronger selector such as a class plus the attribute. `className` lands on the bar itself for `InlineBar` (`<InlineBar className=\"slim\" />`, matched by `.slim[data-ch-part=\"inline-bar\"]`) but on the root for `Meter`, so there the class is on an ancestor (`<Meter className=\"slim\" />`, matched by `.slim [data-ch-part=\"meter-track\"]`). The fill follows the track, and the target tick stays visible."
       }
     },
     {
       "id": "n41",
       "type": "code-block",
       "props": {
-        "code": "/* Load this after tally-charts/theme.css */\n.slim[data-ch-part=\"inline-bar\"],\n.slim[data-ch-part=\"meter-track\"] {\n  height: 4px;\n}",
+        "code": "/* Load this after tally-charts/theme.css */\n.slim[data-ch-part=\"inline-bar\"],\n.slim [data-ch-part=\"meter-track\"] {\n  height: 4px;\n}",
         "lang": "css",
         "filename": "slim-bars.css"
       }

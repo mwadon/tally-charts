@@ -281,13 +281,20 @@ function SmallBarsStory() {
           <tr>
             <th scope="row">Margin</th>
             <td data-testid="bar-cell" style={{ width: 200 }}>
-              <InlineBar value={22} max={40} target={30} width="100%" label="Margin" />
+              <InlineBar
+                className="slim"
+                value={22}
+                max={40}
+                target={30}
+                width="100%"
+                label="Margin"
+              />
             </td>
           </tr>
         </tbody>
       </table>
       <div data-testid="meter-box" style={{ width: 200 }}>
-        <Meter label="Sales target" value={68} max={100} target={80} />
+        <Meter className="slim" label="Sales target" value={68} max={100} target={80} />
       </div>
     </div>
   )
