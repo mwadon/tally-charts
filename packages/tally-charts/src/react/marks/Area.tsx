@@ -4,8 +4,9 @@ import { areaPath } from '../../core/area'
 import { toNumber } from '../../core/number'
 import type { Accessor, Tone } from '../../core/types'
 import { DEV } from '../../core/warn'
-import { useChartContext } from '../context'
+import { useChartContext, type ValueScale } from '../context'
 import { timeX } from './series'
+import { valueContext } from './value-scale'
 
 export interface AreaProps<D> {
   /** Defaults to <Chart data>. */
@@ -23,6 +24,8 @@ export interface AreaProps<D> {
    * so bars drawn over the area keep their own fill. Default false: one area through the centres.
    */
   between?: boolean
+  /** The value scale to draw on, and whose field `y` defaults to. Default 'y'. */
+  scale?: ValueScale
 }
 
 /**
@@ -37,9 +40,11 @@ export function Area<D>({
   tone = 'accent',
   opacity = 0.22,
   between = false,
+  scale,
 }: AreaProps<D>) {
-  const ctx = useChartContext('Area')
+  const ctx = valueContext(useChartContext('Area'), scale)
   const id = useId()
+  if (!ctx) return null
   const gradientId = `${ctx.chartId}-area-${id.replace(/[^a-zA-Z0-9_-]/g, '')}`
   const xScale = ctx.x
   if ((xScale.kind !== 'band' && xScale.kind !== 'time') || ctx.y.kind !== 'linear') {

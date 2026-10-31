@@ -291,6 +291,7 @@ describe('<Chart>', () => {
       | 'data'
       | 'x'
       | 'y'
+      | 'y2'
       | 'format'
       | 'dimInactive'
       | 'activeId'

@@ -3,7 +3,8 @@ import { computeBars } from '../../core/bars'
 import type { FormatSpec } from '../../core/format'
 import { estimateWidth } from '../../core/ticks'
 import type { Accessor } from '../../core/types'
-import { useChartContext } from '../context'
+import { useChartContext, type ValueScale } from '../context'
+import { valueContext } from './value-scale'
 
 export interface ValueLabelProps<D> {
   /** Defaults to <Chart data>. */
@@ -22,6 +23,8 @@ export interface ValueLabelProps<D> {
    * `margin.top` of at least 24 to fit it at the default offset. Default 'text'.
    */
   variant?: 'text' | 'pill'
+  /** The value scale to draw on, and whose field `y` defaults to. Default 'y'. */
+  scale?: ValueScale
 }
 
 const LABEL_HEIGHT = 14
@@ -37,8 +40,10 @@ export function ValueLabel<D>({
   format,
   offset = 6,
   variant = 'text',
+  scale,
 }: ValueLabelProps<D>) {
-  const ctx = useChartContext('ValueLabel')
+  const ctx = valueContext(useChartContext('ValueLabel'), scale)
+  if (!ctx) return null
   const getX = toFieldGetter(x) ?? ctx.x.field
   const getY = toFieldGetter(y) ?? ctx.y.field
   if (!getX || !getY) return null

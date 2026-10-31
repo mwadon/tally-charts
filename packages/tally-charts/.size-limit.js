@@ -81,7 +81,7 @@ export default [
     path: 'dist/index.js',
     import: '{ LineChart }',
     ignore: ['react', 'react-dom'],
-    limit: '14 KB',
+    limit: '14.15 KB',
     gzip: true,
   },
   {

@@ -272,3 +272,19 @@ describe('time scales', () => {
     expect(categoryStep(s)).toBe(0)
   })
 })
+
+describe('createScale on y2', () => {
+  it('uses the same range as y', () => {
+    const y = createScale({ field: 'v' }, [{ v: 10 }], 'y', 100, noop)
+    const y2 = createScale({ field: 'v' }, [{ v: 10 }], 'y2', 100, noop)
+    expect(y2.scale.range()).toEqual(y.scale.range())
+    expect(y2.scale.range()).toEqual([100, 0])
+  })
+
+  it('warns under its own key, apart from y', () => {
+    const warn = vi.fn()
+    createScale({}, [], 'y', 100, warn)
+    createScale({}, [], 'y2', 100, warn)
+    expect(warn.mock.calls.map((call) => call[0])).toEqual(['y-linear-domain', 'y2-linear-domain'])
+  })
+})

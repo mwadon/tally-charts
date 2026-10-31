@@ -23,13 +23,14 @@ export interface AreaProps<D> {
     between?: boolean;
     data?: readonly D[];
     opacity?: number;
+    scale?: ValueScale;
     tone?: Tone;
     x?: Accessor<D, string | number | Date>;
     y?: Accessor<D, number>;
 }
 
 // @public (undocumented)
-export function Axis(input: AxisProps): JSX.Element;
+export function Axis(input: AxisProps): JSX.Element | null;
 
 // @public
 export type AxisFormat = FormatPreset | FormatPresetSpec | DateFormatSpec | AxisFormatter;
@@ -46,11 +47,13 @@ export interface AxisProps {
     format?: AxisFormat;
     highlight?: string | number;
     offset?: number;
+    scale?: ValueScale;
     // (undocumented)
     side: AxisSide;
     thin?: boolean;
     // (undocumented)
     ticks?: TickSpec;
+    tone?: Tone;
 }
 
 // @public (undocumented)
@@ -69,6 +72,7 @@ export interface BandProps<D> {
     high: Accessor<D, number>;
     // (undocumented)
     low: Accessor<D, number>;
+    scale?: ValueScale;
     tone?: Tone;
     x?: Accessor<D, string | number | Date>;
 }
@@ -131,7 +135,7 @@ export type BarChartProps<D> = ChartName & ChartPassThroughProps<D> & {
 };
 
 // @public (undocumented)
-export function Bars<D>(props: BarsProps<D>): JSX.Element;
+export function Bars<D>(props: BarsProps<D>): JSX.Element | null;
 
 // @public (undocumented)
 export interface BarsProps<D> {
@@ -149,6 +153,7 @@ export interface BarsProps<D> {
     label?: Accessor<D, string>;
     offset?: number;
     radius?: number;
+    scale?: ValueScale;
     segments?: (d: D, i: number) => readonly TooltipSegment[];
     selectable?: PerItem<D, boolean>;
     size?: number;
@@ -240,6 +245,7 @@ export interface ChartContextValue {
     x: ResolvedScale;
     // (undocumented)
     y: ResolvedScale;
+    y2?: ResolvedScale;
 }
 
 // @public
@@ -344,6 +350,7 @@ export type ChartProps<D> = ChartName & {
     data?: readonly D[];
     x?: ScaleSpec<D>;
     y?: ScaleSpec<D>;
+    y2?: ScaleSpec<D>;
     width?: number;
     initialWidth?: number;
     height?: number;
@@ -803,6 +810,7 @@ export interface LineProps<D> {
     data?: readonly D[];
     dots?: LineDots;
     radius?: number;
+    scale?: ValueScale;
     tone?: Tone;
     x?: Accessor<D, string | number | Date>;
     y?: Accessor<D, number>;
@@ -1197,6 +1205,7 @@ export interface TargetProps {
     // (undocumented)
     labelPosition?: 'start' | 'end';
     position?: number;
+    scale?: ValueScale;
     tickLength?: number;
     // (undocumented)
     variant?: 'line' | 'tick';
@@ -1341,12 +1350,16 @@ export interface ValueLabelProps<D> {
     // (undocumented)
     format?: FormatSpec;
     offset?: number;
+    scale?: ValueScale;
     variant?: 'text' | 'pill';
     // (undocumented)
     x?: Accessor<D, string | number>;
     // (undocumented)
     y?: Accessor<D, string | number>;
 }
+
+// @public
+export type ValueScale = 'y' | 'y2';
 
 // @public (undocumented)
 export function WaffleColumns<D>(input: WaffleColumnsProps<D>): JSX.Element;

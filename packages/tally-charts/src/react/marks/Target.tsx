@@ -1,7 +1,8 @@
 import { categoryCenter, categoryStep } from '../../core/scale'
 import { type TimeInput, toTime } from '../../core/time'
 import { DEV } from '../../core/warn'
-import { useChartContext } from '../context'
+import { useChartContext, type ValueScale } from '../context'
+import { valueContext } from './value-scale'
 
 export interface TargetProps {
   /**
@@ -22,6 +23,8 @@ export interface TargetProps {
   variant?: 'line' | 'tick'
   /** Length of the tick variant in px. Default 16. */
   tickLength?: number
+  /** The value scale `y` is on. Default 'y'. On `'y2'`, `y` is a number: that scale is linear. */
+  scale?: ValueScale
 }
 
 export function Target({
@@ -32,8 +35,10 @@ export function Target({
   labelPosition = 'end',
   variant = 'line',
   tickLength = 16,
+  scale,
 }: TargetProps) {
-  const ctx = useChartContext('Target')
+  const ctx = valueContext(useChartContext('Target'), scale)
+  if (!ctx) return null
   const horizontal = y !== undefined
   const raw = horizontal ? y : x
   const resolved = horizontal ? ctx.y : ctx.x

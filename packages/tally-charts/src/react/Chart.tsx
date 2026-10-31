@@ -43,6 +43,12 @@ export type ChartProps<D> = ChartName & {
   data?: readonly D[]
   x?: ScaleSpec<D>
   y?: ScaleSpec<D>
+  /**
+   * A second value scale, linear only, for marks with `scale="y2"`. It shares the plot's height
+   * with `y`; the grid stays on `y`, and ticks of the two aren't aligned. Ignored, with a warning,
+   * when it isn't linear or when `y` is a band or point scale.
+   */
+  y2?: ScaleSpec<D>
   /** Fixed width in px; turns off container measuring. */
   width?: number
   /** Width used for server rendering and the first client render. Default 640. */
@@ -97,6 +103,7 @@ export function Chart<D>({
   data,
   x,
   y,
+  y2,
   width,
   initialWidth = 640,
   height,
@@ -152,6 +159,24 @@ export function Chart<D>({
     () => createScale(y, rows, 'y', innerHeight, scaleWarn),
     [y, rows, innerHeight, scaleWarn],
   )
+  const yKind = yScale.kind
+  const y2Scale = useMemo(() => {
+    if (!y2) return undefined
+    if (y2.type && y2.type !== 'linear') {
+      if (DEV && !isEmpty) warn('y2-scale', 'The y2 scale must be linear; <Chart y2> was ignored.')
+      return undefined
+    }
+    if (yKind === 'band' || yKind === 'point') {
+      if (DEV && !isEmpty) {
+        warn(
+          'y2-orientation',
+          '<Chart y2> was ignored: it needs a value scale on y, not a band or point scale on <Chart y>.',
+        )
+      }
+      return undefined
+    }
+    return createScale(y2, rows, 'y2', innerHeight, scaleWarn)
+  }, [y2, yKind, rows, innerHeight, isEmpty, warn, scaleWarn])
 
   const formatters = useFormat()
   const messages = useMessages()
@@ -217,6 +242,7 @@ export function Chart<D>({
     data: rows,
     x: xScale,
     y: yScale,
+    y2: y2Scale,
     format: formatters.create,
     warn,
     dimInactive,

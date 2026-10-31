@@ -23,13 +23,15 @@ export interface SeriesScales {
  * The shared scale guard of `Line` and `Band`: a point, band or time scale on x and a linear
  * scale on y. Otherwise it warns once per chart and returns undefined, and the mark draws
  * nothing. On a time scale, x values `toTime` rejects are skipped with one warning per mark
- * instance. A hook: call it at the top of the mark.
+ * instance. Undefined without a context, for a mark on a scale the chart lacks. A hook: call it at
+ * the top of the mark.
  */
 export function useSeriesScales(
-  ctx: InternalChartContext,
+  ctx: InternalChartContext | undefined,
   mark: 'Line' | 'Band',
 ): SeriesScales | undefined {
   const id = useId()
+  if (!ctx) return undefined
   const { x, y } = ctx
   if (x.kind === 'linear' || y.kind !== 'linear') {
     if (DEV) {

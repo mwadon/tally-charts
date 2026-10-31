@@ -12,6 +12,9 @@ export interface Margin {
   left: number
 }
 
+/** Which value scale a mark draws on: `y`, or the second scale from `<Chart y2>`. */
+export type ValueScale = 'y' | 'y2'
+
 /** What `useChart()` gives a custom mark: the chart's size, scales, formatter and active point. */
 export interface ChartContextValue {
   width: number
@@ -24,6 +27,8 @@ export interface ChartContextValue {
   data: readonly unknown[]
   x: ResolvedScale
   y: ResolvedScale
+  /** The second value scale from `<Chart y2>`; undefined when the chart has none it can use. */
+  y2?: ResolvedScale
   /** A number formatter in the `ChartsProvider` locale. */
   format: (spec?: FormatSpec, options?: Pick<FormatOptions, 'signed'>) => Formatter
   dimInactive: boolean
@@ -45,6 +50,7 @@ export interface InternalChartContext extends ChartContextValue {
   chartId: string
   x: FieldScale
   y: FieldScale
+  y2?: FieldScale
   warn: Warn
   /** Default bar corner radius in px, from `--ch-radius`. */
   radius: number

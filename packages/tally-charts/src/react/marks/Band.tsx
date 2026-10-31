@@ -2,9 +2,10 @@ import { resolveAccessor, toFieldGetter } from '../../core/accessor'
 import { bandPath } from '../../core/line'
 import type { Accessor, Tone } from '../../core/types'
 import { DEV } from '../../core/warn'
-import { useChartContext } from '../context'
+import { useChartContext, type ValueScale } from '../context'
 import { toneVar } from '../ui/util'
 import { useSeriesScales } from './series'
+import { valueContext } from './value-scale'
 
 export interface BandProps<D> {
   /** Defaults to <Chart data>. */
@@ -15,13 +16,15 @@ export interface BandProps<D> {
   high: Accessor<D, number>
   /** Default 'accent'. */
   tone?: Tone
+  /** The value scale to draw on. Default 'y'. */
+  scale?: ValueScale
 }
 
 /** A soft area between `low` and `high` at each category or date, e.g. a likely range. Gaps break it. */
-export function Band<D>({ data, x, low, high, tone = 'accent' }: BandProps<D>) {
-  const ctx = useChartContext('Band')
+export function Band<D>({ data, x, low, high, tone = 'accent', scale }: BandProps<D>) {
+  const ctx = valueContext(useChartContext('Band'), scale)
   const scales = useSeriesScales(ctx, 'Band')
-  if (!scales) return null
+  if (!ctx || !scales) return null
   const getX = toFieldGetter(x) ?? ctx.x.field
   if (!getX) {
     if (DEV) {

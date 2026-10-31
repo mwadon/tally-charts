@@ -310,7 +310,7 @@
           "overloadIndex": 1,
           "parameters": [
             {
-              "parameterName": "{ data, x, y, tone, opacity, between }",
+              "parameterName": "{ data, x, y, tone, opacity, between, scale }",
               "parameterTypeTokenRange": {
                 "startIndex": 0,
                 "endIndex": 0
@@ -451,6 +451,34 @@
             },
             {
               "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!AreaProps#scale:member",
+              "docComment": "/**\n * The value scale to draw on, and whose field `y` defaults to. Default 'y'.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "scale?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "ValueScale",
+                  "canonicalReference": "tally-charts!ValueScale:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "scale",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
               "canonicalReference": "tally-charts!AreaProps#tone:member",
               "docComment": "/**\n * Default 'accent'.\n */\n",
               "excerptTokens": [
@@ -582,18 +610,22 @@
             },
             {
               "kind": "Content",
+              "text": " | null"
+            },
+            {
+              "kind": "Content",
               "text": ";"
             }
           ],
           "returnTypeTokenRange": {
             "startIndex": 3,
-            "endIndex": 5
+            "endIndex": 6
           },
           "releaseTag": "Public",
           "overloadIndex": 1,
           "parameters": [
             {
-              "parameterName": "{ side, ticks: spec, format, thin, offset, highlight, extent }",
+              "parameterName": "{ side, ticks: spec, format, thin, offset, highlight, extent, scale, tone }",
               "parameterTypeTokenRange": {
                 "startIndex": 0,
                 "endIndex": 0
@@ -823,6 +855,34 @@
             },
             {
               "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!AxisProps#scale:member",
+              "docComment": "/**\n * The value scale to label on a left or right axis, independent of `side`. Default 'y'. Ignored,\n * with a warning, on a top or bottom axis, which labels `x`.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "scale?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "ValueScale",
+                  "canonicalReference": "tally-charts!ValueScale:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "scale",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
               "canonicalReference": "tally-charts!AxisProps#side:member",
               "docComment": "",
               "excerptTokens": [
@@ -899,6 +959,34 @@
               "isOptional": true,
               "releaseTag": "Public",
               "name": "ticks",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!AxisProps#tone:member",
+              "docComment": "/**\n * Tints the labels, to tie a value axis to its series. Default: the muted axis color.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "tone?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Tone",
+                  "canonicalReference": "tally-charts!Tone:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "tone",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2
@@ -1010,7 +1098,7 @@
           "overloadIndex": 1,
           "parameters": [
             {
-              "parameterName": "{ data, x, low, high, tone }",
+              "parameterName": "{ data, x, low, high, tone, scale }",
               "parameterTypeTokenRange": {
                 "startIndex": 0,
                 "endIndex": 0
@@ -1157,6 +1245,34 @@
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 3
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!BandProps#scale:member",
+              "docComment": "/**\n * The value scale to draw on. Default 'y'.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "scale?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "ValueScale",
+                  "canonicalReference": "tally-charts!ValueScale:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "scale",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
               }
             },
             {
@@ -1893,12 +2009,16 @@
             },
             {
               "kind": "Content",
+              "text": " | null"
+            },
+            {
+              "kind": "Content",
               "text": ";"
             }
           ],
           "returnTypeTokenRange": {
             "startIndex": 4,
-            "endIndex": 6
+            "endIndex": 7
           },
           "releaseTag": "Public",
           "overloadIndex": 1,
@@ -2318,6 +2438,34 @@
               "isOptional": true,
               "releaseTag": "Public",
               "name": "radius",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!BarsProps#scale:member",
+              "docComment": "/**\n * The value scale to draw on, and whose field `y` defaults to. Default 'y'.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "scale?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "ValueScale",
+                  "canonicalReference": "tally-charts!ValueScale:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "scale",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2
@@ -3335,7 +3483,7 @@
           "overloadIndex": 1,
           "parameters": [
             {
-              "parameterName": "{ data, x, y, width, initialWidth, height, aspectRatio, margin: marginProp, title, 'aria-labelledby': labelledBy, description, dataTable, keyboardHint, activeId, onActiveChange, onSelect, animate, dimInactive, empty, className, style, chartId: chartIdProp, children, ...internal }",
+              "parameterName": "{ data, x, y, y2, width, initialWidth, height, aspectRatio, margin: marginProp, title, 'aria-labelledby': labelledBy, description, dataTable, keyboardHint, activeId, onActiveChange, onSelect, animate, dimInactive, empty, className, style, chartId: chartIdProp, children, ...internal }",
               "parameterTypeTokenRange": {
                 "startIndex": 0,
                 "endIndex": 0
@@ -3920,6 +4068,34 @@
               "isOptional": false,
               "releaseTag": "Public",
               "name": "y",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!ChartContextValue#y2:member",
+              "docComment": "/**\n * The second value scale from `<Chart y2>`; undefined when the chart has none it can use.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "y2?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "ResolvedScale",
+                  "canonicalReference": "tally-charts!ResolvedScale:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "y2",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2
@@ -6022,6 +6198,15 @@
             },
             {
               "kind": "Content",
+              "text": "<D>;\n  y2?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ScaleSpec",
+              "canonicalReference": "tally-charts!ScaleSpec:type"
+            },
+            {
+              "kind": "Content",
               "text": "<D>;\n  width?: number;\n  initialWidth?: number;\n  height?: number;\n  aspectRatio?: number;\n  margin?: "
             },
             {
@@ -6145,7 +6330,7 @@
           ],
           "typeTokenRange": {
             "startIndex": 1,
-            "endIndex": 29
+            "endIndex": 31
           }
         },
         {
@@ -10880,7 +11065,7 @@
           "overloadIndex": 1,
           "parameters": [
             {
-              "parameterName": "{ data, x, y, tone, dashed, dots, radius }",
+              "parameterName": "{ data, x, y, tone, dashed, dots, radius, scale }",
               "parameterTypeTokenRange": {
                 "startIndex": 0,
                 "endIndex": 0
@@ -11818,6 +12003,34 @@
               "isOptional": true,
               "releaseTag": "Public",
               "name": "radius",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!LineProps#scale:member",
+              "docComment": "/**\n * The value scale to draw on, and whose field `y` defaults to. Default 'y'.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "scale?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "ValueScale",
+                  "canonicalReference": "tally-charts!ValueScale:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "scale",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2
@@ -17480,7 +17693,7 @@
           "overloadIndex": 1,
           "parameters": [
             {
-              "parameterName": "{ x, y, position, label, labelPosition, variant, tickLength }",
+              "parameterName": "{ x, y, position, label, labelPosition, variant, tickLength, scale }",
               "parameterTypeTokenRange": {
                 "startIndex": 0,
                 "endIndex": 0
@@ -17588,6 +17801,34 @@
               "isOptional": true,
               "releaseTag": "Public",
               "name": "position",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!TargetProps#scale:member",
+              "docComment": "/**\n * The value scale `y` is on. Default 'y'. On `'y2'`, `y` is a number: that scale is linear.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "scale?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "ValueScale",
+                  "canonicalReference": "tally-charts!ValueScale:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "scale",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2
@@ -19593,7 +19834,7 @@
           "overloadIndex": 1,
           "parameters": [
             {
-              "parameterName": "{ data, at, x, y, format, offset, variant }",
+              "parameterName": "{ data, at, x, y, format, offset, variant, scale }",
               "parameterTypeTokenRange": {
                 "startIndex": 0,
                 "endIndex": 0
@@ -19762,6 +20003,34 @@
             },
             {
               "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!ValueLabelProps#scale:member",
+              "docComment": "/**\n * The value scale to draw on, and whose field `y` defaults to. Default 'y'.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "scale?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "ValueScale",
+                  "canonicalReference": "tally-charts!ValueScale:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "scale",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
               "canonicalReference": "tally-charts!ValueLabelProps#variant:member",
               "docComment": "/**\n * 'pill' draws the label on a filled rounded rectangle (part `value-label-pill`), sized from the\n * text. The pill is 18 px tall and is clamped horizontally to the chart's width, not vertically:\n * on the tallest bar it sits above the plot. A `Chart` with its default 20 px top margin needs a\n * `margin.top` of at least 24 to fit it at the default offset. Default 'text'.\n */\n",
               "excerptTokens": [
@@ -19853,6 +20122,31 @@
             }
           ],
           "extendsTokenRanges": []
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "tally-charts!ValueScale:type",
+          "docComment": "/**\n * Which value scale a mark draws on: `y`, or the second scale from `<Chart y2>`.\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "type ValueScale = "
+            },
+            {
+              "kind": "Content",
+              "text": "'y' | 'y2'"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "ValueScale",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 2
+          }
         },
         {
           "kind": "Function",

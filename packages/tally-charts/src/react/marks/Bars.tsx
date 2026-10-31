@@ -5,9 +5,10 @@ import type { FormatSpec } from '../../core/format'
 import type { Accessor, Fill, Id, PerItem, Tone } from '../../core/types'
 import { DEV } from '../../core/warn'
 import { type Paint, paintFor } from '../../theme/patterns'
-import { useChartContext } from '../context'
+import { type InternalChartContext, useChartContext, type ValueScale } from '../context'
 import type { ChartPoint, TooltipSegment } from '../types'
 import { useRegisterPoints } from '../useRegisterPoints'
+import { valueContext } from './value-scale'
 
 export interface BarsProps<D> {
   /** Defaults to <Chart data>. */
@@ -50,12 +51,19 @@ export interface BarsProps<D> {
   track?: boolean
   /** False for bars the chart's `onSelect` skips (no pointer cursor either). Default true. */
   selectable?: PerItem<D, boolean>
+  /** The value scale to draw on, and whose field `y` defaults to. Default 'y'. */
+  scale?: ValueScale
 }
 
 const NO_POINTS: ChartPoint[] = []
 
 export function Bars<D>(props: BarsProps<D>) {
-  const ctx = useChartContext('Bars')
+  const ctx = valueContext(useChartContext('Bars'), props.scale)
+  return ctx ? <BarsMark ctx={ctx} props={props} /> : null
+}
+
+// Apart from `Bars` so that a chart with no `y2` to draw on skips the hooks, not just the drawing.
+function BarsMark<D>({ ctx, props }: { ctx: InternalChartContext; props: BarsProps<D> }) {
   const data = (props.data ?? ctx.data) as readonly D[]
   const getX = useMemo(() => toFieldGetter(props.x) ?? ctx.x.field, [props.x, ctx.x.field])
   const getY = useMemo(() => toFieldGetter(props.y) ?? ctx.y.field, [props.y, ctx.y.field])

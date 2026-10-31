@@ -132,7 +132,7 @@ function uniqueStrings(data: readonly unknown[], field: FieldGetter): string[] {
 export function createScale<D>(
   spec: ScaleSpec<D> | undefined,
   data: readonly D[],
-  axis: 'x' | 'y',
+  axis: 'x' | 'y' | 'y2',
   length: number,
   warn: Warn,
 ): FieldScale {
@@ -176,7 +176,7 @@ export function createScale<D>(
     }
     let domain = inferTimeDomain(values)
     if (spec.nice ?? !valid) domain = niceTimeDomain(domain, zone)
-    const range: [number, number] = axis === 'y' ? [length, 0] : [0, length]
+    const range: [number, number] = axis === 'x' ? [0, length] : [length, 0]
     return { kind: 'time', scale: timeScale(domain, range, zone), field }
   }
 
@@ -199,7 +199,7 @@ export function createScale<D>(
     }
     domain = [0, 1]
   }
-  const range: [number, number] = axis === 'y' ? [length, 0] : [0, length]
+  const range: [number, number] = axis === 'x' ? [0, length] : [length, 0]
   return { kind: 'linear', scale: linearScale(domain, range), field }
 }
 

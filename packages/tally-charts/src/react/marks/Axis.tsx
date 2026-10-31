@@ -16,9 +16,12 @@ import {
   thinTicks,
 } from '../../core/ticks'
 import type { TimeScale } from '../../core/time'
+import type { Tone } from '../../core/types'
 import { DEV } from '../../core/warn'
 import { useLocale } from '../ChartsProvider'
-import { type InternalChartContext, useChartContext } from '../context'
+import { type InternalChartContext, useChartContext, type ValueScale } from '../context'
+import { toneVar } from '../ui/util'
+import { valueContext } from './value-scale'
 
 export type AxisSide = 'bottom' | 'top' | 'left' | 'right'
 /** A tick value: a number on a value axis, the category on a band or point axis, a Date on a time axis. */
@@ -52,6 +55,13 @@ export interface AxisProps {
    * that leaves room below its lowest total. Default: the scale's domain.
    */
   extent?: readonly [number, number]
+  /**
+   * The value scale to label on a left or right axis, independent of `side`. Default 'y'. Ignored,
+   * with a warning, on a top or bottom axis, which labels `x`.
+   */
+  scale?: ValueScale
+  /** Tints the labels, to tie a value axis to its series. Default: the muted axis color. */
+  tone?: Tone
 }
 
 const LABEL_HEIGHT = 14
@@ -212,12 +222,22 @@ export function Axis({
   offset = 8,
   highlight,
   extent,
+  scale,
+  tone,
 }: AxisProps) {
-  const ctx = useChartContext('Axis')
+  const chart = useChartContext('Axis')
   const horizontal = side === 'bottom' || side === 'top'
+  if (DEV && horizontal && scale === 'y2') {
+    chart.warn(
+      'y2-axis-side',
+      'Axis `scale="y2"` only applies on side left or right and was ignored.',
+    )
+  }
+  const ctx = valueContext(chart, horizontal ? undefined : scale)
+  const { locale } = useLocale()
+  if (!ctx) return null
   const resolved = horizontal ? ctx.x : ctx.y
   const custom = typeof format === 'function' ? format : undefined
-  const { locale } = useLocale()
 
   let raw: Tick[]
   let timeLabel: TimeLabels | undefined
@@ -246,11 +266,17 @@ export function Axis({
   }
 
   return (
-    <g data-ch-part="axis" data-ch-side={side}>
+    <g
+      data-ch-part="axis"
+      data-ch-side={side}
+      data-ch-tone={tone}
+      style={tone ? toneVar(tone) : undefined}
+    >
       {ticks.map((tick) => (
         <text
           key={`${tick.value}`}
           data-ch-part="axis-label"
+          data-ch-tone-text={tone ? 'true' : undefined}
           {...place(side, tick, ctx.innerWidth, ctx.innerHeight, offset)}
           data-ch-active={
             highlight !== undefined && String(tick.value) === String(highlight) ? 'true' : undefined

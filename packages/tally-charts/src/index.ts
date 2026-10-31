@@ -77,7 +77,7 @@ export type {
   WaterfallTotal,
 } from './react/charts/WaterfallChart'
 export { WaterfallChart } from './react/charts/WaterfallChart'
-export type { ChartContextValue, Margin } from './react/context'
+export type { ChartContextValue, Margin, ValueScale } from './react/context'
 export { useChart } from './react/context'
 export type { DataTableColumn, DataTableProps, DataTableSpec } from './react/DataTable'
 export { DataTable } from './react/DataTable'

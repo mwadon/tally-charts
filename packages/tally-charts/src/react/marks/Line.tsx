@@ -3,8 +3,9 @@ import { linePath } from '../../core/line'
 import { round2 } from '../../core/path'
 import type { Accessor, Tone } from '../../core/types'
 import { DEV } from '../../core/warn'
-import { useChartContext } from '../context'
+import { useChartContext, type ValueScale } from '../context'
 import { useSeriesScales } from './series'
+import { valueContext } from './value-scale'
 
 export type LineDots = 'filled' | 'hollow' | 'none'
 
@@ -23,6 +24,8 @@ export interface LineProps<D> {
   dots?: LineDots
   /** Dot radius in px. Default 4. */
   radius?: number
+  /** The value scale to draw on, and whose field `y` defaults to. Default 'y'. */
+  scale?: ValueScale
 }
 
 /**
@@ -39,10 +42,11 @@ export function Line<D>({
   dashed = false,
   dots = 'filled',
   radius = 4,
+  scale,
 }: LineProps<D>) {
-  const ctx = useChartContext('Line')
+  const ctx = valueContext(useChartContext('Line'), scale)
   const scales = useSeriesScales(ctx, 'Line')
-  if (!scales) return null
+  if (!ctx || !scales) return null
   const getX = toFieldGetter(x) ?? ctx.x.field
   const getY = toFieldGetter(y) ?? ctx.y.field
   if (!getX || !getY) {
