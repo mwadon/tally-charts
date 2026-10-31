@@ -1,5 +1,5 @@
 import { render } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { Chart } from '../Chart'
 import { Axis } from './Axis'
 
@@ -269,5 +269,80 @@ describe('<Axis>', () => {
     expect(all.slice(0, 4).map((el) => el.getAttribute('x'))).toEqual(['50', '150', '250', '350'])
     expect(all[0]).toHaveAttribute('text-anchor', 'middle')
     expect(all.slice(4).map((el) => el.getAttribute('y'))).toEqual(['25', '75'])
+  })
+
+  describe('with a list of ticks', () => {
+    it('labels those values on a linear axis', () => {
+      const { container } = render(
+        <Chart
+          title="Test chart"
+          {...frame}
+          width={300}
+          x={{ domain: [0, 1] }}
+          y={{ domain: [0, 40] }}
+        >
+          <Axis side="left" ticks={[0, 10, 25, 99]} />
+        </Chart>,
+      )
+      expect(labels(container)).toEqual(['0', '10', '25'])
+      const all = [...container.querySelectorAll('[data-ch-part="axis-label"]')]
+      expect(all.map((el) => el.getAttribute('y'))).toEqual(['100', '75', '37.5'])
+    })
+
+    it('places them on a y2 axis with a reversed domain', () => {
+      const { container } = render(
+        <Chart
+          title="Test chart"
+          {...frame}
+          width={300}
+          x={{ domain: [0, 1] }}
+          y={{ domain: [0, 40] }}
+          y2={{ domain: [100, 0] }}
+        >
+          <Axis side="right" scale="y2" ticks={[75, 25, 150]} />
+        </Chart>,
+      )
+      expect(labels(container)).toEqual(['25', '75'])
+      const all = [...container.querySelectorAll('[data-ch-part="axis-label"]')]
+      expect(all.map((el) => el.getAttribute('y'))).toEqual(['25', '75'])
+    })
+
+    it('warns and falls back to every category on a band axis', () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+      const { container } = render(
+        <Chart
+          title="Test chart"
+          {...frame}
+          width={300}
+          x={{ type: 'band', domain: ['W1', 'W2', 'W3'], padding: 0 }}
+          y={{ domain: [0, 1] }}
+        >
+          <Axis side="bottom" ticks={[1, 2]} />
+        </Chart>,
+      )
+      expect(labels(container)).toEqual(['W1', 'W2', 'W3'])
+      expect(warn).toHaveBeenCalledWith(expect.stringContaining('needs a linear scale'))
+      warn.mockRestore()
+    })
+
+    it('warns and falls back to the default ticks on a time axis', () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+      const chart = (ticks?: number[]) => (
+        <Chart
+          title="Test chart"
+          {...frame}
+          width={600}
+          x={{ type: 'time', domain: [new Date('2026-01-01'), new Date('2026-06-01')] }}
+          y={{ domain: [0, 1] }}
+        >
+          <Axis side="bottom" ticks={ticks} />
+        </Chart>
+      )
+      const defaults = labels(render(chart()).container)
+      expect(warn).not.toHaveBeenCalled()
+      expect(labels(render(chart([1, 2])).container)).toEqual(defaults)
+      expect(warn).toHaveBeenCalledWith(expect.stringContaining('needs a linear scale'))
+      warn.mockRestore()
+    })
   })
 })

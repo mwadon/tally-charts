@@ -939,7 +939,7 @@
             {
               "kind": "PropertySignature",
               "canonicalReference": "tally-charts!AxisProps#ticks:member",
-              "docComment": "",
+              "docComment": "/**\n * Default 'all'. A list of values works on a linear scale only; elsewhere it gives the default\n * ticks and a development warning. Values outside the domain or `extent` are dropped, and `thin`\n * can still drop labels that overlap.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -9711,7 +9711,7 @@
             {
               "kind": "PropertySignature",
               "canonicalReference": "tally-charts!GridProps#ticks:member",
-              "docComment": "/**\n * Same as the y axis `ticks`. Default 'all' (about 5).\n */\n",
+              "docComment": "/**\n * Same as the y axis `ticks`, including a list of values, of which those outside the y domain or\n * `extent` are dropped. Default 'all' (about 5).\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -18590,7 +18590,7 @@
         {
           "kind": "TypeAlias",
           "canonicalReference": "tally-charts!TickSpec:type",
-          "docComment": "",
+          "docComment": "/**\n * Which ticks to label: all of them, the ends, about `n`, or, on a linear scale, exactly the listed\n * values. A list is sorted and deduplicated, and a value outside the domain (or `extent`) is dropped.\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
@@ -18598,7 +18598,7 @@
             },
             {
               "kind": "Content",
-              "text": "'all' | 'ends' | number"
+              "text": "'all' | 'ends' | number | readonly number[]"
             },
             {
               "kind": "Content",
