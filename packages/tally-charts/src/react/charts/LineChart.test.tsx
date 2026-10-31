@@ -740,3 +740,47 @@ describe('<LineChart> underlay', () => {
     expect(kinds.slice(0, 2)).toEqual(['grid', 'line-group'])
   })
 })
+
+describe('<LineChart> interactive', () => {
+  const hasHitAreas = (root: HTMLElement) =>
+    root.querySelector('[data-ch-part="hit"], [data-ch-part="nearest-pointer"]') !== null
+
+  it('keeps the default markup when interactive is true or left out', () => {
+    const plain = renderLines({ chartId: 'same' })
+    const html = plain.container.innerHTML
+    plain.unmount()
+    const explicit = renderLines({ chartId: 'same', interactive: true })
+    expect(explicit.container.innerHTML).toBe(html)
+  })
+
+  it('has no application role, tab stop, pointer, tooltip or keyboard hint when false', () => {
+    const { container } = renderLines({ interactive: false, tooltip: true })
+    expect(container.querySelector('[role="application"]')).toBeNull()
+    expect(container.querySelector('[tabindex]')).toBeNull()
+    expect(hasHitAreas(container)).toBe(false)
+    expect(tooltip(container)).toBeNull()
+    expect(container.querySelector('[id$="-hint"]')).toBeNull()
+    expect(container.textContent).not.toMatch(/arrow keys/i)
+  })
+
+  it('shows no tooltip on hover when false', () => {
+    const { container } = renderLines({ interactive: false })
+    const plot = container.querySelector('[data-ch-part="plot"]') as Element
+    fireEvent.pointerMove(plot, { clientX: 150, clientY: 50 })
+    expect(tooltip(container)).toBeNull()
+  })
+
+  it('keeps the title, the lines and the data table when false', () => {
+    const { container } = renderLines({ interactive: false })
+    expect(container.querySelector('figure')?.getAttribute('aria-labelledby')).toBeTruthy()
+    expect(container.textContent).toContain('Margin outlook')
+    expect(groups(container)).toHaveLength(3)
+    expect(container.querySelector('table')).not.toBeNull()
+  })
+
+  it('still has the application role and a tab stop by default', () => {
+    const { container } = renderLines()
+    expect(container.querySelector('[role="application"]')).not.toBeNull()
+    expect(container.querySelector('[tabindex="0"]')).not.toBeNull()
+  })
+})

@@ -11435,7 +11435,7 @@
           "overloadIndex": 1,
           "parameters": [
             {
-              "parameterName": "{ data, x, series, band, forecastFrom, target, domain, format, yAxis, yAxisFormat, xAxis, xAxisFormat, grid, underlay, radius, dataTable, tooltip, margin, height, children, onSelect, onActiveChange, ...chart }",
+              "parameterName": "{ data, x, series, band, forecastFrom, target, domain, format, yAxis, yAxisFormat, xAxis, xAxisFormat, grid, underlay, radius, dataTable, tooltip, interactive, margin, height, children, onSelect, onActiveChange, ...chart }",
               "parameterTypeTokenRange": {
                 "startIndex": 0,
                 "endIndex": 0
@@ -11626,7 +11626,7 @@
             },
             {
               "kind": "Content",
-              "text": "<D>;\n  underlay?: "
+              "text": "<D>;\n  interactive?: boolean;\n  underlay?: "
             },
             {
               "kind": "Reference",

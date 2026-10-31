@@ -124,6 +124,12 @@ export type LineChartProps<D> = ChartName &
      */
     tooltip?: ChartTooltip<D>
     /**
+     * Default true. With false the chart is static: no points are registered, so it has no tab
+     * stop, no keyboard hint, no pointer response and no tooltip (`tooltip` is ignored). The
+     * title and the data table stay.
+     */
+    interactive?: boolean
+    /**
      * Marks drawn under the series, above the grid, e.g. an `<Area>` on a time axis. `children`
      * stay above the series.
      */
@@ -244,6 +250,7 @@ export function LineChart<D>({
   radius = 4,
   dataTable = true,
   tooltip = true,
+  interactive = true,
   margin,
   height,
   children,
@@ -439,10 +446,12 @@ export function LineChart<D>({
           radius={radius}
         />
       ))}
-      <LinePoints rows={labelled} series={series} fmt={fmt} radius={radius} />
+      {interactive ? (
+        <LinePoints rows={labelled} series={series} fmt={fmt} radius={radius} />
+      ) : null}
       {yAxis === 'none' ? null : <Axis side="left" ticks={yAxis} format={valueFormat} />}
       {xAxis === 'none' ? null : <Axis side="bottom" ticks={xAxis} format={xAxisFormat} />}
-      {tooltip ? <Tooltip content={tooltipContent(tooltip)} /> : null}
+      {interactive && tooltip ? <Tooltip content={tooltipContent(tooltip)} /> : null}
       {children}
     </Chart>
   )

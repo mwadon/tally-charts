@@ -110,7 +110,7 @@
       "id": "n19",
       "type": "prose",
       "props": {
-        "markdown": "`valueLabel=\"max\"` labels only the highest bar (the first, on a tie), and `valueLabelVariant=\"pill\"` draws the label on a filled pill. The pill sits above the bar, so on the tallest bar it needs the default `margin.top` of 24 or more."
+        "markdown": "`valueLabel=\"max\"` labels only the highest bar (the first, on a tie), and `valueLabelVariant=\"pill\"` draws the label on a filled pill. The pill sits above the bar. `BarChart`'s default top margin of 24 fits it; a `Chart` needs `margin.top` of at least 24."
       }
     },
     {
