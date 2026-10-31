@@ -11,6 +11,7 @@ export const STORIES = [
   'charts-barchart--dark',
   'charts-barchart--horizontal',
   'charts-barchart--vivid',
+  'charts-barchart--threshold-in-bucket',
   'reference-estimate-vs-actual--light',
   'reference-estimate-vs-actual--dark',
   'reference-result--light',

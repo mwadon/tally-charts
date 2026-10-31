@@ -53,17 +53,6 @@ describe('<Target>', () => {
     expect(line).toHaveAttribute('y2', '60')
   })
 
-  it('warns and draws nothing on a band axis', () => {
-    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
-    const { container } = render(
-      <Chart {...frame} x={{ type: 'band', domain: ['a'] }} y={{ domain: [0, 1] }}>
-        <Target x={1} />
-      </Chart>,
-    )
-    expect(container.querySelector('[data-ch-part="target"]')).toBeNull()
-    expect(String(warn.mock.calls[0]?.[0])).toContain('linear or time scale')
-  })
-
   it('draws nothing for a value outside the domain or non-finite', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     const { container } = render(
@@ -75,5 +64,108 @@ describe('<Target>', () => {
     expect(container.querySelector('[data-ch-part="target"]')).toBeNull()
     expect(warn).toHaveBeenCalled()
     warn.mockRestore()
+  })
+
+  describe('on category scales', () => {
+    const buckets = Array.from({ length: 10 }, (_, i) => `${i * 10}–${i * 10 + 9}`)
+    const wide = { ...frame, width: 500 }
+    const step = 50
+    const x1 = (container: HTMLElement) =>
+      Number(container.querySelector('[data-ch-part="target"]')?.getAttribute('x1'))
+    const band = (children: React.ReactNode, type: 'band' | 'point' = 'band') =>
+      render(
+        <Chart
+          {...wide}
+          x={{ type, domain: buckets, padding: type === 'band' ? 0 : 0.5 }}
+          y={{ domain: [0, 1] }}
+        >
+          {children}
+        </Chart>,
+      )
+
+    it('places the rule at a fraction of the category step', () => {
+      const { container } = band(<Target x="70–79" position={0.3} />)
+      expect(x1(container)).toBeCloseTo(7.3 * step, 6)
+    })
+
+    it('defaults to the centre of the category', () => {
+      const { container } = band(<Target x="70–79" />)
+      expect(x1(container)).toBeCloseTo(7.5 * step, 6)
+    })
+
+    it('puts the end of one category on the start of the next', () => {
+      const end = x1(band(<Target x="30–39" position={1} />).container)
+      const start = x1(band(<Target x="40–49" position={0} />).container)
+      expect(end).toBeCloseTo(start, 6)
+    })
+
+    it('stays inside the plot at the outer edges, also with one category', () => {
+      expect(x1(band(<Target x="0–9" position={0} />).container)).toBeGreaterThanOrEqual(0)
+      expect(x1(band(<Target x="90–99" position={1} />).container)).toBeLessThanOrEqual(500)
+      const one = render(
+        <Chart {...wide} x={{ type: 'band', domain: ['a'] }} y={{ domain: [0, 1] }}>
+          <Target x="a" position={0} />
+          <Target x="a" position={1} />
+        </Chart>,
+      )
+      const xs = [...one.container.querySelectorAll('[data-ch-part="target"]')].map((l) =>
+        Number(l.getAttribute('x1')),
+      )
+      for (const x of xs) {
+        expect(x).toBeGreaterThanOrEqual(0)
+        expect(x).toBeLessThanOrEqual(500)
+      }
+    })
+
+    it('warns and draws nothing for an unknown category', () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+      const { container } = band(<Target x="nope" />)
+      expect(container.querySelector('[data-ch-part="target"]')).toBeNull()
+      expect(String(warn.mock.calls[0]?.[0])).toContain('nope')
+      warn.mockRestore()
+    })
+
+    it('clamps a position outside 0 to 1 and warns', () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+      const { container } = band(<Target x="30–39" position={1.5} />)
+      expect(x1(container)).toBeCloseTo(4 * step, 6)
+      expect(warn).toHaveBeenCalled()
+      warn.mockRestore()
+    })
+
+    it('warns and ignores position on a linear scale', () => {
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+      const { container } = render(
+        <Chart {...wide} x={{ domain: [0, 100] }} y={{ domain: [0, 1] }}>
+          <Target x={50} position={0.2} />
+        </Chart>,
+      )
+      expect(x1(container)).toBe(250)
+      expect(warn).toHaveBeenCalled()
+      warn.mockRestore()
+    })
+
+    it('draws a horizontal rule for a band y', () => {
+      const { container } = render(
+        <Chart
+          {...wide}
+          height={100}
+          x={{ domain: [0, 1] }}
+          y={{ type: 'band', domain: ['a', 'b'] }}
+        >
+          <Target y="b" />
+        </Chart>,
+      )
+      const line = container.querySelector('[data-ch-part="target"]')
+      expect(line).toHaveAttribute('x1', '0')
+      expect(line).toHaveAttribute('x2', '500')
+      expect(Number(line?.getAttribute('y1'))).toBeGreaterThan(0)
+      expect(line?.getAttribute('y1')).toBe(line?.getAttribute('y2'))
+    })
+
+    it('works on a point scale', () => {
+      const { container } = band(<Target x="70–79" />, 'point')
+      expect(x1(container)).toBeCloseTo(7.5 * step, 6)
+    })
   })
 })

@@ -1175,11 +1175,12 @@ export interface TargetProps {
     label?: string;
     // (undocumented)
     labelPosition?: 'start' | 'end';
+    position?: number;
     tickLength?: number;
     // (undocumented)
     variant?: 'line' | 'tick';
     x?: TimeInput;
-    y?: number;
+    y?: number | string;
 }
 
 // @public (undocumented)

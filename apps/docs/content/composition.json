@@ -70,6 +70,21 @@
       }
     },
     {
+      "id": "n50",
+      "type": "prose",
+      "props": {
+        "markdown": "`Target` also works on a band or point scale. Pass the category as `x` (or `y` on a horizontal chart) and `position`, a fraction of the category's step from 0 (start edge) to 1 (end edge); the default 0.5 is the centre. A pass mark of 73 over buckets 10 wide sits at `position={0.3}` of `\"70–79\"`. The end of one category and the start of the next are the same pixel, in the middle of the gap between bars. `position` on a linear or time scale warns and is ignored."
+      }
+    },
+    {
+      "id": "n51",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "composition/threshold-between-buckets",
+        "defaultView": "preview"
+      }
+    },
+    {
       "id": "n7",
       "type": "heading",
       "props": {

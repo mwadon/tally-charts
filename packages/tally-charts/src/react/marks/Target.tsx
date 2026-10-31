@@ -1,3 +1,4 @@
+import { categoryCenter, categoryStep } from '../../core/scale'
 import { type TimeInput, toTime } from '../../core/time'
 import { DEV } from '../../core/warn'
 import { useChartContext } from '../context'
@@ -8,8 +9,14 @@ export interface TargetProps {
    * ms or ISO string) on a time scale.
    */
   x?: TimeInput
-  /** Draws a horizontal rule at this y value. */
-  y?: number
+  /** Draws a horizontal rule at this y value, or at this category on a band or point scale. */
+  y?: number | string
+  /**
+   * Where the rule sits within its category on a band or point scale, as a fraction of the step:
+   * 0 is the start edge, 1 the end edge. Default 0.5, the centre. Values outside 0 to 1 are clamped.
+   * Ignored, with a warning, on a linear or time scale.
+   */
+  position?: number
   label?: string
   labelPosition?: 'start' | 'end'
   variant?: 'line' | 'tick'
@@ -20,6 +27,7 @@ export interface TargetProps {
 export function Target({
   x,
   y,
+  position,
   label,
   labelPosition = 'end',
   variant = 'line',
@@ -33,29 +41,56 @@ export function Target({
     if (DEV) ctx.warn('target-value', 'Target needs an `x` or `y` value.')
     return null
   }
-  if (resolved.kind !== 'linear' && resolved.kind !== 'time') {
-    if (DEV) ctx.warn('target-scale', 'Target needs a linear or time scale on the axis it marks.')
-    return null
-  }
-  const value =
-    resolved.kind === 'time'
-      ? (toTime(raw) ?? Number.NaN)
-      : typeof raw === 'number'
-        ? raw
-        : Number.NaN
-
-  const [d0, d1] = resolved.scale.domain()
-  if (!Number.isFinite(value) || value < Math.min(d0, d1) || value > Math.max(d0, d1)) {
-    if (DEV) {
+  let pos: number
+  if (resolved.kind === 'linear' || resolved.kind === 'time') {
+    if (position !== undefined && DEV) {
       ctx.warn(
-        'target-domain',
-        `Target value ${String(raw)} is outside the chart domain and was not drawn.`,
+        'target-position',
+        '`position` only applies on a band or point scale and was ignored.',
       )
     }
-    return null
-  }
+    const value =
+      resolved.kind === 'time'
+        ? (toTime(raw) ?? Number.NaN)
+        : typeof raw === 'number'
+          ? raw
+          : Number.NaN
 
-  const pos = resolved.scale(value)
+    const [d0, d1] = resolved.scale.domain()
+    if (!Number.isFinite(value) || value < Math.min(d0, d1) || value > Math.max(d0, d1)) {
+      if (DEV) {
+        ctx.warn(
+          'target-domain',
+          `Target value ${String(raw)} is outside the chart domain and was not drawn.`,
+        )
+      }
+      return null
+    }
+    pos = resolved.scale(value)
+  } else {
+    const center = categoryCenter(resolved, raw)
+    if (center === undefined) {
+      if (DEV) {
+        ctx.warn(
+          'target-category',
+          `Target category ${String(raw)} is not on the chart axis and was not drawn.`,
+        )
+      }
+      return null
+    }
+    let fraction = position ?? 0.5
+    if (!(fraction >= 0 && fraction <= 1)) {
+      if (DEV) {
+        ctx.warn(
+          'target-position',
+          `Target position ${String(position)} is outside 0 to 1 and was clamped.`,
+        )
+      }
+      fraction = Math.min(1, Math.max(0, fraction || 0))
+    }
+    const length = horizontal ? ctx.innerHeight : ctx.innerWidth
+    pos = Math.min(length, Math.max(0, center + (fraction - 0.5) * categoryStep(resolved)))
+  }
   const half = tickLength / 2
   const atEnd = labelPosition === 'end'
   let line: { x1: number; x2: number; y1: number; y2: number }
