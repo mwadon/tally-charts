@@ -38,8 +38,13 @@ export type BarChartProps<D> = ChartName &
     domain?: readonly [number, number]
     /** A target value, optionally with a label. */
     target?: number | { value: number; label?: string }
-    /** Which bars get a value label. Default 'last'. */
-    valueLabel?: 'last' | 'all' | 'none'
+    /** Which bars get a value label: 'max' is the highest one. Default 'last'. */
+    valueLabel?: 'last' | 'all' | 'max' | 'none'
+    /**
+     * 'pill' draws value labels on a filled rounded rectangle. On the tallest bar it sits in the
+     * top margin, which fits at the default `margin.top` of 24; a smaller one clips it. Default 'text'.
+     */
+    valueLabelVariant?: 'text' | 'pill'
     /** Format for value labels. Defaults to `format`. */
     valueFormat?: FormatSpec
     /** Format for tooltips, announcements and the data table. Default 'number'. */
@@ -86,6 +91,7 @@ export function BarChart<D>({
   domain,
   target,
   valueLabel = 'last',
+  valueLabelVariant,
   valueFormat,
   format,
   axis = 'ends',
@@ -150,7 +156,7 @@ export function BarChart<D>({
       ) : null}
       <Bars<D> id={id} label={label} tone={tone} fill={fill} format={format} />
       {valueLabel === 'none' ? null : (
-        <ValueLabel<D> at={valueLabel} format={valueFormat ?? format} />
+        <ValueLabel<D> at={valueLabel} variant={valueLabelVariant} format={valueFormat ?? format} />
       )}
       {axis === 'none' ? null : (
         <Axis side={vertical ? 'bottom' : 'left'} ticks={axis} format={axisFormat} />

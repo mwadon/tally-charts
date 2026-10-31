@@ -79,6 +79,14 @@ describe('<BarChart>', () => {
     expect(parts(container, 'axis-label')).toHaveLength(0)
   })
 
+  it('labels the highest bar as a pill', () => {
+    const { container } = renderChart({ valueLabel: 'max', valueLabelVariant: 'pill' })
+    expect(parts(container, 'value-label').map((t) => t.textContent)).toEqual(['34'])
+    const pill = parts(container, 'value-label-pill')[0]
+    // The default 24 px top margin holds the pill on the tallest bar.
+    expect(Number(pill?.getAttribute('y'))).toBeGreaterThanOrEqual(-24)
+  })
+
   it('renders a hidden data table by default and formats its values', () => {
     const { unmount } = renderChart({ format: 'percent' })
     const table = screen.getByRole('table', { name: 'Margin by week' })

@@ -513,6 +513,16 @@
   font-weight: 500;
 }
 
+/* A peak label on a pill: ink on the pill, surface on the ink, so contrast holds in both themes. */
+[data-ch-part="value-label-pill"] {
+  fill: var(--ch-ink);
+  rx: var(--ch-radius);
+}
+
+[data-ch-part="value-label"][data-ch-variant="pill"] {
+  fill: var(--ch-surface);
+}
+
 [data-ch-part="row-label"] {
   fill: var(--ch-ink);
   font-size: 15px;
@@ -1661,6 +1671,14 @@
   [data-ch-part="tooltip-pill"],
   [data-ch-part="delta"] {
     border: 1px solid CanvasText;
+  }
+
+  [data-ch-part="value-label-pill"] {
+    fill: CanvasText;
+  }
+
+  [data-ch-part="value-label"][data-ch-variant="pill"] {
+    fill: Canvas;
   }
 
   /* Heatmap levels (and their swatches) differ by border width, as fills are forced away. */

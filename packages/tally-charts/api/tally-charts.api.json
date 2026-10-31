@@ -1642,7 +1642,7 @@
           "overloadIndex": 1,
           "parameters": [
             {
-              "parameterName": "{ data, x, y, id, label, orientation, domain, target, valueLabel, valueFormat, format, axis, axisFormat, tone, fill, padding, dataTable, tooltip, margin, height, children, ...chart }",
+              "parameterName": "{ data, x, y, id, label, orientation, domain, target, valueLabel, valueLabelVariant, valueFormat, format, axis, axisFormat, tone, fill, padding, dataTable, tooltip, margin, height, children, ...chart }",
               "parameterTypeTokenRange": {
                 "startIndex": 0,
                 "endIndex": 0
@@ -1743,7 +1743,7 @@
             },
             {
               "kind": "Content",
-              "text": "<D, string>;\n  orientation?: 'vertical' | 'horizontal';\n  domain?: readonly [number, number];\n  target?: number | {\n    value: number;\n    label?: string;\n  };\n  valueLabel?: 'last' | 'all' | 'none';\n  valueFormat?: "
+              "text": "<D, string>;\n  orientation?: 'vertical' | 'horizontal';\n  domain?: readonly [number, number];\n  target?: number | {\n    value: number;\n    label?: string;\n  };\n  valueLabel?: 'last' | 'all' | 'max' | 'none';\n  valueLabelVariant?: 'text' | 'pill';\n  valueFormat?: "
             },
             {
               "kind": "Reference",
@@ -19548,7 +19548,7 @@
         {
           "kind": "Function",
           "canonicalReference": "tally-charts!ValueLabel:function(1)",
-          "docComment": "",
+          "docComment": "/**\n * Value text at the outer end of bars, computed from the same geometry as <Bars>.\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
@@ -19593,7 +19593,7 @@
           "overloadIndex": 1,
           "parameters": [
             {
-              "parameterName": "{ data, at, x, y, format, offset }",
+              "parameterName": "{ data, at, x, y, format, offset, variant }",
               "parameterTypeTokenRange": {
                 "startIndex": 0,
                 "endIndex": 0
@@ -19654,7 +19654,7 @@
             {
               "kind": "PropertySignature",
               "canonicalReference": "tally-charts!ValueLabelProps#at:member",
-              "docComment": "",
+              "docComment": "/**\n * Which bars get a label. 'max' labels the highest finite bar, the first one on a tie.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -19662,7 +19662,7 @@
                 },
                 {
                   "kind": "Content",
-                  "text": "'first' | 'last' | 'all' | number"
+                  "text": "'first' | 'last' | 'all' | 'max' | number"
                 },
                 {
                   "kind": "Content",
@@ -19755,6 +19755,33 @@
               "isOptional": true,
               "releaseTag": "Public",
               "name": "offset",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!ValueLabelProps#variant:member",
+              "docComment": "/**\n * 'pill' draws the label on a filled rounded rectangle (part `value-label-pill`), sized from the\n * text. The pill is 18 px tall and is clamped horizontally to the chart's width, not vertically:\n * on the tallest bar it sits above the plot. A `Chart` with its default 20 px top margin needs a\n * `margin.top` of at least 24 to fit it at the default offset. Default 'text'.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "variant?: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "'text' | 'pill'"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "variant",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2

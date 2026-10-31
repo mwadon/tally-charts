@@ -76,6 +76,36 @@ export const Vivid: Story = {
   parameters: { theme: 'light', palette: 'vivid' },
 }
 
+// The highest week labelled alone, as a pill in the 24 px top margin.
+export const PeakLabel: Story = {
+  render: () => (
+    <article className="card">
+      <header className="card-header">
+        <h2 className="card-title">Orders by week</h2>
+        <span className="card-meta">Peak labelled</span>
+      </header>
+      <BarChart
+        data={[
+          { week: 'W1', orders: 120 },
+          { week: 'W2', orders: 142 },
+          { week: 'W3', orders: 188 },
+          { week: 'W4', orders: 161 },
+          { week: 'W5', orders: 133 },
+          { week: 'W6', orders: 149 },
+        ]}
+        x="week"
+        y="orders"
+        valueLabel="max"
+        valueLabelVariant="pill"
+        height={240}
+        title="Orders by week, peak labelled"
+        description="Orders peaked at 188 in week 3."
+      />
+    </article>
+  ),
+  parameters: { theme: 'light' },
+}
+
 const scores = [
   { range: '0–9', students: 1 },
   { range: '10–19', students: 2 },

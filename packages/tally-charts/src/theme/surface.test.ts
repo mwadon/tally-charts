@@ -188,6 +188,7 @@ const PARTS = [
   'tooltip',
   'tooltip-pill',
   'value-label',
+  'value-label-pill',
   'value-labels',
   'zone-meter',
   'zone-meter-label',

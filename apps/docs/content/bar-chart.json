@@ -107,6 +107,21 @@
       }
     },
     {
+      "id": "n19",
+      "type": "prose",
+      "props": {
+        "markdown": "`valueLabel=\"max\"` labels only the highest bar (the first, on a tie), and `valueLabelVariant=\"pill\"` draws the label on a filled pill. The pill sits above the bar, so on the tallest bar it needs the default `margin.top` of 24 or more."
+      }
+    },
+    {
+      "id": "n20",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "bar-chart/peak-week",
+        "defaultView": "preview"
+      }
+    },
+    {
       "id": "n18",
       "type": "prose",
       "props": {

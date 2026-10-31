@@ -117,7 +117,8 @@ export type BarChartProps<D> = ChartName & ChartPassThroughProps<D> & {
         value: number;
         label?: string;
     };
-    valueLabel?: 'last' | 'all' | 'none';
+    valueLabel?: 'last' | 'all' | 'max' | 'none';
+    valueLabelVariant?: 'text' | 'pill';
     valueFormat?: FormatSpec;
     format?: FormatSpec;
     axis?: TickSpec | 'none';
@@ -1329,17 +1330,17 @@ export interface UseFormatResult extends Formatters {
 // @public
 export function useRegisterPoints(points: readonly ChartPoint[]): void;
 
-// @public (undocumented)
+// @public
 export function ValueLabel<D>(input: ValueLabelProps<D>): JSX.Element | null;
 
 // @public (undocumented)
 export interface ValueLabelProps<D> {
-    // (undocumented)
-    at?: 'first' | 'last' | 'all' | number;
+    at?: 'first' | 'last' | 'all' | 'max' | number;
     data?: readonly D[];
     // (undocumented)
     format?: FormatSpec;
     offset?: number;
+    variant?: 'text' | 'pill';
     // (undocumented)
     x?: Accessor<D, string | number>;
     // (undocumented)
