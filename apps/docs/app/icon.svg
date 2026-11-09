@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <title>tally-charts</title>
+  <!-- A tally of five on the accent of the light theme (--ch-accent). The filled tile keeps the
+       mark readable on a light and on a dark tab. -->
+  <rect width="32" height="32" rx="7" fill="#2f6bf0"/>
+  <g fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round">
+    <path d="M9 8.5v15M13.7 8.5v15M18.3 8.5v15M23 8.5v15"/>
+    <path d="M5.5 20.5l21-9"/>
+  </g>
+</svg>

@@ -22,6 +22,38 @@
       "props": { "markdown": "Read [the guide](/docs/does-not-exist) first." }
     },
     { "id": "bad-symbol", "type": "props-table", "props": { "symbol": "NoSuchSymbol" } },
-    { "id": "bad-type", "type": "carousel", "props": {} }
+    { "id": "bad-type", "type": "carousel", "props": {} },
+    {
+      "id": "bad-hero-link",
+      "type": "hero",
+      "props": {
+        "title": "Broken",
+        "lede": "A hero with a dead button.",
+        "actions": [
+          { "label": "Fine", "href": "/docs/ok#top", "primary": true },
+          { "label": "Elsewhere", "href": "https://example.com/docs/not-ours" },
+          { "label": "Dead", "href": "/docs/no-such-hero-target" }
+        ],
+        "exampleId": "bar-chart/margin-by-week"
+      }
+    },
+    {
+      "id": "bad-row-link",
+      "type": "link-row",
+      "props": {
+        "heading": "Keep going",
+        "items": [
+          { "label": "Fine", "href": "/docs/ok" },
+          { "label": "Dead", "href": "/docs/no-such-row-target?x=1" }
+        ]
+      }
+    },
+    { "id": "first-heading", "type": "heading", "props": { "text": "Same title", "level": "2" } },
+    { "id": "bad-heading-id", "type": "heading", "props": { "text": "Same title", "level": "3" } },
+    {
+      "id": "bad-anchor",
+      "type": "heading",
+      "props": { "text": "Other title", "level": "2", "anchor": "same-title" }
+    }
   ]
 }

@@ -523,33 +523,8 @@ tbody th {
   font-family: inherit;
 }
 
-/* Syntax colors: a tone mixed with ink, the same recipe as toned text in the charts. */
-[data-tok="keyword"] {
-  color: color-mix(in srgb, var(--ch-accent) 70%, var(--ch-ink));
-}
-
-[data-tok="string"] {
-  color: color-mix(in srgb, var(--ch-gain) 60%, var(--ch-ink));
-}
-
-[data-tok="number"] {
-  color: color-mix(in srgb, var(--ch-warn) 65%, var(--ch-ink));
-}
-
-[data-tok="tag"] {
-  color: color-mix(in srgb, var(--ch-loss) 65%, var(--ch-ink));
-}
-
-[data-tok="fn"] {
-  font-weight: 700;
-}
-
-[data-tok="comment"] {
-  color: var(--docs-muted);
-  font-style: italic;
-}
-
-/* Shiki's css-variables theme (blocks/highlight.ts) reads these; same mixes as [data-tok]. */
+/* Syntax colors: a tone mixed with ink, the same recipe as toned text in the charts. Shiki's
+   css-variables theme (blocks/highlight.ts) reads these. */
 .code-block {
   --shiki-foreground: var(--docs-text);
   --shiki-background: transparent;
@@ -882,6 +857,22 @@ tbody th {
 
 .site-footer p {
   margin: 0;
+}
+
+/* ---------- 404 and error pages ---------- */
+.status-page {
+  padding-top: 4rem;
+}
+
+/* "Try again" is a button that looks like the links next to it. */
+button.button {
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+button.button:not(.button-primary) {
+  background: transparent;
 }
 
 /* ---------- Breakpoints ---------- */

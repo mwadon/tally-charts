@@ -9,14 +9,16 @@ const NAMES = [
   'CMS_TENANT',
   'CMS_API_KEY',
   'NEXT_PUBLIC_CMS_TENANT',
+  'NEXT_PUBLIC_CMS_EDITOR_ORIGIN',
   'APP_ENV',
   'REVALIDATE_SECRET',
   'PREVIEW_SECRET',
+  'CMS_PREVIEW_TOKEN',
   'CMS_ADMIN_API_KEY',
   'SITE_URL',
 ]
 
-test('.env.example declares the nine variables, each empty and described by a comment above', () => {
+test('.env.example declares the eleven variables, each empty and described by a comment above', () => {
   const assigned = lines.flatMap((line, i) => (/^[A-Z_]+=/.test(line) ? [i] : []))
 
   expect(assigned.map((i) => lines[i])).toEqual(NAMES.map((name) => `${name}=`))

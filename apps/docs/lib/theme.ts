@@ -27,6 +27,14 @@ export function readStoredTheme(): ThemeChoice {
   }
 }
 
+/** What `THEME_SCRIPT` would put on <html>: `?theme=` first, then the stored choice. */
+export function initialTheme(): 'light' | 'dark' | undefined {
+  const query = new URLSearchParams(window.location.search).get('theme')
+  if (isForcedTheme(query)) return query
+  const stored = readStoredTheme()
+  return stored === 'system' ? undefined : stored
+}
+
 /**
  * Inline <head> script, runs before first paint. Precedence: `?theme=light|dark` (never stored),
  * then localStorage, then nothing (system). Unknown values are ignored in both places.

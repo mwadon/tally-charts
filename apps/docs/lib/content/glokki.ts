@@ -22,19 +22,27 @@ interface GlokkiOptions {
   apiKey: string
   /** Read drafts, and never cache: no `cms` tag, `cache: 'no-store'`. Default `false`. */
   preview?: boolean
+  /**
+   * The preview token of the tenant (`CMS_PREVIEW_TOKEN`), used with `preview` only. The SDK asks
+   * the delivery API for a draft (`?preview=true&token=…`) only when it has both; without the
+   * token a preview read is uncached but returns the published page.
+   */
+  previewToken?: string | undefined
   /** Defaults to `content/navigation.json`. */
   navigationConfig?: () => Promise<NavigationConfig>
 }
 
 /**
  * Published pages from the glokki delivery API. Every fetch is tagged `cms` for `revalidateTag`;
- * with `preview` it is `no-store` instead, so an editor always sees the latest draft.
+ * with `preview` it is `no-store` instead, and with a `previewToken` too `getPage` reads the
+ * latest draft.
  */
 export function createGlokkiSource({
   baseUrl,
   tenant,
   apiKey,
   preview = false,
+  previewToken,
   navigationConfig = () => loadNavigationConfig(),
 }: GlokkiOptions): ContentSource {
   const client = createClient({
@@ -42,16 +50,27 @@ export function createGlokkiSource({
     apiKey,
     tenantSlug: tenant,
     ...(preview
-      ? { preview: true, fetchInit: { cache: 'no-store' } }
+      ? {
+          preview: true,
+          ...(previewToken ? { previewToken } : {}),
+          fetchInit: { cache: 'no-store' },
+        }
       : { fetchInit: { next: { tags: [CMS_TAG] } } }),
   })
 
+  // A slug that `getPage` refuses would be a 404 behind a sitemap entry or a static param, so
+  // such a page is not listed. The offset counts what the API sent, not what was kept.
   async function listPages() {
     const items: DeliveryPageListItem[] = []
+    let received = 0
     for (;;) {
-      const { data, meta } = await client.pages.list({ limit: PAGE_SIZE, offset: items.length })
-      items.push(...data.map((item) => ({ ...item, slug: bare(item.slug) })))
-      if (data.length === 0 || items.length >= meta.total) return items
+      const { data, meta } = await client.pages.list({ limit: PAGE_SIZE, offset: received })
+      received += data.length
+      for (const item of data) {
+        const slug = bare(item.slug)
+        if (typeof slug === 'string' && slugPattern.test(slug)) items.push({ ...item, slug })
+      }
+      if (data.length === 0 || received >= meta.total) return items
     }
   }
 

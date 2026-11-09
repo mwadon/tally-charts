@@ -17,8 +17,8 @@ type Env = Record<string, string | undefined>
 
 /**
  * glokki when `CMS_BASE_URL` is set (then `CMS_TENANT` and `CMS_API_KEY` are required), JSON
- * fixtures from `content/` otherwise. `preview` reads drafts from glokki, uncached (fixtures have no
- * drafts and ignore it). `cache` shares the source between the calls of one render, which is why
+ * fixtures from `content/` otherwise. `preview` reads from glokki uncached, and drafts when
+ * `CMS_PREVIEW_TOKEN` is set (fixtures have no drafts and ignore it). `cache` shares the source between the calls of one render, which is why
  * the arguments are primitives or the one `process.env` object.
  */
 export const getContentSource = cache((env: Env = process.env, preview = false): ContentSource => {
@@ -30,5 +30,11 @@ export const getContentSource = cache((env: Env = process.env, preview = false):
     const missing = [!tenant && 'CMS_TENANT', !apiKey && 'CMS_API_KEY'].filter(Boolean)
     throw new Error(`CMS_BASE_URL is set, but ${missing.join(' and ')} is missing`)
   }
-  return createGlokkiSource({ baseUrl, tenant, apiKey, preview })
+  return createGlokkiSource({
+    baseUrl,
+    tenant,
+    apiKey,
+    preview,
+    previewToken: env.CMS_PREVIEW_TOKEN || undefined,
+  })
 })

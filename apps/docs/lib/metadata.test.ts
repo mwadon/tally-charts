@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest'
 import type { DeliveryPage } from './content'
 import { createFixtureSource } from './content/fixtures'
-import { DEFAULT_SITE_URL, pageMetadata, siteUrl } from './metadata'
+import { DEFAULT_SITE_URL, pageMetadata, SITE_NAME, siteUrl } from './metadata'
 
 const SITE = 'https://docs.example.com'
 
@@ -20,6 +20,51 @@ test('title, description, canonical and Open Graph come from the page and SITE_U
   expect(meta.openGraph?.title).toBe('LineChart · tally-charts')
   expect(meta.openGraph?.description).toBe(meta.description)
   expect(meta.openGraph?.url).toBe(`${SITE}/docs/line-chart`)
+})
+
+test('Open Graph names the site as a website and Twitter gets the large image card', async () => {
+  const page = await lineChart()
+  for (const seo of [page.seo, {}, { og: { title: 'OG title' } }]) {
+    const meta = pageMetadata({ ...page, seo }, '/docs/line-chart', { SITE_URL: SITE })
+
+    expect(meta.openGraph).toMatchObject({ siteName: SITE_NAME, type: 'website' })
+    expect(meta.twitter).toMatchObject({ card: 'summary_large_image' })
+  }
+  expect(SITE_NAME).toBe('tally-charts')
+})
+
+test('the image is the one of app/opengraph-image.tsx, for Open Graph and Twitter', async () => {
+  const page = await lineChart()
+  const meta = pageMetadata({ ...page, seo: {} }, '/docs/line-chart', { SITE_URL: SITE })
+  const image = {
+    url: `${SITE}/opengraph-image`,
+    width: 1200,
+    height: 630,
+    type: 'image/png',
+    alt: 'tally-charts: Opinionated React charts for narrative business dashboards.',
+  }
+
+  expect(meta.openGraph).toMatchObject({ images: [image] })
+  expect(meta.twitter).toMatchObject({ images: [image] })
+})
+
+test('an image of the page wins, also for Twitter', async () => {
+  const page = await lineChart()
+  const own = pageMetadata(
+    { ...page, seo: { og: { image: 'https://cdn.test/a.png', imageAlt: 'A' } } },
+    '/docs/line-chart',
+    { SITE_URL: SITE },
+  )
+  expect(own.openGraph).toMatchObject({ images: [{ url: 'https://cdn.test/a.png', alt: 'A' }] })
+  expect(own.twitter).toMatchObject({ images: [{ url: 'https://cdn.test/a.png', alt: 'A' }] })
+
+  const twitter = pageMetadata(
+    { ...page, seo: { twitter: { image: 'https://cdn.test/t.png' } } },
+    '/docs/line-chart',
+    { SITE_URL: SITE },
+  )
+  expect(twitter.twitter).toMatchObject({ images: ['https://cdn.test/t.png'] })
+  expect(twitter.openGraph).toMatchObject({ images: [{ url: `${SITE}/opengraph-image` }] })
 })
 
 test('without metaTitle the title is the page title plus the site name', async () => {
