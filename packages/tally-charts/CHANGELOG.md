@@ -1,5 +1,11 @@
 # tally-charts
 
+## 1.0.0-rc.2
+
+### Patch Changes
+
+- 412e29f: No code changes. The first release built and published by CI with npm provenance; earlier versions were published by hand and carry no attestation.
+
 ## 1.0.0-rc.1
 
 ### Minor Changes
