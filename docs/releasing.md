@@ -92,8 +92,8 @@ uses `vX.Y.Z`.
 
 ## 5. Prereleases (pre mode `rc`)
 
-The repo is in changesets pre mode with tag `rc` (`.changeset/pre.json`). The next versions are
-`1.0.0-rc.0`, `1.0.0-rc.1`, and so on, each through the same Version PR flow.
+The repo is in changesets pre mode with tag `rc` (`.changeset/pre.json`). Versions are
+`1.0.0-rc.N` (`rc.2` was the first one published from CI), each through the same Version PR flow.
 
 **They go to the dist-tag `rc`, not `next`.** The plan was `next` (SPEC D-8), but changesets 3.0.3
 refuses a custom tag in pre mode: `changeset publish --tag next` fails with
@@ -124,6 +124,8 @@ When the last release candidate is good:
 2. That push has changesets again (the files in `.changeset/pre/` count once pre mode is left), so
    the `version` job opens the Version PR with `1.0.0`. Merging it deletes `.changeset/pre.json`,
    empties `.changeset/pre/` and writes the `1.0.0` section of `CHANGELOG.md`.
+   The four migration changesets that `docs-url.test.mjs` watches are gone then, so the check reads
+   their migration link from `CHANGELOG.md` instead.
 3. Merge that PR and approve `npm-publish` as above. `1.0.0` goes to `latest`.
 
 The CLI side of this (`pre exit`, then `changeset version` gives `1.0.0`, `pre.json` removed) is
@@ -194,7 +196,7 @@ without it.
 5. **Deprecate the staging placeholder**:
 
    ```sh
-   npm deprecate tally-charts@0.0.0-stage "Placeholder from staged publishing; use a real version"
+   npm deprecate tally-charts@0.0.0-stage "Placeholder, use tally-charts@latest"
    npm view tally-charts@0.0.0-stage deprecated   # prints the message above
    ```
 
@@ -239,7 +241,7 @@ Steps:
 5. **Check the content**:
    `CMS_BASE_URL=… CMS_TENANT=tally-charts CMS_API_KEY=… pnpm --filter docs check:content`
    (after `pnpm build`) validates the pages in the CMS the same way as the fixtures. Expect exit 0,
-   no errors in the `cms:` report and `API coverage: 52/52`.
+   no errors in the `cms:` report and `API coverage: 53/53`.
 6. **Webhook**: set it up after the site is on Vercel and its URL is known, following §11 steps 4–5
    (`POST https://<domain>/api/revalidate`, check with `curl`, change visible within 60 s).
 

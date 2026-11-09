@@ -1,0 +1,20 @@
+# Dependencies are pinned to exact versions, so updates only arrive through these PRs.
+# Minor and patch updates come as one grouped PR per ecosystem; majors come one by one.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      minor-and-patch:
+        update-types: [minor, patch]
+  # Workflows pin actions to commit SHAs; Dependabot moves the SHA and the version comment together.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ['*']

@@ -2,6 +2,9 @@ import { defineConfig, devices } from '@playwright/test'
 
 export default defineConfig({
   testDir: './e2e',
+  // A committed `test.only` must not turn the job green on one test.
+  forbidOnly: !!process.env.CI,
+  retries: process.env.CI ? 1 : 0,
   // Baselines are per platform. Regenerate them with
   // `pnpm --filter storybook-app exec playwright test --update-snapshots=all`
   // (darwin locally; linux via the Playwright Docker route in ci.yml) and commit them.

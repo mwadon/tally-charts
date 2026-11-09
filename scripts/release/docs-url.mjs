@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync } from 'node:fs'
+import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -19,6 +19,7 @@ const DOCS_HOST = new URL(DOCS_URL).host
 const README = 'packages/tally-charts/README.md'
 const PACKAGE_JSON = 'packages/tally-charts/package.json'
 const STABILITY = 'docs/stability.md'
+const CHANGELOG = 'packages/tally-charts/CHANGELOG.md'
 
 function read(root, file, problems) {
   try {
@@ -58,14 +59,12 @@ export function checkDocsUrl(root) {
   } catch {
     // No prerelease has consumed a changeset yet.
   }
+  // A changeset that is in neither directory was consumed by a stable release (`changeset version`
+  // after `pre exit` empties .changeset/pre/); its text, with the link, is in the changelog then.
   const migrationFile = (name) =>
-    files.includes(`.changeset/pre/${name}.md`)
-      ? `.changeset/pre/${name}.md`
-      : `.changeset/${name}.md`
-  for (const name of MIGRATION_CHANGESETS) {
-    const file = migrationFile(name)
-    if (!files.includes(file)) files.push(file)
-  }
+    [`.changeset/pre/${name}.md`, `.changeset/${name}.md`].find((file) => files.includes(file))
+  const consumed = MIGRATION_CHANGESETS.filter((name) => migrationFile(name) === undefined)
+  if (existsSync(join(root, CHANGELOG))) files.push(CHANGELOG)
 
   const texts = new Map()
   for (const file of files) {
@@ -101,9 +100,17 @@ export function checkDocsUrl(root) {
   const migration = `${DOCS_URL}/docs/migration-1-0`
   for (const name of MIGRATION_CHANGESETS) {
     const file = migrationFile(name)
+    if (file === undefined) continue
     const text = texts.get(file)
     if (text !== undefined && !text.includes(migration)) {
       problems.push(`${file}: link ${migration} is missing`)
+    }
+  }
+  if (consumed.length > 0 && !texts.get(CHANGELOG)?.includes(migration)) {
+    for (const name of consumed) {
+      problems.push(
+        `.changeset/${name}.md: file is missing and ${CHANGELOG} has no link ${migration}`,
+      )
     }
   }
 

@@ -143,10 +143,38 @@ describe('checkDocsUrl', () => {
     assert.match(problems, new RegExp(`pre/${name}\\.md: link .* is missing`))
   })
 
-  it('reports a missing migration changeset by file name', () => {
+  it('reports a missing migration changeset when no changelog carries the link', () => {
     const name = MIGRATION_CHANGESETS[1]
     const root = fixture({ [`.changeset/${name}.md`]: null })
-    assert.deepEqual(checkDocsUrl(root), [`.changeset/${name}.md: file is missing or unreadable`])
+    assert.deepEqual(checkDocsUrl(root), [
+      `.changeset/${name}.md: file is missing and packages/tally-charts/CHANGELOG.md has no link ${DOCS_URL}/docs/migration-1-0`,
+    ])
+  })
+
+  it('reports a consumed migration changeset when the changelog lacks the link', () => {
+    const name = MIGRATION_CHANGESETS[1]
+    const root = fixture({
+      [`.changeset/${name}.md`]: null,
+      'packages/tally-charts/CHANGELOG.md': '# tally-charts\n\n## 1.0.0\n\nNo link.\n',
+    })
+    assert.match(checkDocsUrl(root).join('\n'), new RegExp(`${name}\\.md: file is missing and`))
+  })
+
+  // `changeset version` after `pre exit` deletes every consumed changeset, also from .changeset/pre/.
+  it('accepts migration changesets consumed by a stable release, with the link in the changelog', () => {
+    const overrides = {
+      'packages/tally-charts/CHANGELOG.md': `# tally-charts\n\n## 1.0.0\n\nSee the migration guide: ${DOCS_URL}/docs/migration-1-0\n`,
+    }
+    for (const name of MIGRATION_CHANGESETS) overrides[`.changeset/${name}.md`] = null
+    assert.deepEqual(checkDocsUrl(fixture(overrides)), [])
+  })
+
+  it('names a foreign host in the changelog', () => {
+    const root = fixture({
+      'packages/tally-charts/CHANGELOG.md':
+        'See https://tally-charts.vercel.app/docs/migration-1-0\n',
+    })
+    assert.match(checkDocsUrl(root).join('\n'), /CHANGELOG\.md: host tally-charts\.vercel\.app/)
   })
 
   it('reports a homepage different from DOCS_URL', () => {
