@@ -1,17 +1,25 @@
 import { fireEvent, render, screen } from '@testing-library/react'
 import { expect, test } from 'vitest'
+import { CodeBlockView } from '../../blocks/code-block'
 import RevenueForecast, { meta } from '../../examples/line-chart/revenue-forecast'
 import { ChartExample } from './chart-example'
-import { CodeBlock } from './code-block'
 
 const SOURCE = 'Source of the revenue chart'
+const CODE = '<LineChart />'
 
 function renderExample() {
   return render(
     <ChartExample
       title="Revenue"
       preview={<RevenueForecast />}
-      code={<CodeBlock label={SOURCE}>{'<LineChart />'}</CodeBlock>}
+      code={
+        <CodeBlockView
+          code={CODE}
+          lang="tsx"
+          filename={SOURCE}
+          lines={[[{ content: CODE, offset: 0 }]]}
+        />
+      }
     />,
   )
 }

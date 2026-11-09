@@ -251,6 +251,78 @@ describe('glokki', () => {
     expect(new URL(String(fetchMock.mock.calls[0]?.[0])).searchParams.get('limit')).toBe('100')
   })
 
+  test('listPages leaves out slugs that getPage would refuse, and still pages by what it received', async () => {
+    const bad = ['docs/nested', 'With Space', '../admin', '', 'UPPER', 'a_b']
+    const slugsOf = (offset: number, count: number) =>
+      Array.from({ length: count }, (_, i) => {
+        const n = offset + i
+        // The first rows of the first page are the bad ones, each with a leading slash as stored.
+        return `/${n < bad.length ? bad[n] : `page-${n}`}`
+      })
+    const api = vi.fn(async (input: string | URL | Request) => {
+      const url = new URL(String(input))
+      const offset = Number(url.searchParams.get('offset'))
+      const limit = Number(url.searchParams.get('limit'))
+      const total = 150
+      const data = slugsOf(offset, Math.min(limit, total - offset)).map((slug) => ({
+        ...listItem,
+        slug,
+      }))
+      return json({ data, meta: { total, limit, offset } })
+    })
+    vi.stubGlobal('fetch', api)
+
+    const slugs = (await create().listPages()).map((p) => p.slug)
+
+    expect(slugs).toHaveLength(150 - bad.length)
+    expect(slugs[0]).toBe(`page-${bad.length}`)
+    expect(slugs.at(-1)).toBe('page-149')
+    const offsets = api.mock.calls.map(([url]) => new URL(String(url)).searchParams.get('offset'))
+    expect(offsets).toEqual(['0', '100'])
+  })
+
+  test('without a preview token a preview client asks for the published page', async () => {
+    const source = createGlokkiSource({
+      baseUrl: 'https://cms.test/',
+      tenant: 'acme',
+      apiKey: 'key-1',
+      preview: true,
+    })
+    await source.getPage('line-chart')
+
+    expect(vi.mocked(createClient).mock.calls[0]?.[0]).not.toHaveProperty('previewToken')
+    expect(new URL(String(fetchMock.mock.calls[0]?.[0])).search).toBe('')
+  })
+
+  test('with a preview token a preview client asks for the draft', async () => {
+    const source = createGlokkiSource({
+      baseUrl: 'https://cms.test/',
+      tenant: 'acme',
+      apiKey: 'key-1',
+      preview: true,
+      previewToken: 'draft-token',
+    })
+    await source.getPage('line-chart')
+
+    const url = new URL(String(fetchMock.mock.calls[0]?.[0]))
+    expect(url.pathname).toBe('/api/v1/delivery/pages/by-slug/line-chart')
+    expect(url.searchParams.get('preview')).toBe('true')
+    expect(url.searchParams.get('token')).toBe('draft-token')
+  })
+
+  test('the preview token is not sent outside preview', async () => {
+    const source = createGlokkiSource({
+      baseUrl: 'https://cms.test/',
+      tenant: 'acme',
+      apiKey: 'key-1',
+      previewToken: 'draft-token',
+    })
+    await source.getPage('line-chart')
+
+    expect(vi.mocked(createClient).mock.calls[0]?.[0]).not.toHaveProperty('previewToken')
+    expect(new URL(String(fetchMock.mock.calls[0]?.[0])).search).toBe('')
+  })
+
   test('a page of an unexpected shape fails with its slug', async () => {
     vi.stubGlobal(
       'fetch',
@@ -366,6 +438,23 @@ describe('getContentSource', () => {
         expect((init as { next?: { tags?: string[] } }).next?.tags).toEqual(['cms'])
       }
     })
+  })
+
+  test('CMS_PREVIEW_TOKEN reaches the client in preview only', async () => {
+    const env = {
+      CMS_BASE_URL: 'https://cms.test',
+      CMS_TENANT: 'acme',
+      CMS_API_KEY: 'k',
+      CMS_PREVIEW_TOKEN: 'draft-token',
+    }
+    await getContentSource(env, true).getPage('line-chart')
+    await getContentSource(env, false).getPage('line-chart')
+
+    const [preview, published] = vi.mocked(createClient).mock.calls.map(([options]) => options)
+    expect(preview).toMatchObject({ preview: true, previewToken: 'draft-token' })
+    expect(published).not.toHaveProperty('previewToken')
+    const searches = fetchMock.mock.calls.map(([url]) => new URL(String(url)).search)
+    expect(searches).toEqual(['?preview=true&token=draft-token', ''])
   })
 
   test('fixtures read the same pages with and without preview', async () => {

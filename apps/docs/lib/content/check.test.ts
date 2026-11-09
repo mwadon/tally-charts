@@ -42,7 +42,7 @@ describe('the broken fixtures', () => {
     const { errors } = checkPages(await pagesOf(brokenDir))
     const lines = errors.map(formatIssue)
 
-    expect(lines).toHaveLength(5)
+    expect(lines).toHaveLength(9)
     expect(lines).toEqual(
       expect.arrayContaining([
         expect.stringContaining('broken › bad-example (chart-example)'),
@@ -50,6 +50,10 @@ describe('the broken fixtures', () => {
         expect.stringContaining('broken › bad-link (prose)'),
         expect.stringContaining('broken › bad-symbol (props-table)'),
         expect.stringContaining('broken › bad-type (carousel)'),
+        'broken › bad-hero-link (hero): link /docs/no-such-hero-target points at a missing page "no-such-hero-target"',
+        'broken › bad-row-link (link-row): link /docs/no-such-row-target points at a missing page "no-such-row-target"',
+        'broken › bad-heading-id (heading): heading id "same-title" is already used by first-heading; set another anchor',
+        'broken › bad-anchor (heading): heading id "same-title" is already used by first-heading; set another anchor',
       ]),
     )
     const byNode = Object.fromEntries(errors.map((e) => [e.nodeId, formatIssue(e)]))
@@ -145,6 +149,113 @@ describe('internal links', () => {
 
   test('docsLinkSlugs drops anchors, queries and trailing slashes', () => {
     expect(docsLinkSlugs('[a](/docs/x/#y) [b](/docs/z?q) [c](/docs/x)')).toEqual(['x', 'z'])
+  })
+
+  const hero = (actions: unknown): ComponentNode => ({
+    id: 'h',
+    type: 'hero',
+    props: { title: 'T', lede: 'L', actions, exampleId: 'bar-chart/margin-by-week' },
+  })
+  const linkRow = (items: unknown): ComponentNode => ({
+    id: 'r',
+    type: 'link-row',
+    props: { heading: 'H', items },
+  })
+
+  test.each([
+    '/docs/ok',
+    '/docs/ok/',
+    '/docs/ok#anchor',
+    '/docs/ok?x=1',
+    '/docs',
+    '/',
+    '#top',
+    'https://example.com/docs/missing',
+    '/cdn/docs/missing.svg',
+  ])('a hero button or a link row item to %s is not an error', (href) => {
+    const nodes = [hero([{ label: 'a', href }]), linkRow([{ label: 'a', href }])]
+    expect(checkPages([ok, page('other', nodes)]).errors).toEqual([])
+  })
+
+  test.each([
+    ['/docs/gone', 'gone'],
+    ['/docs/gone#top', 'gone'],
+    ['/docs/gone?x=1', 'gone'],
+    ['/docs/ok/deeper', 'ok/deeper'],
+  ])('a hero button and a link row item to %s are dead links', (href, slug) => {
+    const nodes = [
+      hero([
+        { label: 'fine', href: '/docs/ok' },
+        { label: 'dead', href },
+      ]),
+      linkRow([{ label: 'dead', href }]),
+    ]
+    expect(checkPages([ok, page('other', nodes)]).errors.map(formatIssue)).toEqual([
+      `other › h (hero): link /docs/${slug} points at a missing page "${slug}"`,
+      `other › r (link-row): link /docs/${slug} points at a missing page "${slug}"`,
+    ])
+  })
+
+  test('the same dead target twice in one block is reported once', () => {
+    const items = [
+      { label: 'a', href: '/docs/gone' },
+      { label: 'b', href: '/docs/gone#x' },
+    ]
+    expect(checkPages([ok, page('other', [linkRow(items)])]).errors).toHaveLength(1)
+  })
+
+  test('items of an unexpected shape are left to the schema', () => {
+    const { errors } = checkPages([ok, page('other', [linkRow('nope'), hero([null, { href: 7 }])])])
+
+    expect(errors.length).toBeGreaterThan(0)
+    for (const error of errors) expect(error.message).not.toContain('points at a missing page')
+  })
+})
+
+describe('heading ids', () => {
+  const heading = (id: string, text: string, anchor?: string): ComponentNode => ({
+    id,
+    type: 'heading',
+    props: { text, level: '2', ...(anchor ? { anchor } : {}) },
+  })
+
+  test('the same text twice on a page is a duplicate id, reported on the later node', () => {
+    const { errors } = checkPages([
+      page('p', [heading('a', 'Props'), prose('x', 'x'), heading('b', 'Props')]),
+    ])
+
+    expect(errors.map(formatIssue)).toEqual([
+      'p › b (heading): heading id "props" is already used by a; set another anchor',
+    ])
+  })
+
+  test('an anchor that equals the id of another heading is a duplicate too, also in children', () => {
+    const nested: ComponentNode = {
+      id: 'outer',
+      type: 'prose',
+      props: { markdown: 'x' },
+      children: [heading('c', 'Something else', 'examples')],
+    }
+    const { errors } = checkPages([page('p', [heading('a', 'Examples'), nested])])
+
+    expect(errors.map((e) => e.nodeId)).toEqual(['c'])
+  })
+
+  test('an anchor tells two headings with the same text apart', () => {
+    const nodes = [heading('a', 'Props'), heading('b', 'Props', 'props-of-the-hook')]
+    expect(checkPages([page('p', nodes)]).errors).toEqual([])
+  })
+
+  test('the same id on two pages is fine', () => {
+    const pages = [page('p', [heading('a', 'Props')]), page('q', [heading('a', 'Props')])]
+    expect(checkPages(pages).errors).toEqual([])
+  })
+
+  test('a heading with invalid props has its schema error only', () => {
+    const nodes = [heading('a', 'Props'), { id: 'b', type: 'heading', props: { text: 'Props' } }]
+    const { errors } = checkPages([page('p', nodes)])
+
+    expect(errors.map(formatIssue)).toEqual([expect.stringMatching(/^p › b \(heading\): level:/)])
   })
 })
 
@@ -273,7 +384,7 @@ describe('the CLI', () => {
       env: { ...process.env, CMS_BASE_URL: '', CHECK_CONTENT_REQUIRE_COVERAGE: '' },
     })
 
-  test('exits 1 on the broken fixtures with all five messages on stderr', () => {
+  test('exits 1 on the broken fixtures with all nine messages on stderr', () => {
     const { status, stderr } = run('--content-dir', 'lib/content/__fixtures__/broken')
     expect(status).toBe(1)
     expect(stderr).toContain('broken › bad-example (chart-example): exampleId "nope/missing"')
@@ -281,10 +392,14 @@ describe('the CLI', () => {
     expect(stderr).toContain('broken › bad-link (prose): link /docs/does-not-exist')
     expect(stderr).toContain('broken › bad-symbol (props-table): symbol "NoSuchSymbol"')
     expect(stderr).toContain('broken › bad-type (carousel): unknown block type "carousel"')
+    expect(stderr).toContain('broken › bad-hero-link (hero): link /docs/no-such-hero-target')
+    expect(stderr).toContain('broken › bad-row-link (link-row): link /docs/no-such-row-target')
+    expect(stderr).toContain('broken › bad-heading-id (heading): heading id "same-title"')
+    expect(stderr).toContain('broken › bad-anchor (heading): heading id "same-title"')
     expect(stderr).toMatch(/check:content: \d+ errors in 2 pages/)
-    // The broken pages have no PropsTables, so coverage adds an error per symbol; the rest is these five.
+    // The broken pages have no PropsTables, so coverage adds an error per symbol; the rest is these nine.
     const errorLines = stderr.split('\n').filter((line) => line.startsWith('fixtures: '))
-    expect(errorLines.filter((line) => !line.includes('API coverage:'))).toHaveLength(5)
+    expect(errorLines.filter((line) => !line.includes('API coverage:'))).toHaveLength(9)
     expect(errorLines.some((line) => line.includes('API coverage:'))).toBe(true)
   }, 60_000)
 

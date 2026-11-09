@@ -288,8 +288,10 @@ command); it holds no secret and no value of any variable.
    | `CMS_TENANT`             | tenant slug                     | the same                         | Sent as `X-Tenant-Slug`.                                                               |
    | `CMS_API_KEY`            | delivery key of the tenant      | the same                         | Server only: don't prefix it with `NEXT_PUBLIC_`.                                      |
    | `NEXT_PUBLIC_CMS_TENANT` | tenant slug                     | the same                         | Read by the visual editor in the browser.                                              |
+   | `NEXT_PUBLIC_CMS_EDITOR_ORIGIN` | origin of the glokki admin | the same                    | `https://host`, no path; several separated by commas. The only origins that may frame the site (CSP `frame-ancestors`) and drive the visual editor. Read at build time: redeploy after a change. Empty: the visual editor is off. |
    | `REVALIDATE_SECRET`      | random                          | a different random value         | `openssl rand -hex 32`. Separate for Production and Preview.                           |
    | `PREVIEW_SECRET`         | random                          | a different random value         | `openssl rand -hex 32`. Separate for Production and Preview.                           |
+   | `CMS_PREVIEW_TOKEN`      | preview token of the tenant     | the same                         | Optional, server only. With it draft mode (step 5) shows drafts; without it the published pages, uncached. |
    | `SITE_URL`               | the production URL of the site  | the same production URL          | Canonical links, Open Graph and `sitemap.xml`. Without it they point at `localhost:3100`. |
    | `APP_ENV`                | `production`                    | leave empty (don't set it)       | Only `production` allows indexing; see step 3.                                         |
 
@@ -325,7 +327,12 @@ command); it holds no secret and no value of any variable.
 5. **Draft preview**: in glokki set the preview URL to `https://<domain>/preview?slug=<slug>` (the
    slug `home` opens `/`, any other `/docs/<slug>`), sending `PREVIEW_SECRET` in
    `Authorization: Bearer`, in `x-preview-secret` or as `?secret=`. A wrong secret answers 401, an
-   unknown slug 400. After the seed (§10) open the visual editor once to sync the block registry.
+   unknown slug 400. Draft mode shows the drafts only when `CMS_PREVIEW_TOKEN` is set; without it
+   the pages are the published ones, read uncached. After the seed (§10) open the visual editor
+   once to sync the block registry. The editor loads the site in an iframe with
+   `?_editor=1&_editorOrigin=<origin of the admin>`: that origin must be in
+   `NEXT_PUBLIC_CMS_EDITOR_ORIGIN`, exactly as the browser reports it (scheme, host, port, no
+   trailing slash). Any other origin gets the published page, and the browser refuses to frame it.
 6. **Check the domain**: the address of the docs site lives in one constant, `DOCS_URL` in
    `scripts/release/docs-url.mjs`. The Vercel project must be named `tally-charts-docs`, so its
    production URL is exactly `https://tally-charts-docs.vercel.app`. `tally-charts.vercel.app` is

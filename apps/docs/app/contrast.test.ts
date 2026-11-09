@@ -70,7 +70,7 @@ function mix(a: string, pct: number, b: string) {
 }
 
 // Toned text on the raised card: callout labels (globals.css, .callout-label at 65%) and the
-// syntax colors of code blocks (--shiki-token-*, same mixes as [data-tok]).
+// syntax colors of code blocks (--shiki-token-*).
 const tonedText = [
   ['callout label (info)', 'accent', 65],
   ['callout label (warning)', 'warn', 65],
