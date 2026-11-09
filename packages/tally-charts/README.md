@@ -12,6 +12,8 @@ npm i tally-charts
 Like React, the package reads `process.env.NODE_ENV` to turn development warnings on, so it
 expects a bundler that defines it (Vite, webpack, Next.js and esbuild with `define` all do).
 
+The package is ESM-only: use `import`, not `require()`.
+
 ## Use
 
 Import the stylesheet once, near the root of your app, then render a chart:

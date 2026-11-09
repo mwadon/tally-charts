@@ -117,9 +117,10 @@ export function tickInterval(
 
 /**
  * [min, max] of the finite values. A single value, or a span under 1 ms, is padded by a day on
- * each side. Without values it is the day before `now`.
+ * each side. Without values it is a fixed day (1970-01-01 UTC), not one read off the clock, so a
+ * server render and its hydration agree.
  */
-export function inferTimeDomain(values: readonly number[], now = Date.now()): [number, number] {
+export function inferTimeDomain(values: readonly number[]): [number, number] {
   let min = Number.POSITIVE_INFINITY
   let max = Number.NEGATIVE_INFINITY
   for (const v of values) {
@@ -127,7 +128,7 @@ export function inferTimeDomain(values: readonly number[], now = Date.now()): [n
     if (v < min) min = v
     if (v > max) max = v
   }
-  if (min > max) return [now - DAY, now]
+  if (min > max) return [0, DAY]
   if (max - min < 1) return [min - DAY, max + DAY]
   return [min, max]
 }

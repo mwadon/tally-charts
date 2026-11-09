@@ -272,6 +272,61 @@ describe('<Heatmap>', () => {
     expect(within(totalsRow as HTMLElement).getAllByRole('gridcell')[2]).toHaveTextContent('$3.1K')
   })
 
+  it('keeps cells apart when a ":" in the names makes their ids equal', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const onActiveChange = vi.fn()
+    const onSelect = vi.fn()
+    // Both items have the id "a:b:c".
+    const data = [
+      { branch: 'a:b', cause: 'c', amount: 1 },
+      { branch: 'a', cause: 'b:c', amount: 2 },
+    ]
+    const { container } = render(
+      <Heatmap
+        data={data}
+        row="branch"
+        column="cause"
+        value="amount"
+        breaks={[5]}
+        totals={false}
+        title="Colliding names"
+        onActiveChange={onActiveChange}
+        onSelect={onSelect}
+      />,
+    )
+    // Neither item is taken for a repeat of the other.
+    expect(warn).not.toHaveBeenCalled()
+    warn.mockRestore()
+    // Rows a:b and a, columns c and b:c.
+    const [abc, , , ab_c] = cells(container) as [HTMLElement, HTMLElement, HTMLElement, HTMLElement]
+    expect(texts([abc, ab_c])).toEqual(['1', '2'])
+    expect(cells(container).filter((c) => c.tabIndex === 0)).toEqual([abc])
+    // The public id stays "<row>:<column>", but only the hovered cell is active.
+    fireEvent.pointerEnter(ab_c)
+    expect(onActiveChange).toHaveBeenLastCalledWith(
+      'a:b:c',
+      expect.objectContaining({ row: 'a', column: 'b:c', value: 2 }),
+    )
+    expect(ab_c).toHaveAttribute('data-ch-active', 'true')
+    expect(abc).not.toHaveAttribute('data-ch-active')
+    expect(abc).not.toHaveAttribute('data-ch-peak')
+    expect(ab_c).toHaveAttribute('data-ch-peak', 'true')
+    fireEvent.pointerEnter(abc)
+    expect(onActiveChange).toHaveBeenLastCalledWith(
+      'a:b:c',
+      expect.objectContaining({ row: 'a:b', column: 'c', value: 1 }),
+    )
+    expect(abc).toHaveAttribute('data-ch-active', 'true')
+    expect(ab_c).not.toHaveAttribute('data-ch-active')
+    // Focus moves to the cell the keys ask for, not to its namesake.
+    act(() => abc.focus())
+    fireEvent.keyDown(abc, { key: 'ArrowDown' })
+    fireEvent.keyDown(document.activeElement as HTMLElement, { key: 'ArrowRight' })
+    expect(document.activeElement).toBe(ab_c)
+    fireEvent.keyDown(ab_c, { key: 'Enter' })
+    expect(onSelect).toHaveBeenLastCalledWith('a:b:c', expect.objectContaining({ value: 2 }))
+  })
+
   it('skips non-numeric values without throwing', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     const odd = leaks.map((l, i) =>

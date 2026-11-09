@@ -1040,7 +1040,7 @@ export type RunwayChartProps = ChartName & {
     className?: string;
     style?: CSSProperties;
     chartId?: string;
-    timeZone?: TimeZone;
+    zone?: TimeZone;
 };
 
 // @public

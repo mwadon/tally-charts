@@ -92,8 +92,14 @@ export function createFormatter(
   const signed = options.signed ?? specSigned ?? preset === 'pts'
   const { intl, divisor = 1, suffix = '' } = presetConfig(preset, currency, validDigits(digits))
   const nf = new Intl.NumberFormat(locale, { ...intl, signDisplay: signed ? 'exceptZero' : 'auto' })
-  return (value) =>
-    Number.isFinite(value) ? nf.format(value / divisor).replaceAll('-', MINUS) + suffix : ''
+  // A negative value that rounds to zero formats like -0 ("-$0", "-0.0%"): write it as zero.
+  const negativeZero = nf.format(-0)
+  const zero = nf.format(0)
+  return (value) => {
+    if (!Number.isFinite(value)) return ''
+    const text = nf.format(value / divisor)
+    return (text === negativeZero ? zero : text.replaceAll('-', MINUS)) + suffix
+  }
 }
 
 export interface Formatters {

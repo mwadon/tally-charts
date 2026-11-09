@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { DAY, inferTimeDomain, niceTimeDomain, type TimeZone, timeScale, toTime } from './time'
 
 const at = (iso: string) => Date.parse(iso)
@@ -60,8 +60,17 @@ describe('inferTimeDomain', () => {
     expect(inferTimeDomain([t, t + 0.5])).toEqual([t - DAY, t + 0.5 + DAY])
   })
 
-  it('falls back to the day before now without values', () => {
-    expect(inferTimeDomain([], 1_000_000_000)).toEqual([1_000_000_000 - DAY, 1_000_000_000])
+  it('falls back to a fixed day without values, whatever the clock says', () => {
+    vi.useFakeTimers()
+    try {
+      vi.setSystemTime(new Date('2026-03-01T10:00:00Z'))
+      const first = inferTimeDomain([])
+      vi.setSystemTime(new Date('2026-03-01T10:00:01Z'))
+      expect(inferTimeDomain([Number.NaN])).toEqual(first)
+      expect(first).toEqual([0, DAY])
+    } finally {
+      vi.useRealTimers()
+    }
   })
 })
 

@@ -37,7 +37,7 @@
       "id": "n3",
       "type": "prose",
       "props": {
-        "markdown": "Five changes can break a build or change what a chart draws. Go through them in order."
+        "markdown": "Six changes can break a build or change what a chart draws. Go through them in order."
       }
     },
     {
@@ -264,6 +264,55 @@
         "code": "<Area data={rows.filter((r) => !Number.isNaN(new Date(r.date).getTime()))} x=\"date\" y=\"orders\" />",
         "lang": "tsx",
         "filename": "After, Area"
+      }
+    },
+    {
+      "id": "n68",
+      "type": "heading",
+      "props": {
+        "text": "RunwayChart: timeZone is now zone",
+        "level": "3",
+        "anchor": "runway-zone"
+      }
+    },
+    {
+      "id": "n69",
+      "type": "prose",
+      "props": {
+        "markdown": "`RunwayChart` names its zone prop `zone`, as `TimeScaleSpec` and `DateFormatOptions` already do. The values and the default (`'utc'`) are the same. There is no alias: `timeZone` is a type error in 1.0, and from JavaScript it is ignored, so the chart falls back to UTC. Rename the prop."
+      }
+    },
+    {
+      "id": "n70",
+      "type": "code-block",
+      "props": {
+        "code": "<RunwayChart title=\"API quotas this week\" rows={rows} timeZone=\"local\" />",
+        "lang": "tsx",
+        "filename": "Before (0.9)"
+      }
+    },
+    {
+      "id": "n71",
+      "type": "code-block",
+      "props": {
+        "code": "<RunwayChart title=\"API quotas this week\" rows={rows} zone=\"local\" />",
+        "lang": "tsx",
+        "filename": "After"
+      }
+    },
+    {
+      "id": "n72",
+      "type": "prose",
+      "props": {
+        "markdown": "A live chart with the new prop:"
+      }
+    },
+    {
+      "id": "n73",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "migration/runway-zone",
+        "defaultView": "preview"
       }
     },
     {
