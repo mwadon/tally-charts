@@ -2645,3 +2645,13 @@ Uwagi: BridgeChart (14.89 kB z 15) i Small UI pieces (4.87 kB z 5) mają mały z
 `TickSpec` przyjmuje `readonly number[]` na skali liniowej (`linearTicks`): lista jest sortowana i bez duplikatów, wartości spoza domeny albo `extent` odpadają. Na skalach band, point i time lista daje domyślne wartości i ostrzeżenie dev `axis-tick-list`. `thin` nadal może usunąć nakładające się etykiety, a `niceDomain` w `LineChart` nie bierze listy pod uwagę. LineChart 13.68 kB z 14 kB.
 
 **Bez `viewBox` przed hydracją.** Propozycja `viewBox` + `preserveAspectRatio="none"` w SSR (`Chart.tsx`) odrzucona po porównaniu statycznych zrzutów przy 320 i 1280 px: słupki i linie trafiają prawie na docelowe miejsca, ale przy 320 px etykiety są ściśnięte o połowę i ledwo czytelne, kropki stają się kreskami, a szrafura zmienia kąt. Bez JS ten stan zostałby na stałe. Przeskok szerokości przed hydracją pozostaje znanym ograniczeniem.
+
+## Q2-01 / T17: pierwsza publikacja z CI z provenance, 1.0.0-rc.2 (2026-11-09)
+Maintainer dodał trusted publisher na npmjs.com (`mwadon/tally-charts`, `release.yml`, environment `npm-publish`). Agent ustawił w GitHubie (`gh api`): environment `npm-publish` z wymaganym recenzentem `mwadon` i deployem tylko z `main`, oraz `can_approve_pull_request_reviews=true` (domyślne uprawnienia workflowów zostały `read`). Placeholder `0.0.0-stage` był już zdeprecjonowany.
+
+Przebieg Release 42703741164 (Version PR #3, po PR #2 z changesetem `ci-provenance`):
+- próba 1: `403 OIDC permission denied for this action`. Publisher miał tylko uprawnienie „npm stage publish”, a `pnpm publish` robi zwykły publish. Maintainer zmienił uprawnienie na publish.
+- próba 2: „Successfully published”, ale wersja niewidoczna (paczka ma staged publishing), więc Check provenance padł z nowym komunikatem „not visible on npm” (PR #2). Maintainer zatwierdził wersję na npmjs.com.
+- próba 3: publish pominięty, `provenance attestation: https://registry.npmjs.org/-/npm/v1/attestations/tally-charts@1.0.0-rc.2`, tag `v1.0.0-rc.2`, GitHub Release (pre-release). Wynik: success.
+
+`npm view tally-charts dist-tags`: `latest: 0.9.0`, `rc: 1.0.0-rc.2`. rc.0 i rc.1 zostają bez atestacji (publikowane ręcznie). Czerwony przebieg Release dla rc.1 (41232682540) to skutek ręcznej publikacji przed CI. `docs/releasing.md` §4 i §9 opisują uprawnienie publish i zatwierdzanie staged wersji. Linię `T17 potwierdzony: …` wpisuje maintainer.

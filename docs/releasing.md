@@ -82,6 +82,10 @@ Merging the Version PR pushes to `main`. This time there are no pending changese
 3. After approval it installs npm ≥ 11.5.1, builds, runs `pnpm changeset publish` (which runs
    `prepublishOnly`, the full check suite again), then pushes the tag `vX.Y.Z` and creates a GitHub
    Release with the matching `CHANGELOG.md` section (marked as a pre-release for versions with `-`).
+4. The package has staged publishing, so the published version stays hidden until an npm owner
+   approves it on npmjs.com (2FA), and **Check provenance** fails with "is not visible on npm".
+   Approve the version, then re-run the `publish` job and approve the environment again: the
+   publish is skipped, the check passes and the tag and release are created.
 
 The `tally-charts@x.y.z` tags that changesets creates inside the runner are not pushed; the repo
 uses `vX.Y.Z`.
@@ -177,7 +181,9 @@ without it.
 
 1. **Trusted publisher on npmjs.com**: package `tally-charts` → Settings → Trusted publisher →
    GitHub Actions. Organization or user `mwadon`, repository `tally-charts`, workflow filename
-   `release.yml`, environment `npm-publish`.
+   `release.yml`, environment `npm-publish`. Permissions: **publish**. With only "npm stage
+   publish" the job fails with `403 OIDC permission denied for this action`, because
+   `pnpm publish` does a normal publish.
 2. **GitHub environment**: repository Settings → Environments → New environment `npm-publish`.
    Add yourself as a **required reviewer** and restrict **deployment branches** to `main`.
 3. **Allow PRs from Actions**: Settings → Actions → General → Workflow permissions → enable
