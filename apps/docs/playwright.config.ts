@@ -3,6 +3,9 @@ import { PREVIEW_SECRET } from './e2e/preview-secret'
 
 export default defineConfig({
   testDir: './e2e',
+  // A committed `test.only` must not turn the job green on one test.
+  forbidOnly: !!process.env.CI,
+  retries: process.env.CI ? 1 : 0,
   // Baselines are per platform. Regenerate them with
   // `pnpm --filter docs exec playwright test --update-snapshots=all` (darwin, after
   // `pnpm build && pnpm --filter docs build`; linux via the docker command above the `docs` job in

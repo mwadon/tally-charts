@@ -16,3 +16,9 @@ apps/docs/examples.generated.ts
 apps/docs/api.generated.json
 apps/docs/tokens.generated.ts
 apps/docs/.lighthouse/
+
+# Local env files and Vercel link state (apps/docs/.env.example is the documented template)
+.env*
+!.env.example
+.vercel/
+.claude/worktrees/
