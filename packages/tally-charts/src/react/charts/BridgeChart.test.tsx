@@ -48,6 +48,38 @@ describe('<BridgeChart>', () => {
     expect(num(cap, 'y') + num(cap, 'height')).toBeCloseTo(num(remaining(container)[1], 'y'))
   })
 
+  it('draws a falling negative total as a bar from zero with the cap beyond it', () => {
+    const { container } = renderBridge({
+      start: { label: 'Start', value: -100 },
+      steps: [{ label: 'Worse', value: -50 }],
+      domain: [-200, 0],
+    })
+    const [first, second] = remaining(container)
+    const [cap] = caps(container)
+    const bottom = (el: Element | undefined) => num(el, 'y') + num(el, 'height')
+    // Both bars hang from zero (the top of the plot) down to -100, the total nearer zero.
+    expect(num(second, 'y')).toBeCloseTo(num(first, 'y'))
+    expect(bottom(second)).toBeCloseTo(bottom(first))
+    // The cap covers -100 to -150 and does not lie over the bar.
+    expect(num(cap, 'y')).toBeCloseTo(bottom(second))
+    expect(num(cap, 'height')).toBeCloseTo(num(second, 'height') / 2)
+  })
+
+  it('draws a recovering negative total as a bar from zero with the cap beyond it', () => {
+    const { container } = renderBridge({
+      start: { label: 'Start', value: -150 },
+      steps: [{ label: 'Better', value: 50 }],
+      domain: [-200, 0],
+    })
+    const [first, second] = remaining(container)
+    const [cap] = caps(container, 'gain')
+    const bottom = (el: Element | undefined) => num(el, 'y') + num(el, 'height')
+    // The bar runs from zero to -100, and the cap from -100 to where the start was (-150).
+    expect(num(second, 'height')).toBeCloseTo((num(first, 'height') * 2) / 3)
+    expect(num(cap, 'y')).toBeCloseTo(bottom(second))
+    expect(bottom(cap)).toBeCloseTo(bottom(first))
+  })
+
   it('labels each column with its total and its leak', () => {
     const { container } = renderBridge()
     expect(parts(container, '[data-ch-part="column-total"]').map((t) => t.textContent)).toEqual([

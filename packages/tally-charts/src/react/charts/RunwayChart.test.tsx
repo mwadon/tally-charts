@@ -132,6 +132,22 @@ describe('<RunwayChart>', () => {
     ])
   })
 
+  it('writes the dates in the zone the `zone` prop names', () => {
+    // The tests run in Europe/Warsaw, two hours ahead of UTC on these dates.
+    renderRunway({ zone: 'local' })
+    expect(part(document.body, 'runway-status')[0]?.textContent).toBe(
+      'Runs out Fri 05:00 Resets Fri 13:00',
+    )
+  })
+
+  it('has no `timeZone` prop: it is `zone`, as on scales and date formats', () => {
+    // @ts-expect-error renamed to `zone` in 1.0
+    renderRunway({ timeZone: 'local' })
+    expect(part(document.body, 'runway-status')[0]?.textContent).toBe(
+      'Runs out Fri 03:00 Resets Fri 11:00',
+    )
+  })
+
   it('labels the axis with day names and Now', () => {
     const { container } = renderRunway()
     const axis = part(container, 'runway-axis')[0] as HTMLElement

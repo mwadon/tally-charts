@@ -47,14 +47,16 @@ export function Meter({
   const fmt = create(format)
   const finite = Number.isFinite(value)
   const p = finite ? toPercent(value, min, max) : 0
-  const t = target === undefined ? undefined : toPercent(target, min, max)
+  // A target that is not a finite number is no target: no tick, no label, not in the value text.
+  const hasTarget = target !== undefined && Number.isFinite(target)
+  const t = hasTarget ? toPercent(target, min, max) : undefined
   const valueText = !finite
     ? (messages.noData ?? NO_DATA)
-    : target === undefined
-      ? fmt(value)
-      : `${fmt(value)}, ${formatMessage(messages.target ?? TARGET, { value: fmt(target) })}`
+    : hasTarget
+      ? `${fmt(value)}, ${formatMessage(messages.target ?? TARGET, { value: fmt(target) })}`
+      : fmt(value)
   const showMin = minLabel !== null
-  const showTarget = t !== undefined && target !== undefined && targetLabel !== null
+  const showTarget = t !== undefined && hasTarget && targetLabel !== null
   return (
     <div className={cx('ch-meter', className)} data-ch-part="meter" style={toneVar(tone)}>
       {/* biome-ignore lint/a11y/useSemanticElements: a styled track with children, not a native <meter> */}

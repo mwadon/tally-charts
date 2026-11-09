@@ -26,7 +26,7 @@ function NoValue() {
   )
 }
 
-const NO_VALUE_CELL = /* @__PURE__ */ <NoValue />
+const cellContent = (text: string) => (text === '' ? <NoValue /> : text)
 
 /**
  * The chart's data as a visually hidden table, for screen-reader users. The first column holds
@@ -54,8 +54,7 @@ export function DataTable<D>({ data, columns, caption }: DataTableProps<D>) {
             // biome-ignore lint/suspicious/noArrayIndexKey: rows mirror data order
             <tr key={i}>
               {columns.map((column, c) => {
-                const text = column.value(d, i)
-                const content = text === '' ? NO_VALUE_CELL : text
+                const content = cellContent(column.value(d, i))
                 return c === 0 ? (
                   // biome-ignore lint/suspicious/noArrayIndexKey: columns are positional and never reorder
                   <th key={c} scope="row">

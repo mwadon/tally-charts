@@ -15021,7 +15021,7 @@
           "overloadIndex": 1,
           "parameters": [
             {
-              "parameterName": "{ rows, domain: domainProp, now: nowProp, cell, breaks, tone, layout, initialWidth, labelWidth, selectedId, onSelect, activeId, onActiveChange, status, legend, title, 'aria-labelledby': labelledBy, description, dataTable, empty, className, style, chartId, timeZone }",
+              "parameterName": "{ rows, domain: domainProp, now: nowProp, cell, breaks, tone, layout, initialWidth, labelWidth, selectedId, onSelect, activeId, onActiveChange, status, legend, title, 'aria-labelledby': labelledBy, description, dataTable, empty, className, style, chartId, zone }",
               "parameterTypeTokenRange": {
                 "startIndex": 0,
                 "endIndex": 0
@@ -15172,7 +15172,7 @@
             },
             {
               "kind": "Content",
-              "text": ";\n  chartId?: string;\n  timeZone?: "
+              "text": ";\n  chartId?: string;\n  zone?: "
             },
             {
               "kind": "Reference",

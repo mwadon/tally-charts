@@ -145,6 +145,7 @@ export function samePoints(
       p.hitY === q.hitY &&
       p.label === q.label &&
       p.series === q.series &&
+      p.selectable === q.selectable &&
       p.datum === q.datum &&
       p.group?.key === q.group?.key &&
       p.group?.axis === q.group?.axis &&

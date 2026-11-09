@@ -86,9 +86,14 @@ interface BridgeRow<S> {
   label: string
   /** Running total after the column. */
   total: number
-  /** Top of the remaining bar: the lower of the totals before and after. */
+  /**
+   * End of the remaining bar, which starts at zero: the total, before or after, nearer zero. The
+   * cap covers the rest, so below zero the two do not overlap either.
+   */
+  near: number
+  /** Lower end of the cap: the lower of the totals before and after. */
   base: number
-  /** Top of the cap: the higher of the two. */
+  /** Upper end of the cap: the higher of the two. */
   top: number
   capTone: Tone
   hasCap: boolean
@@ -282,6 +287,7 @@ export function BridgeChart<S extends BridgeStep = BridgeStep>({
         datum: start,
         label: start.label,
         total: start.value,
+        near: start.value,
         base: start.value,
         top: start.value,
         capTone: 'neutral',
@@ -300,6 +306,7 @@ export function BridgeChart<S extends BridgeStep = BridgeStep>({
           datum: s,
           label: s.label,
           total: t.after,
+          near: Math.abs(t.before) < Math.abs(t.after) ? t.before : t.after,
           base: Math.min(t.before, t.after),
           top: Math.max(t.before, t.after),
           capTone: t.tone,
@@ -375,7 +382,7 @@ export function BridgeChart<S extends BridgeStep = BridgeStep>({
       <Bars<BridgeRow<S>>
         data={rows}
         x="key"
-        y="base"
+        y="near"
         id="rowId"
         label="label"
         tone="accent"

@@ -234,13 +234,30 @@ describe('time scales', () => {
     expect(s.scale.zone).toBe('local')
   })
 
-  it('warns and falls back to the last day without valid dates', () => {
+  it('warns and falls back to a fixed day without valid dates', () => {
     const warn = vi.fn()
     const s = createScale({ type: 'time', field: 'at' }, [{ at: 'never' }], 'x', 100, warn)
     expect(s.kind).toBe('time')
     expect(warn).toHaveBeenCalledTimes(1)
     expect(warn.mock.calls[0]?.[0]).toBe('x-time-domain')
     expect(warn.mock.calls[0]?.[1]).toContain('no valid dates')
+  })
+
+  it('gives the same fallback domain on the server and in the browser, a moment later', () => {
+    vi.useFakeTimers()
+    try {
+      const build = () => {
+        const s = createScale({ type: 'time', field: 'at' }, [{ at: 'never' }], 'x', 100, noop)
+        if (s.kind !== 'time') throw new Error('expected a time scale')
+        return s.scale.domain()
+      }
+      vi.setSystemTime(new Date('2026-03-01T23:59:59Z'))
+      const server = build()
+      vi.setSystemTime(new Date('2026-03-02T00:00:01Z'))
+      expect(build()).toEqual(server)
+    } finally {
+      vi.useRealTimers()
+    }
   })
 
   it('warns once and uses the data when an explicit domain has a value that is not a date', () => {

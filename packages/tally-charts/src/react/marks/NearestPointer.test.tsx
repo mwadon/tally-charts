@@ -72,6 +72,25 @@ describe('<NearestPointer>', () => {
     expect(onActiveChange).toHaveBeenLastCalledWith(null, null)
   })
 
+  it('activates the tapped point on a touch tap and keeps it through the focus that follows', () => {
+    const onActiveChange = vi.fn()
+    const { container } = renderLayer({}, { onActiveChange })
+    const plot = container.querySelector('[data-ch-part="plot"]') as HTMLElement
+    const figure = container.querySelector('figure') as HTMLElement
+    const at = { clientX: 79, clientY: 81, pointerType: 'touch' }
+    // A tap sends no pointermove: pointerdown, pointerup, pointerleave, then focus and click.
+    fireEvent.pointerDown(layer(container), at)
+    expect(onActiveChange).toHaveBeenLastCalledWith('b', expect.objectContaining({ id: 'b' }))
+    fireEvent.pointerUp(layer(container), at)
+    fireEvent.pointerLeave(figure, at)
+    fireEvent.focus(plot)
+    fireEvent.click(layer(container), at)
+    expect(onActiveChange).toHaveBeenCalledTimes(1)
+    // A tap away from every point clears it.
+    fireEvent.pointerDown(layer(container), { clientX: 150, clientY: 10, pointerType: 'touch' })
+    expect(onActiveChange).toHaveBeenLastCalledWith(null, null)
+  })
+
   it('measures only along x on request', () => {
     const onActiveChange = vi.fn()
     const { container } = renderLayer({ axis: 'x' }, { onActiveChange })

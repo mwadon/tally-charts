@@ -181,6 +181,22 @@ describe('samePoints', () => {
   })
 })
 
+describe('samePoints selectable', () => {
+  it('treats points with a changed `selectable` as different', () => {
+    const a = pts(['a'])
+    expect(samePoints(a, [{ ...(a[0] as ChartPoint), selectable: false }])).toBe(false)
+    expect(samePoints([{ ...(a[0] as ChartPoint), selectable: false }], a)).toBe(false)
+  })
+
+  it('re-registers points that differ only in `selectable`', () => {
+    const { result } = renderHook(() => useInteraction({}))
+    const [a] = pts(['a']) as [ChartPoint]
+    act(() => result.current.registerPoints('m', [a]))
+    act(() => result.current.registerPoints('m', [{ ...a, selectable: false }]))
+    expect(result.current.points[0]?.selectable).toBe(false)
+  })
+})
+
 describe('useInteraction ordering', () => {
   it('reports one change when the same id is set twice in one event', () => {
     const onActiveChange = vi.fn()

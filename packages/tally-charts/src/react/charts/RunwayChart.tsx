@@ -142,7 +142,7 @@ export type RunwayChartProps = ChartName & {
   /** Stable base for the element ids. Default: React's `useId`. */
   chartId?: string
   /** Zone of the day boundaries and the dates. Default 'utc'. */
-  timeZone?: TimeZone
+  zone?: TimeZone
 }
 
 const STRIP_HEIGHT = 32
@@ -188,7 +188,7 @@ export function RunwayChart({
   className,
   style,
   chartId,
-  timeZone = 'utc',
+  zone = 'utc',
 }: RunwayChartProps) {
   const warn = useMemo(() => createWarner(), [])
   const { date } = useFormat()
@@ -262,11 +262,11 @@ export function RunwayChart({
 
   const formats = useMemo<RunwayDateFormats>(
     () => ({
-      weekday: date({ weekday: 'short' }, { zone: timeZone }),
-      day: date({ month: 'short', day: 'numeric' }, { zone: timeZone }),
-      time: date({ hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }, { zone: timeZone }),
+      weekday: date({ weekday: 'short' }, { zone }),
+      day: date({ month: 'short', day: 'numeric' }, { zone }),
+      time: date({ hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }, { zone }),
     }),
-    [date, timeZone],
+    [date, zone],
   )
 
   const statusText = useMemo(
@@ -436,10 +436,8 @@ export function RunwayChart({
   // Stable across hover and focus changes, so the memoised strips do not redraw.
   const x = useMemo(
     () =>
-      valid && d0 !== undefined && d1 !== undefined
-        ? timeScale([d0, d1], [0, width], timeZone)
-        : null,
-    [valid, d0, d1, width, timeZone],
+      valid && d0 !== undefined && d1 !== undefined ? timeScale([d0, d1], [0, width], zone) : null,
+    [valid, d0, d1, width, zone],
   )
 
   if (!valid || x === null || model.length === 0) {
@@ -498,7 +496,7 @@ export function RunwayChart({
       </svg>
       <div className="ch-runway-head" data-ch-part="runway-head-row">
         <div ref={axisRef} className="ch-runway-axis" data-ch-part="runway-axis">
-          <RunwayAxis x={x} width={width} nowX={nowX} zone={timeZone} weekday={formats.weekday} />
+          <RunwayAxis x={x} width={width} nowX={nowX} zone={zone} weekday={formats.weekday} />
         </div>
       </div>
       {/* biome-ignore lint/a11y/useAriaPropsSupportedByRole: aria-describedby is valid on list and listbox; the role is chosen at runtime */}

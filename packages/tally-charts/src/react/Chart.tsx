@@ -134,6 +134,10 @@ export function Chart<D>({
   const rootRef = useRef<HTMLElement>(null)
   // Set by a pointer press on the plot, so the focus that follows a click doesn't act like Tab.
   const pressed = useRef(false)
+  // Whether the last press was a touch: a tapped point stays active until focus leaves.
+  const touched = useRef(false)
+  // The point the keyboard is on while the plot has focus; a hover that ends falls back to it.
+  const cursor = useRef<Id | null>(null)
   const reactId = useId()
   const chartId = `ch-${(chartIdProp ?? reactId).replace(/[^a-zA-Z0-9_-]/g, '')}`
   const measured = useWidth(rootRef, initialWidth, width === undefined)
@@ -221,6 +225,7 @@ export function Chart<D>({
     const next = navigate(interaction.points, effectiveActiveId, event.key)
     if (next !== undefined) {
       event.preventDefault()
+      cursor.current = next
       interaction.setActive(next, 'keyboard')
       return
     }
@@ -230,6 +235,10 @@ export function Chart<D>({
       if (point.selectable !== false) onSelect(point.id, point as ChartPoint<D>)
     }
   }
+
+  // Hover ends: the active point falls back to the keyboard's while the plot has focus.
+  const leave = () =>
+    interaction.setActive(cursor.current, cursor.current === null ? 'pointer' : 'keyboard')
 
   const select = (point: ChartPoint) => {
     if (onSelect && point.selectable !== false) onSelect(point.id, point as ChartPoint<D>)
@@ -304,7 +313,11 @@ export function Chart<D>({
       style={{ ...sizeStyle, ...style }}
       aria-labelledby={nameId}
       aria-describedby={description ? descId : undefined}
-      onPointerLeave={() => interaction.setActive(null, 'pointer')}
+      // A touch tap ends with pointerleave, before the focus and click it causes: the tapped
+      // point stays until the next tap or until focus leaves.
+      onPointerLeave={(event) => {
+        if (event.pointerType !== 'touch') leave()
+      }}
     >
       {title ? (
         <span hidden id={titleId} className="ch-sr-only">
@@ -340,16 +353,23 @@ export function Chart<D>({
                   'aria-describedby': describedBy || undefined,
                   tabIndex: 0,
                   onKeyDown,
-                  onPointerDown: () => {
+                  onPointerDown: (event) => {
                     pressed.current = true
+                    touched.current = event.pointerType === 'touch'
                   },
                   // A press that moved no focus (already focused, or preventDefault) must not
-                  // leave the flag set for the next keyboard focus.
-                  onPointerUp: () => {
+                  // leave the flag set for the next keyboard focus. Touch focuses after
+                  // pointerup, so there the click that ends the tap clears it.
+                  onPointerUp: (event) => {
+                    if (event.pointerType !== 'touch') pressed.current = false
+                  },
+                  onClick: () => {
                     pressed.current = false
                   },
-                  onPointerCancel: () => {
+                  // A touch that turned into a scroll: nothing was tapped.
+                  onPointerCancel: (event) => {
                     pressed.current = false
+                    if (event.pointerType === 'touch') leave()
                   },
                   // Keyboard focus alone shows the first point, its tooltip and announcement.
                   onFocus: () => {
@@ -357,12 +377,16 @@ export function Chart<D>({
                     pressed.current = false
                     const first = interaction.points[0]
                     if (!byPointer && !interaction.activePoint && first) {
+                      cursor.current = first.id
                       interaction.setActive(first.id, 'keyboard')
                     }
                   },
                   onBlur: () => {
                     pressed.current = false
-                    if (interaction.source === 'keyboard') interaction.setActive(null, 'keyboard')
+                    cursor.current = null
+                    if (interaction.source === 'keyboard' || touched.current) {
+                      interaction.setActive(null, 'keyboard')
+                    }
                   },
                 }
               : null)}

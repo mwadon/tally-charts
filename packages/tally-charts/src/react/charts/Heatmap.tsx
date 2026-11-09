@@ -123,6 +123,12 @@ const PAGE = 5
  * other, even for an empty row or column name.
  */
 const TOTAL_KEY = '\u0000total'
+/**
+ * Internal key of a cell. The public id `"<row>:<column>"` is the same for row "a:b" with column
+ * "c" and row "a" with column "b:c"; the length of the row name in front keeps the two apart.
+ */
+const cellKey = (row: string, column: string) => `${row.length}:${row}:${column}`
+const keyOf = (cell: { row: string; column: string }) => cellKey(cell.row, cell.column)
 
 /** The breaks Heatmap bins by (see `heatmapLevel`), warning about what it had to clean up. */
 function cleanBreaks(breaks: readonly number[], warn: Warn): number[] {
@@ -243,9 +249,10 @@ export function Heatmap<D>({
           warn('heatmap-key', `Heatmap skipped an item without a row or column at index ${i}.`)
         return
       }
-      const key = `${r}:${c}`
+      const key = cellKey(String(r), String(c))
       if (found.has(key)) {
-        if (DEV) warn('heatmap-repeat', `Heatmap skipped a repeated cell "${key}" at index ${i}.`)
+        if (DEV)
+          warn('heatmap-repeat', `Heatmap skipped a repeated cell "${r}:${c}" at index ${i}.`)
         return
       }
       const v = toNumber(getValue(d, i))
@@ -263,11 +270,10 @@ export function Heatmap<D>({
     const columns = columnOrder ? columnOrder.map(String) : [...seenColumns]
     const cells = rows.map((r) =>
       columns.map((c): HeatmapCell<D> => {
-        const id = `${r}:${c}`
-        const hit = found.get(id)
+        const hit = found.get(cellKey(r, c))
         const v = hit?.value ?? Number.NaN
         return {
-          id,
+          id: `${r}:${c}`,
           row: r,
           column: c,
           value: v,
@@ -287,7 +293,13 @@ export function Heatmap<D>({
     }
   }, [data, row, column, value, rowOrder, columnOrder, edges, levels, warn])
 
-  const byId = useMemo(() => new Map(model.cells.flat().map((c) => [c.id, c])), [model])
+  // Cells by internal key, and the key of the first cell with each public id (for `activeId`).
+  const byKey = useMemo(() => new Map(model.cells.flat().map((c) => [keyOf(c), c])), [model])
+  const keyById = useMemo(() => {
+    const map = new Map<string, string>()
+    for (const [key, cell] of byKey) if (!map.has(cell.id)) map.set(cell.id, key)
+    return map
+  }, [byKey])
   // A narrow container scrolls the grid sideways; only then is the scroller a named, focusable
   // group, so keyboard users can scroll it too.
   const scrollRef = useRef<HTMLDivElement>(null)
@@ -305,12 +317,14 @@ export function Heatmap<D>({
   }, [model])
   const [innerActive, setInnerActive] = useState<string | null>(null)
   const controlled = activeId !== undefined
-  const active = controlled ? activeId : innerActive
-  // Kept in step with renders; a second call in the same event must see the first one's id.
+  // The active cell by internal key, so cells whose public ids are equal are not both active.
+  const propKey = activeId == null ? null : (keyById.get(activeId) ?? null)
+  const active = controlled ? propKey : innerActive
+  // Kept in step with renders; a second call in the same event must see the first one's key.
   const activeRef = useRef(active)
   activeRef.current = active
-  const activeProp = useRef(activeId)
-  activeProp.current = activeId
+  const activeProp = useRef(propKey)
+  activeProp.current = propKey
   const [focusKey, setFocusKey] = useState<string | null>(null)
   const refs = useRef(new Map<string, HTMLElement>())
 
@@ -321,7 +335,8 @@ export function Heatmap<D>({
   const lastColumn = model.columns.length - 1 + (totals ? 1 : 0)
   const keyAt = (g: number, c: number): string => {
     if (g < top) return `${TOTAL_KEY}\u0000${c}`
-    return model.cells[g - top]?.[c]?.id ?? `${model.rows[g - top]}${TOTAL_KEY}`
+    const cell = model.cells[g - top]?.[c]
+    return cell ? keyOf(cell) : `${model.rows[g - top]}${TOTAL_KEY}`
   }
   const keys = new Set<string>()
   for (let g = 0; g <= lastRow; g++) for (let c = 0; c <= lastColumn; c++) keys.add(keyAt(g, c))
@@ -334,12 +349,13 @@ export function Heatmap<D>({
       // The parent decides. Drop the optimistic value once the event is over, so a parent that
       // ignores the change doesn't leave the ref stale.
       queueMicrotask(() => {
-        activeRef.current = activeProp.current ?? null
+        activeRef.current = activeProp.current
       })
     } else {
       setInnerActive(next)
     }
-    onActiveChange?.(next, next === null ? null : (byId.get(next) ?? null))
+    const cell = next === null ? undefined : byKey.get(next)
+    onActiveChange?.(cell ? cell.id : null, cell ?? null)
   }
 
   const onKeyDown = (event: KeyboardEvent<HTMLElement>, g: number, c: number) => {
@@ -418,7 +434,7 @@ export function Heatmap<D>({
   for (const cell of model.cells.flat()) {
     if (cell.value > peak) {
       peak = cell.value
-      peakId = cell.id
+      peakId = keyOf(cell)
     }
   }
   // Only an explicit tone overrides a --ch-seq-base set on an ancestor: data-ch-seq-tone picks
@@ -477,7 +493,7 @@ export function Heatmap<D>({
           onPointerLeave={(event) => {
             // Keyboard focus keeps its cell active; the pointer only clears what it activated.
             const focused = event.currentTarget.contains(document.activeElement)
-            setActive(focused && focusKey !== null && byId.has(focusKey) ? focusKey : null)
+            setActive(focused && focusKey !== null && byKey.has(focusKey) ? focusKey : null)
           }}
           onBlur={(event) => {
             if (!event.currentTarget.contains(event.relatedTarget)) setActive(null)
@@ -538,28 +554,31 @@ export function Heatmap<D>({
               >
                 {model.rows[r]}
               </div>
-              {rowCells.map((cell, c) => (
-                <div
-                  key={cell.id}
-                  {...navigable(r + top, c)}
-                  role="gridcell"
-                  className="ch-heatmap-cell"
-                  data-ch-part="heatmap-cell"
-                  data-ch-level={cell.level}
-                  data-ch-active={cell.id === active ? 'true' : undefined}
-                  data-ch-peak={cell.id === peakId ? 'true' : undefined}
-                  data-ch-selectable={onSelect ? 'true' : undefined}
-                  onFocus={() => {
-                    setFocusKey(cell.id)
-                    setActive(cell.id)
-                  }}
-                  onPointerEnter={() => setActive(cell.id)}
-                  onClick={() => onSelect?.(cell.id, cell)}
-                  onKeyDown={(event) => onKeyDown(event, r + top, c)}
-                >
-                  {valueText(cell.value)}
-                </div>
-              ))}
+              {rowCells.map((cell, c) => {
+                const key = keyOf(cell)
+                return (
+                  <div
+                    key={key}
+                    {...navigable(r + top, c)}
+                    role="gridcell"
+                    className="ch-heatmap-cell"
+                    data-ch-part="heatmap-cell"
+                    data-ch-level={cell.level}
+                    data-ch-active={key === active ? 'true' : undefined}
+                    data-ch-peak={key === peakId ? 'true' : undefined}
+                    data-ch-selectable={onSelect ? 'true' : undefined}
+                    onFocus={() => {
+                      setFocusKey(key)
+                      setActive(key)
+                    }}
+                    onPointerEnter={() => setActive(key)}
+                    onClick={() => onSelect?.(cell.id, cell)}
+                    onKeyDown={(event) => onKeyDown(event, r + top, c)}
+                  >
+                    {valueText(cell.value)}
+                  </div>
+                )
+              })}
               {totals ? total(r + top, rowCells.length, model.rowTotals[r], TOTAL_KEY) : null}
             </div>
           ))}

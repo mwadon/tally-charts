@@ -515,6 +515,146 @@ describe('<Chart>', () => {
     expect(onActiveChange).toHaveBeenLastCalledWith(null, null)
   })
 
+  it('keeps the tapped point through the touch order pointerup, pointerleave, focus', () => {
+    const onActiveChange = vi.fn()
+    let ctx: InternalChartContext | undefined
+    const { container } = render(
+      <Chart title="Test chart" width={300} onActiveChange={onActiveChange}>
+        <PointsProbe ids={[1, 2, 3]} />
+        <Probe
+          onContext={(c) => {
+            ctx = c
+          }}
+        />
+      </Chart>,
+    )
+    const chart = screen.getByRole('application')
+    const touch = { pointerType: 'touch' }
+    // A mark activates its point as the finger lands (pointerenter comes before pointerdown).
+    act(() => ctx?.setActive(2, 'pointer'))
+    fireEvent.pointerDown(chart, touch)
+    fireEvent.pointerUp(chart, touch)
+    fireEvent.pointerLeave(screen.getByRole('figure'), touch)
+    fireEvent.focus(chart)
+    fireEvent.click(chart)
+    expect(onActiveChange).toHaveBeenCalledTimes(1)
+    expect(onActiveChange).toHaveBeenLastCalledWith(2, expect.objectContaining({ id: 2 }))
+    expect(container.querySelector('[aria-live]')?.textContent).toBe('')
+    // The tapped point goes when focus leaves, e.g. on a tap outside the chart.
+    fireEvent.blur(chart)
+    expect(onActiveChange).toHaveBeenLastCalledWith(null, null)
+    // The next focus, by keyboard, starts at the first point again.
+    fireEvent.focus(chart)
+    expect(onActiveChange).toHaveBeenLastCalledWith(1, expect.objectContaining({ id: 1 }))
+  })
+
+  it('does not take a touch tap on a focused chart for the next keyboard focus', () => {
+    const onActiveChange = vi.fn()
+    render(
+      <Chart title="Test chart" width={300} onActiveChange={onActiveChange}>
+        <PointsProbe ids={[1, 2]} />
+      </Chart>,
+    )
+    const chart = screen.getByRole('application')
+    const touch = { pointerType: 'touch' }
+    // No focus event follows this tap (preventDefault, or the chart already has focus).
+    fireEvent.pointerDown(chart, touch)
+    fireEvent.pointerUp(chart, touch)
+    fireEvent.pointerLeave(screen.getByRole('figure'), touch)
+    fireEvent.click(chart)
+    fireEvent.focus(chart)
+    expect(onActiveChange).toHaveBeenLastCalledWith(1, expect.objectContaining({ id: 1 }))
+  })
+
+  it('clears the touched point when the touch is cancelled, as by a scroll', () => {
+    const onActiveChange = vi.fn()
+    let ctx: InternalChartContext | undefined
+    render(
+      <Chart title="Test chart" width={300} onActiveChange={onActiveChange}>
+        <PointsProbe ids={[1, 2]} />
+        <Probe
+          onContext={(c) => {
+            ctx = c
+          }}
+        />
+      </Chart>,
+    )
+    const chart = screen.getByRole('application')
+    act(() => ctx?.setActive(2, 'pointer'))
+    fireEvent.pointerDown(chart, { pointerType: 'touch' })
+    fireEvent.pointerCancel(chart, { pointerType: 'touch' })
+    fireEvent.pointerLeave(screen.getByRole('figure'), { pointerType: 'touch' })
+    expect(onActiveChange).toHaveBeenLastCalledWith(null, null)
+  })
+
+  it('keeps a mouse hover through blur and clears it on pointerleave', () => {
+    const onActiveChange = vi.fn()
+    let ctx: InternalChartContext | undefined
+    render(
+      <Chart title="Test chart" width={300} onActiveChange={onActiveChange}>
+        <PointsProbe ids={[1, 2]} />
+        <Probe
+          onContext={(c) => {
+            ctx = c
+          }}
+        />
+      </Chart>,
+    )
+    const chart = screen.getByRole('application')
+    const mouse = { pointerType: 'mouse' }
+    act(() => ctx?.setActive(2, 'pointer'))
+    fireEvent.pointerDown(chart, mouse)
+    fireEvent.focus(chart)
+    fireEvent.pointerUp(chart, mouse)
+    fireEvent.click(chart)
+    fireEvent.blur(chart)
+    expect(onActiveChange).toHaveBeenCalledTimes(1)
+    fireEvent.pointerLeave(screen.getByRole('figure'), mouse)
+    expect(onActiveChange).toHaveBeenLastCalledWith(null, null)
+  })
+
+  it('falls back to the keyboard point when the pointer leaves a focused chart', () => {
+    const onActiveChange = vi.fn()
+    let ctx: InternalChartContext | undefined
+    const { container } = render(
+      <Chart title="Test chart" width={300} onActiveChange={onActiveChange}>
+        <PointsProbe ids={[1, 2, 3]} />
+        <Probe
+          onContext={(c) => {
+            ctx = c
+          }}
+        />
+      </Chart>,
+    )
+    const chart = screen.getByRole('application')
+    const figure = screen.getByRole('figure')
+    const live = container.querySelector('[aria-live]')
+    fireEvent.focus(chart)
+    fireEvent.keyDown(chart, { key: 'ArrowRight' })
+    expect(onActiveChange).toHaveBeenLastCalledWith(2, expect.objectContaining({ id: 2 }))
+    // The pointer only passes by: the keyboard point, its tooltip and announcement stay.
+    fireEvent.pointerLeave(figure)
+    expect(onActiveChange).toHaveBeenLastCalledWith(2, expect.objectContaining({ id: 2 }))
+    expect(live?.textContent).toBe('2 of 3, Week 2')
+    fireEvent.keyDown(chart, { key: 'ArrowRight' })
+    expect(onActiveChange).toHaveBeenLastCalledWith(3, expect.objectContaining({ id: 3 }))
+    // A hovered point gives way to the keyboard point when the pointer leaves.
+    act(() => ctx?.setActive(1, 'pointer'))
+    fireEvent.pointerLeave(figure)
+    expect(onActiveChange).toHaveBeenLastCalledWith(3, expect.objectContaining({ id: 3 }))
+    expect(live?.textContent).toBe('3 of 3, Week 3')
+    // Escape drops the keyboard point, and so does blur: then leaving clears.
+    fireEvent.keyDown(chart, { key: 'Escape' })
+    act(() => ctx?.setActive(1, 'pointer'))
+    fireEvent.pointerLeave(figure)
+    expect(onActiveChange).toHaveBeenLastCalledWith(null, null)
+    fireEvent.keyDown(chart, { key: 'End' })
+    fireEvent.blur(chart)
+    act(() => ctx?.setActive(1, 'pointer'))
+    fireEvent.pointerLeave(figure)
+    expect(onActiveChange).toHaveBeenLastCalledWith(null, null)
+  })
+
   it('closes a hover tooltip on Escape wherever focus is', () => {
     const onActiveChange = vi.fn()
     let ctx: InternalChartContext | undefined

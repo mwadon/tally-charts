@@ -18,6 +18,18 @@ describe('<Meter>', () => {
     expect(container.querySelector('[data-ch-part="meter-target"]')).toHaveStyle({ left: '75%' })
   })
 
+  it.each([
+    ['NaN', Number.NaN],
+    ['Infinity', Number.POSITIVE_INFINITY],
+  ])('draws no tick or target label and names no target for a %s target', (_, target) => {
+    const { container } = render(
+      <Meter value={34} min={20} max={45} target={target} format="percent" label="m" />,
+    )
+    expect(container.querySelector('[data-ch-part="meter-target"]')).toBeNull()
+    expect(container.querySelector('[data-ch-part="meter-target-label"]')).toBeNull()
+    expect(screen.getByRole('meter')).toHaveAttribute('aria-valuetext', '34.0%')
+  })
+
   it('fills solid in the accent tone by default', () => {
     const { container } = render(<Meter value={30} label="m" />)
     const fill = container.querySelector('.ch-meter-fill')

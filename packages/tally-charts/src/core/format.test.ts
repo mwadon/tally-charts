@@ -32,6 +32,27 @@ describe('createFormatter (en-US defaults)', () => {
     expect(createFormatter('currency', { signed: true })(420)).toBe('+$420')
   })
 
+  it.each([
+    ['currency', -0.4, '$0'],
+    ['currency-compact', -0, '$0'],
+    ['percent', -0.04, '0.0%'],
+    ['pts', -0.04, '0.0 pts'],
+    ['pts', 0.04, '0.0 pts'],
+    ['number', -0.04, '0'],
+    ['hours', -0.04, '0 h'],
+    ['number', -0.06, '−0.1'],
+  ] as const)('%s(%d) → %s: a value that rounds to zero has no sign', (preset, value, expected) => {
+    expect(createFormatter(preset)(value)).toBe(expected)
+  })
+
+  it('writes a rounded zero without a sign when signed and in other locales', () => {
+    expect(createFormatter('currency', { signed: true })(-0.4)).toBe('$0')
+    expect(createFormatter('currency', { signed: true })(0.4)).toBe('$0')
+    expect(createFormatter({ preset: 'percent', digits: 0 }, { locale: 'de-DE' })(-0.4)).toBe(
+      createFormatter({ preset: 'percent', digits: 0 }, { locale: 'de-DE' })(0),
+    )
+  })
+
   it('returns an empty string for non-finite values', () => {
     expect(createFormatter('percent')(Number.NaN)).toBe('')
   })

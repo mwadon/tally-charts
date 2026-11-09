@@ -34,6 +34,7 @@ export function NearestPointer({ radius = 24, axis = 'xy' }: NearestPointerProps
     }
     return best
   }
+  const activate = (event: PointerLike) => ctx.setActive(nearest(event)?.id ?? null, 'pointer')
   return (
     // biome-ignore lint/a11y/noStaticElementInteractions: pointer-only hit layer; keyboard access lives on the focusable figure
     <rect
@@ -46,7 +47,9 @@ export function NearestPointer({ radius = 24, axis = 'xy' }: NearestPointerProps
       width={ctx.innerWidth}
       height={ctx.innerHeight}
       fill="transparent"
-      onPointerMove={(event) => ctx.setActive(nearest(event)?.id ?? null, 'pointer')}
+      // A touch tap sends no pointermove, so the press activates too.
+      onPointerDown={activate}
+      onPointerMove={activate}
       onClick={(event) => {
         const point = nearest(event)
         if (point) ctx.select(point)
