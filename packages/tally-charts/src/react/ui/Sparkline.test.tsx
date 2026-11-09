@@ -11,7 +11,8 @@ describe('<Sparkline>', () => {
     const root = screen.getByRole('img', { name: 'Clicks' })
     expect(root).toBe(part(container, 'sparkline'))
     expect(root).not.toHaveAttribute('tabindex')
-    expect(root).toHaveStyle({ height: '28px', '--_ch-swatch-color': 'var(--ch-accent)' })
+    expect(root).toHaveStyle({ height: '28px' })
+    expect(root?.getAttribute('style')).toContain('--_ch-swatch-color: var(--ch-accent)')
   })
 
   it('stretches a viewBox and keeps the stroke width', () => {
@@ -176,7 +177,9 @@ describe('<Sparkline>', () => {
   it('takes a tone and a class name', () => {
     const { container } = render(<Sparkline values={[1, 2]} label="c" tone="gain" className="x" />)
     expect(part(container, 'sparkline')).toHaveClass('ch-sparkline', 'x')
-    expect(part(container, 'sparkline')).toHaveStyle({ '--_ch-swatch-color': 'var(--ch-gain)' })
+    expect(part(container, 'sparkline')?.getAttribute('style')).toContain(
+      '--_ch-swatch-color: var(--ch-gain)',
+    )
   })
 
   it('renders the same markup every time', () => {

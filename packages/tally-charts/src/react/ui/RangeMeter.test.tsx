@@ -19,10 +19,12 @@ describe('<RangeMeter>', () => {
 
   it('colors the value accent and the reference neutral by default', () => {
     const { container } = render(<RangeMeter value={10} reference={30} max={40} label="m" />)
-    expect(container.querySelector('[data-ch-part="range-meter"]')).toHaveStyle({
-      '--_ch-swatch-color': 'var(--ch-accent)',
-      '--_ch-range-ref': 'var(--ch-neutral)',
-    })
+    expect(
+      container.querySelector('[data-ch-part="range-meter"]')?.getAttribute('style'),
+    ).toContain('--_ch-swatch-color: var(--ch-accent)')
+    expect(
+      container.querySelector('[data-ch-part="range-meter"]')?.getAttribute('style'),
+    ).toContain('--_ch-range-ref: var(--ch-neutral)')
   })
 
   it('still applies an explicit loss tone and accent reference', () => {
@@ -36,10 +38,12 @@ describe('<RangeMeter>', () => {
         label="m"
       />,
     )
-    expect(container.querySelector('[data-ch-part="range-meter"]')).toHaveStyle({
-      '--_ch-swatch-color': 'var(--ch-loss)',
-      '--_ch-range-ref': 'var(--ch-accent)',
-    })
+    expect(
+      container.querySelector('[data-ch-part="range-meter"]')?.getAttribute('style'),
+    ).toContain('--_ch-swatch-color: var(--ch-loss)')
+    expect(
+      container.querySelector('[data-ch-part="range-meter"]')?.getAttribute('style'),
+    ).toContain('--_ch-range-ref: var(--ch-accent)')
   })
 
   it('works when the value is above the reference', () => {

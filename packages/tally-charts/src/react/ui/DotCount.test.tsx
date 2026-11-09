@@ -14,13 +14,13 @@ describe('<DotCount>', () => {
 
   it('uses the accent tone by default and honors an explicit one', () => {
     const { container, rerender } = render(<DotCount count={3} />)
-    expect(container.querySelector('[data-ch-part="dot-count"]')).toHaveStyle({
-      '--_ch-swatch-color': 'var(--ch-accent)',
-    })
+    expect(container.querySelector('[data-ch-part="dot-count"]')?.getAttribute('style')).toContain(
+      '--_ch-swatch-color: var(--ch-accent)',
+    )
     rerender(<DotCount count={3} tone="loss" />)
-    expect(container.querySelector('[data-ch-part="dot-count"]')).toHaveStyle({
-      '--_ch-swatch-color': 'var(--ch-loss)',
-    })
+    expect(container.querySelector('[data-ch-part="dot-count"]')?.getAttribute('style')).toContain(
+      '--_ch-swatch-color: var(--ch-loss)',
+    )
   })
 
   it('caps the dots at max but keeps the full count in the label', () => {

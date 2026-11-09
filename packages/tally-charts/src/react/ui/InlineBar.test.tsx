@@ -20,9 +20,9 @@ describe('<InlineBar>', () => {
     const fill = container.querySelector('.ch-inline-bar-fill')
     expect(fill).toHaveAttribute('data-ch-fill', 'solid')
     expect(fill).toHaveAttribute('data-ch-tone', 'accent')
-    expect(container.querySelector('[data-ch-part="inline-bar"]')).toHaveStyle({
-      '--_ch-swatch-color': 'var(--ch-accent)',
-    })
+    expect(container.querySelector('[data-ch-part="inline-bar"]')?.getAttribute('style')).toContain(
+      '--_ch-swatch-color: var(--ch-accent)',
+    )
     expect(container.querySelector('.ch-inline-bar-target')).toBeNull()
   })
 

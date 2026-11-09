@@ -38,7 +38,7 @@ describe('<Dots>', () => {
     expect(a).toHaveAttribute('cx', '10')
     expect(a).toHaveAttribute('r', '4')
     expect(a).toHaveAttribute('data-ch-tone', 'loss')
-    expect(a).toHaveStyle({ fill: 'var(--ch-loss)' })
+    expect(a?.getAttribute('style')).toContain('fill: var(--ch-loss)')
     expect(b).toHaveAttribute('data-ch-soft', 'true')
     expect(b?.getAttribute('style')).toContain('color-mix')
   })

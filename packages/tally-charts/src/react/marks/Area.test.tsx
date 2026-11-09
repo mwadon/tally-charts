@@ -64,7 +64,8 @@ describe('<Area>', () => {
     const gradient = container.querySelector(`[id="${id}"]`)
     expect(gradient?.tagName.toLowerCase()).toBe('lineargradient')
     const stops = gradient?.querySelectorAll('stop') ?? []
-    expect(stops[0]).toHaveStyle({ stopColor: 'var(--ch-loss)', stopOpacity: '0.3' })
+    expect(stops[0]?.getAttribute('style')).toContain('stop-color: var(--ch-loss)')
+    expect(stops[0]).toHaveStyle({ stopOpacity: '0.3' })
     expect(stops[1]).toHaveStyle({ stopOpacity: '0' })
     expect(path(container)).toHaveAttribute('data-ch-tone', 'loss')
   })

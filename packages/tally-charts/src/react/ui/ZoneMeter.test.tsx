@@ -111,7 +111,8 @@ describe('<ZoneMeter>', () => {
     const first = labels[0] as HTMLElement
     const last = labels[labels.length - 1] as HTMLElement
     expect(first.style.left).toBe('0%')
-    expect(first.style.transform).toBe('translateX(-0%)')
+    // jsdom 31 serializes -0% as 0%.
+    expect(first.style.transform).toMatch(/^translateX\(-?0%\)$/)
     expect(last.style.left).toBe('100%')
     expect(last.style.transform).toBe('translateX(-100%)')
   })
