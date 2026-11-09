@@ -14,8 +14,8 @@
     "tally-charts": "workspace:*"
   },
   "devDependencies": {
-    "@axe-core/playwright": "4.14.0",
-    "@playwright/test": "1.65.0",
+    "@axe-core/playwright": "4.13.0",
+    "@playwright/test": "1.64.0",
     "@storybook/react-vite": "10.6.6",
     "@types/node": "^24.0.0",
     "@types/react": "19.3.0",
