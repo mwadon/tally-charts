@@ -137,6 +137,11 @@ jobs:
             echo "no attestation yet (attempt $i), waiting"
             sleep 10
           done
+          # Staged publishing: the version stays hidden until it is approved on npmjs.com.
+          if [ -z "$(npm view "tally-charts@$VERSION" version 2>/dev/null || true)" ]; then
+            echo "::error::tally-charts@$VERSION is not visible on npm. If it was staged, approve it on npmjs.com, then re-run this job"
+            exit 1
+          fi
           echo "::error::tally-charts@$VERSION has no provenance attestation"
           exit 1
       # Idempotent: a re-run after a partial failure skips what already exists. The
