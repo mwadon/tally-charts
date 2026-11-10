@@ -15,3 +15,27 @@ test('the header has the theme switch and no disabled toggle button', () => {
   expect(screen.getByRole('combobox', { name: 'Theme' })).toBeTruthy()
   expect(container.querySelector('.theme-toggle')).toBeNull()
 })
+
+test('the version links to the stability page and Docs to getting started', () => {
+  render(<SiteHeader />)
+  const header = screen.getByRole('banner')
+  expect(
+    within(header)
+      .getByRole('link', { name: `v${pkg.version}` })
+      .getAttribute('href'),
+  ).toBe('/docs/stability')
+  expect(within(header).getByRole('link', { name: 'Docs' }).getAttribute('href')).toBe(
+    '/docs/getting-started',
+  )
+})
+
+test('only the home page header links to the Charts and Dashboards sections', () => {
+  const home = render(<SiteHeader home />)
+  expect(screen.getByRole('link', { name: 'Charts' }).getAttribute('href')).toBe('#charts')
+  expect(screen.getByRole('link', { name: 'Dashboards' }).getAttribute('href')).toBe('#dashboards')
+  home.unmount()
+
+  render(<SiteHeader withMenu />)
+  expect(screen.queryByRole('link', { name: 'Charts' })).toBeNull()
+  expect(screen.queryByRole('link', { name: 'Docs' })).toBeNull()
+})

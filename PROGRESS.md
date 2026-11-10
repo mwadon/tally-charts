@@ -2655,3 +2655,17 @@ Przebieg Release 42703741164 (Version PR #3, po PR #2 z changesetem `ci-provenan
 - próba 3: publish pominięty, `provenance attestation: https://registry.npmjs.org/-/npm/v1/attestations/tally-charts@1.0.0-rc.2`, tag `v1.0.0-rc.2`, GitHub Release (pre-release). Wynik: success.
 
 `npm view tally-charts dist-tags`: `latest: 0.9.0`, `rc: 1.0.0-rc.2`. rc.0 i rc.1 zostają bez atestacji (publikowane ręcznie). Czerwony przebieg Release dla rc.1 (41232682540) to skutek ręcznej publikacji przed CI. `docs/releasing.md` §4 i §9 opisują uprawnienie publish i zatwierdzanie staged wersji. Linię `T17 potwierdzony: …` wpisuje maintainer.
+
+## Odświeżenie strony głównej docs (2026-11-10)
+Gałąź `docs-home-refresh` (z `origin/main`, bez commita). Projekt: canvas „tally-charts docs home refresh”.
+
+- Hero: linia instalacji z przyciskiem Copy (`command`) i kod wykresu pod wykresem (`code`, `codeFilename`). Tytuł i lede bez zmian, bo tytuł musi być równy `SITE_TAGLINE` (obraz OG).
+- Nowy blok `chart-index` (`#charts`): 12 kafelków z rysunkami (`blocks/chart-thumbs.tsx`), linki do stron wykresów.
+- Galeria (`#dashboards`) to zakładki (`blocks/gallery-picker.tsx`): jeden dashboard na pełnej szerokości zamiast dziewięciu w kolumnach. Strona ma 4083 px przy 1280 px.
+- `feature-grid`: opcjonalne `href` i `linkLabel`. Nowy blok `cta` (odwrócony pas) zastąpił w `home.json` bloki `install` i `link-row`; oba zostają w rejestrze.
+- Nagłówek: Docs prowadzi do `/docs/getting-started`, wersja do `/docs/stability`, na `/` linki Charts i Dashboards (od 640 px). Stopka `SiteFooter` z trzema kolumnami linków.
+- `visual-language` ma opcjonalne `lede` i jest pasem (`band`).
+
+Poza projektem: bez ikon w kartach funkcji, zakładki galerii nad dashboardem (nie z boku), bo panel węższy niż 900 px dostaje wąski układ dashboardu.
+
+Bramki: `pnpm --filter docs test` 835/835, `typecheck`, `biome check apps/docs`, `check:content` 0 błędów, e2e docs 471/471 na darwin i w dockerze (linux), `contrast.mjs` exit 0 (tabela w dokumencie designu; jedna para poprawiona: ramka komendy w pasie cta, dark, 2.97 → 4.01). Baseline'y `home-*` odświeżone na obu platformach. Nie uruchomiono: Lighthouse, `seed` (nowe typy bloków `chart-index` i `cta` nie są jeszcze w glokki).

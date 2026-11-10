@@ -35,6 +35,18 @@ test('renders a card with a heading, a text and a live chart per item', async ()
   }
 })
 
+test('the lede is optional and the section is a band', async () => {
+  const without = render(await VisualLanguage({ heading: HEADING, items }))
+  expect(without.container.querySelector('.section-lede')).toBeNull()
+  expect(without.container.querySelector('section')?.className).toBe('home-section band')
+  without.unmount()
+
+  const { container } = render(
+    await VisualLanguage({ heading: HEADING, lede: 'Four rules.', items }),
+  )
+  expect(container.querySelector('.section-lede')?.textContent).toBe('Four rules.')
+})
+
 test('the examples are server-safe', () => {
   for (const item of items) expect(examples[item.exampleId].rscSafe).toBe(true)
 })

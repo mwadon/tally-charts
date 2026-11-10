@@ -14,6 +14,8 @@ import type { GalleryProps } from './gallery'
 import { Heading } from './heading'
 import type { HeroProps } from './hero'
 import {
+  ChartIndexView,
+  CtaView,
   FeatureGrid,
   GalleryView,
   HeroView,
@@ -107,21 +109,35 @@ function withExamples(
   return render(ids.map((id) => <EditorExample key={id} exampleId={id} />))
 }
 
-function EditorHero({ exampleId, ...rest }: HeroProps) {
-  return withExamples([exampleId], ([chart]) => <HeroView {...rest} chart={chart} />)
+function EditorHero({ exampleId, code, codeFilename, ...rest }: HeroProps) {
+  const snippet = code ? (
+    <EditorCodeBlock code={code} lang="tsx" filename={codeFilename} />
+  ) : undefined
+  return withExamples([exampleId], ([chart]) => <HeroView {...rest} chart={chart} code={snippet} />)
 }
 
-function EditorVisualLanguage({ heading, items }: VisualLanguageProps) {
+function EditorVisualLanguage({ heading, lede, items }: VisualLanguageProps) {
   return withExamples(
     items.map((item) => item.exampleId),
-    (charts) => <VisualLanguageView heading={heading} items={items} charts={charts} />,
+    (charts) => <VisualLanguageView heading={heading} lede={lede} items={items} charts={charts} />,
   )
 }
 
 function EditorGallery({ heading, lede, items }: GalleryProps) {
   return withExamples(
     items.map((item) => item.exampleId),
-    (charts) => <GalleryView heading={heading} lede={lede} items={items} charts={charts} />,
+    (charts) => (
+      <GalleryView
+        heading={heading}
+        lede={lede}
+        items={items.map((item) => ({
+          // As `galleryLabel` of the server block, which cannot be imported here.
+          label: item.label ?? examples[item.exampleId].title,
+          caption: item.caption,
+        }))}
+        charts={charts}
+      />
+    ),
   )
 }
 
@@ -158,6 +174,8 @@ const components: Record<string, ComponentType<never>> = {
   install: EditorInstall,
   'feature-grid': FeatureGrid,
   'link-row': EditorLinkRow,
+  'chart-index': ChartIndexView,
+  cta: CtaView,
 }
 
 export const editorRegistry: ComponentRegistry = new Map(

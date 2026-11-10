@@ -38,6 +38,35 @@ test('renders the texts, the buttons and the live chart', async () => {
   expect(container.querySelector('.hatch-field')?.getAttribute('aria-hidden')).toBe('true')
 })
 
+test('without command and code there is no install line and no snippet', async () => {
+  const { container } = render(await Hero(props))
+
+  expect(container.querySelector('.install-line')).toBeNull()
+  expect(container.querySelector('.hero-code')).toBeNull()
+})
+
+test('command is an install line with a copy button, code a highlighted block under the chart', async () => {
+  const { container } = render(
+    await Hero({
+      ...props,
+      command: 'npm i tally-charts',
+      code: '<BarChart data={weeks} />',
+      codeFilename: 'margin.tsx',
+    }),
+  )
+
+  expect(container.querySelector('.hero-copy .install-line code')?.textContent).toBe(
+    'npm i tally-charts',
+  )
+  expect(screen.getByRole('button', { name: 'Copy code: npm i tally-charts' })).toBeTruthy()
+  const snippet = container.querySelector('.hero-card .hero-code') as HTMLElement
+  expect(snippet.querySelector('.code-block-name')?.textContent).toBe('margin.tsx')
+  expect(screen.getByRole('region', { name: 'margin.tsx' }).textContent).toBe(
+    '<BarChart data={weeks} />',
+  )
+  expect(snippet.innerHTML).toContain('var(--shiki-')
+})
+
 test('the section is labelled by the title and the eyebrow is optional', async () => {
   const { eyebrow: _, ...rest } = props
   const { container } = render(await Hero(rest))

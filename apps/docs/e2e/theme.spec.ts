@@ -54,7 +54,7 @@ test('the choice survives navigating to another page', async ({ page }) => {
   await page.goto('/')
   await page.getByRole('combobox', { name: 'Theme' }).selectOption('dark')
   await page.getByRole('banner').getByRole('link', { name: 'Docs', exact: true }).click()
-  await expect(page).toHaveURL(/\/docs\/line-chart$/)
+  await expect(page).toHaveURL(/\/docs\/getting-started$/)
 
   await expect(page.locator('html')).toHaveAttribute('data-ch-theme', 'dark')
   await expect(page.locator('body')).toHaveCSS('background-color', SURFACE.dark)

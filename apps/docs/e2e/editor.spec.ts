@@ -32,9 +32,10 @@ test('/?_editor=1 shows the home blocks through the editor canvas, without error
     }),
   ).toBeVisible()
   await expect(page.locator('.block-error')).toHaveCount(0)
-  const charts = page.locator('.gallery').getByRole('application')
+  // One dashboard is shown at a time; its charts are live.
+  await expect(page.getByRole('tab')).toHaveCount(9)
+  const charts = page.locator('.gallery-tile:not([hidden])').getByRole('application')
   await expect(charts.first()).toBeVisible()
-  expect(await charts.count()).toBeGreaterThanOrEqual(9)
   expect(errors).toEqual([])
 })
 
