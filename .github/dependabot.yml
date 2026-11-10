@@ -23,6 +23,12 @@ updates:
         versions: ['>=3.2.5']
       - dependency-name: d3-time
         versions: ['>=3.1.1']
+      # TypeScript 7 is the native compiler; its package no longer exports the classic compiler
+      # API (ts.createProgram, ts.createSourceFile) that apps/docs/scripts/gen-api.mjs and
+      # gen-examples.mjs, src/dts-parse.test.ts and src/react/messages-literals.test.ts use, and
+      # api-extractor still bundles TypeScript 6. Move by hand once those are ported.
+      - dependency-name: typescript
+        versions: ['>=7']
     groups:
       minor-and-patch:
         update-types: [minor, patch]
