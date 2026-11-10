@@ -2669,3 +2669,13 @@ Gałąź `docs-home-refresh` (z `origin/main`, bez commita). Projekt: canvas „
 Poza projektem: bez ikon w kartach funkcji, zakładki galerii nad dashboardem (nie z boku), bo panel węższy niż 900 px dostaje wąski układ dashboardu.
 
 Bramki: `pnpm --filter docs test` 835/835, `typecheck`, `biome check apps/docs`, `check:content` 0 błędów, e2e docs 471/471 na darwin i w dockerze (linux), `contrast.mjs` exit 0 (tabela w dokumencie designu; jedna para poprawiona: ramka komendy w pasie cta, dark, 2.97 → 4.01). Baseline'y `home-*` odświeżone na obu platformach. Nie uruchomiono: Lighthouse, `seed` (nowe typy bloków `chart-index` i `cta` nie są jeszcze w glokki).
+
+## Nowa paleta domyślna i odświeżenie strony głównej (2026-11-10)
+
+Gałąź `ui-refresh-palette` (z `origin/main`, bez commita). Projekt: canvas „Tally Charts UI refresh”.
+
+- Biblioteka (`theme.css`, changeset `major` `coral-navy-palette`): `--ch-accent` granat (`#24356b` / dark `#7f9be6`), `--ch-accent-soft` `#a9b6de` / `#6f80b4`, `--ch-loss` koral `#e8505b` / `#ff6b74`, `--ch-gain` niebieski `#3a93b8` / `#5cc0e6`; vivid `--ch-gain` `#4fa3c7`. `--ch-warn`, `--ch-neutral`, ink i powierzchnie bez zmian. Udziały poziomów sekwencyjnych (accent, accent-soft, loss, gain) policzone od nowa pod te same progi co w `theme.test.ts` (tekst 4.5:1, krok 1.3:1, poziom 5 3:1); `--_ch-seq-accent-soft-depth` w light to 53%.
+- Teksty: „pink” → „coral” (README, strona główna, przykład `visual-language/loss`, small-pieces); strona migracji ma sekcję `#default-colors` z CSS przywracającym stare kolory i przykładem `migration/old-colors`.
+- Strona główna: hero wyśrodkowane, pod nim dekoracyjny rysunek `blocks/home-art.tsx`, wykres i kod w jednej karcie obok siebie od 900 px; reguły języka wizualnego i funkcje jako kolumny pod linią, indeks wykresów jako lista z liniami (1/2/3 kolumny), zakładki galerii jako tekst z podkreśleniem, pas cta wyśrodkowany. Przycisk główny to `--ch-accent`, drugorzędny to link. Fonty zostają systemowe (bez webfontów).
+
+Bramki: `pnpm test` 1367/1367, `pnpm --filter docs test` 841/841, `typecheck`, `lint`, `api:check`, `size`, `check:dev-strip`, `check:treeshake`, `check:dts`, `test:scripts` 39/39, `check:content` 0 błędów, e2e Storybook 393/393 i docs 471/471 na darwin i w dockerze (linux), `contrast.mjs` exit 0 (tabela w dokumencie designu). Baseline'y Storybooka i docs odświeżone na obu platformach. Nie uruchomiono: Lighthouse, `seed`, actionlint.

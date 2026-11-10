@@ -26,10 +26,10 @@ test('default: a swatch per tone with its name, hex and contrast in both themes'
   }
 })
 
-test('the contrast of accent on the light surface is the WCAG ratio of #2f6bf0 and #fafafa', () => {
+test('the contrast of accent on the light surface is the WCAG ratio of #24356b and #fafafa', () => {
   render(<PaletteSwatches palette="default" />)
 
-  expect(swatchOf('accent').getByText(ratio('#2f6bf0', '#fafafa'))).toBeTruthy()
+  expect(swatchOf('accent').getByText(ratio('#24356b', '#fafafa'))).toBeTruthy()
 })
 
 test('swatches are literal colors and hidden from assistive technology', () => {

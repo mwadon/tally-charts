@@ -2,6 +2,7 @@ import { type ReactNode, useId } from 'react'
 import { ChartThumb, ThumbDefs, type ThumbName } from './chart-thumbs'
 import { CopyButton } from './copy-button'
 import { GalleryPicker } from './gallery-picker'
+import { HomeArt } from './home-art'
 
 /*
  * The markup of the home page blocks. The server blocks (`hero.tsx`, ...) load their charts and
@@ -54,8 +55,8 @@ export function HeroView({ eyebrow, title, lede, actions, command, chart, code }
         </p>
         {command ? <InstallLine command={command} /> : null}
       </div>
+      <HomeArt />
       <div className="hero-visual">
-        <div className="hatch-field" aria-hidden="true" />
         <div className="card hero-card">
           <div className="hero-chart">{chart}</div>
           {code ? <div className="hero-code">{code}</div> : null}

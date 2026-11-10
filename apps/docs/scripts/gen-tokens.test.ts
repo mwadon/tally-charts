@@ -35,8 +35,8 @@ test('reads the light and dark value of a theme token', () => {
   expect(byName(tokens, '--ch-accent')).toEqual({
     name: '--ch-accent',
     group: 'theme',
-    light: '#2f6bf0',
-    dark: '#4d86ff',
+    light: '#24356b',
+    dark: '#7f9be6',
   })
 })
 
@@ -62,7 +62,7 @@ test('the vivid palette overrides warn, gain and neutral and is light only', () 
   const { palettes } = collectTokens(themeCss)
 
   expect(palettes.vivid.light.warn).toBe('#f1a23b')
-  expect(palettes.vivid.light.gain).toBe('#23a866')
+  expect(palettes.vivid.light.gain).toBe('#4fa3c7')
   expect(palettes.vivid.light.neutral).toBe('#a3a3ab')
   expect(palettes.vivid.light.accent).toBe(palettes.default.light.accent)
   expect(palettes.vivid.dark).toBeUndefined()

@@ -28,8 +28,8 @@ test('accent has a different light and dark value', () => {
   render(<TokenTable />)
 
   const [light, dark] = rowOf('--ch-accent')
-  expect(light?.textContent).toBe('#2f6bf0')
-  expect(dark?.textContent).toBe('#4d86ff')
+  expect(light?.textContent).toBe('#24356b')
+  expect(dark?.textContent).toBe('#7f9be6')
 })
 
 test('a hex value has a decorative swatch of its color, other values do not', () => {

@@ -354,8 +354,8 @@ describe('theme.css', () => {
     }
     expect(THEMES.light.get('--_ch-seq-ink-strong')).toBe('#fff')
     expect(THEMES.dark.get('--_ch-seq-ink-strong')).toBe('var(--ch-surface)')
-    // The loss ramp tops out at the hot pink of the reference, darkened only for white text.
-    expect(toHex(ramp('light', 'loss')[4] as Rgb)).toBe('#d33282')
+    // The loss ramp tops out at the coral loss tone, darkened only for white text.
+    expect(toHex(ramp('light', 'loss')[4] as Rgb)).toBe('#ce4751')
   })
 
   it('outlines the two lightest levels in the light theme only', () => {
@@ -507,9 +507,9 @@ describe('theme.css', () => {
     },
   )
 
-  it('darkens the light warn, gain and neutral marks to the spec values', () => {
+  it('keeps the light warn, gain and neutral marks at the spec values', () => {
     expect(THEMES.light.get('--ch-warn')).toBe('#be802f')
-    expect(THEMES.light.get('--ch-gain')).toBe('#22a363')
+    expect(THEMES.light.get('--ch-gain')).toBe('#3a93b8')
     expect(THEMES.light.get('--ch-neutral')).toBe('#8e8e95')
   })
 
@@ -529,14 +529,14 @@ describe('theme.css', () => {
       expect(rules.length).toBeGreaterThan(0)
     })
 
-    it('restores the pre-0.6b warn, gain and neutral and nothing else', () => {
+    it('brightens warn, gain and neutral and nothing else', () => {
       for (const { body } of rules) {
         const props = Object.fromEntries(
           [...body.matchAll(/(--[\w-]+):\s*([^;]+);/g)].map((m) => [m[1], m[2]]),
         )
         expect(props).toEqual({
           '--ch-warn': '#f1a23b',
-          '--ch-gain': '#23a866',
+          '--ch-gain': '#4fa3c7',
           '--ch-neutral': '#a3a3ab',
         })
       }

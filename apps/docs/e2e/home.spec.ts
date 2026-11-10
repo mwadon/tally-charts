@@ -120,12 +120,12 @@ test('every dashboard tab has no axe violations, light and dark', async ({ page 
   }
 })
 
-// The chart index: two columns on phones, three, then four.
+// The chart index is a ruled list: one column on phones, two, then three.
 for (const [width, expected] of [
-  [320, 2],
-  [375, 2],
-  [768, 3],
-  [1280, 4],
+  [320, 1],
+  [375, 1],
+  [768, 2],
+  [1280, 3],
 ] as const) {
   test(`the chart index has ${expected} columns at ${width} px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 800 })

@@ -84,7 +84,7 @@
       "id": "n60",
       "type": "heading",
       "props": {
-        "text": "Small pieces are never pink by default",
+        "text": "Small pieces are never loss-colored by default",
         "level": "3",
         "anchor": "small-pieces-defaults"
       }
@@ -93,7 +93,7 @@
       "id": "n61",
       "type": "prose",
       "props": {
-        "markdown": "Pink means loss, and the library only draws it when you ask. Four small pieces were pink or hatched with no props, even when nothing was lost. In 1.0 they use the accent color, and solid is an actual value:\n\n- `InlineBar`: `tone` is `'accent'` (was `'loss'`) and `fill` is `'solid'` (was `'hatch'`).\n- `Meter`: `fill` is `'solid'` (was `'hatch'`).\n- `RangeMeter`: `tone` is `'accent'` (was `'loss'`) and `referenceTone` is `'neutral'` (was `'accent'`). The hatched gap stays.\n- `DotCount`: `tone` is `'accent'` (was `'loss'`).\n\nTo keep the 0.9 look, pass the old values."
+        "markdown": "The loss color means loss, and the library only draws it when you ask. Four small pieces were loss-colored or hatched with no props, even when nothing was lost. In 1.0 they use the accent color, and solid is an actual value:\n\n- `InlineBar`: `tone` is `'accent'` (was `'loss'`) and `fill` is `'solid'` (was `'hatch'`).\n- `Meter`: `fill` is `'solid'` (was `'hatch'`).\n- `RangeMeter`: `tone` is `'accent'` (was `'loss'`) and `referenceTone` is `'neutral'` (was `'accent'`). The hatched gap stays.\n- `DotCount`: `tone` is `'accent'` (was `'loss'`).\n\nTo keep the 0.9 look, pass the old values."
       }
     },
     {
@@ -127,6 +127,63 @@
       "props": {
         "exampleId": "migration/small-pieces-pinned",
         "defaultView": "preview"
+      }
+    },
+    {
+      "id": "n74",
+      "type": "heading",
+      "props": {
+        "text": "New default colors",
+        "level": "3",
+        "anchor": "default-colors"
+      }
+    },
+    {
+      "id": "n75",
+      "type": "prose",
+      "props": {
+        "markdown": "The default palette changed. The roles are the same, the colors are not:\n\n| Token | Light, was | Light, now | Dark, was | Dark, now |\n|---|---|---|---|---|\n| `--ch-accent` | `#2f6bf0` | `#24356b` | `#4d86ff` | `#7f9be6` |\n| `--ch-accent-soft` | `#9dbcf6` | `#a9b6de` | `#5a7cc4` | `#6f80b4` |\n| `--ch-loss` | `#e5368d` | `#e8505b` | `#ff4fa0` | `#ff6b74` |\n| `--ch-gain` | `#22a363` | `#3a93b8` | `#3ccf86` | `#5cc0e6` |\n\nActual values are navy, loss is coral and gain is blue, so loss and gain no longer depend on telling red from green. `--ch-warn`, `--ch-neutral`, the ink and the surfaces are unchanged. The `vivid` palette's `--ch-gain` is `#4fa3c7` (was `#23a866`). No props change. Screenshots of your charts will differ."
+      }
+    },
+    {
+      "id": "n79",
+      "type": "code-block",
+      "props": {
+        "code": "@import 'tally-charts/theme.css';",
+        "lang": "css",
+        "filename": "Before (0.9)"
+      }
+    },
+    {
+      "id": "n76",
+      "type": "prose",
+      "props": {
+        "markdown": "To keep the old colors, set the four tokens after the theme import:"
+      }
+    },
+    {
+      "id": "n77",
+      "type": "code-block",
+      "props": {
+        "code": ":root,\n[data-ch-theme=\"light\"] {\n  --ch-accent: #2f6bf0;\n  --ch-accent-soft: #9dbcf6;\n  --ch-loss: #e5368d;\n  --ch-gain: #22a363;\n}\n\n@media (prefers-color-scheme: dark) {\n  :root:not([data-ch-theme=\"light\"]) {\n    --ch-accent: #4d86ff;\n    --ch-accent-soft: #5a7cc4;\n    --ch-loss: #ff4fa0;\n    --ch-gain: #3ccf86;\n  }\n}\n\n[data-ch-theme=\"dark\"] {\n  --ch-accent: #4d86ff;\n  --ch-accent-soft: #5a7cc4;\n  --ch-loss: #ff4fa0;\n  --ch-gain: #3ccf86;\n}",
+        "lang": "css",
+        "filename": "After"
+      }
+    },
+    {
+      "id": "n80",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "migration/old-colors",
+        "defaultView": "preview",
+        "height": 300
+      }
+    },
+    {
+      "id": "n78",
+      "type": "prose",
+      "props": {
+        "markdown": "The steps of the sequential levels (`Heatmap`, `RunwayChart`) are tuned to the new colors. With the old ones the levels stay readable, but the steps between them are less even."
       }
     },
     {
@@ -542,7 +599,7 @@
       "id": "n51",
       "type": "prose",
       "props": {
-        "markdown": "These need no code change, but tests and custom styles may notice them:\n\n- The chart's focus, keys and `aria-*` moved from the `<figure>` to the plot inside it (`[data-ch-part=\"plot\"]`, `role=\"application\"`). Tests that focus or send keys to the figure should use `getByRole('application')`. The focus ring is on the plot.\n- Announcements start with the position: \"Jul 6, 37.5%\" → \"1 of 12, Jul 6, 37.5%\", and with the series when there are several. `StripPlot` point labels no longer repeat the series name.\n- Data tables head each row with its first cell, read empty values as \"no value\", and use field names in sentence case (\"week\" → \"Week\").\n- Toned text (row and value labels, bridge notes, waffle group labels, pill values) mixes the tone with ink, keyed on `data-ch-tone-text`. The `ch-tone-text` class is gone.\n- Light `--ch-warn` is `#be802f` (was `#f1a23b`), `--ch-gain` `#22a363` (`#23a866`) and `--ch-neutral` `#8e8e95` (`#a3a3ab`). Hatched and soft-accent marks have a 1px outline in both themes. [Palettes](/docs/palettes) has the old colors as `vivid`.\n- The sequential levels have new shares per tone and theme, and the dark top level is the pure base with dark text. `data-ch-seq-tone` now also sets `--ch-seq-base`.\n- `Heatmap` column headers hold only the names. The column totals are a row of their own (`[data-ch-part=\"heatmap-total-row\"]`), ending with the grand total, so 0.6's `heatmap-header-total` part is gone. The grid sits in `[data-ch-part=\"heatmap-scroll\"]`.\n- `WaffleColumns`' default top margin is 44px when it pins the peak pill (8px before), so the pill no longer sits on the tallest column.\n- An axis keeps only its first label when even its first and last would overlap. Every value stays reachable through the tooltip and the data table."
+        "markdown": "These need no code change, but tests and custom styles may notice them:\n\n- The chart's focus, keys and `aria-*` moved from the `<figure>` to the plot inside it (`[data-ch-part=\"plot\"]`, `role=\"application\"`). Tests that focus or send keys to the figure should use `getByRole('application')`. The focus ring is on the plot.\n- Announcements start with the position: \"Jul 6, 37.5%\" → \"1 of 12, Jul 6, 37.5%\", and with the series when there are several. `StripPlot` point labels no longer repeat the series name.\n- Data tables head each row with its first cell, read empty values as \"no value\", and use field names in sentence case (\"week\" → \"Week\").\n- Toned text (row and value labels, bridge notes, waffle group labels, pill values) mixes the tone with ink, keyed on `data-ch-tone-text`. The `ch-tone-text` class is gone.\n- Light `--ch-warn` is `#be802f` (was `#f1a23b`) and `--ch-neutral` `#8e8e95` (`#a3a3ab`); `--ch-gain` was darkened too, and 1.0 [replaced it](#default-colors). Hatched and soft-accent marks have a 1px outline in both themes. [Palettes](/docs/palettes) has the old colors as `vivid`.\n- The sequential levels have new shares per tone and theme, and the dark top level is the pure base with dark text. `data-ch-seq-tone` now also sets `--ch-seq-base`.\n- `Heatmap` column headers hold only the names. The column totals are a row of their own (`[data-ch-part=\"heatmap-total-row\"]`), ending with the grand total, so 0.6's `heatmap-header-total` part is gone. The grid sits in `[data-ch-part=\"heatmap-scroll\"]`.\n- `WaffleColumns`' default top margin is 44px when it pins the peak pill (8px before), so the pill no longer sits on the tallest column.\n- An axis keeps only its first label when even its first and last would overlap. Every value stays reachable through the tooltip and the data table."
       }
     },
     {

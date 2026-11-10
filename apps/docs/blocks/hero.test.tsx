@@ -35,7 +35,7 @@ test('renders the texts, the buttons and the live chart', async () => {
   )
   expect(screen.getByRole('link', { name: 'GitHub' }).className).toBe('button')
   expect(screen.getByRole('application', { name: examples[ID].title })).toBeTruthy()
-  expect(container.querySelector('.hatch-field')?.getAttribute('aria-hidden')).toBe('true')
+  expect(container.querySelector('.hero > .home-art')?.getAttribute('aria-hidden')).toBe('true')
 })
 
 test('without command and code there is no install line and no snippet', async () => {

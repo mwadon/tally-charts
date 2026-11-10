@@ -9,7 +9,7 @@ export const meta = {
 
 const stack = { display: 'grid', gap: '1.5rem', maxWidth: '24rem' } as const
 
-// 0.9 drew these pink or hatched with no props. In 1.0 you ask for it.
+// 0.9 drew these in the loss color or hatched with no props. In 1.0 you ask for it.
 export default function SmallPiecesPinned() {
   return (
     <div style={stack}>

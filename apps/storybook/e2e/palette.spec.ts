@@ -5,8 +5,8 @@ import { open } from './stories'
 // blocks re-declaring tokens on descendants) can't be judged in jsdom, so each placement of the
 // palette against the theme is computed here, in the browser.
 
-const NORMAL = { light: ['#be802f', '#22a363', '#8e8e95'], dark: ['#ffb24d', '#3ccf86', '#7c7c86'] }
-const VIVID = ['#f1a23b', '#23a866', '#a3a3ab']
+const NORMAL = { light: ['#be802f', '#3a93b8', '#8e8e95'], dark: ['#ffb24d', '#5cc0e6', '#7c7c86'] }
+const VIVID = ['#f1a23b', '#4fa3c7', '#a3a3ab']
 const TOKENS = ['--ch-warn', '--ch-gain', '--ch-neutral']
 
 /** The three tokens on `#t` of a fragment injected into a story page, optionally with `html` attrs. */
