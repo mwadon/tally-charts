@@ -15,7 +15,19 @@ const SAMPLES = [
   ['Small note (ink-muted)', 'docs', '.small', 'text'],
   ['Eyebrow (ink-muted)', 'docs', '.eyebrow', 'text'],
   ['Inline link (accent 70% + ink)', 'docs', '.doc p a', 'text'],
-  ['Link in "Keep going" (home)', 'home', '.link-row a', 'text'],
+  ['Link in a feature card (home)', 'home', '.card-link a', 'text'],
+  ['Footer link (home)', 'home', '.site-footer a', 'text'],
+  ['Install command (hero)', 'home', '.hero .install-line code', 'text'],
+  ['Chart tile name', 'home', '.chart-tile-name', 'text'],
+  ['Chart tile text (ink-muted)', 'home', '.chart-tile-text', 'text'],
+  ['Dashboard tab, unselected', 'home', '.gallery-tabs button[aria-selected="false"]', 'text'],
+  ['Dashboard tab, selected', 'home', '.gallery-tabs button[aria-selected="true"]', 'text'],
+  ['Dashboard caption (ink-muted)', 'home', '.gallery-caption', 'text'],
+  ['Closing band heading', 'home', '.cta h2', 'text'],
+  ['Closing band text', 'home', '.cta-text', 'text'],
+  ['Closing band command', 'home', '.cta .install-line code', 'text'],
+  ['Closing band Copy button', 'home', '.cta .code-copy', 'text'],
+  ['Closing band button', 'home', '.cta .button-primary', 'text'],
   ['Header link', 'docs', '.header-links a', 'text'],
   ['Wordmark', 'docs', '.wordmark', 'text'],
   ['Version badge (ink-muted)', 'docs', '.version', 'text'],
@@ -43,17 +55,28 @@ const SAMPLES = [
   ['Table cell', 'docs', 'tbody td', 'text'],
   ['Card text (ink-muted)', 'home', '.card p', 'text'],
   ['Card heading', 'home', '.card h3', 'text'],
-  ['Footer (ink-muted)', 'home', '.site-footer p', 'text'],
-  ['Disabled link placeholder (home)', 'home', '.link-row .nav-soon', 'text'],
+  ['Footer (ink-muted)', 'home', '.footer-legal', 'text'],
   ['Border: Copy button', 'docs', '.code-copy', 'border'],
   ['Border: toggle, unselected', 'docs', '.segmented button[aria-pressed="false"]', 'border'],
   ['Border: secondary button', 'home', '.button:not(.button-primary)', 'border'],
+  ['Border: dashboard tab, unselected', 'home', '.gallery-tabs button[aria-selected="false"]', 'border'],
+  ['Border: closing band command', 'home', '.cta .install-line', 'border'],
   ['Border: Menu button (mobile)', 'docs', '.menu-button', 'border'],
   ['Border: theme switch', 'docs', '.theme-select', 'border'],
   ['Fill: selected toggle vs card', 'docs', '.segmented button[aria-pressed="true"]', 'fill'],
   ['Fill: primary button vs page', 'home', '.button-primary', 'fill'],
 ]
-const INVERSE = new Set(['Preview/Code toggle, selected', 'Button, primary'])
+const INVERSE = new Set([
+  'Preview/Code toggle, selected',
+  'Button, primary',
+  'Dashboard tab, selected',
+  'Closing band heading',
+  'Closing band text',
+  'Closing band command',
+  'Closing band Copy button',
+  'Closing band button',
+  'Border: closing band command',
+])
 
 const measure = ([, , selector, kind]) => {
   const canvas = document.createElement('canvas')
@@ -135,9 +158,9 @@ for (const theme of THEMES) {
       await sweep()
       if (route === 'docs') {
         // The ChartExample source (number and tag tokens) is only rendered in the Code view.
-        await page.getByRole('button', { name: 'Code', exact: true }).click()
+        await page.getByRole('button', { name: 'Code', exact: true }).first().click()
         await sweep()
-        await page.getByRole('button', { name: 'Preview', exact: true }).click()
+        await page.getByRole('button', { name: 'Preview', exact: true }).first().click()
       }
       if (w === '1280') {
         // Keyboard focus: Tab twice (skip link, wordmark), then to the toggle on the docs page.

@@ -236,6 +236,7 @@ a:hover {
 .version {
   display: none;
   padding: 0.05rem 0.5rem;
+  text-decoration: none;
   border: 1px solid var(--docs-line);
   border-radius: 999px;
   color: var(--docs-muted);
@@ -255,6 +256,11 @@ a:hover {
 
 .header-links a:hover {
   text-decoration: underline;
+}
+
+/* Links to sections of the home page; from 640 px, where the header has room for them. */
+.header-anchor {
+  display: none;
 }
 
 button {
@@ -343,8 +349,7 @@ button {
 .side-nav ul,
 .toc ul,
 .link-row,
-.card-grid,
-.gallery {
+.card-grid {
   margin: 0;
   padding: 0;
   list-style: none;
@@ -592,7 +597,7 @@ tbody th {
 }
 
 /* `LazyMount` with `wideMinHeight` reserves `var(--lazy-min-height)`: the narrow value, and from the
-   width at which the gallery goes from one column to two (764 px) the wide one. */
+   764 px viewport width up the wide one. */
 [data-lazy-wide] {
   --lazy-min-height: var(--lazy-min-height-narrow);
 }
@@ -718,57 +723,116 @@ tbody th {
 }
 
 /* ---------- Home ---------- */
+/* A section spans the page, so a band can carry a background from edge to edge; the gutter keeps
+   its content in the 72rem column. The percentage resolves against the width of `main`. */
 .home {
-  max-width: 72rem;
-  margin: 0 auto;
-  padding: 1.5rem 1rem 4rem;
+  --home-pad: 1rem;
+  --home-gutter: max(var(--home-pad), calc((100% - 72rem) / 2 + var(--home-pad)));
 }
 
-.home > section + section {
-  margin-top: 4rem;
+.home-section {
+  padding: 2.5rem var(--home-gutter);
+}
+
+.home-section.band {
+  margin-block: 1.5rem;
+  padding-block: 4rem;
+  border-block: 1px solid var(--docs-line);
+  background: var(--docs-raised);
 }
 
 .home h2 {
   margin-top: 0;
+  font-size: 1.75rem;
+  letter-spacing: -0.02em;
+}
+
+.home-section > h2:not(:has(+ .section-lede)) {
+  margin-bottom: 1.5rem;
 }
 
 .section-lede {
   max-width: 40rem;
+  margin-bottom: 1.5rem;
   color: var(--docs-muted);
+  font-size: 1.0625rem;
 }
 
 .hero {
   display: grid;
-  gap: 2rem;
-  padding-top: 1rem;
+  gap: 2.5rem;
+  padding-block: 2.5rem 3rem;
 }
 
 .hero h1 {
-  font-size: 2rem;
+  font-size: 2.25rem;
+  line-height: 1.08;
+  letter-spacing: -0.03em;
 }
 
 .actions {
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
-  margin-top: 1.5rem;
+  margin: 1.5rem 0 0;
 }
 
 .button {
   display: inline-flex;
   align-items: center;
-  min-height: 2.5rem;
-  padding: 0 1rem;
+  min-height: 2.75rem;
+  padding: 0 1.125rem;
   border: 1px solid var(--docs-control-border);
   border-radius: var(--docs-radius);
+  background: var(--docs-raised);
   color: var(--docs-text);
   font-weight: 600;
   text-decoration: none;
 }
 
+.button:hover {
+  text-decoration: underline;
+}
+
 .button-primary {
+  border-color: var(--docs-text);
   background: var(--docs-text);
   color: var(--docs-bg);
+}
+
+/* A shell command with its copy button, in the hero and in the closing band. */
+.install-line {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  max-width: 26rem;
+  margin-top: 1.25rem;
+  padding: 0.25rem 0.25rem 0.25rem 1rem;
+  border: 1px solid var(--docs-line);
+  border-radius: var(--docs-radius);
+  background: var(--docs-raised);
+}
+
+.install-line code {
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: 0.9375rem;
+  overflow-wrap: anywhere;
+}
+
+.install-line code::before {
+  content: "$ ";
+  color: var(--docs-muted);
+}
+
+.install-line .code-copy {
+  flex: none;
+  min-height: 2.25rem;
+  border-color: transparent;
+  font-weight: 600;
 }
 
 .hero-visual {
@@ -801,8 +865,37 @@ tbody th {
   font-size: 0.9375rem;
 }
 
+/* The chart and, under a rule, the code that draws it. No `overflow: hidden`: a tooltip of the
+   chart may reach past the card. */
 .hero-card {
   position: relative;
+  padding: 0;
+}
+
+.hero-chart {
+  padding: 1rem;
+}
+
+.hero-code {
+  border-top: 1px solid var(--docs-line);
+  border-radius: 0 0 var(--docs-radius) var(--docs-radius);
+  background: var(--docs-bg);
+}
+
+.hero-code .code-block {
+  margin: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.hero-code .code-block-bar {
+  border-bottom: 0;
+}
+
+.hero-code pre {
+  padding-top: 0.25rem;
+  font-size: 0.8125rem;
 }
 
 .card-grid {
@@ -815,15 +908,159 @@ tbody th {
   margin-top: 0.5rem;
 }
 
-.gallery {
-  display: grid;
-  gap: 0.75rem;
-  /* A live dashboard needs a tile of at least ~22rem, so the column count follows the width:
-     one column on phones and narrow tablets, two and then three as the page widens. */
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 22rem), 1fr));
+/* On a band the cards are plain columns: the band is the surface. */
+.band .card-grid {
+  gap: 2rem;
 }
 
-/* The tile is the size container of the dashboard (`@container ref-tile` in reference.css) and
+.band .card-grid .card {
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+
+.feature-card {
+  display: flex;
+  flex-direction: column;
+}
+
+.feature-card h3 {
+  margin-top: 0;
+}
+
+.card .card-link {
+  margin-top: auto;
+  padding-top: 0.75rem;
+  font-weight: 600;
+}
+
+/* ---------- Chart index ---------- */
+.chart-thumb-defs {
+  position: absolute;
+}
+
+.chart-index {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chart-index li {
+  min-width: 0;
+}
+
+.chart-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  height: 100%;
+  color: var(--docs-text);
+  text-decoration: none;
+}
+
+.chart-tile:hover {
+  border-color: var(--docs-control-border);
+}
+
+.chart-thumb {
+  display: block;
+  width: 100%;
+  max-width: 7.5rem;
+  aspect-ratio: 120 / 56;
+  margin-bottom: 0.625rem;
+}
+
+.chart-tile-name {
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+
+.chart-tile-text {
+  color: var(--docs-muted);
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+/* The drawings of `blocks/chart-thumbs.tsx`. */
+.ct-accent {
+  fill: var(--ch-accent);
+}
+
+.ct-soft {
+  fill: var(--ch-accent-soft);
+}
+
+.ct-loss {
+  fill: var(--ch-loss);
+}
+
+.ct-neutral {
+  fill: var(--ch-neutral);
+}
+
+.ct-tint {
+  fill-opacity: var(--ch-hatch-tint);
+}
+
+.ct-track {
+  fill: var(--ch-grid);
+}
+
+.ct-rule,
+.ct-stroke,
+.ct-mark {
+  fill: none;
+}
+
+.ct-rule {
+  stroke: var(--ch-grid);
+}
+
+.ct-stroke {
+  stroke: var(--ch-accent);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.ct-mark {
+  stroke: var(--ch-ink);
+  stroke-width: 1.5;
+}
+
+.ct-dashed {
+  stroke-dasharray: 3 3;
+}
+
+/* ---------- Gallery ---------- */
+.gallery-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.gallery-tabs button {
+  min-height: 2.75rem;
+  padding: 0 0.875rem;
+  border: 1px solid var(--docs-control-border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--docs-text);
+  font-size: 0.9375rem;
+  cursor: pointer;
+}
+
+.gallery-tabs button[aria-selected="true"] {
+  border-color: var(--docs-text);
+  background: var(--docs-text);
+  color: var(--docs-bg);
+}
+
+/* The panel is the size container of the dashboard (`@container ref-tile` in reference.css) and
    scrolls sideways only as a last resort. */
 .gallery-tile {
   display: flex;
@@ -834,10 +1071,19 @@ tbody th {
   container: ref-tile / inline-size;
 }
 
+.gallery-tile[hidden] {
+  display: none;
+}
+
 .gallery-tile p {
   margin: 0;
   color: var(--docs-text);
   font-weight: 600;
+}
+
+.gallery-tile .gallery-caption {
+  color: var(--docs-muted);
+  font-weight: 400;
 }
 
 .link-row {
@@ -846,22 +1092,125 @@ tbody th {
   gap: 0.5rem 1.5rem;
 }
 
+/* ---------- Closing band ---------- */
+/* Inverted: the text color is the background and the other way round, in both themes. */
+.home-section.cta {
+  --cta-muted: color-mix(in srgb, var(--docs-bg) 78%, var(--docs-text));
+  display: grid;
+  gap: 0.75rem 3rem;
+  margin-top: 2.5rem;
+  padding-block: 3.5rem;
+  background: var(--docs-text);
+  color: var(--docs-bg);
+}
+
+.cta h2 {
+  margin: 0;
+}
+
+.cta-text {
+  margin: 0;
+  color: var(--cta-muted);
+  font-size: 1.0625rem;
+}
+
+.cta-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.cta .install-line {
+  margin: 0;
+  border-color: color-mix(in srgb, var(--docs-bg) 55%, var(--docs-text));
+  background: transparent;
+}
+
+.cta .install-line code::before {
+  color: var(--cta-muted);
+}
+
+.cta .code-copy {
+  color: var(--docs-bg);
+}
+
+.cta .button-primary {
+  border-color: var(--docs-bg);
+  background: var(--docs-bg);
+  color: var(--docs-text);
+}
+
+.cta :focus-visible {
+  outline-color: var(--docs-bg);
+}
+
+/* ---------- Footer ---------- */
 .site-footer {
+  border-top: 1px solid var(--docs-line);
+  background: var(--docs-raised);
+  color: var(--docs-muted);
+  font-size: 0.9375rem;
+}
+
+.site-footer-inner {
   max-width: 72rem;
   margin: 0 auto;
-  padding: 1.5rem 1rem 2.5rem;
-  border-top: 1px solid var(--docs-line);
-  color: var(--docs-muted);
-  font-size: 0.875rem;
+  padding: 2.5rem 1rem 2rem;
+}
+
+.footer-columns {
+  display: grid;
+  gap: 2rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.footer-columns > :first-child {
+  grid-column: 1 / -1;
 }
 
 .site-footer p {
   margin: 0;
 }
 
+.site-footer ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.site-footer a {
+  display: inline-block;
+  padding: 0.3rem 0;
+  color: var(--docs-text);
+  text-decoration: none;
+}
+
+.site-footer a:hover {
+  text-decoration: underline;
+}
+
+.site-footer .footer-title {
+  margin-bottom: 0.25rem;
+  color: var(--docs-text);
+  font-size: 0.875rem;
+  font-weight: 650;
+}
+
+.site-footer .footer-legal {
+  margin-top: 2rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--docs-line);
+  font-size: 0.875rem;
+}
+
 /* ---------- 404 and error pages ---------- */
+/* `main.home` without sections: the page itself is the 72rem column. */
 .status-page {
-  padding-top: 4rem;
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 4rem var(--home-pad);
 }
 
 /* "Try again" is a button that looks like the links next to it. */
@@ -895,9 +1244,20 @@ button.button:not(.button-primary) {
 
   .site-header-inner,
   .docs-main,
-  .home,
-  .site-footer {
+  .site-footer-inner {
     padding-inline: 1.5rem;
+  }
+
+  .home {
+    --home-pad: 1.5rem;
+  }
+
+  .header-anchor {
+    display: inline;
+  }
+
+  .chart-index {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .card-grid-4 {
@@ -938,7 +1298,37 @@ button.button:not(.button-primary) {
   .hero {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
     align-items: center;
-    gap: 3rem;
+    gap: 4rem;
+    padding-block: 4rem 4.5rem;
+  }
+
+  .chart-index {
+    gap: 1rem;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .home-section.cta {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+  }
+
+  .cta h2,
+  .cta-text {
+    grid-column: 1;
+  }
+
+  .cta-actions {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    margin-top: 0;
+  }
+
+  .footer-columns {
+    grid-template-columns: 2fr repeat(3, minmax(0, 1fr));
+  }
+
+  .footer-columns > :first-child {
+    grid-column: auto;
   }
 
   .hero h1 {

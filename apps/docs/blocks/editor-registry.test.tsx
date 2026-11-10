@@ -37,7 +37,7 @@ function renderEditor(componentTree: ComponentNode[] = tree) {
 test('the editor registry covers exactly the block types of the server registry, in order', () => {
   const types = blockRegistry.getTypes()
 
-  expect(types).toHaveLength(14)
+  expect(types).toHaveLength(16)
   expect([...editorRegistry.keys()]).toEqual(types)
   for (const component of editorRegistry.values()) expect(component).toBeDefined()
 })
@@ -133,7 +133,25 @@ test('the home page blocks render in the editor: the chart is live and a link is
       props: { heading: 'Keep going', items: [{ label: 'Soon', href: '/docs/getting-started' }] },
     },
     { id: 'i1', type: 'install', props: { heading: 'Install' } },
+    {
+      id: 'c1',
+      type: 'chart-index',
+      props: {
+        heading: 'Charts',
+        items: [{ label: 'BarChart', text: 'Bars', href: '/docs/bar-chart', thumb: 'bar-chart' }],
+      },
+    },
+    {
+      id: 'c2',
+      type: 'cta',
+      props: { heading: 'Start', action: { label: 'Begin', href: '/docs/getting-started' } },
+    },
   ] as unknown as ComponentNode[])
+
+  expect(screen.getByRole('link', { name: /BarChart/ }).getAttribute('href')).toBe(
+    '/docs/bar-chart',
+  )
+  expect(screen.getByRole('link', { name: 'Begin' }).className).toBe('button button-primary')
 
   expect(await screen.findByRole('application', { name: /Margin by week/ })).toBeTruthy()
   expect(screen.getByRole('heading', { level: 1, name: 'Charts' })).toBeTruthy()
@@ -158,4 +176,43 @@ test('a home page block with an unknown example is a visible error in the editor
 
   const boxes = [...container.querySelectorAll('.block-error')].map((box) => box.textContent)
   expect(boxes).toEqual(['Unknown example: nope/missing', 'Unknown example: nope/also'])
+})
+
+test('the gallery and the hero snippet render in the editor', async () => {
+  renderEditor([
+    {
+      id: 'h1',
+      type: 'hero',
+      props: {
+        title: 'Charts',
+        lede: 'Lede',
+        actions: [],
+        exampleId: 'bar-chart/margin-by-week',
+        command: 'npm i tally-charts',
+        code: '<BarChart />',
+        codeFilename: 'a.tsx',
+      },
+    },
+    {
+      id: 'g1',
+      type: 'gallery',
+      props: {
+        heading: 'G',
+        items: [
+          { exampleId: 'line-chart/revenue-forecast', label: 'Forecast' },
+          { exampleId: 'bar-chart/margin-by-week' },
+        ],
+      },
+    },
+  ] as unknown as ComponentNode[])
+
+  expect(screen.getByRole('region', { name: 'a.tsx' }).textContent).toBe('<BarChart />')
+  expect(screen.getByRole('button', { name: 'Copy code: npm i tally-charts' })).toBeTruthy()
+  // A tab without a label is named by the title of its example.
+  expect(screen.getAllByRole('tab').map((tab) => tab.textContent)).toEqual([
+    'Forecast',
+    'Margin by week, last 6 weeks',
+  ])
+  expect(await screen.findByRole('tabpanel', { name: 'Forecast' })).toBeTruthy()
+  expect(errors).not.toHaveBeenCalled()
 })

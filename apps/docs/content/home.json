@@ -22,16 +22,19 @@
         "lede": "Bars, lines, waterfalls and runways that say what changed, and whether it is on plan.",
         "actions": [
           {
-            "label": "Read the docs",
-            "href": "/docs/line-chart",
+            "label": "Get started",
+            "href": "/docs/getting-started",
             "primary": true
           },
           {
-            "label": "GitHub",
-            "href": "https://github.com/mwadon/tally-charts"
+            "label": "See the dashboards",
+            "href": "#dashboards"
           }
         ],
-        "exampleId": "bar-chart/margin-by-week"
+        "exampleId": "bar-chart/margin-by-week",
+        "command": "npm i tally-charts",
+        "code": "import { BarChart } from 'tally-charts'\n\n<BarChart\n  data={weeks}\n  x=\"week\"\n  y=\"margin\"\n  domain={[26, 40]}\n  format=\"percent\"\n  title=\"Margin by week, last 6 weeks\"\n/>",
+        "codeFilename": "margin-by-week.tsx"
       }
     },
     {
@@ -39,6 +42,7 @@
       "type": "visual-language",
       "props": {
         "heading": "A visual language that reads at a glance",
+        "lede": "Four rules, the same in every chart. Readers learn them once.",
         "items": [
           {
             "title": "Hatched is plan",
@@ -64,57 +68,140 @@
       }
     },
     {
-      "id": "n3",
-      "type": "gallery",
+      "id": "n7",
+      "type": "chart-index",
       "props": {
-        "heading": "Nine reference dashboards",
-        "lede": "Live examples of each dashboard, rendered from the same code you can copy.",
+        "heading": "Eleven charts, one grammar",
+        "lede": "Pick the chart by the question it answers. Each page has live examples and a props table.",
         "items": [
           {
-            "exampleId": "reference/01-gross-margin-waterfall",
-            "caption": "Gross margin: weekly result, 12-week trend and what pulls it under target"
+            "label": "BarChart",
+            "text": "Values over categories or time",
+            "href": "/docs/bar-chart",
+            "thumb": "bar-chart"
           },
           {
-            "exampleId": "reference/02-jobs-dot-histogram-table",
-            "caption": "Jobs by margin: one dot per job, colored by band"
+            "label": "ComparisonBars",
+            "text": "Plan against actual, side by side",
+            "href": "/docs/comparison-bars",
+            "thumb": "comparison-bars"
           },
           {
-            "exampleId": "reference/03-estimate-vs-actual",
-            "caption": "Estimate vs actual: cost lines, result and where the profit went"
+            "label": "RankedBars",
+            "text": "Sorted categories, biggest first",
+            "href": "/docs/ranked-bars",
+            "thumb": "ranked-bars"
           },
           {
-            "exampleId": "reference/04-profit-bridge",
-            "caption": "Profit bridge: planned $1,260, kept $400"
+            "label": "WaterfallChart",
+            "text": "Steps from a start to an end value",
+            "href": "/docs/waterfall-chart",
+            "thumb": "waterfall-chart"
           },
           {
-            "exampleId": "reference/05-leakage-heatmap",
-            "caption": "Leakage: profit leaked by week, and by branch and cause"
+            "label": "BridgeChart",
+            "text": "How one total became another",
+            "href": "/docs/bridge-chart",
+            "thumb": "bridge-chart"
           },
           {
-            "exampleId": "reference/06-drilldown-strip-plot",
-            "caption": "Drill-down: from all leakage to the people and jobs behind it"
+            "label": "DotHistogram",
+            "text": "One dot per item, binned",
+            "href": "/docs/dot-histogram",
+            "thumb": "dot-histogram"
           },
           {
-            "exampleId": "reference/07-forecast",
-            "caption": "Margin outlook: actual through September, forecast to December"
+            "label": "StripPlot",
+            "text": "Distributions, row by row",
+            "href": "/docs/strip-plot",
+            "thumb": "strip-plot"
           },
           {
-            "exampleId": "reference/08-usage-runway",
-            "caption": "Usage runway: which accounts run out before reset"
+            "label": "WaffleColumns",
+            "text": "Counts as unit squares",
+            "href": "/docs/waffle-columns",
+            "thumb": "waffle-columns"
           },
           {
-            "exampleId": "reference/09-performance",
-            "caption": "Performance: score distribution, pages below threshold and Core Web Vitals"
+            "label": "LineChart",
+            "text": "Trends, forecasts and ranges",
+            "href": "/docs/line-chart",
+            "thumb": "line-chart"
+          },
+          {
+            "label": "Heatmap",
+            "text": "Two dimensions, one intensity",
+            "href": "/docs/heatmap",
+            "thumb": "heatmap"
+          },
+          {
+            "label": "RunwayChart",
+            "text": "What runs out before the reset",
+            "href": "/docs/runway-chart",
+            "thumb": "runway-chart"
+          },
+          {
+            "label": "Small pieces",
+            "text": "Sparkline, Meter, ShareBar and other building blocks",
+            "href": "/docs/small-pieces",
+            "thumb": "small-pieces"
           }
         ]
       }
     },
     {
-      "id": "n4",
-      "type": "install",
+      "id": "n3",
+      "type": "gallery",
       "props": {
-        "heading": "Install",
-        "command": "npm i tally-charts"
+        "heading": "Nine reference dashboards",
+        "lede": "Live examples, rendered from the same code you can copy. Pick one to see it at full size.",
+        "items": [
+          {
+            "exampleId": "reference/01-gross-margin-waterfall",
+            "label": "Gross margin",
+            "caption": "Gross margin: weekly result, 12-week trend and what pulls it under target"
+          },
+          {
+            "exampleId": "reference/02-jobs-dot-histogram-table",
+            "label": "Jobs by margin",
+            "caption": "Jobs by margin: one dot per job, colored by band"
+          },
+          {
+            "exampleId": "reference/03-estimate-vs-actual",
+            "label": "Estimate vs actual",
+            "caption": "Estimate vs actual: cost lines, result and where the profit went"
+          },
+          {
+            "exampleId": "reference/04-profit-bridge",
+            "label": "Profit bridge",
+            "caption": "Profit bridge: planned $1,260, kept $400"
+          },
+          {
+            "exampleId": "reference/05-leakage-heatmap",
+            "label": "Leakage",
+            "caption": "Leakage: profit leaked by week, and by branch and cause"
+          },
+          {
+            "exampleId": "reference/06-drilldown-strip-plot",
+            "label": "Drill-down",
+            "caption": "Drill-down: from all leakage to the people and jobs behind it"
+          },
+          {
+            "exampleId": "reference/07-forecast",
+            "label": "Margin outlook",
+            "caption": "Margin outlook: actual through September, forecast to December"
+          },
+          {
+            "exampleId": "reference/08-usage-runway",
+            "label": "Usage runway",
+            "caption": "Usage runway: which accounts run out before reset"
+          },
+          {
+            "exampleId": "reference/09-performance",
+            "label": "Performance",
+            "caption": "Performance: score distribution, pages below threshold and Core Web Vitals"
+          }
+        ]
       }
     },
     {
@@ -125,42 +212,42 @@
         "items": [
           {
             "title": "Accessible by default",
-            "text": "Keyboard navigation, screen reader announcements, a hidden data table and forced-colors support."
+            "text": "Keyboard navigation, screen reader announcements, a hidden data table and forced-colors support.",
+            "href": "/docs/accessibility",
+            "linkLabel": "Accessibility guide"
           },
           {
             "title": "Server Components",
-            "text": "Charts render on the server and stay light on the client."
+            "text": "Charts render on the server and stay light on the client.",
+            "href": "/docs/server-components",
+            "linkLabel": "Server Components guide"
           },
           {
             "title": "Themed with tokens",
-            "text": "Every color, stripe and radius is a --ch-* CSS variable you can override."
+            "text": "Every color, stripe and radius is a --ch-* CSS variable you can override.",
+            "href": "/docs/theming",
+            "linkLabel": "Theming guide"
           },
           {
             "title": "Light and dark",
-            "text": "Follows the system, or force a theme on any ancestor."
+            "text": "Follows the system, or force a theme on any ancestor.",
+            "href": "/docs/dark-mode",
+            "linkLabel": "Dark mode guide"
           }
         ]
       }
     },
     {
-      "id": "n6",
-      "type": "link-row",
+      "id": "n8",
+      "type": "cta",
       "props": {
-        "heading": "Keep going",
-        "items": [
-          {
-            "label": "Getting started",
-            "href": "/docs/getting-started"
-          },
-          {
-            "label": "GitHub",
-            "href": "https://github.com/mwadon/tally-charts"
-          },
-          {
-            "label": "npm",
-            "href": "https://www.npmjs.com/package/tally-charts"
-          }
-        ]
+        "heading": "Draw your first chart",
+        "text": "Install the package, pass your rows, name the columns.",
+        "command": "npm i tally-charts",
+        "action": {
+          "label": "Getting started",
+          "href": "/docs/getting-started"
+        }
       }
     }
   ],

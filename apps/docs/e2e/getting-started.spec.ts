@@ -24,12 +24,13 @@ test('/docs/getting-started is a page, and the sidebar links to it', async ({ pa
 test('the home page links to Getting started', async ({ page }) => {
   await page.goto('/')
 
-  const row = page.locator('ul.link-row')
-  await expect(row.getByRole('link', { name: /Getting started/ })).toHaveAttribute(
-    'href',
-    '/docs/getting-started',
-  )
-  await expect(row.locator('.nav-soon')).toHaveCount(0)
+  // The closing band of the page and the Docs link of the header.
+  await expect(
+    page.locator('section.cta').getByRole('link', { name: 'Getting started' }),
+  ).toHaveAttribute('href', '/docs/getting-started')
+  await expect(
+    page.getByRole('banner').getByRole('link', { name: 'Docs', exact: true }),
+  ).toHaveAttribute('href', '/docs/getting-started')
 })
 
 test('Next steps links to the composition, small pieces and hooks pages', async ({ page }) => {

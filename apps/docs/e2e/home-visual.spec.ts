@@ -20,12 +20,11 @@ for (const [width, viewport] of Object.entries(VIEWPORTS)) {
         await page.goto(`/?theme=${theme}`)
         // The charts below the fold mount on scroll, so visit every card before the screenshot.
         await revealCharts(page)
-        const tiles = page.locator('.gallery-tile')
-        await expect(tiles).toHaveCount(9)
-        for (let i = 0; i < 9; i++) {
-          await tiles.nth(i).scrollIntoViewIfNeeded()
-          await expect(tiles.nth(i).getByRole('application').first()).toBeVisible()
-        }
+        // One dashboard is shown at a time: the first tab.
+        const tile = page.locator('.gallery-tile:not([hidden])')
+        await expect(tile).toHaveCount(1)
+        await tile.scrollIntoViewIfNeeded()
+        await expect(tile.getByRole('application').first()).toBeVisible()
         await page.evaluate(() => window.scrollTo(0, 0))
         await expect(
           page.getByRole('application', { name: 'Margin by week, last 6 weeks' }).first(),

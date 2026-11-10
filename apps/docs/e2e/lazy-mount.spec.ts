@@ -115,7 +115,7 @@ test.describe('/docs/line-chart, 1280×800', () => {
 test.describe('/, 375×812', () => {
   test.use({ viewport: { width: 375, height: 812 } })
 
-  test('the hero chart is there at once, the last gallery tile mounts on scroll', async ({
+  test('the hero chart is there at once, the gallery dashboard mounts on scroll', async ({
     page,
   }) => {
     await page.goto('/')
@@ -124,7 +124,8 @@ test.describe('/, 375×812', () => {
     ).toBeVisible()
     expect(await page.locator('.hero [data-lazy-placeholder]').count()).toBe(0)
 
-    const tile = page.locator('.gallery-tile').last()
+    const tile = page.locator('.gallery-tile')
+    await expect(tile).toHaveCount(1)
     await expect(tile.getByRole('application')).toHaveCount(0)
     await expect(tile.locator('[data-lazy-placeholder]')).toHaveCount(1)
 

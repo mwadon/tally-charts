@@ -5,7 +5,6 @@ import { draftMode } from 'next/headers'
 import { renderToReadableStream } from 'react-dom/server'
 import { afterEach, beforeEach, expect, test, vi } from 'vitest'
 import { meta as heroMeta } from '../examples/bar-chart/margin-by-week'
-import { examples } from '../examples.generated'
 import Home from './page'
 
 vi.mock('next/headers', () => ({ draftMode: vi.fn() }))
@@ -63,10 +62,10 @@ test('the sections come from home.json, in its order', async () => {
   expect(tree.map((n) => n.type)).toEqual([
     'hero',
     'visual-language',
+    'chart-index',
     'gallery',
-    'install',
     'feature-grid',
-    'link-row',
+    'cta',
   ])
   expect(new Set(tree.map((n) => n.id)).size).toBe(tree.length)
   const expected = tree.flatMap((n) => (n.type === 'hero' ? [] : [n.props.heading as string]))
@@ -76,40 +75,48 @@ test('the sections come from home.json, in its order', async () => {
   expect(sections).toEqual(expected)
 })
 
-test('the gallery has a tile per reference dashboard, captioned with the example title', async () => {
+test('the gallery has a tab per reference dashboard and the first one as a placeholder', async () => {
   const body = await renderHome()
 
-  const items = (nodeOf('gallery').props.items as { exampleId: string; caption: string }[]).map(
-    (item) => item.exampleId,
-  )
-  expect(items).toEqual(
+  const items = nodeOf('gallery').props.items as { exampleId: string; label: string }[]
+  expect(items.map((item) => item.exampleId)).toEqual(
     Array.from({ length: 9 }, (_, i) => expect.stringMatching(new RegExp(`^reference/0${i + 1}-`))),
   )
-  const tiles = [...body.querySelectorAll<HTMLElement>('li.gallery-tile')]
-  expect(tiles).toHaveLength(9)
-  tiles.forEach((tile, i) => {
-    const id = items[i] as keyof typeof examples
-    expect(within(tile).getByText(examples[id].title, { selector: 'p' })).toBeTruthy()
-    // Below the fold: the chart mounts near the viewport, so the server sends a placeholder.
-    expect(tile.querySelector('[data-lazy-placeholder]')).not.toBeNull()
-    expect(tile.querySelector('svg')).toBeNull()
-  })
+  const gallery = body.querySelector('#dashboards') as HTMLElement
+  expect(
+    within(gallery)
+      .getAllByRole('tab')
+      .map((tab) => tab.textContent),
+  ).toEqual(items.map((item) => item.label))
+  // Only the first dashboard is in the page, and below the fold: the server sends a placeholder.
+  const panels = [...gallery.querySelectorAll<HTMLElement>('.gallery-tile')]
+  expect(panels).toHaveLength(1)
+  const placeholder = panels[0]?.querySelector<HTMLElement>('[data-lazy-placeholder]')
+  expect(placeholder?.hasAttribute('data-lazy-wide')).toBe(true)
+  // The narrow layout of a dashboard is a single column, so much taller than the wide one.
+  const narrow = Number.parseInt(
+    placeholder?.style.getPropertyValue('--lazy-min-height-narrow') ?? '',
+    10,
+  )
+  const wide = Number.parseInt(
+    placeholder?.style.getPropertyValue('--lazy-min-height-wide') ?? '',
+    10,
+  )
+  expect(narrow).toBeGreaterThan(wide)
+  expect(wide).toBeGreaterThan(300)
+  expect(panels[0]?.querySelector('svg')).toBeNull()
 })
 
-test('each gallery tile reserves the height of its own dashboard, narrow and wide', async () => {
+test('the chart index links every chart page of the navigation', async () => {
   const body = await renderHome()
 
-  const placeholders = [
-    ...body.querySelectorAll<HTMLElement>('li.gallery-tile [data-lazy-placeholder]'),
-  ]
-  expect(placeholders).toHaveLength(9)
-  const narrow = placeholders.map((el) => el.style.getPropertyValue('--lazy-min-height-narrow'))
-  const wide = placeholders.map((el) => el.style.getPropertyValue('--lazy-min-height-wide'))
-  // Dashboards are 400 to 2200 px tall, so a single height for every tile would be wrong.
-  expect(new Set(narrow).size).toBeGreaterThan(5)
-  expect(narrow).not.toContain('1600px')
-  for (const value of [...narrow, ...wide]) expect(value).toMatch(/^\d+px$/)
-  for (const el of placeholders) expect(el.hasAttribute('data-lazy-wide')).toBe(true)
+  const navigation = JSON.parse(
+    readFileSync(path.join(dir, '..', 'content', 'navigation.json'), 'utf8'),
+  ) as { groups: { label: string; items: { slug: string }[] }[] }
+  const charts = navigation.groups.find((g) => g.label === 'Charts')?.items.map((i) => i.slug)
+  const hrefs = [...body.querySelectorAll('#charts .chart-tile')].map((a) => a.getAttribute('href'))
+  expect(charts?.length).toBeGreaterThan(0)
+  for (const slug of charts ?? []) expect(hrefs).toContain(`/docs/${slug}`)
 })
 
 test('the visual language cards have a mini chart each', async () => {
@@ -124,30 +131,44 @@ test('the visual language cards have a mini chart each', async () => {
   }
 })
 
-test('the Install section has a copy button and a status', async () => {
+test('the hero has the install command with a copy button and the code of its chart', async () => {
   const body = await renderHome()
 
-  const install = body.querySelectorAll('main > section')[3] as HTMLElement
-  expect(within(install).getByRole('heading', { level: 2, name: 'Install' })).toBeTruthy()
-  expect(within(install).getByRole('button', { name: /^Copy code/ })).toBeTruthy()
-  expect(within(install).getByRole('status')).toBeTruthy()
-  expect(install.textContent).toContain('npm i tally-charts')
+  const hero = body.querySelector('.hero') as HTMLElement
+  expect(hero.querySelector('.install-line code')?.textContent).toBe('npm i tally-charts')
+  expect(within(hero).getByRole('button', { name: 'Copy code: npm i tally-charts' })).toBeTruthy()
+  expect(hero.querySelector('.hero-code pre')?.textContent).toContain('<BarChart')
 })
 
-test('the link row links Getting started, GitHub and npm', async () => {
+test('the feature cards link their guides and the closing band links Getting started', async () => {
   const body = await renderHome()
 
-  const row = body.querySelector('ul.link-row') as HTMLElement
-  expect(
-    within(row)
-      .getByRole('link', { name: /Getting started/ })
-      .getAttribute('href'),
-  ).toBe('/docs/getting-started')
-  expect(row.querySelector('.nav-soon')).toBeNull()
-  expect(within(row).getByRole('link', { name: 'GitHub' }).getAttribute('href')).toBe(
+  const links = [...body.querySelectorAll('.feature-card .card-link a')].map((a) =>
+    a.getAttribute('href'),
+  )
+  expect(links).toEqual([
+    '/docs/accessibility',
+    '/docs/server-components',
+    '/docs/theming',
+    '/docs/dark-mode',
+  ])
+  const cta = body.querySelector('section.cta') as HTMLElement
+  expect(within(cta).getByRole('link', { name: 'Getting started' }).getAttribute('href')).toBe(
+    '/docs/getting-started',
+  )
+  expect(cta.textContent).toContain('npm i tally-charts')
+})
+
+test('the footer links GitHub and npm', async () => {
+  const body = await renderHome()
+
+  const footer = body.querySelector('footer.site-footer') as HTMLElement
+  expect(within(footer).getByRole('link', { name: 'GitHub' }).getAttribute('href')).toBe(
     'https://github.com/mwadon/tally-charts',
   )
-  expect(within(row).getByRole('link', { name: 'npm' }).getAttribute('href')).toContain('npmjs.com')
+  expect(within(footer).getByRole('link', { name: 'npm' }).getAttribute('href')).toContain(
+    'npmjs.com',
+  )
 })
 
 test('the header has a text wordmark linking to the home page and no logo image', async () => {

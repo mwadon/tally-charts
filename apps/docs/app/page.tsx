@@ -7,6 +7,7 @@ import { getContentSource } from '../lib/content'
 import { pageMetadata } from '../lib/metadata'
 import { EditorSwitch } from './_components/editor-switch'
 import { PreviewNotice } from './_components/preview-notice'
+import { SiteFooter } from './_components/site-footer'
 import { SiteHeader } from './_components/site-header'
 
 async function loadHome() {
@@ -27,15 +28,13 @@ export default async function Home() {
   return (
     <>
       {isEnabled ? <PreviewNotice /> : null}
-      <SiteHeader />
+      <SiteHeader home />
       <main id="main" className="home">
         <EditorSwitch componentTree={page.componentTree} pageSlug="/">
           <CMSPage componentTree={page.componentTree} registry={componentRegistry} />
         </EditorSwitch>
       </main>
-      <footer className="site-footer">
-        <p>tally-charts · MIT</p>
-      </footer>
+      <SiteFooter />
     </>
   )
 }

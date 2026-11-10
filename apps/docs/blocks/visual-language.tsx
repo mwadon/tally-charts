@@ -7,6 +7,7 @@ import { loadExamples } from './load-example'
 
 export const visualLanguageSchema = z.object({
   heading: z.string().min(1),
+  lede: z.string().optional(),
   items: z
     .array(
       z.object({
@@ -25,7 +26,7 @@ export type VisualLanguageProps = z.infer<typeof visualLanguageSchema>
 const CARD_CHART_HEIGHT = 140
 
 /** Server component: a section with a heading and one card per item, with the chart of its `exampleId`, mounted near the viewport. */
-export async function VisualLanguage({ heading, items }: VisualLanguageProps) {
+export async function VisualLanguage({ heading, lede, items }: VisualLanguageProps) {
   const loaded = await loadExamples(items.map((item) => item.exampleId))
   if (!loaded.ok) return loaded.error
   const charts = loaded.charts.map((chart, i) => (
@@ -34,7 +35,7 @@ export async function VisualLanguage({ heading, items }: VisualLanguageProps) {
       {chart}
     </LazyMount>
   ))
-  return <VisualLanguageView heading={heading} items={items} charts={charts} />
+  return <VisualLanguageView heading={heading} lede={lede} items={items} charts={charts} />
 }
 
 export const visualLanguageBlock = defineBlock({

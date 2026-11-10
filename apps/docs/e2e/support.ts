@@ -27,7 +27,7 @@ export function collectErrors(page: Page) {
 }
 
 /** The blocks that mount their chart when they come near the viewport (`LazyMount`). */
-const LAZY_CARDS = '.chart-example, .gallery-tile, .card-grid li.card'
+const LAZY_CARDS = '.chart-example, .gallery-tile:not([hidden]), .card-grid li.card'
 
 /**
  * Scrolls every card with a lazily mounted chart into view and waits until each has its chart,

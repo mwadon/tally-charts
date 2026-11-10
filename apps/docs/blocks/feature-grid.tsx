@@ -5,7 +5,14 @@ import { FeatureGrid } from './home-views'
 export const featureGridSchema = z.object({
   heading: z.string().min(1),
   items: z
-    .array(z.object({ title: z.string().min(1), text: z.string().min(1) }))
+    .array(
+      z.object({
+        title: z.string().min(1),
+        text: z.string().min(1),
+        href: z.string().min(1).optional(),
+        linkLabel: z.string().min(1).optional(),
+      }),
+    )
     .min(1)
     .meta({ fieldType: 'array' }),
 })
@@ -17,7 +24,7 @@ export const featureGridBlock = defineBlock({
   label: 'Feature grid',
   category: 'home',
   icon: 'grid-2x2',
-  description: 'A heading and a grid of cards with a title and a sentence each.',
+  description: 'A heading and a grid of cards with a title, a sentence and an optional link each.',
   defaultProps: {
     heading: 'Built for real dashboards',
     items: [

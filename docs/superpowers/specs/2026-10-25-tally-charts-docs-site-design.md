@@ -234,12 +234,24 @@ Light: fg, ratio on `--ch-surface`, on `--ch-tooltip-bg`, on the actual backgrou
 | Small note (ink-muted) | 3:1 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
 | Eyebrow (ink-muted) | 4.5:1 | #6b6b73 | 5.06 | 5.28 | 5.06 (#fafafa) | #a0a0aa | 7.22 | 6.48 | 7.22 (#121215) |
 | Inline link (accent 70% + ink) | 4.5:1 | #2650ae | 7.08 | 7.39 | 7.08 (#fafafa) | #7fa7fc | 7.87 | 7.06 | 7.87 (#121215) |
-| Link in "Keep going" (home) | 4.5:1 | #2650ae | 7.08 | 7.39 | 7.08 (#fafafa) | #7fa7fc | 7.87 | 7.06 | 7.87 (#121215) |
+| Link in a feature card (home) | 4.5:1 | #2650ae | 7.08 | 7.39 | 7.39 (#ffffff) | #7fa7fc | 7.87 | 7.06 | 7.06 (#1d1d22) |
+| Footer link (home) | 4.5:1 | #111114 | 18.06 | 18.85 | 18.85 (#ffffff) | #f4f4f6 | 17.02 | 15.28 | 15.28 (#1d1d22) |
+| Install command (hero) | 4.5:1 | #111114 | 18.06 | 18.85 | 18.85 (#ffffff) | #f4f4f6 | 17.02 | 15.28 | 15.28 (#1d1d22) |
+| Chart tile name | 4.5:1 | #111114 | 18.06 | 18.85 | 18.85 (#ffffff) | #f4f4f6 | 17.02 | 15.28 | 15.28 (#1d1d22) |
+| Chart tile text (ink-muted) | 4.5:1 | #6b6b73 | 5.06 | 5.28 | 5.28 (#ffffff) | #a0a0aa | 7.22 | 6.48 | 6.48 (#1d1d22) |
+| Dashboard tab, unselected | 4.5:1 | #111114 | 18.06 | 18.85 | 18.06 (#fafafa) | #f4f4f6 | 17.02 | 15.28 | 17.02 (#121215) |
+| Dashboard tab, selected | 4.5:1 | #fafafa | – | – | 18.06 (#111114) | #121215 | – | – | 17.02 (#f4f4f6) |
+| Dashboard caption (ink-muted) | 4.5:1 | #6b6b73 | 5.06 | 5.28 | 5.28 (#ffffff) | #a0a0aa | 7.22 | 6.48 | 6.48 (#1d1d22) |
+| Closing band heading | 4.5:1 | #fafafa | – | – | 18.06 (#111114) | #121215 | – | – | 17.02 (#f4f4f6) |
+| Closing band text | 4.5:1 | #c7c7c7 | – | – | 11.15 (#111114) | #444447 | – | – | 8.84 (#f4f4f6) |
+| Closing band command | 4.5:1 | #fafafa | – | – | 18.06 (#111114) | #121215 | – | – | 17.02 (#f4f4f6) |
+| Closing band Copy button | 4.5:1 | #fafafa | – | – | 18.06 (#111114) | #121215 | – | – | 17.02 (#f4f4f6) |
+| Closing band button | 4.5:1 | #111114 | – | – | 18.06 (#fafafa) | #f4f4f6 | – | – | 17.02 (#121215) |
 | Header link | 4.5:1 | #111114 | 18.06 | 18.85 | 18.06 (#fafafa) | #f4f4f6 | 17.02 | 15.28 | 17.02 (#121215) |
 | Wordmark | 4.5:1 | #111114 | 18.06 | 18.85 | 18.06 (#fafafa) | #f4f4f6 | 17.02 | 15.28 | 17.02 (#121215) |
 | Version badge (ink-muted) | 4.5:1 | #6b6b73 | 5.06 | 5.28 | 5.06 (#fafafa) | #a0a0aa | 7.22 | 6.48 | 7.22 (#121215) |
 | Side nav active item | 4.5:1 | #111114 | 18.06 | 18.85 | 18.06 (#fafafa) | #f4f4f6 | 17.02 | 15.28 | 17.02 (#121215) |
-| Side nav disabled item (ink-muted) | 4.5:1 | #6b6b73 | 5.06 | 5.28 | 5.06 (#fafafa) | #a0a0aa | 7.22 | 6.48 | 7.22 (#121215) |
+| Side nav disabled item (ink-muted) | 3:1 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
 | Side nav group label (ink-muted) | 4.5:1 | #6b6b73 | 5.06 | 5.28 | 5.06 (#fafafa) | #a0a0aa | 7.22 | 6.48 | 7.22 (#121215) |
 | ToC link (ink-muted) | 4.5:1 | #6b6b73 | 5.06 | 5.28 | 5.06 (#fafafa) | #a0a0aa | 7.22 | 6.48 | 7.22 (#121215) |
 | ToC disclosure summary (mobile) | 4.5:1 | #111114 | 18.06 | 18.85 | 18.85 (#ffffff) | #f4f4f6 | 17.02 | 15.28 | 15.28 (#1d1d22) |
@@ -257,16 +269,17 @@ Light: fg, ratio on `--ch-surface`, on `--ch-tooltip-bg`, on the actual backgrou
 | Preview/Code toggle, unselected | 4.5:1 | #111114 | 18.06 | 18.85 | 18.85 (#ffffff) | #f4f4f6 | 17.02 | 15.28 | 15.28 (#1d1d22) |
 | Preview/Code toggle, selected | 4.5:1 | #fafafa | – | – | 18.06 (#111114) | #121215 | – | – | 17.02 (#f4f4f6) |
 | Button, primary | 4.5:1 | #fafafa | – | – | 18.06 (#111114) | #121215 | – | – | 17.02 (#f4f4f6) |
-| Button, secondary | 4.5:1 | #111114 | 18.06 | 18.85 | 18.06 (#fafafa) | #f4f4f6 | 17.02 | 15.28 | 17.02 (#121215) |
+| Button, secondary | 4.5:1 | #111114 | 18.06 | 18.85 | 18.85 (#ffffff) | #f4f4f6 | 17.02 | 15.28 | 15.28 (#1d1d22) |
 | Table header (ink-muted) | 4.5:1 | #6b6b73 | 5.06 | 5.28 | 5.28 (#ffffff) | #a0a0aa | 7.22 | 6.48 | 6.48 (#1d1d22) |
 | Table cell | 4.5:1 | #111114 | 18.06 | 18.85 | 18.85 (#ffffff) | #f4f4f6 | 17.02 | 15.28 | 15.28 (#1d1d22) |
 | Card text (ink-muted) | 4.5:1 | #6b6b73 | 5.06 | 5.28 | 5.28 (#ffffff) | #a0a0aa | 7.22 | 6.48 | 6.48 (#1d1d22) |
 | Card heading | 4.5:1 | #111114 | 18.06 | 18.85 | 18.85 (#ffffff) | #f4f4f6 | 17.02 | 15.28 | 15.28 (#1d1d22) |
-| Footer (ink-muted) | 4.5:1 | #6b6b73 | 5.06 | 5.28 | 5.06 (#fafafa) | #a0a0aa | 7.22 | 6.48 | 7.22 (#121215) |
-| Disabled link placeholder (home) | 4.5:1 | #6b6b73 | 5.06 | 5.28 | 5.06 (#fafafa) | #a0a0aa | 7.22 | 6.48 | 7.22 (#121215) |
+| Footer (ink-muted) | 4.5:1 | #6b6b73 | 5.06 | 5.28 | 5.28 (#ffffff) | #a0a0aa | 7.22 | 6.48 | 6.48 (#1d1d22) |
 | Border: Copy button | 3:1 | #6b6b73 | 5.06 | 5.28 | 5.28 (#ffffff) | #a0a0aa | 7.22 | 6.48 | 6.48 (#1d1d22) |
 | Border: toggle, unselected | 3:1 | #6b6b73 | 5.06 | 5.28 | 5.28 (#ffffff) | #a0a0aa | 7.22 | 6.48 | 6.48 (#1d1d22) |
 | Border: secondary button | 3:1 | #6b6b73 | 5.06 | 5.28 | 5.06 (#fafafa) | #a0a0aa | 7.22 | 6.48 | 7.22 (#121215) |
+| Border: dashboard tab, unselected | 3:1 | #6b6b73 | 5.06 | 5.28 | 5.06 (#fafafa) | #a0a0aa | 7.22 | 6.48 | 7.22 (#121215) |
+| Border: closing band command | 3:1 | #919193 | – | – | 5.99 (#111114) | #78787a | – | – | 4.01 (#f4f4f6) |
 | Border: Menu button (mobile) | 3:1 | #6b6b73 | 5.06 | 5.28 | 5.06 (#fafafa) | #a0a0aa | 7.22 | 6.48 | 7.22 (#121215) |
 | Border: theme switch | 3:1 | #6b6b73 | 5.06 | 5.28 | 5.06 (#fafafa) | #a0a0aa | 7.22 | 6.48 | 7.22 (#121215) |
 | Fill: selected toggle vs card | 3:1 | #111114 | 18.06 | 18.85 | 18.85 (#ffffff) | #f4f4f6 | 17.02 | 15.28 | 15.28 (#1d1d22) |

@@ -26,11 +26,13 @@ const types = [
   'install',
   'feature-grid',
   'link-row',
+  'chart-index',
+  'cta',
 ]
 
 const homeTypes = new Set(types.slice(8))
 
-test('the registry has the eight content blocks and the six home page blocks, in order', () => {
+test('the registry has the eight content blocks and the eight home page blocks, in order', () => {
   expect(blockRegistry.getTypes()).toEqual(types)
   for (const type of types) expect(blockRegistry.getComponent(type)).toBeDefined()
 })
@@ -90,7 +92,7 @@ describe('componentRegistry', () => {
 
   afterEach(() => vi.unstubAllEnvs())
 
-  test('has an entry for each of the fourteen types, in order', () => {
+  test('has an entry for each of the sixteen types, in order', () => {
     expect([...componentRegistry.keys()]).toEqual(types)
   })
 

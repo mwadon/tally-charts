@@ -5,7 +5,9 @@ import type { z } from 'zod'
 import { blockError } from './block-error'
 import { calloutBlock, calloutSchema } from './callout'
 import { chartExampleBlock, chartExampleSchema } from './chart-example'
+import { chartIndexBlock, chartIndexSchema } from './chart-index'
 import { codeBlockBlock, codeBlockSchema } from './code-block'
+import { ctaBlock, ctaSchema } from './cta'
 import { featureGridBlock, featureGridSchema } from './feature-grid'
 import { galleryBlock, gallerySchema } from './gallery'
 import { headingBlock, headingSchema } from './heading'
@@ -38,6 +40,8 @@ export const blockRegistry = createBlockRegistry(
     installBlock,
     featureGridBlock,
     linkRowBlock,
+    chartIndexBlock,
+    ctaBlock,
   ],
   {
     categories: [
@@ -63,6 +67,8 @@ export const blockSchemas = {
   install: installSchema,
   'feature-grid': featureGridSchema,
   'link-row': linkRowSchema,
+  'chart-index': chartIndexSchema,
+  cta: ctaSchema,
 } satisfies Record<string, z.ZodObject>
 
 export type BlockType = keyof typeof blockSchemas

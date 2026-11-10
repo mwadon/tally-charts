@@ -1,6 +1,7 @@
 import { defineBlock } from '@glokki-cms/sdk'
 import { z } from 'zod'
 import { exampleIds } from './chart-example'
+import { CodeBlock } from './code-block'
 import { HeroView } from './home-views'
 import { loadExamples } from './load-example'
 
@@ -18,15 +19,22 @@ export const heroSchema = z.object({
     )
     .meta({ fieldType: 'array' }),
   exampleId: z.enum(exampleIds),
+  command: z.string().optional(),
+  code: z.string().optional().meta({ fieldType: 'textarea' }),
+  codeFilename: z.string().optional(),
 })
 
 export type HeroProps = z.infer<typeof heroSchema>
 
-/** Server component: the chart is loaded by `exampleId`, text comes from the props. */
-export async function Hero({ exampleId, ...rest }: HeroProps) {
+/**
+ * Server component: the chart is loaded by `exampleId`, text comes from the props. `command` is an
+ * install line under the buttons and `code` the snippet shown under the chart; both are optional.
+ */
+export async function Hero({ exampleId, code, codeFilename, ...rest }: HeroProps) {
   const loaded = await loadExamples([exampleId])
   if (!loaded.ok) return loaded.error
-  return <HeroView {...rest} chart={loaded.charts[0]} />
+  const snippet = code ? await CodeBlock({ code, lang: 'tsx', filename: codeFilename }) : undefined
+  return <HeroView {...rest} chart={loaded.charts[0]} code={snippet} />
 }
 
 export const heroBlock = defineBlock({
@@ -34,7 +42,8 @@ export const heroBlock = defineBlock({
   label: 'Hero',
   category: 'home',
   icon: 'sparkles',
-  description: 'The opening of the home page: headline, lede, buttons and a live chart.',
+  description:
+    'The opening of the home page: headline, lede, buttons, an install command and a live chart with its code.',
   defaultProps: {
     eyebrow: 'React charts',
     title: 'Charts that say what changed',
