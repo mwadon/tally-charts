@@ -10,8 +10,8 @@ export const contentType = 'image/png'
 const SURFACE = '#fafafa'
 const INK = '#111114'
 const MUTED = '#6b6b73'
-const ACCENT = '#2f6bf0'
-const ACCENT_SOFT = '#9dbcf6'
+const ACCENT = '#24356b'
+const ACCENT_SOFT = '#a9b6de'
 
 /** Bar heights in px; the last two are the forecast, drawn in the soft accent. */
 const BARS = [150, 210, 180, 260, 240, 320, 370]

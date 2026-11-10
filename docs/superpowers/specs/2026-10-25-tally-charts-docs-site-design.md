@@ -46,8 +46,11 @@ Content column up to 72 rem, centred. Sections in the F16 order:
    "Opinionated React charts for narrative business dashboards.", a one-line lede, two buttons
    (primary "Read the docs", secondary "GitHub"). The chart sits on a raised card in front of a
    fading hatched field.
+   *Since the palette refresh:* the copy is centred, a decorative drawing of translucent areas
+   (`blocks/home-art.tsx`) spans the page under it, and the chart and its code share one raised card
+   below, side by side from 900 px.
 2. **Visual language.** Four cards with a mini chart each: *Hatched is plan*, *Solid is actual*,
-   *Pink is loss*, *Targets come first*. Four columns from 900 px, two from 640 px, one below.
+   *Coral is loss* (was *Pink is loss*), *Targets come first*. Four columns from 900 px, two from 640 px, one below.
 3. **Gallery.** Nine tiles for the nine reference dashboards, each a live dashboard with a caption
    (F16). The columns are `repeat(auto-fill, minmax(min(100%, 22rem), 1fr))`, so a tile is at least
    ~22 rem wide: 1 column below ~765 px, 2 up to ~1130 px, 3 above (T26.2, D2).
@@ -137,17 +140,20 @@ on `<html>` (`?theme=light|dark` in the placeholder).
 | Text, headings | `--docs-text` | `--ch-ink` | #111114 | #f4f4f6 |
 | Secondary text, labels | `--docs-muted` | `--ch-ink-muted` | #6b6b73 | #a0a0aa |
 | Control borders (buttons, toggle, `kbd`) | `--docs-control-border` | `--ch-ink-muted` | #6b6b73 | #a0a0aa |
-| Link text | `--docs-link` | 70 % `--ch-accent` + 30 % `--ch-ink` | #2650ae | #7fa7fc |
-| Focus ring | `--docs-focus` | `--ch-accent` | #2f6bf0 | #4d86ff |
-| Hatch signature | `--docs-hatch` | `--ch-accent` and `--ch-hatch-*` | stripes of #2f6bf0 | stripes of #4d86ff |
-| Selected toggle, primary button | | fill `--ch-ink`, text `--ch-surface` | #111114 / #fafafa | #f4f4f6 / #121215 |
+| Link text | `--docs-link` | 70 % `--ch-accent` + 30 % `--ch-ink` | #1e2a51 | #a2b6eb |
+| Focus ring | `--docs-focus` | `--ch-accent` | #24356b | #7f9be6 |
+| Hatch signature | `--docs-hatch` | `--ch-accent` and `--ch-hatch-*` | stripes of #24356b | stripes of #7f9be6 |
+| Selected toggle | | fill `--ch-ink`, text `--ch-surface` | #111114 / #fafafa | #f4f4f6 / #121215 |
+| Primary button | | fill `--ch-accent`, text `--ch-surface` | #24356b / #fafafa | #7f9be6 / #121215 |
 
 Rules that follow from the contrast measurements (§10):
 
-- Pure `--ch-accent` is never used as text: #2f6bf0 on #fafafa is 4.49:1 (below 4.5). Links mix 70 %
-  accent with ink, the same recipe the charts use for toned text (`--ch-tone-text-mix`), and keep an
-  underline, so a link is not told apart by colour alone.
-- Raw `--ch-accent` is used for non-text only (focus ring, hatch stripes), where 3:1 applies.
+- Links mix 70 % accent with ink, the same recipe the charts use for toned text
+  (`--ch-tone-text-mix`), and keep an underline, so a link is not told apart by colour alone. (Since
+  the 1.0 palette the accent itself is 11.2:1 on #fafafa and 6.9:1 on #121215; before it was 4.49:1.)
+- Raw `--ch-accent` is the focus ring, the hatch stripes and the fill of the primary button, whose
+  text is `--ch-surface`. Toned text (the hero eyebrow) is the tone mixed with ink, never the raw
+  `--ch-loss`.
 - Borders of controls use `--ch-ink-muted` (≥ 5:1), not `--ch-grid` (1.2:1). `--ch-grid` is for
   decorative dividers and card outlines, which carry no information.
 
@@ -233,14 +239,14 @@ Light: fg, ratio on `--ch-surface`, on `--ch-tooltip-bg`, on the actual backgrou
 | Lede / muted text (ink-muted) | 4.5:1 | #6b6b73 | 5.06 | 5.28 | 5.06 (#fafafa) | #a0a0aa | 7.22 | 6.48 | 7.22 (#121215) |
 | Small note (ink-muted) | 3:1 | n/a | n/a | n/a | n/a | n/a | n/a | n/a | n/a |
 | Eyebrow (ink-muted) | 4.5:1 | #6b6b73 | 5.06 | 5.28 | 5.06 (#fafafa) | #a0a0aa | 7.22 | 6.48 | 7.22 (#121215) |
-| Inline link (accent 70% + ink) | 4.5:1 | #2650ae | 7.08 | 7.39 | 7.08 (#fafafa) | #7fa7fc | 7.87 | 7.06 | 7.87 (#121215) |
-| Link in a feature card (home) | 4.5:1 | #2650ae | 7.08 | 7.39 | 7.39 (#ffffff) | #7fa7fc | 7.87 | 7.06 | 7.06 (#1d1d22) |
+| Inline link (accent 70% + ink) | 4.5:1 | #1e2a51 | 13.37 | 13.95 | 13.37 (#fafafa) | #a2b6eb | 9.28 | 8.33 | 9.28 (#121215) |
+| Link in a feature card (home) | 4.5:1 | #1e2a51 | 13.37 | 13.95 | 13.37 (#fafafa) | #a2b6eb | 9.28 | 8.33 | 9.28 (#121215) |
 | Footer link (home) | 4.5:1 | #111114 | 18.06 | 18.85 | 18.85 (#ffffff) | #f4f4f6 | 17.02 | 15.28 | 15.28 (#1d1d22) |
-| Install command (hero) | 4.5:1 | #111114 | 18.06 | 18.85 | 18.85 (#ffffff) | #f4f4f6 | 17.02 | 15.28 | 15.28 (#1d1d22) |
-| Chart tile name | 4.5:1 | #111114 | 18.06 | 18.85 | 18.85 (#ffffff) | #f4f4f6 | 17.02 | 15.28 | 15.28 (#1d1d22) |
-| Chart tile text (ink-muted) | 4.5:1 | #6b6b73 | 5.06 | 5.28 | 5.28 (#ffffff) | #a0a0aa | 7.22 | 6.48 | 6.48 (#1d1d22) |
-| Dashboard tab, unselected | 4.5:1 | #111114 | 18.06 | 18.85 | 18.06 (#fafafa) | #f4f4f6 | 17.02 | 15.28 | 17.02 (#121215) |
-| Dashboard tab, selected | 4.5:1 | #fafafa | – | – | 18.06 (#111114) | #121215 | – | – | 17.02 (#f4f4f6) |
+| Install command (hero) | 4.5:1 | #111114 | 18.06 | 18.85 | 18.06 (#fafafa) | #f4f4f6 | 17.02 | 15.28 | 17.02 (#121215) |
+| Chart tile name | 4.5:1 | #111114 | 18.06 | 18.85 | 18.06 (#fafafa) | #f4f4f6 | 17.02 | 15.28 | 17.02 (#121215) |
+| Chart tile text (ink-muted) | 4.5:1 | #6b6b73 | 5.06 | 5.28 | 5.06 (#fafafa) | #a0a0aa | 7.22 | 6.48 | 7.22 (#121215) |
+| Dashboard tab, unselected | 4.5:1 | #6b6b73 | 5.06 | 5.28 | 5.06 (#fafafa) | #a0a0aa | 7.22 | 6.48 | 7.22 (#121215) |
+| Dashboard tab, selected | 4.5:1 | #111114 | – | – | 18.06 (#fafafa) | #f4f4f6 | – | – | 17.02 (#121215) |
 | Dashboard caption (ink-muted) | 4.5:1 | #6b6b73 | 5.06 | 5.28 | 5.28 (#ffffff) | #a0a0aa | 7.22 | 6.48 | 6.48 (#1d1d22) |
 | Closing band heading | 4.5:1 | #fafafa | – | – | 18.06 (#111114) | #121215 | – | – | 17.02 (#f4f4f6) |
 | Closing band text | 4.5:1 | #c7c7c7 | – | – | 11.15 (#111114) | #444447 | – | – | 8.84 (#f4f4f6) |
@@ -260,43 +266,43 @@ Light: fg, ratio on `--ch-surface`, on `--ch-tooltip-bg`, on the actual backgrou
 | Inline code | 4.5:1 | #111114 | 18.06 | 18.85 | 18.85 (#ffffff) | #f4f4f6 | 17.02 | 15.28 | 15.28 (#1d1d22) |
 | Code text | 4.5:1 | #111114 | 18.06 | 18.85 | 18.85 (#ffffff) | #f4f4f6 | 17.02 | 15.28 | 15.28 (#1d1d22) |
 | Code filename (ink-muted) | 4.5:1 | #6b6b73 | 5.06 | 5.28 | 5.28 (#ffffff) | #a0a0aa | 7.22 | 6.48 | 6.48 (#1d1d22) |
-| Syntax: keyword | 4.5:1 | #2650ae | 7.08 | 7.39 | 7.39 (#ffffff) | #7fa7fc | 7.87 | 7.06 | 7.06 (#1d1d22) |
-| Syntax: string | 4.5:1 | #1b6943 | 6.39 | 6.67 | 6.67 (#ffffff) | #86deb3 | 11.68 | 10.48 | 10.48 (#1d1d22) |
+| Syntax: keyword | 4.5:1 | #1e2a51 | 13.37 | 13.95 | 13.95 (#ffffff) | #a2b6eb | 9.28 | 8.33 | 8.33 (#1d1d22) |
+| Syntax: string | 4.5:1 | #2a5f76 | 6.71 | 7.01 | 7.01 (#ffffff) | #99d5ec | 11.65 | 10.46 | 10.46 (#1d1d22) |
 | Syntax: constant | 4.5:1 | #815926 | 5.93 | 6.19 | 6.19 (#ffffff) | #fbc988 | 12.30 | 11.04 | 11.04 (#1d1d22) |
 | Syntax: punctuation | 4.5:1 | #111114 | 18.06 | 18.85 | 18.85 (#ffffff) | #f4f4f6 | 17.02 | 15.28 | 15.28 (#1d1d22) |
 | Syntax: function | 4.5:1 | #111114 | 18.06 | 18.85 | 18.85 (#ffffff) | #f4f4f6 | 17.02 | 15.28 | 15.28 (#1d1d22) |
 | Copy button text | 4.5:1 | #111114 | 18.06 | 18.85 | 18.85 (#ffffff) | #f4f4f6 | 17.02 | 15.28 | 15.28 (#1d1d22) |
 | Preview/Code toggle, unselected | 4.5:1 | #111114 | 18.06 | 18.85 | 18.85 (#ffffff) | #f4f4f6 | 17.02 | 15.28 | 15.28 (#1d1d22) |
 | Preview/Code toggle, selected | 4.5:1 | #fafafa | – | – | 18.06 (#111114) | #121215 | – | – | 17.02 (#f4f4f6) |
-| Button, primary | 4.5:1 | #fafafa | – | – | 18.06 (#111114) | #121215 | – | – | 17.02 (#f4f4f6) |
-| Button, secondary | 4.5:1 | #111114 | 18.06 | 18.85 | 18.85 (#ffffff) | #f4f4f6 | 17.02 | 15.28 | 15.28 (#1d1d22) |
+| Button, primary | 4.5:1 | #fafafa | – | – | 11.20 (#24356b) | #121215 | – | – | 6.89 (#7f9be6) |
+| Button, secondary | 4.5:1 | #1e2a51 | 13.37 | 13.95 | 13.37 (#fafafa) | #a2b6eb | 9.28 | 8.33 | 9.28 (#121215) |
 | Table header (ink-muted) | 4.5:1 | #6b6b73 | 5.06 | 5.28 | 5.28 (#ffffff) | #a0a0aa | 7.22 | 6.48 | 6.48 (#1d1d22) |
 | Table cell | 4.5:1 | #111114 | 18.06 | 18.85 | 18.85 (#ffffff) | #f4f4f6 | 17.02 | 15.28 | 15.28 (#1d1d22) |
-| Card text (ink-muted) | 4.5:1 | #6b6b73 | 5.06 | 5.28 | 5.28 (#ffffff) | #a0a0aa | 7.22 | 6.48 | 6.48 (#1d1d22) |
-| Card heading | 4.5:1 | #111114 | 18.06 | 18.85 | 18.85 (#ffffff) | #f4f4f6 | 17.02 | 15.28 | 15.28 (#1d1d22) |
+| Card text (ink-muted) | 4.5:1 | #6b6b73 | 5.06 | 5.28 | 5.06 (#fafafa) | #a0a0aa | 7.22 | 6.48 | 7.22 (#121215) |
+| Card heading | 4.5:1 | #111114 | 18.06 | 18.85 | 18.06 (#fafafa) | #f4f4f6 | 17.02 | 15.28 | 17.02 (#121215) |
 | Footer (ink-muted) | 4.5:1 | #6b6b73 | 5.06 | 5.28 | 5.28 (#ffffff) | #a0a0aa | 7.22 | 6.48 | 6.48 (#1d1d22) |
 | Border: Copy button | 3:1 | #6b6b73 | 5.06 | 5.28 | 5.28 (#ffffff) | #a0a0aa | 7.22 | 6.48 | 6.48 (#1d1d22) |
 | Border: toggle, unselected | 3:1 | #6b6b73 | 5.06 | 5.28 | 5.28 (#ffffff) | #a0a0aa | 7.22 | 6.48 | 6.48 (#1d1d22) |
-| Border: secondary button | 3:1 | #6b6b73 | 5.06 | 5.28 | 5.06 (#fafafa) | #a0a0aa | 7.22 | 6.48 | 7.22 (#121215) |
+| Border: secondary button | 3:1 | #1e2a51 | 13.37 | 13.95 | 13.37 (#fafafa) | #a2b6eb | 9.28 | 8.33 | 9.28 (#121215) |
 | Border: dashboard tab, unselected | 3:1 | #6b6b73 | 5.06 | 5.28 | 5.06 (#fafafa) | #a0a0aa | 7.22 | 6.48 | 7.22 (#121215) |
 | Border: closing band command | 3:1 | #919193 | – | – | 5.99 (#111114) | #78787a | – | – | 4.01 (#f4f4f6) |
 | Border: Menu button (mobile) | 3:1 | #6b6b73 | 5.06 | 5.28 | 5.06 (#fafafa) | #a0a0aa | 7.22 | 6.48 | 7.22 (#121215) |
 | Border: theme switch | 3:1 | #6b6b73 | 5.06 | 5.28 | 5.06 (#fafafa) | #a0a0aa | 7.22 | 6.48 | 7.22 (#121215) |
 | Fill: selected toggle vs card | 3:1 | #111114 | 18.06 | 18.85 | 18.85 (#ffffff) | #f4f4f6 | 17.02 | 15.28 | 15.28 (#1d1d22) |
-| Fill: primary button vs page | 3:1 | #111114 | 18.06 | 18.85 | 18.06 (#fafafa) | #f4f4f6 | 17.02 | 15.28 | 17.02 (#121215) |
+| Fill: primary button vs page | 3:1 | #24356b | 11.20 | 11.69 | 11.20 (#fafafa) | #7f9be6 | 6.89 | 6.18 | 6.89 (#121215) |
 
 | Theme | Focused element | Outline | Color | vs surface | vs tooltip-bg | Result |
 |---|---|---|---|---|---|---|
-| light | `.wordmark` | solid 2px, offset 2px | #2f6bf0 | 4.49 | 4.69 | ok |
-| light | `.segmented button` | solid 2px, offset 2px | #2f6bf0 | 4.49 | 4.69 | ok |
-| light | `.code-copy` | solid 2px, offset 2px | #2f6bf0 | 4.49 | 4.69 | ok |
-| light | `.side-nav a` | solid 2px, offset 2px | #2f6bf0 | 4.49 | 4.69 | ok |
-| light | `.wordmark` | solid 2px, offset 2px | #2f6bf0 | 4.49 | 4.69 | ok |
-| dark | `.wordmark` | solid 2px, offset 2px | #4d86ff | 5.49 | 4.93 | ok |
-| dark | `.segmented button` | solid 2px, offset 2px | #4d86ff | 5.49 | 4.93 | ok |
-| dark | `.code-copy` | solid 2px, offset 2px | #4d86ff | 5.49 | 4.93 | ok |
-| dark | `.side-nav a` | solid 2px, offset 2px | #4d86ff | 5.49 | 4.93 | ok |
-| dark | `.wordmark` | solid 2px, offset 2px | #4d86ff | 5.49 | 4.93 | ok |
+| light | `.wordmark` | solid 2px, offset 2px | #24356b | 11.20 | 11.69 | ok |
+| light | `.segmented button` | solid 2px, offset 2px | #24356b | 11.20 | 11.69 | ok |
+| light | `.code-copy` | solid 2px, offset 2px | #24356b | 11.20 | 11.69 | ok |
+| light | `.side-nav a` | solid 2px, offset 2px | #24356b | 11.20 | 11.69 | ok |
+| light | `.wordmark` | solid 2px, offset 2px | #24356b | 11.20 | 11.69 | ok |
+| dark | `.wordmark` | solid 2px, offset 2px | #7f9be6 | 6.89 | 6.18 | ok |
+| dark | `.segmented button` | solid 2px, offset 2px | #7f9be6 | 6.89 | 6.18 | ok |
+| dark | `.code-copy` | solid 2px, offset 2px | #7f9be6 | 6.89 | 6.18 | ok |
+| dark | `.side-nav a` | solid 2px, offset 2px | #7f9be6 | 6.89 | 6.18 | ok |
+| dark | `.wordmark` | solid 2px, offset 2px | #7f9be6 | 6.89 | 6.18 | ok |
 
 ## 11. Decisions
 

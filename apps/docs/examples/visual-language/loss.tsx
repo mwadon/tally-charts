@@ -3,7 +3,7 @@ import type { ExampleMeta } from '../types'
 
 export const meta = {
   id: 'visual-language/loss',
-  title: 'Loss by quarter, pink',
+  title: 'Loss by quarter, coral',
   rscSafe: true,
 } satisfies ExampleMeta
 
@@ -28,7 +28,7 @@ export default function VisualLanguageLoss() {
       fill="solid"
       tone="loss"
       title={meta.title}
-      description="Four pink bars, Q1 42 to Q4 61."
+      description="Four coral bars, Q1 42 to Q4 61."
     />
   )
 }

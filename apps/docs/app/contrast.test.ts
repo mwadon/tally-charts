@@ -54,10 +54,12 @@ for (const [theme, t] of Object.entries(themes)) {
   }
 }
 
-test('pure accent as text on the light surface stays below 4.5:1, so links mix it with ink', () => {
-  const light = themes.light
-  expect(contrast(light.accent as string, light.surface as string)).toBeLessThan(4.5)
-})
+// The primary button is the accent with the page background as its text color.
+for (const [theme, t] of Object.entries(themes)) {
+  test(`the primary button (surface text on accent) is at least 4.5:1 (${theme})`, () => {
+    expect(contrast(t.surface as string, t.accent as string)).toBeGreaterThanOrEqual(4.5)
+  })
+}
 
 /** `color-mix(in srgb, a pct%, b)` for two hex colors. */
 function mix(a: string, pct: number, b: string) {

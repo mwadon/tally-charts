@@ -1,7 +1,7 @@
 # tally-charts
 
 Opinionated React charts for narrative business dashboards: hatched means plan or reference,
-solid means actual, pink means loss, and targets are first-class.
+solid means actual, coral means loss, and targets are first-class.
 
 ```bash
 npm i tally-charts

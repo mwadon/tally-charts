@@ -41,7 +41,7 @@ export interface SharePart {
   percentText: string
 }
 
-/** Never 'loss': pink means loss and is only chosen explicitly. */
+/** Never 'loss': coral means loss and is only chosen explicitly. */
 export const SHARE_TONES: readonly Tone[] = ['accent', 'accent-soft', 'warn', 'neutral', 'gain']
 
 const warn = /* @__PURE__ */ createWarner()

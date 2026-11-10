@@ -16,7 +16,7 @@ const HEADING = 'A visual language that reads at a glance'
 const items: VisualLanguageProps['items'] = [
   { title: 'Hatched is plan', text: 'Stripes mark a plan.', exampleId: 'visual-language/hatch' },
   { title: 'Solid is actual', text: 'Filled marks happened.', exampleId: 'visual-language/solid' },
-  { title: 'Pink is loss', text: 'One loud color.', exampleId: 'visual-language/loss' },
+  { title: 'Coral is loss', text: 'One loud color.', exampleId: 'visual-language/loss' },
   { title: 'Targets first', text: 'The goal is drawn.', exampleId: 'visual-language/target' },
 ]
 
