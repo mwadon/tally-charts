@@ -7,6 +7,20 @@ updates:
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
+    # Keep the ranges of the library's runtime dependencies as they are; only pins move.
+    versioning-strategy: increase-if-necessary
+    ignore:
+      # The Playwright version is tied to the container image in ci.yml and to the screenshot
+      # baselines of both platforms, and @axe-core/playwright pulls its own playwright-core.
+      # Update them by hand, together with the image and the baselines.
+      - dependency-name: '@playwright/test'
+      - dependency-name: '@axe-core/playwright'
+      # 3.2.5 and 3.1.1 ship one bundled file instead of modules and add about 0.6 kB to every
+      # chart (LineChart 13.82 -> 14.43 kB, over its limit). Held until that is decided.
+      - dependency-name: d3-array
+        versions: ['>=3.2.5']
+      - dependency-name: d3-time
+        versions: ['>=3.1.1']
     groups:
       minor-and-patch:
         update-types: [minor, patch]
