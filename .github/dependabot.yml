@@ -16,7 +16,9 @@ updates:
       - dependency-name: '@playwright/test'
       - dependency-name: '@axe-core/playwright'
       # 3.2.5 and 3.1.1 ship one bundled file instead of modules and add about 0.6 kB to every
-      # chart (LineChart 13.82 -> 14.43 kB, over its limit). Held until that is decided.
+      # chart (LineChart 13.82 -> 14.43 kB, over its limit). The package pins 3.2.4 and 3.1.0
+      # exactly, so consumers get the smaller build too. To move on: drop these two entries,
+      # bump the pins and raise the limits in packages/tally-charts/.size-limit.js.
       - dependency-name: d3-array
         versions: ['>=3.2.5']
       - dependency-name: d3-time
