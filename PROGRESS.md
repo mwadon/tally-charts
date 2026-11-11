@@ -2693,3 +2693,9 @@ Gałąź `ui-refresh-palette`, bez commita. Zmiany tylko w `apps/docs` (bibliote
 - Świadome odstępstwa od makiety: tło strony zostaje `--ch-surface` (`#fafafa`, makieta ma cieplejsze `#fbfaf8`; e2e pilnuje równości tła z powierzchnią wykresów, zmiana wymagałaby tokenu biblioteki); tekst zostaje fontem systemowym (makieta: Inter); wartości słupków są nad słupkami, nie pod osią; karta „Targets come first” nie ma etykiety „+1.2 pt”; pas cta zachowuje przycisk kopiowania (ikona).
 - Do zrobienia przez maintainera: `pnpm --filter docs seed` (nowe propsy hero i `exampleId` w glokki).
 
+## Dane testowe zamiast danych klienta i favicon (2026-11-11)
+
+- Dashboard Performance (`examples/reference/09-performance.tsx`, `Performance.stories.tsx`, plan 0.8) miał ścieżki ze strony klienta (`/galeria`, `/artykul`, `/intencje-mszalne`). Są teraz `/gallery`, `/articles`, `/product-catalog`; liczby bez zmian. Baseline'y story `reference-performance` odświeżone na darwin i linux.
+- `docs/reference/09-performance.png` był zrzutem produktu klienta z tymi ścieżkami. Zastąpiony zrzutem naszej story (light, darwin).
+- Favicon: `app/icon.svg` to teraz znak z nagłówka (trzy szczyty) na kafelku `--ch-accent`. Doszły `app/favicon.ico` (16, 32, 48 px) i `app/apple-icon.png` (180 px), wyrenderowane z tego SVG przez Playwright. `e2e/routes.spec.ts` sprawdza wszystkie trzy linki.
+- Polski przykład `hooks-and-providers/polish-messages.tsx` zostaje: pokazuje tłumaczenie komunikatów.

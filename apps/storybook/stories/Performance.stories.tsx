@@ -33,9 +33,9 @@ type Bucket = (typeof buckets)[number]
 const THRESHOLD = 70
 const bands = thresholds([50, 90], ['loss', 'warn', 'gain'], ['Poor', 'Needs work', 'Good'])
 const below = [
-  { path: '/galeria', pages: 79 },
-  { path: '/artykul', pages: 53 },
-  { path: '/intencje-mszalne', pages: 43 },
+  { path: '/gallery', pages: 79 },
+  { path: '/articles', pages: 53 },
+  { path: '/product-catalog', pages: 43 },
   { path: 'other', pages: 48 },
 ]
 const zoneTones = ['gain', 'warn', 'loss'] as const
