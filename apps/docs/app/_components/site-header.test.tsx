@@ -29,6 +29,36 @@ test('the version links to the stability page and Docs to getting started', () =
   )
 })
 
+test('the mark next to the wordmark is decoration and leaves the link name alone', () => {
+  render(<SiteHeader />)
+  const wordmark = screen.getByRole('link', { name: 'tally-charts' })
+  expect(wordmark.querySelector('svg.mark')?.getAttribute('aria-hidden')).toBe('true')
+})
+
+test('the theme select lies over an icon', () => {
+  const { container } = render(<SiteHeader />)
+  const box = container.querySelector('.theme-switch') as HTMLElement
+  expect(box.querySelector('svg')?.getAttribute('aria-hidden')).toBe('true')
+  expect(box.querySelector('select.theme-select')).toBe(
+    screen.getByRole('combobox', { name: 'Theme' }),
+  )
+})
+
+test('the home page header lists Charts, Dashboards, Docs and leaves GitHub and npm to the footer', () => {
+  const { container } = render(<SiteHeader home />)
+  const links = [...container.querySelectorAll('.header-links a')].map((a) => a.textContent)
+  expect(links).toEqual(['Charts', 'Dashboards', 'Docs'])
+  expect(container.querySelector('.hatch-rule')).toBeNull()
+  expect(container.querySelector('header')?.className).toBe('site-header site-header-home')
+})
+
+test('the other pages keep GitHub, npm and the hatched rule in the header', () => {
+  const { container } = render(<SiteHeader withMenu />)
+  expect(screen.getByRole('link', { name: 'GitHub' })).toBeTruthy()
+  expect(screen.getByRole('link', { name: 'npm' })).toBeTruthy()
+  expect(container.querySelector('.hatch-rule')).not.toBeNull()
+})
+
 test('only the home page header links to the Charts and Dashboards sections', () => {
   const home = render(<SiteHeader home />)
   expect(screen.getByRole('link', { name: 'Charts' }).getAttribute('href')).toBe('#charts')

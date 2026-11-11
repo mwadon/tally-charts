@@ -22,8 +22,8 @@ export const visualLanguageSchema = z.object({
 
 export type VisualLanguageProps = z.infer<typeof visualLanguageSchema>
 
-/** Height reserved for the mini chart of a card until it mounts (px): the mini charts are 140 px tall at every width. */
-const CARD_CHART_HEIGHT = 140
+/** Height reserved for the mini chart of a card until it mounts (px): the mini charts are 88 px tall at every width. */
+const CARD_CHART_HEIGHT = 88
 
 /** Server component: a section with a heading and one card per item, with the chart of its `exampleId`, mounted near the viewport. */
 export async function VisualLanguage({ heading, lede, items }: VisualLanguageProps) {

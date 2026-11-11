@@ -47,8 +47,22 @@ test('the lede is optional and the section is a band', async () => {
   expect(container.querySelector('.section-lede')?.textContent).toBe('Four rules.')
 })
 
-test('the examples are server-safe', () => {
-  for (const item of items) expect(examples[item.exampleId].rscSafe).toBe(true)
+test('the examples are server-safe, except the one that colors a bar by its value', () => {
+  // A per-bar tone is a function prop, which a server component cannot pass.
+  for (const item of items)
+    expect(examples[item.exampleId].rscSafe, item.exampleId).toBe(
+      item.exampleId !== 'visual-language/loss',
+    )
+})
+
+test('every mini chart sits in a .rule-chart box above the heading of its card', async () => {
+  const { container } = render(await VisualLanguage({ heading: HEADING, items }))
+
+  const cards = [...container.querySelectorAll('li.card')]
+  for (const card of cards) {
+    expect(card.firstElementChild?.className).toBe('rule-chart')
+    expect(card.querySelector('.rule-chart + h3')).not.toBeNull()
+  }
 })
 
 test('the items field is an array with items', () => {

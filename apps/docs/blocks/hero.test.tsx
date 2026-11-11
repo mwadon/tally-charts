@@ -45,7 +45,7 @@ test('without command and code there is no install line and no snippet', async (
   expect(container.querySelector('.hero-code')).toBeNull()
 })
 
-test('command is an install line with a copy button, code a highlighted block under the chart', async () => {
+test('command is an install line with a copy button, code a highlighted block next to the chart', async () => {
   const { container } = render(
     await Hero({
       ...props,
@@ -59,12 +59,53 @@ test('command is an install line with a copy button, code a highlighted block un
     'npm i tally-charts',
   )
   expect(screen.getByRole('button', { name: 'Copy code: npm i tally-charts' })).toBeTruthy()
-  const snippet = container.querySelector('.hero-card .hero-code') as HTMLElement
+  expect(container.querySelector('.hero-card .hero-code')).toBeNull()
+  const snippet = container.querySelector(
+    '.hero-demo-split .hero-demo-copy .hero-code',
+  ) as HTMLElement
   expect(snippet.querySelector('.code-block-name')?.textContent).toBe('margin.tsx')
   expect(screen.getByRole('region', { name: 'margin.tsx' }).textContent).toBe(
     '<BarChart data={weeks} />',
   )
   expect(snippet.innerHTML).toContain('var(--shiki-')
+})
+
+test('the install line copies with an icon button that keeps its accessible name', async () => {
+  const { container } = render(await Hero({ ...props, command: 'npm i tally-charts' }))
+
+  const button = screen.getByRole('button', { name: 'Copy code: npm i tally-charts' })
+  expect(button.className).toBe('code-copy code-copy-icon')
+  expect(button.textContent).toBe('')
+  expect(button.querySelector('svg')?.getAttribute('aria-hidden')).toBe('true')
+  expect(container.querySelector('.hero-demo')?.className).toBe('hero-demo')
+})
+
+test('demoHeading and demoText head the code, chartTitle and chartNote the chart card', async () => {
+  const { container } = render(
+    await Hero({
+      ...props,
+      demoHeading: 'One chart, a few lines',
+      demoText: 'Pass your rows.',
+      chartTitle: 'Margin by week',
+      chartNote: '2 weeks under target',
+    }),
+  )
+
+  const copy = container.querySelector('.hero-demo-split .hero-demo-copy') as HTMLElement
+  expect(screen.getByRole('heading', { level: 2, name: 'One chart, a few lines' })).toBeTruthy()
+  expect(copy.querySelector('.section-lede')?.textContent).toBe('Pass your rows.')
+  expect(container.querySelector('.hero-card .hero-card-title')?.textContent).toBe('Margin by week')
+  expect(container.querySelector('.hero-card .hero-card-note')?.textContent).toBe(
+    '2 weeks under target',
+  )
+  expect(container.querySelector('.hero-card .hero-chart [role="application"]')).toBeTruthy()
+})
+
+test('without the demo and chart texts the card has no head', async () => {
+  const { container } = render(await Hero(props))
+
+  expect(container.querySelector('.hero-demo-copy')).toBeNull()
+  expect(container.querySelector('.hero-card-head')).toBeNull()
 })
 
 test('the section is labelled by the title and the eyebrow is optional', async () => {

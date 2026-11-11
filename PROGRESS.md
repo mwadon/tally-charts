@@ -2679,3 +2679,17 @@ Gałąź `ui-refresh-palette` (z `origin/main`, bez commita). Projekt: canvas �
 - Strona główna: hero wyśrodkowane, pod nim dekoracyjny rysunek `blocks/home-art.tsx`, wykres i kod w jednej karcie obok siebie od 900 px; reguły języka wizualnego i funkcje jako kolumny pod linią, indeks wykresów jako lista z liniami (1/2/3 kolumny), zakładki galerii jako tekst z podkreśleniem, pas cta wyśrodkowany. Przycisk główny to `--ch-accent`, drugorzędny to link. Fonty zostają systemowe (bez webfontów).
 
 Bramki: `pnpm test` 1367/1367, `pnpm --filter docs test` 841/841, `typecheck`, `lint`, `api:check`, `size`, `check:dev-strip`, `check:treeshake`, `check:dts`, `test:scripts` 39/39, `check:content` 0 błędów, e2e Storybook 393/393 i docs 471/471 na darwin i w dockerze (linux), `contrast.mjs` exit 0 (tabela w dokumencie designu). Baseline'y Storybooka i docs odświeżone na obu platformach. Nie uruchomiono: Lighthouse, `seed`, actionlint.
+
+## Strona główna docs dopasowana do makiety `cha.png` (2026-11-11)
+
+Gałąź `ui-refresh-palette`, bez commita. Zmiany tylko w `apps/docs` (biblioteka bez zmian, więc bez changesetu).
+
+- Hero: rysunek `home-art` ma własne proporcje (4:1, maks. 80rem), więc na szerokim ekranie nie jest już przycinany u góry; szczyt w tonie gain zamiast accent-soft. Pod nim sekcja „One chart, a few lines”: nagłówek, zdanie i kod po lewej, karta wykresu po prawej (nowe pola hero `demoHeading`, `demoText`, `chartTitle`, `chartNote`). Nowy przykład `bar-chart/margin-vs-target` (cel 32%, słupki pod celem w koralu, wartości nad słupkami); kod w `home.json` odpowiada temu wykresowi.
+- Visual language: przykłady `visual-language/*` to trzy słupki 112×88 px bez osi; `loss` ma dwa słupki granatowe i jeden koralowy (klientowy, `tone` jako funkcja).
+- Indeks wykresów: 4 kolumny od 1100 px, miniatury z pełnych kształtów (bez wzorów kreskowania, `ThumbDefs` usunięte).
+- Pas cta: tło to `--docs-text` (granat w light), grzbiety `CtaArt` na dole, komenda bez `$`, kopiowanie ikoną.
+- Stopka: jeden wiersz (licencja, GitHub, npm). Nagłówek strony głównej: znak obok nazwy, Charts / Dashboards / Docs, przełącznik motywu jako ikona nad natywnym `select`, bez kreskowanej linii.
+- Typografia i kolor: nagłówki fontem Outfit (plik w repo, `next/font/local`), `--docs-text` i `--docs-muted` zmieszane z akcentem.
+- Świadome odstępstwa od makiety: tło strony zostaje `--ch-surface` (`#fafafa`, makieta ma cieplejsze `#fbfaf8`; e2e pilnuje równości tła z powierzchnią wykresów, zmiana wymagałaby tokenu biblioteki); tekst zostaje fontem systemowym (makieta: Inter); wartości słupków są nad słupkami, nie pod osią; karta „Targets come first” nie ma etykiety „+1.2 pt”; pas cta zachowuje przycisk kopiowania (ikona).
+- Do zrobienia przez maintainera: `pnpm --filter docs seed` (nowe propsy hero i `exampleId` w glokki).
+

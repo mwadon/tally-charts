@@ -1,8 +1,8 @@
 import { type ReactNode, useId } from 'react'
-import { ChartThumb, ThumbDefs, type ThumbName } from './chart-thumbs'
+import { ChartThumb, type ThumbName } from './chart-thumbs'
 import { CopyButton } from './copy-button'
 import { GalleryPicker } from './gallery-picker'
-import { HomeArt } from './home-art'
+import { CtaArt, HomeArt } from './home-art'
 
 /*
  * The markup of the home page blocks. The server blocks (`hero.tsx`, ...) load their charts and
@@ -20,22 +20,41 @@ export interface HeroViewProps {
   command?: string | undefined
   /** The live chart of the example, loaded by the server block or by the editor. */
   chart: ReactNode
-  /** The code that draws the chart, as a code block under it. */
+  /** The code that draws the chart, as a code block next to it. */
   code?: ReactNode
+  /** Heading and sentence above the code. */
+  demoHeading?: string | undefined
+  demoText?: string | undefined
+  /** Title and note shown in the card above the chart. */
+  chartTitle?: string | undefined
+  chartNote?: string | undefined
 }
 
-/** A one-line shell command with a copy button. */
+/** A one-line shell command with a copy button (an icon). */
 function InstallLine({ command }: { command: string }) {
   return (
     <div className="install-line">
       <code>{command}</code>
-      <CopyButton code={command} label={command} />
+      <CopyButton code={command} label={command} icon />
     </div>
   )
 }
 
-export function HeroView({ eyebrow, title, lede, actions, command, chart, code }: HeroViewProps) {
+export function HeroView({
+  eyebrow,
+  title,
+  lede,
+  actions,
+  command,
+  chart,
+  code,
+  demoHeading,
+  demoText,
+  chartTitle,
+  chartNote,
+}: HeroViewProps) {
   const titleId = useId()
+  const hasDemoCopy = Boolean(demoHeading || demoText || code)
   return (
     <section className="home-section hero" aria-labelledby={titleId}>
       <div className="hero-copy">
@@ -56,10 +75,22 @@ export function HeroView({ eyebrow, title, lede, actions, command, chart, code }
         {command ? <InstallLine command={command} /> : null}
       </div>
       <HomeArt />
-      <div className="hero-visual">
+      <div className={hasDemoCopy ? 'hero-demo hero-demo-split' : 'hero-demo'}>
+        {hasDemoCopy ? (
+          <div className="hero-demo-copy">
+            {demoHeading ? <h2>{demoHeading}</h2> : null}
+            {demoText ? <p className="section-lede">{demoText}</p> : null}
+            {code ? <div className="hero-code">{code}</div> : null}
+          </div>
+        ) : null}
         <div className="card hero-card">
+          {chartTitle || chartNote ? (
+            <p className="hero-card-head">
+              {chartTitle ? <span className="hero-card-title">{chartTitle}</span> : null}{' '}
+              {chartNote ? <span className="hero-card-note">{chartNote}</span> : null}
+            </p>
+          ) : null}
           <div className="hero-chart">{chart}</div>
-          {code ? <div className="hero-code">{code}</div> : null}
         </div>
       </div>
     </section>
@@ -84,7 +115,7 @@ export function VisualLanguageView({ heading, lede, items, charts }: VisualLangu
         {items.map((item, i) => (
           // biome-ignore lint/suspicious/noArrayIndexKey: editors may repeat a title; the position is the identity
           <li key={i} className="card">
-            {charts[i]}
+            <div className="rule-chart">{charts[i]}</div>
             <h3>{item.title}</h3>
             <p>{item.text}</p>
           </li>
@@ -124,18 +155,16 @@ export interface ChartIndexViewProps {
 /** A tile per chart type: a small drawing, the name and what the chart is for, linked to its page. */
 export function ChartIndexView({ heading, lede, items }: ChartIndexViewProps) {
   const headingId = useId()
-  const defsId = useId()
   return (
     <section id="charts" className="home-section" aria-labelledby={headingId}>
       <h2 id={headingId}>{heading}</h2>
       {lede ? <p className="section-lede">{lede}</p> : null}
-      <ThumbDefs id={defsId} />
       <ul className="chart-index">
         {items.map((item, i) => (
           // biome-ignore lint/suspicious/noArrayIndexKey: editors may repeat a tile; the position is the identity
           <li key={i}>
             <a className="card chart-tile" href={item.href}>
-              <ChartThumb name={item.thumb} defs={defsId} />
+              <ChartThumb name={item.thumb} />
               {/* The space separates the two in the accessible name; a flex container drops it. */}
               <span className="chart-tile-name">{item.label}</span>{' '}
               <span className="chart-tile-text">{item.text}</span>
@@ -171,6 +200,7 @@ export function CtaView({ heading, text, command, action }: CtaViewProps) {
           ) : null}
         </div>
       ) : null}
+      <CtaArt />
     </section>
   )
 }

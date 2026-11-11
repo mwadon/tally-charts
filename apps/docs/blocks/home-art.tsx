@@ -17,7 +17,7 @@ const RULES_INK =
 const AREAS: readonly (readonly [string, number, string])[] = [
   ['art-loss', 0.62, 'M40 300L120 250L170 212L210 240L260 190L330 150L380 205L430 300Z'],
   ['art-loss', 0.45, 'M100 300L200 262L280 230L340 250L400 215L450 300Z'],
-  ['art-soft', 0.72, 'M300 300L360 190L400 170L430 56L455 150L480 112L520 210L560 300Z'],
+  ['art-gain', 0.4, 'M300 300L360 190L400 170L430 56L455 150L480 112L520 210L560 300Z'],
   ['art-accent', 0.85, 'M410 300C450 300 470 200 500 190C530 180 540 260 580 300Z'],
   [
     'art-gain',
@@ -83,6 +83,31 @@ export function HomeArt() {
           <circle key={`${cx}-${cy}`} cx={cx} cy={cy} r={r} />
         ))}
       </g>
+    </svg>
+  )
+}
+
+/** [class, opacity, path] of the ridges along the bottom of the closing band. */
+const RIDGES: readonly (readonly [string, number, string])[] = [
+  ['art-loss', 0.6, 'M0 120L120 70L220 90L330 40L430 120Z'],
+  ['art-gain', 0.5, 'M300 120C360 80 400 52 450 52C510 52 520 78 590 82C650 86 680 100 700 120Z'],
+  ['art-soft', 0.5, 'M560 120L680 50L760 80L860 30L960 120Z'],
+  ['art-warn', 0.6, 'M860 120L980 70L1060 86L1160 44L1280 120Z'],
+]
+
+/** The drawing along the bottom edge of the closing band; decoration, like `HomeArt`. */
+export function CtaArt() {
+  return (
+    <svg
+      className="cta-art"
+      viewBox="0 0 1280 120"
+      preserveAspectRatio="xMidYMax slice"
+      aria-hidden="true"
+      focusable="false"
+    >
+      {RIDGES.map(([tone, opacity, d]) => (
+        <path key={d} className={tone} fillOpacity={opacity} d={d} />
+      ))}
     </svg>
   )
 }
