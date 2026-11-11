@@ -1,6 +1,6 @@
 import { render } from '@testing-library/react'
 import { expect, test } from 'vitest'
-import { HomeArt } from './home-art'
+import { CtaArt, HomeArt } from './home-art'
 
 test('the drawing is decoration: hidden from assistive technology and not focusable', () => {
   const { container } = render(<HomeArt />)
@@ -31,4 +31,18 @@ test('the areas use the loss, accent, soft accent, gain and warn tones', () => {
   )
 
   expect([...tones].sort()).toEqual(['art-accent', 'art-gain', 'art-loss', 'art-soft', 'art-warn'])
+})
+
+test('the ridges of the closing band are decoration colored by classes', () => {
+  const { container } = render(<CtaArt />)
+  const svg = container.querySelector('svg.cta-art')
+
+  expect(svg?.getAttribute('aria-hidden')).toBe('true')
+  expect(svg?.getAttribute('focusable')).toBe('false')
+  const paths = [...container.querySelectorAll('path')]
+  expect(paths.length).toBeGreaterThan(2)
+  for (const path of paths) {
+    expect(path.getAttribute('class')).toMatch(/^art-/)
+    expect(path.getAttribute('fill')).toBeNull()
+  }
 })

@@ -23,38 +23,6 @@ export const thumbNames = [
 
 export type ThumbName = (typeof thumbNames)[number]
 
-/** `fill` values of the hatch patterns of one `ThumbDefs`. */
-interface Hatches {
-  accent: string
-  loss: string
-  neutral: string
-}
-
-const TONES = ['accent', 'loss', 'neutral'] as const
-
-/** The hatch patterns the thumbnails share; render once, before the thumbnails that use `id`. */
-export function ThumbDefs({ id }: { id: string }) {
-  return (
-    <svg className="chart-thumb-defs" width="0" height="0" aria-hidden="true" focusable="false">
-      <defs>
-        {TONES.map((tone) => (
-          <pattern
-            key={tone}
-            id={`${id}-${tone}`}
-            width="5"
-            height="5"
-            patternUnits="userSpaceOnUse"
-            patternTransform="rotate(45)"
-          >
-            <rect className={`ct-${tone} ct-tint`} width="5" height="5" />
-            <rect className={`ct-${tone}`} width="1.3" height="5" />
-          </pattern>
-        ))}
-      </defs>
-    </svg>
-  )
-}
-
 const dots = (cls: string, points: readonly (readonly [number, number])[], r: number) =>
   points.map(([cx, cy]) => <circle key={`${cx},${cy}`} className={cls} cx={cx} cy={cy} r={r} />)
 
@@ -70,163 +38,146 @@ const cells = (
 
 /** Dots of a histogram column: `count` dots stacked up from the baseline. */
 const column = (x: number, count: number) =>
-  Array.from({ length: count }, (_, i) => [x, 48 - i * 8] as const)
+  Array.from({ length: count }, (_, i) => [x, 50 - i * 12] as const)
 
 /** Squares of a waffle column, stacked up from the baseline. */
 const stack = (x: number, count: number) =>
-  Array.from({ length: count }, (_, i) => [x, 43 - i * 9] as const)
+  Array.from({ length: count }, (_, i) => [x, 40 - i * 15] as const)
 
-const HEAT = [0.95, 0.5, 0.3, 0.5, 0.3, 0.15, 0.7, 0.15, 0.3] as const
+const HEAT = [0.15, 0.5, 0.25, 0.1, 0.5, 1, 0.75, 0.25, 0.1, 0.5, 0.25, 0.1] as const
 
-const THUMBS: Record<ThumbName, (h: Hatches) => ReactNode> = {
-  'bar-chart': (h) => (
+const THUMBS: Record<ThumbName, ReactNode> = {
+  'bar-chart': (
     <>
-      <rect x="10" y="32" width="12" height="18" fill={h.accent} />
-      <rect x="28" y="26" width="12" height="24" fill={h.accent} />
-      <rect x="46" y="22" width="12" height="28" fill={h.accent} />
-      <rect x="64" y="28" width="12" height="22" fill={h.accent} />
-      <rect x="82" y="18" width="12" height="32" fill={h.accent} />
-      <rect className="ct-accent" x="100" y="10" width="12" height="40" />
+      <rect className="ct-accent" x="10" y="24" width="15" height="26" />
+      <rect className="ct-accent" x="31" y="12" width="15" height="38" />
+      <rect className="ct-accent" x="52" y="20" width="15" height="30" />
+      <rect className="ct-loss" x="73" y="34" width="15" height="16" />
+      <rect className="ct-accent" x="94" y="6" width="15" height="44" />
     </>
   ),
-  'comparison-bars': (h) => (
+  'comparison-bars': (
     <>
-      <rect x="10" y="20" width="12" height="30" fill={h.accent} />
-      <rect className="ct-accent" x="24" y="24" width="12" height="26" />
-      <rect x="47" y="16" width="12" height="34" fill={h.accent} />
-      <rect className="ct-accent" x="61" y="14" width="12" height="36" />
-      <rect x="84" y="12" width="12" height="38" fill={h.accent} />
-      <rect className="ct-loss" x="98" y="22" width="12" height="28" />
+      <rect className="ct-plan" x="12" y="18" width="18" height="32" />
+      <rect className="ct-accent" x="33" y="26" width="18" height="24" />
+      <rect className="ct-plan" x="68" y="10" width="18" height="40" />
+      <rect className="ct-accent" x="89" y="4" width="18" height="46" />
     </>
   ),
-  'ranked-bars': () => (
+  'ranked-bars': (
     <>
-      <rect className="ct-accent" x="10" y="6" width="100" height="8" />
-      <rect className="ct-soft" x="10" y="19" width="74" height="8" />
-      <rect className="ct-soft" x="10" y="32" width="52" height="8" />
-      <rect className="ct-soft" x="10" y="45" width="30" height="8" />
+      <rect className="ct-accent" x="10" y="4" width="100" height="9" />
+      <rect className="ct-accent" x="10" y="18" width="76" height="9" />
+      <rect className="ct-accent" x="10" y="32" width="52" height="9" />
+      <rect className="ct-gain ct-half" x="10" y="46" width="30" height="9" />
     </>
   ),
-  'waterfall-chart': (h) => (
+  'waterfall-chart': (
     <>
-      <rect x="10" y="8" width="14" height="42" fill={h.neutral} />
-      <rect x="31" y="8" width="14" height="12" fill={h.loss} />
-      <rect x="52" y="20" width="14" height="9" fill={h.loss} />
-      <rect x="73" y="29" width="14" height="6" fill={h.loss} />
-      <rect className="ct-accent" x="96" y="35" width="14" height="15" />
+      <rect className="ct-accent" x="10" y="6" width="16" height="44" />
+      <rect className="ct-loss" x="32" y="6" width="16" height="14" />
+      <rect className="ct-loss" x="54" y="20" width="16" height="10" />
+      <rect className="ct-gain" x="76" y="16" width="16" height="14" />
+      <rect className="ct-accent" x="98" y="16" width="16" height="34" />
     </>
   ),
-  'bridge-chart': (h) => (
+  'bridge-chart': (
     <>
-      <rect x="10" y="8" width="22" height="42" fill={h.accent} />
-      <rect x="49" y="8" width="22" height="26" fill={h.loss} />
-      <rect x="49" y="34" width="22" height="16" fill={h.accent} />
-      <rect className="ct-accent" x="88" y="34" width="22" height="16" />
+      <rect className="ct-plan" x="10" y="6" width="22" height="44" />
+      <rect className="ct-loss" x="38" y="6" width="22" height="16" />
+      <rect className="ct-loss" x="66" y="22" width="22" height="12" />
+      <rect className="ct-accent" x="94" y="34" width="20" height="16" />
     </>
   ),
-  'dot-histogram': () => (
+  'dot-histogram': (
     <>
-      {dots('ct-loss', [...column(18, 1), ...column(32, 2)], 3.2)}
-      {dots(
-        'ct-accent',
-        [...column(46, 4), ...column(60, 5), ...column(74, 3), ...column(88, 2), ...column(102, 1)],
-        3.2,
-      )}
+      {dots('ct-loss', [...column(18, 1), ...column(36, 2)], 4.5)}
+      {dots('ct-accent', [...column(54, 4), ...column(72, 3)], 4.5)}
+      {dots('ct-gain', column(90, 1), 4.5)}
     </>
   ),
-  'strip-plot': () => (
+  'strip-plot': (
     <>
-      <path className="ct-rule" d="M10 14h100M10 30h100M10 46h100" />
+      <path className="ct-rule" d="M8 10h104M8 28h104M8 46h104" />
       {dots(
         'ct-accent',
         [
-          [30, 14],
-          [40, 14],
-          [46, 14],
-          [58, 14],
-          [78, 14],
-          [22, 30],
-          [50, 30],
-          [56, 30],
-          [64, 30],
+          [24, 10],
+          [50, 10],
+          [62, 10],
+          [36, 28],
+          [76, 28],
+          [102, 28],
+          [46, 46],
+          [90, 46],
         ],
-        3,
+        4.5,
       )}
-      {dots(
-        'ct-loss',
-        [
-          [62, 46],
-          [74, 46],
-          [80, 46],
-          [88, 46],
-          [102, 46],
-        ],
-        3,
+      {dots('ct-loss', [[18, 46]], 4.5)}
+    </>
+  ),
+  'waffle-columns': (
+    <>
+      {cells(
+        'ct-accent',
+        [...stack(10, 3), ...stack(25, 2), ...stack(52, 2), ...stack(67, 1)],
+        12,
+        12,
       )}
+      {cells('ct-loss', [...stack(94, 2), ...stack(109, 1)], 12, 12)}
     </>
   ),
-  'waffle-columns': () => (
+  'line-chart': (
     <>
-      {cells('ct-soft', [...stack(14, 3), ...stack(40, 4), ...stack(66, 3)], 14, 7)}
-      {cells('ct-loss', stack(92, 5), 14, 7)}
+      <path className="ct-gain ct-third" d="M8 42l22-10 22 6 22-20v36H8z" />
+      <path className="ct-stroke" d="M8 42l22-10 22 6 22-20" />
+      <path className="ct-stroke ct-forecast ct-dashed" d="M74 18l36-10" />
     </>
   ),
-  'line-chart': () => (
-    <>
-      <path className="ct-accent ct-tint" d="M70 26L110 6v26z" />
-      <path className="ct-stroke" d="M10 40l15-8 15 6 15-14 15 2" />
-      <path className="ct-stroke ct-dashed" d="M70 26l40-8" />
-      <circle className="ct-accent" cx="70" cy="26" r="3" />
-    </>
-  ),
-  heatmap: () => (
+  heatmap: (
     <>
       {HEAT.map((opacity, i) => (
         <rect
           // biome-ignore lint/suspicious/noArrayIndexKey: a fixed grid; the position is the identity
           key={i}
           className="ct-loss"
-          x={10 + (i % 3) * 34}
-          y={6 + Math.floor(i / 3) * 16}
-          width="30"
-          height="13"
-          rx="2"
+          x={8 + (i % 4) * 27}
+          y={2 + Math.floor(i / 4) * 18}
+          width="25"
+          height="16"
           fillOpacity={opacity}
         />
       ))}
     </>
   ),
-  'runway-chart': (h) => (
+  'runway-chart': (
     <>
-      <rect x="10" y="7" width="100" height="10" fill={h.neutral} />
-      <rect className="ct-neutral" x="10" y="7" width="58" height="10" />
-      <rect x="10" y="23" width="100" height="10" fill={h.loss} />
-      <rect className="ct-loss" x="10" y="23" width="82" height="10" />
-      <rect x="10" y="39" width="100" height="10" fill={h.neutral} />
-      <rect className="ct-neutral" x="10" y="39" width="34" height="10" />
-      <path className="ct-mark ct-dashed" d="M76 3v50" />
+      <rect className="ct-plan" x="10" y="5" width="86" height="11" />
+      <rect className="ct-accent" x="10" y="5" width="62" height="11" />
+      <rect className="ct-loss" x="10" y="23" width="108" height="11" />
+      <rect className="ct-accent" x="10" y="23" width="48" height="11" />
+      <rect className="ct-plan" x="10" y="41" width="64" height="11" />
+      <rect className="ct-accent" x="10" y="41" width="36" height="11" />
+      <path className="ct-mark ct-dashed" d="M102 0v56" />
     </>
   ),
-  'small-pieces': () => (
+  'small-pieces': (
     <>
-      <path className="ct-stroke" d="M10 22l12-6 12 4 12-10 12 6" />
-      <rect className="ct-track" x="10" y="38" width="100" height="8" rx="2" />
-      <rect className="ct-accent" x="10" y="38" width="62" height="8" rx="2" />
-      <path className="ct-mark" d="M86 34v16" />
+      <path className="ct-stroke" d="M10 14l14-6 14 4 14-9 14 5" />
+      <rect className="ct-track" x="10" y="26" width="100" height="9" />
+      <rect className="ct-gain" x="10" y="26" width="64" height="9" />
+      <rect className="ct-accent" x="10" y="43" width="46" height="9" />
+      <rect className="ct-gain ct-half" x="59" y="43" width="32" height="9" />
+      <rect className="ct-loss" x="94" y="43" width="16" height="9" />
     </>
   ),
 }
 
-/** The drawing of one chart type; `defs` is the `id` of a `ThumbDefs` rendered on the same page. */
-export function ChartThumb({ name, defs }: { name: ThumbName; defs: string }) {
-  const hatches: Hatches = {
-    accent: `url(#${defs}-accent)`,
-    loss: `url(#${defs}-loss)`,
-    neutral: `url(#${defs}-neutral)`,
-  }
+/** The drawing of one chart type. */
+export function ChartThumb({ name }: { name: ThumbName }) {
   return (
     <svg className="chart-thumb" viewBox="0 0 120 56" aria-hidden="true" focusable="false">
-      {THUMBS[name](hatches)}
+      {THUMBS[name]}
     </svg>
   )
 }

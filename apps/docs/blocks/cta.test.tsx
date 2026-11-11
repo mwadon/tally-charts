@@ -23,6 +23,7 @@ test('renders the heading, the text, the command with a copy button and the butt
   const link = screen.getByRole('link', { name: 'Getting started' })
   expect(link.getAttribute('href')).toBe('/docs/getting-started')
   expect(link.className).toBe('button button-primary')
+  expect(container.querySelector('section > svg.cta-art')?.getAttribute('aria-hidden')).toBe('true')
 })
 
 test('only the heading is required', () => {

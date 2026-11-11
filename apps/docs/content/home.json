@@ -31,10 +31,14 @@
             "href": "#dashboards"
           }
         ],
-        "exampleId": "bar-chart/margin-by-week",
+        "exampleId": "bar-chart/margin-vs-target",
         "command": "npm i tally-charts",
-        "code": "import { BarChart } from 'tally-charts'\n\n<BarChart\n  data={weeks}\n  x=\"week\"\n  y=\"margin\"\n  domain={[26, 40]}\n  format=\"percent\"\n  title=\"Margin by week, last 6 weeks\"\n/>",
-        "codeFilename": "margin-by-week.tsx"
+        "code": "import { BarChart } from 'tally-charts'\n\n<BarChart\n  data={weeks}\n  x=\"week\"\n  y=\"margin\"\n  domain={[26, 36]}\n  format=\"percent\"\n  valueLabel=\"all\"\n  target={{ value: 32, label: 'Target 32%' }}\n  tone={(d) => (d.margin < 32 ? 'loss' : 'accent')}\n  title=\"Margin by week, last 6 weeks\"\n/>",
+        "codeFilename": "margin-by-week.tsx",
+        "demoHeading": "One chart, a few lines",
+        "demoText": "Pass your rows and name the columns. The target, the labels and the loss color come from the same props.",
+        "chartTitle": "Margin by week, last 6 weeks",
+        "chartNote": "2 weeks under target"
       }
     },
     {

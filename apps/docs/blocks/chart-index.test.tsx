@@ -36,16 +36,17 @@ test('renders a linked tile per item with the name, the text and a decorative dr
   expect(screen.getByRole('link', { name: 'Chart heatmap About heatmap' })).toBeTruthy()
 })
 
-test('every hatch fill points at a pattern that is in the page', () => {
+test('every shape of a drawing takes its color from a ct-* class', () => {
   const { container } = render(<ChartIndexView {...props} />)
 
-  const fills = [...container.querySelectorAll('[fill^="url(#"]')].map((el) =>
-    (el.getAttribute('fill') as string).slice(5, -1),
-  )
-  expect(fills.length).toBeGreaterThan(0)
-  const patterns = new Set([...container.querySelectorAll('pattern')].map((p) => p.id))
-  expect(patterns.size).toBe(3)
-  for (const id of fills) expect(patterns.has(id), id).toBe(true)
+  const shapes = [...container.querySelectorAll('svg.chart-thumb :is(rect, circle, path)')]
+  expect(shapes.length).toBeGreaterThan(0)
+  for (const shape of shapes) {
+    expect(shape.getAttribute('class')).toMatch(/^ct-/)
+    expect(shape.getAttribute('fill')).toBeNull()
+    expect(shape.getAttribute('stroke')).toBeNull()
+  }
+  expect(container.querySelector('pattern')).toBeNull()
 })
 
 test('the lede is optional', () => {

@@ -22,13 +22,18 @@ export const heroSchema = z.object({
   command: z.string().optional(),
   code: z.string().optional().meta({ fieldType: 'textarea' }),
   codeFilename: z.string().optional(),
+  demoHeading: z.string().optional(),
+  demoText: z.string().optional().meta({ fieldType: 'textarea' }),
+  chartTitle: z.string().optional(),
+  chartNote: z.string().optional(),
 })
 
 export type HeroProps = z.infer<typeof heroSchema>
 
 /**
  * Server component: the chart is loaded by `exampleId`, text comes from the props. `command` is an
- * install line under the buttons and `code` the snippet shown under the chart; both are optional.
+ * install line under the buttons and `code` the snippet shown next to the chart, under
+ * `demoHeading` and `demoText`; `chartTitle` and `chartNote` head the chart card. All optional.
  */
 export async function Hero({ exampleId, code, codeFilename, ...rest }: HeroProps) {
   const loaded = await loadExamples([exampleId])

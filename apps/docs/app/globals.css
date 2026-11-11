@@ -3,13 +3,21 @@
    color-mix of those tokens. */
 
 :root {
+  /* The page is the chart surface itself; text is ink pulled toward the accent. */
   --docs-bg: var(--ch-surface);
   --docs-raised: var(--ch-tooltip-bg);
   --docs-line: var(--ch-grid);
-  --docs-text: var(--ch-ink);
-  --docs-muted: var(--ch-ink-muted);
+  /* The dark accent is light, so there it tints the text far less. */
+  --docs-text: light-dark(
+    color-mix(in srgb, var(--ch-accent) 55%, var(--ch-ink)),
+    color-mix(in srgb, var(--ch-accent) 12%, var(--ch-ink))
+  );
+  --docs-muted: light-dark(
+    color-mix(in srgb, var(--ch-accent) 30%, var(--ch-ink-muted)),
+    color-mix(in srgb, var(--ch-accent) 12%, var(--ch-ink-muted))
+  );
   /* Borders of controls need 3:1; ink-muted gives that on both backgrounds. */
-  --docs-control-border: var(--ch-ink-muted);
+  --docs-control-border: var(--docs-muted);
   /* Link text is the accent deepened with ink, so it stays apart from the accent marks. */
   --docs-link: color-mix(in srgb, var(--ch-accent) 70%, var(--ch-ink));
   --docs-focus: var(--ch-accent);
@@ -17,6 +25,8 @@
   --docs-header-h: 3.875rem;
   --docs-font:
     system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+  /* Headings: Outfit (`app/fonts.ts`), with the text font until it loads. */
+  --docs-heading-font: var(--font-outfit, system-ui), var(--docs-font);
   --docs-mono:
     ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
   /* The signature: stripes with the geometry of the hatched chart marks. */
@@ -67,6 +77,7 @@ h1,
 h2,
 h3 {
   margin: 0;
+  font-family: var(--docs-heading-font);
   line-height: 1.2;
   letter-spacing: -0.015em;
   text-wrap: balance;
@@ -74,19 +85,26 @@ h3 {
 
 h1 {
   font-size: 2.25rem;
-  font-weight: 750;
+  font-weight: 600;
 }
 
 h2 {
   margin-top: 3rem;
   margin-bottom: 0.75rem;
   font-size: 1.5rem;
-  font-weight: 700;
+  font-weight: 600;
 }
 
 h3 {
   font-size: 1.125rem;
-  font-weight: 650;
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+/* A reference dashboard is an example of a product page: it keeps the text font. */
+.ref-dashboard :is(h2, h3) {
+  font-family: var(--docs-font);
+  letter-spacing: -0.015em;
 }
 
 p {
@@ -219,33 +237,47 @@ a:hover {
   padding: 0 1rem;
 }
 
+/* The home page header ends at the edges of the 72rem column of the page. */
+.site-header-home .site-header-inner {
+  max-width: 72rem;
+}
+
 .hatch-rule {
   height: 0.375rem;
   background: var(--docs-hatch);
 }
 
 .wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.625rem;
   white-space: nowrap;
   color: var(--docs-text);
-  font-size: 1.125rem;
-  font-weight: 750;
-  letter-spacing: -0.02em;
+  font-family: var(--docs-heading-font);
+  font-size: 1.1875rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
   text-decoration: none;
+}
+
+.mark {
+  flex: none;
+  width: 1.875rem;
+  height: 1.3125rem;
 }
 
 .version {
   display: none;
-  padding: 0.05rem 0.5rem;
   text-decoration: none;
-  border: 1px solid var(--docs-line);
-  border-radius: 999px;
   color: var(--docs-muted);
-  font-size: 0.8125rem;
+  font-family: var(--docs-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
 }
 
 .header-links {
   display: flex;
-  gap: 1rem;
+  gap: 1.75rem;
   margin-left: auto;
 }
 
@@ -283,13 +315,38 @@ button {
   font-weight: 600;
 }
 
-.theme-select {
-  min-height: 2rem;
-  padding: 0 0.25rem;
-  border: 1px solid var(--docs-control-border);
+/* The theme select is drawn as an icon: the select itself is transparent and covers it. */
+.theme-switch {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 2.25rem;
+  height: 2.25rem;
+  margin-left: 0.5rem;
   border-radius: var(--docs-radius);
-  background: transparent;
   color: var(--docs-text);
+}
+
+.theme-switch svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+}
+
+.theme-switch:has(:focus-visible) {
+  outline: 2px solid var(--docs-focus);
+  outline-offset: 2px;
+}
+
+.theme-select {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  opacity: 0;
   font: inherit;
   font-size: 0.875rem;
   cursor: pointer;
@@ -741,6 +798,7 @@ tbody th {
 /* Light headings carry the page; the weight falls back to regular where a system font has no
    light cut. */
 .hero h1,
+.hero-demo h2,
 .home-section > h2 {
   font-weight: 300;
 }
@@ -752,6 +810,7 @@ tbody th {
 }
 
 /* The section headings only: a dashboard in the gallery keeps its own type. */
+.hero-demo h2,
 .home-section > h2 {
   font-size: 1.875rem;
   line-height: 1.15;
@@ -762,15 +821,15 @@ tbody th {
 }
 
 .section-lede {
-  max-width: 40rem;
+  max-width: 56rem;
   margin-bottom: 2rem;
   color: var(--docs-muted);
   font-size: 1.0625rem;
 }
 
-/* The hero is a centered column: copy, the drawing from edge to edge, then the live chart. The
-   section has no side padding, so the drawing spans the page and the two text blocks carry the
-   gutter themselves. */
+/* The hero is a centered column: copy, the drawing, then the code next to the live chart. The
+   section has no side padding, so on a phone the drawing spans the page; the text blocks carry
+   the gutter themselves. */
 .hero {
   display: flex;
   flex-direction: column;
@@ -798,7 +857,7 @@ tbody th {
   margin: 0;
   font-size: 2.375rem;
   line-height: 1.08;
-  letter-spacing: -0.025em;
+  letter-spacing: -0.02em;
 }
 
 .hero .lede {
@@ -873,7 +932,7 @@ tbody th {
   overflow-wrap: anywhere;
 }
 
-.install-line code::before {
+.hero .install-line code::before {
   content: "$ ";
   color: var(--docs-muted);
 }
@@ -885,6 +944,27 @@ tbody th {
   font-weight: 600;
 }
 
+/* A copy button that is an icon: square, with the muted color until it is hovered. */
+.code-copy-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 2.25rem;
+  padding: 0;
+  color: var(--docs-muted);
+}
+
+.code-copy-icon:hover {
+  color: var(--docs-text);
+}
+
+.code-copy-icon svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
 .hero .install-line {
   gap: 0.25rem;
   margin-top: 0.75rem;
@@ -893,12 +973,15 @@ tbody th {
   background: transparent;
 }
 
-/* The drawing of `blocks/home-art.tsx`. `slice` keeps its height on a phone and crops the sides. */
+/* The drawing of `blocks/home-art.tsx`, whole at its own proportions and no wider than 80rem.
+   On a phone `min-height` wins and `slice` crops the sides instead of shrinking it further. */
 .home-art {
   display: block;
   width: 100%;
-  height: clamp(9rem, 25vw, 20rem);
-  margin-top: 1rem;
+  max-width: 80rem;
+  min-height: 9rem;
+  aspect-ratio: 4 / 1;
+  margin: 1rem auto 0;
 }
 
 .art-accent {
@@ -954,10 +1037,26 @@ tbody th {
   stroke-opacity: 0.35;
 }
 
-.hero-visual {
+.hero-demo {
+  display: grid;
+  gap: 2rem;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
   min-width: 0;
-  margin-top: 2.5rem;
+  margin-top: 3.5rem;
   padding-inline: var(--home-gutter);
+}
+
+.hero-demo-copy {
+  min-width: 0;
+}
+
+.hero-demo h2 {
+  margin-bottom: 0.75rem;
+}
+
+.hero-demo .section-lede {
+  margin-bottom: 1.5rem;
 }
 
 .card {
@@ -974,26 +1073,49 @@ tbody th {
   font-size: 0.9375rem;
 }
 
-/* The chart and, under a rule, the code that draws it. No `overflow: hidden`: a tooltip of the
-   chart may reach past the card. */
+/* The live chart under its title. No `overflow: hidden`: a tooltip of the chart may reach past
+   the card. */
 .hero-card {
   position: relative;
-  max-width: 64rem;
+  width: 100%;
+  max-width: 40rem;
   margin-inline: auto;
   padding: 0;
   box-shadow: var(--home-lift);
 }
 
-.hero-chart {
-  min-width: 0;
-  padding: 1.25rem;
+.card .hero-card-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.25rem 1rem;
+  margin: 0;
+  padding: 1.5rem 1.75rem 0;
 }
 
+.hero-card-title {
+  color: var(--docs-text);
+  font-family: var(--docs-heading-font);
+  font-size: 1.0625rem;
+  font-weight: 600;
+}
+
+.hero-card-note {
+  color: var(--home-loss-text);
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.hero-chart {
+  min-width: 0;
+  padding: 1.25rem 1.75rem 1.5rem;
+}
+
+/* The code that draws the chart, between two rules on the page background. */
 .hero-code {
   min-width: 0;
-  border-top: 1px solid var(--docs-line);
-  border-radius: 0 0 var(--docs-radius) var(--docs-radius);
-  background: var(--docs-bg);
+  border-block: 1px solid var(--docs-line);
 }
 
 .hero-code .code-block {
@@ -1004,11 +1126,12 @@ tbody th {
 }
 
 .hero-code .code-block-bar {
+  padding-inline: 0;
   border-bottom: 0;
 }
 
 .hero-code pre {
-  padding-top: 0.25rem;
+  padding: 0.25rem 0 1.25rem;
   font-size: 0.8125rem;
 }
 
@@ -1022,9 +1145,15 @@ tbody th {
   margin-top: 0.5rem;
 }
 
+/* The mini chart of a rule: small and at the left edge, as a glyph. */
+.rule-chart {
+  max-width: 7rem;
+  margin-bottom: 1rem;
+}
+
 /* The rules of the visual language are plain columns under an ink rule, not boxes. */
 .band .card-grid .card {
-  padding: 1.25rem 0 0;
+  padding: 1.75rem 0 0;
   border: 0;
   border-top: 1px solid var(--docs-text);
   border-radius: 0;
@@ -1065,10 +1194,6 @@ tbody th {
 }
 
 /* ---------- Chart index ---------- */
-.chart-thumb-defs {
-  position: absolute;
-}
-
 /* A ruled list: the drawing on the left, the name and the purpose on the right. */
 .chart-index {
   display: grid;
@@ -1085,12 +1210,12 @@ tbody th {
 
 .chart-tile {
   display: grid;
-  grid-template-columns: 4.5rem minmax(0, 1fr);
-  column-gap: 1.125rem;
+  grid-template-columns: 4rem minmax(0, 1fr);
+  column-gap: 1.25rem;
   align-content: center;
   height: 100%;
-  min-height: 5.5rem;
-  padding: 0.875rem 0;
+  min-height: 6.75rem;
+  padding: 1rem 0;
   border: 0;
   border-top: 1px solid var(--docs-line);
   border-radius: 0;
@@ -1113,6 +1238,8 @@ tbody th {
 
 .chart-tile-name {
   align-self: end;
+  font-family: var(--docs-heading-font);
+  font-size: 1.0625rem;
   font-weight: 600;
   overflow-wrap: anywhere;
 }
@@ -1129,20 +1256,27 @@ tbody th {
   fill: var(--ch-accent);
 }
 
-.ct-soft {
-  fill: var(--ch-accent-soft);
-}
-
 .ct-loss {
   fill: var(--ch-loss);
 }
 
-.ct-neutral {
-  fill: var(--ch-neutral);
+.ct-gain {
+  fill: var(--ch-gain);
 }
 
-.ct-tint {
-  fill-opacity: var(--ch-hatch-tint);
+.ct-half {
+  fill-opacity: 0.55;
+}
+
+.ct-third {
+  fill-opacity: 0.3;
+}
+
+/* A planned or remaining amount: a light box with an outline. */
+.ct-plan {
+  fill: color-mix(in srgb, var(--ch-gain) 22%, transparent);
+  stroke: var(--ch-accent);
+  stroke-width: 1;
 }
 
 .ct-track {
@@ -1169,6 +1303,10 @@ tbody th {
 .ct-mark {
   stroke: var(--ch-ink);
   stroke-width: 1.5;
+}
+
+.ct-forecast {
+  stroke: var(--ch-gain);
 }
 
 .ct-dashed {
@@ -1249,11 +1387,21 @@ tbody th {
   flex-direction: column;
   align-items: center;
   gap: 0.75rem;
+  position: relative;
   margin-top: 2.5rem;
-  padding-block: 4.5rem;
+  padding-block: 4.5rem 9rem;
+  overflow: hidden;
   background: var(--docs-text);
   color: var(--docs-bg);
   text-align: center;
+}
+
+/* The ridges of `CtaArt` along the bottom edge, behind nothing: the content ends above them. */
+.cta-art {
+  position: absolute;
+  inset: auto 0 0;
+  width: 100%;
+  height: clamp(3.5rem, 9.375vw, 7.5rem);
 }
 
 .home-section.cta > h2 {
@@ -1277,16 +1425,18 @@ tbody th {
 }
 
 .cta .install-line {
+  min-height: 3rem;
   margin: 0;
   border-color: color-mix(in srgb, var(--docs-bg) 55%, var(--docs-text));
+  border-radius: 0.25rem;
   background: transparent;
 }
 
-.cta .install-line code::before {
+.cta .code-copy {
   color: var(--cta-muted);
 }
 
-.cta .code-copy {
+.cta .code-copy:hover {
   color: var(--docs-bg);
 }
 
@@ -1300,62 +1450,35 @@ tbody th {
 }
 
 /* ---------- Footer ---------- */
+/* One line: the license on the left, the project links on the right. */
 .site-footer {
-  border-top: 1px solid var(--docs-line);
-  background: var(--docs-raised);
   color: var(--docs-muted);
   font-size: 0.9375rem;
 }
 
 .site-footer-inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem 1.5rem;
   max-width: 72rem;
   margin: 0 auto;
-  padding: 2.5rem 1rem 2rem;
-}
-
-.footer-columns {
-  display: grid;
-  gap: 2rem;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.footer-columns > :first-child {
-  grid-column: 1 / -1;
+  padding: 1.5rem 1rem;
 }
 
 .site-footer p {
   margin: 0;
 }
 
-.site-footer ul {
-  margin: 0;
-  padding: 0;
-  list-style: none;
+.footer-links {
+  display: flex;
+  gap: 1.5rem;
 }
 
 .site-footer a {
   display: inline-block;
   padding: 0.3rem 0;
-  color: var(--docs-text);
-  text-decoration: none;
-}
-
-.site-footer a:hover {
-  text-decoration: underline;
-}
-
-.site-footer .footer-title {
-  margin-bottom: 0.25rem;
-  color: var(--docs-text);
-  font-size: 0.875rem;
-  font-weight: 650;
-}
-
-.site-footer .footer-legal {
-  margin-top: 2rem;
-  padding-top: 1.25rem;
-  border-top: 1px solid var(--docs-line);
-  font-size: 0.875rem;
 }
 
 /* ---------- 404 and error pages ---------- */
@@ -1399,6 +1522,10 @@ button.button:not(.button-primary) {
   .docs-main,
   .site-footer-inner {
     padding-inline: 1.5rem;
+  }
+
+  .site-footer-inner {
+    padding-block: 2rem;
   }
 
   .home {
@@ -1460,16 +1587,14 @@ button.button:not(.button-primary) {
     padding-block: 4.5rem 3.5rem;
   }
 
-  /* The chart and its code side by side. */
-  .hero-card:has(.hero-code) {
-    display: grid;
-    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  /* The code and its chart side by side. */
+  .hero-demo-split {
+    gap: 3.5rem;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
   }
 
-  .hero-code {
-    border-top: 0;
-    border-left: 1px solid var(--docs-line);
-    border-radius: 0 var(--docs-radius) var(--docs-radius) 0;
+  .hero-demo-split .hero-card {
+    max-width: none;
   }
 
   .chart-index {
@@ -1478,14 +1603,6 @@ button.button:not(.button-primary) {
 
   .home-section.cta > h2 {
     font-size: 2.75rem;
-  }
-
-  .footer-columns {
-    grid-template-columns: 2fr repeat(3, minmax(0, 1fr));
-  }
-
-  .footer-columns > :first-child {
-    grid-column: auto;
   }
 
   .hero h1 {
@@ -1498,6 +1615,10 @@ button.button:not(.button-primary) {
 }
 
 @media (min-width: 1100px) {
+  .chart-index {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
   .doc-body {
     grid-template-columns: minmax(0, 1fr) 13rem;
   }
