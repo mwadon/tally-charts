@@ -1,6 +1,6 @@
 {
   "name": "tally-charts",
-  "version": "1.0.0-rc.4",
+  "version": "1.0.0-rc.5",
   "description": "Opinionated React charts for narrative business dashboards.",
   "license": "MIT",
   "author": "Mateusz Wadoń",
