@@ -60,11 +60,20 @@ test.describe('icon and Open Graph image', () => {
     test(`${path} links the SVG icon and the Open Graph image`, async ({ page, request }) => {
       await page.goto(path)
 
-      const icon = await page.locator('link[rel="icon"]').first().getAttribute('href')
+      const icon = await page.locator('link[rel="icon"][type="image/svg+xml"]').getAttribute('href')
       expect(icon).toMatch(/^\/icon\.svg/)
       const iconResponse = await request.get(icon ?? '')
       expect(iconResponse.status()).toBe(200)
       expect(iconResponse.headers()['content-type']).toContain('image/svg+xml')
+
+      // Browsers without SVG favicons take the .ico; iOS takes the Apple icon.
+      const ico = await page.locator('link[rel="icon"][href^="/favicon.ico"]').getAttribute('href')
+      expect((await request.get(ico ?? '')).status()).toBe(200)
+      const apple = await page.locator('link[rel="apple-touch-icon"]').getAttribute('href')
+      expect(apple).toMatch(/^\/apple-icon/)
+      const appleResponse = await request.get(apple ?? '')
+      expect(appleResponse.status()).toBe(200)
+      expect(appleResponse.headers()['content-type']).toContain('image/png')
 
       await expect(page.locator('meta[property="og:site_name"]')).toHaveAttribute(
         'content',

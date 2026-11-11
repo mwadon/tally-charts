@@ -1,10 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
   <title>tally-charts</title>
-  <!-- A tally of five on the accent of the light theme (--ch-accent). The filled tile keeps the
-       mark readable on a light and on a dark tab. -->
+  <!-- The mark of the site header (three overlapping peaks) on the accent of the light theme
+       (--ch-accent). The filled tile keeps the mark readable on a light and on a dark tab; the
+       peaks use the dark-theme loss and gain tones, which are bright enough on the tile.
+       app/favicon.ico and app/apple-icon.png are renders of this drawing. -->
   <rect width="32" height="32" rx="7" fill="#24356b"/>
-  <g fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round">
-    <path d="M9 8.5v15M13.7 8.5v15M18.3 8.5v15M23 8.5v15"/>
-    <path d="M5.5 20.5l21-9"/>
-  </g>
+  <path fill="#ff6b74" fill-opacity=".9" d="M4 25l7.5-11.5L19 25z"/>
+  <path fill="#fff" d="M9.5 25L16 7l6.5 18z"/>
+  <path fill="#5cc0e6" fill-opacity=".9" d="M17 25l5.5-8.5L28 25z"/>
 </svg>
