@@ -2699,3 +2699,24 @@ Gałąź `ui-refresh-palette`, bez commita. Zmiany tylko w `apps/docs` (bibliote
 - `docs/reference/09-performance.png` był zrzutem produktu klienta z tymi ścieżkami. Zastąpiony zrzutem naszej story (light, darwin).
 - Favicon: `app/icon.svg` to teraz znak z nagłówka (trzy szczyty) na kafelku `--ch-accent`. Doszły `app/favicon.ico` (16, 32, 48 px) i `app/apple-icon.png` (180 px), wyrenderowane z tego SVG przez Playwright. `e2e/routes.spec.ts` sprawdza wszystkie trzy linki.
 - Polski przykład `hooks-and-providers/polish-messages.tsx` zostaje: pokazuje tłumaczenie komunikatów.
+
+## Wydanie stabilne 1.0.0 (2026-11-11, domknięte 2026-11-17)
+
+- `tally-charts@1.0.0` jest na npm jako `latest` z atestacją provenance (`rc` zostaje na `1.0.0-rc.5`). Wyjście z pre mode: PR #28, Version PR: #29.
+- Przebieg Release 43008818452: job `publish` padł na „Check provenance” o 16:30:34 UTC, a wersja stała się widoczna na npm o 16:30:47 (staged publishing, zatwierdzenie na npmjs.com 13 s za późno). Krok czekał tylko 60 s, a wymaganego potem re-runu nikt nie zrobił, więc tagu i GitHub Release nie było do 2026-11-17. Re-run joba tego dnia: publish pominięty, tag `v1.0.0` (`bbd7004`) i GitHub Release `v1.0.0` (Latest) utworzone.
+- Poprawka: `release.yml` ma krok „Wait for the version on npm”, który czeka do 30 minut na zatwierdzenie staged wersji (timeout joba 20 → 50 minut); `docs/releasing.md` §4 i §7 opisują nowe zachowanie. Bramki: `pnpm check:workflows`, `pnpm test:scripts` 39/39, actionlint 1.7.7 exit 0. Sam krok sprawdzi dopiero następne wydanie.
+- Strona docs pod `https://tally-charts-docs.vercel.app` odpowiada 200 i pokazuje v1.0.0 (pomiar 2026-11-17).
+
+**Stan starszych sekcji ⛔ [MAINTAINER]** (nagłówków nie zmieniam, linie potwierdzeń wpisuje maintainer):
+- T17, Q2-01: fakty spełnione (trusted publisher, environment `npm-publish`, publikacje z CI od rc.2); brakuje tylko linii `T17 potwierdzony: …`.
+- T39: nieaktualny w części publikacji (rc.0 i dalsze wydane). Otwarte: edytor glokki ma pin `1.0.0-rc.1` (lokalny `~/projects/editor`, 2026-11-17), do podniesienia na `1.0.0`.
+- T36, Q1-03.2: projekt Vercel działa pod `DOCS_URL`; brakuje linii `Q1-03 potwierdzony: …`.
+- T35, Q1-04: niepotwierdzone. Nie sprawdzono, czy produkcja czyta treść z glokki, ani stanu seeda i webhooka.
+- Q1-02 (bramka F10): nadal bez decyzji maintainera.
+
+**Otwarte kwestie:**
+- Bump `tally-charts` w edytorze glokki do `1.0.0` i sprawdzenie ekranu Performance.
+- `pnpm --filter docs seed --dry-run`, a przy różnicach seed (bloki `chart-index`, `cta`, nowe propsy hero).
+- Dependabot: PR #30 oraz alerty `minimatch` i `glob` (medium) bez PR-ów.
+- Lighthouse nie był uruchamiany po odświeżeniu strony głównej.
+- Ręczny przebieg a11y (VoiceOver, NVDA, high contrast, 400%) i test dotykowy na iOS Safari (PR #12).

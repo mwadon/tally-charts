@@ -83,9 +83,11 @@ Merging the Version PR pushes to `main`. This time there are no pending changese
    `prepublishOnly`, the full check suite again), then pushes the tag `vX.Y.Z` and creates a GitHub
    Release with the matching `CHANGELOG.md` section (marked as a pre-release for versions with `-`).
 4. The package has staged publishing, so the published version stays hidden until an npm owner
-   approves it on npmjs.com (2FA), and **Check provenance** fails with "is not visible on npm".
-   Approve the version, then re-run the `publish` job and approve the environment again: the
-   publish is skipped, the check passes and the tag and release are created.
+   approves it on npmjs.com (2FA). The step **Wait for the version on npm** waits up to 30 minutes
+   for that approval; approve the version in that window and the job goes on to the provenance
+   check, the tag and the release. After 30 minutes it fails with "is not visible on npm": approve
+   the version, then re-run the `publish` job and approve the environment again (the publish is
+   skipped, the tag and release are created).
 
 The `tally-charts@x.y.z` tags that changesets creates inside the runner are not pushed; the repo
 uses `vX.Y.Z`.
@@ -151,10 +153,9 @@ Never publish from a laptop and never add a token. Fix the cause and re-run.
 - **Check provenance failed**: the version is on npm without an attestation. Check that the job
   has `id-token: write` and that the trusted publisher matches (section 9). A re-run skips the
   publish and repeats the check; if it can't be fixed, deprecate that version and ship a new patch.
-- **Check provenance says the version is not visible on npm**: the trusted publisher on npmjs.com
-  has the permission "npm stage publish", so the publish lands as a staged version. Approve it on
-  npmjs.com (it needs 2FA), then re-run the `publish` job: the publish is skipped and the check
-  repeats. Never publish the same version from a laptop instead: it carries no attestation.
+- **Wait for the version on npm says the version is not visible on npm**: the publish landed as a
+  staged version and nobody approved it within 30 minutes. Approve it on npmjs.com (it needs 2FA),
+  then re-run the `publish` job: the publish is skipped and the checks repeat. Never publish the same version from a laptop instead: it carries no attestation.
 - **Version already published**: `changeset publish` skips versions that exist on npm ("No
   unpublished projects to publish"), so a re-run after a success only does the tag and release
   steps. If the published version is wrong, don't unpublish; ship a new patch.
