@@ -101,7 +101,10 @@ legend, a second value scale, smoothing (straight segments, as `Line`).
 - Default tones by series position: `accent`, `accent-soft`, `warn`, `neutral`, `gain`, then
   repeating (the bar charts' order). Never `loss`.
 - Forecast part: from the x before `forecastFrom` to the last x every layer is painted with the
-  tone's existing hatch pattern and outlined on its upper edge in the tone (1.5 px). A dashed
+  tone's existing hatch pattern and outlined on its upper edge (1.5 px, the tone mixed with ink,
+  as the outline of hatched bars). A solid `accent-soft` layer on top of the stack gets the same
+  edge, as solid `accent-soft` bars have an outline. On a time axis `forecastFrom` can be any
+  date: the hatched part starts at the last x before it. A dashed
   vertical rule sits at that x with `forecastLabel` above it. `forecastFrom` at the first x or not
   on the axis: nothing is hatched, with a development warning in the second case.
 - Values: negative values are not stackable as areas; a negative value counts as zero, with a

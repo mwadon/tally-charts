@@ -229,8 +229,9 @@ describe('<StackedAreaChart> forecast part', () => {
       forecastLabel: 'booked from here on',
     })
     const label = parts(container, 'forecast-label')[0]
-    // Half of the estimated width from the left edge, not centred on W1 at 25.
-    expect(Number(label?.getAttribute('x'))).toBeGreaterThan(25)
+    // Half of the estimated width (19 characters × 6.5 px) from the left edge, not centred on W1
+    // at 25.
+    expect(label).toHaveAttribute('x', '61.75')
   })
 
   it('hatches nothing and draws no rule when `forecastFrom` is the first x', () => {
@@ -289,7 +290,35 @@ describe('<StackedAreaChart> forecast part', () => {
       expect(hatch).toHaveLength(1)
       expect(xsOf(hatch[0])).toEqual(weeksX(9, 10))
     }
-    expect(parts(container, 'area-edge')).toHaveLength(3)
+    const edges = parts(container, 'area-edge')
+    expect(edges).toHaveLength(3)
+    for (const edge of edges) expect(pointsOf(edge).map((p) => p.x)).toEqual(weeksX(9, 10))
+  })
+
+  it('rules the top of a solid accent-soft layer and no other solid layer', () => {
+    const two = renderChart({ series: three.slice(0, 2) })
+    const edges = parts(two.container, 'area-edge')
+    expect(edges).toHaveLength(1)
+    expect(edges[0]).toHaveAttribute('data-ch-tone', 'accent-soft')
+    expect(pointsOf(edges[0])).toEqual(
+      weeks.map((w, i) => ({
+        x: xOf(i + 1),
+        y: yOf((w.install as number) + (w.service as number)),
+      })),
+    )
+    two.unmount()
+    const all = renderChart()
+    expect(parts(all.container, 'area-edge')).toHaveLength(0)
+  })
+
+  it('rules a solid accent-soft top up to the split, and every hatched layer after it', () => {
+    const { container } = renderChart({ series: three.slice(0, 2), forecastFrom: 'W10' })
+    const edges = parts(container, 'area-edge')
+    expect(edges.map((e) => pointsOf(e).map((p) => p.x))).toEqual([
+      weeksX(9, 12),
+      weeksX(9, 12),
+      weeksX(1, 9),
+    ])
   })
 })
 
@@ -419,6 +448,70 @@ describe('<StackedAreaChart> on a time axis', () => {
     expect(hatch).toHaveLength(2)
     expect(xsOf(hatch[0])).toEqual([200, 300, 400])
     expect(parts(container, 'forecast-rule')[0]).toHaveAttribute('x1', '200')
+  })
+
+  const hatchedXs = (root: HTMLElement) =>
+    parts(root, 'area-layer')
+      .filter((el) => el.getAttribute('data-ch-fill') === 'hatch')
+      .map(xsOf)
+
+  it('splits at the last date before a `forecastFrom` between two rows', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const { container } = renderDays({ forecastFrom: '2026-01-03T12:00:00Z' })
+    expect(hatchedXs(container)).toEqual([
+      [200, 300, 400],
+      [200, 300, 400],
+    ])
+    expect(parts(container, 'forecast-rule')[0]).toHaveAttribute('x1', '200')
+    expect(warn).not.toHaveBeenCalled()
+  })
+
+  it('splits at a row on the same day as a `forecastFrom` with a time of day', () => {
+    const { container } = renderDays({ forecastFrom: new Date(Date.UTC(2026, 0, 4, 15, 30)) })
+    expect(hatchedXs(container)).toEqual([
+      [300, 400],
+      [300, 400],
+    ])
+    expect(parts(container, 'forecast-rule')[0]).toHaveAttribute('x1', '300')
+  })
+
+  it('hatches nothing, without a warning, for a `forecastFrom` at or before the first date', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    for (const from of ['2026-01-01', '2025-12-01']) {
+      const { container, unmount } = renderDays({ forecastFrom: from, forecastLabel: 'today' })
+      expect(hatchedXs(container)).toEqual([])
+      expect(parts(container, 'forecast-rule')).toHaveLength(0)
+      expect(parts(container, 'forecast-label')).toHaveLength(0)
+      unmount()
+    }
+    expect(warn).not.toHaveBeenCalled()
+  })
+
+  it('warns once and hatches nothing for a `forecastFrom` that is not a date', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const { container } = renderDays({ forecastFrom: 'soon' })
+    expect(hatchedXs(container)).toEqual([])
+    expect(parts(container, 'forecast-rule')).toHaveLength(0)
+    expect(warn).toHaveBeenCalledTimes(1)
+    expect(warn.mock.calls[0]?.[0]).toMatch(/^\[tally-charts\] .*"soon".*not a date/)
+  })
+
+  it('hatches every drawn row, with no rule, when the split date is before the domain', () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
+    // 400 px over Jan 2 – Jan 5; Jan 1, the split row, is outside.
+    const { container } = renderDays({
+      x: { type: 'time', field: 'at', domain: ['2026-01-02', '2026-01-05'] },
+      forecastFrom: '2026-01-02',
+      forecastLabel: 'today',
+    })
+    expect(parts(container, 'area-layer').map((el) => el.getAttribute('data-ch-fill'))).toEqual([
+      'hatch',
+      'hatch',
+    ])
+    expect(hatchedXs(container)[0]).toEqual([0, 133.33, 266.67, 400])
+    expect(parts(container, 'forecast-rule')).toHaveLength(0)
+    expect(parts(container, 'forecast-label')).toHaveLength(0)
+    expect(parts(container, 'area-separator')).toHaveLength(0)
   })
 })
 

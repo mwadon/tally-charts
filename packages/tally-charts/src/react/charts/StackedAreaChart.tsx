@@ -12,7 +12,7 @@ import { createWarner, DEV } from '../../core/warn'
 import { paintFor } from '../../theme/patterns'
 import { Chart, type ChartName } from '../Chart'
 import { useFormat, useMessages } from '../ChartsProvider'
-import { type Margin, useChartContext } from '../context'
+import { type InternalChartContext, type Margin, useChartContext } from '../context'
 import type { DataTableColumn, DataTableSpec } from '../DataTable'
 import { Axis, type AxisFormat } from '../marks/Axis'
 import { Grid } from '../marks/Grid'
@@ -210,18 +210,29 @@ export function StackedAreaChart<D>({
     [domain, stacks, yTicks],
   )
 
-  // The forecast part starts at the x before `forecastFrom`; at the first x nothing is hatched.
+  // The forecast part starts at the x before `forecastFrom`: on a category axis the category
+  // before it, on a time axis the last date before it (as `LineChart`). With no x before it
+  // nothing is hatched.
   let splitKey: string | undefined
+  let unknownForecast = false
   if (forecastFrom !== undefined) {
-    const t = time ? toTime(forecastFrom) : undefined
-    const at = rows.findIndex((r) => (time ? r.time === t : r.key === String(forecastFrom)))
-    if (at > 0) splitKey = rows[at - 1]?.key
-    if (DEV && at < 0) {
-      warn(
-        'stacked-area-forecast',
-        `StackedAreaChart has no x "${String(forecastFrom)}" for \`forecastFrom\`; nothing is hatched.`,
-      )
+    if (time) {
+      const t = toTime(forecastFrom)
+      if (t === undefined) unknownForecast = true
+      else splitKey = rows.filter((r) => r.time < t).at(-1)?.key
+    } else {
+      const at = rows.findIndex((r) => r.key === String(forecastFrom))
+      if (at < 0) unknownForecast = true
+      else if (at > 0) splitKey = rows[at - 1]?.key
     }
+  }
+  if (DEV && unknownForecast) {
+    warn(
+      'stacked-area-forecast',
+      time
+        ? `StackedAreaChart got \`forecastFrom\` "${String(forecastFrom)}", which is not a date; nothing is hatched.`
+        : `StackedAreaChart has no x "${String(forecastFrom)}" for \`forecastFrom\`; nothing is hatched.`,
+    )
   }
 
   let table: DataTableSpec<XRow<D>> | undefined
@@ -270,16 +281,123 @@ export function StackedAreaChart<D>({
   )
 }
 
-/** A drawable row: its plot x and its stack. */
-interface Column {
+/** A drawable row: a complete row with a plot x. */
+interface AreaColumn<D> {
+  /** Position in the drawn rows (break rows included). */
+  at: number
+  row: XRow<D>
+  /** Plot x in px. */
   x: number
   stack: Stack
+  /** Per series its [from, to] in plot y px, clamped to the plot. */
+  ys: [number, number][]
+}
+
+interface AreaPath {
+  tone: Tone
+  d: string
+}
+
+/** Everything the layers draw, in px; points and end labels can read the same columns. */
+interface AreaLayout<D> {
+  /** Drawable rows in axis order. */
+  columns: AreaColumn<D>[]
+  /** Per series (in order) its layer paths: solid parts, then hatched parts. */
+  layers: { tone: Tone; solid: string[]; hatched: string[] }[]
+  /** One path per boundary between neighbouring layers, over the solid parts. */
+  separators: string[]
+  /** Upper edges: every layer over the hatched parts, and an `accent-soft` top layer over the solid parts. */
+  edges: AreaPath[]
+  /** The split x when the split row is drawn. */
+  splitX: number | undefined
+}
+
+/**
+ * The layer geometry. Columns are cut into runs at incomplete rows, and each run into a solid
+ * part (up to the split row) and a hatched part (from it); both parts share the split x, and a
+ * part of one column draws nothing. A split row outside the time domain still divides the
+ * columns, so all drawn columns after it are hatched, but has no x for the rule.
+ */
+function layoutAreas<D>(
+  ctx: InternalChartContext,
+  rows: readonly XRow<D>[],
+  stacks: readonly (Stack | undefined)[],
+  tones: readonly Tone[],
+  splitKey: string | undefined,
+): AreaLayout<D> {
+  const layout: AreaLayout<D> = {
+    columns: [],
+    layers: tones.map((tone) => ({ tone, solid: [], hatched: [] })),
+    separators: [],
+    edges: [],
+    splitX: undefined,
+  }
+  if (ctx.y.kind !== 'linear') return layout
+  const linear = ctx.y.scale
+  const yOf = (value: number) => clampToRange(linear, linear(value))
+
+  // The first row with the split key is the real one; a break row after it repeats the key.
+  const split = splitKey === undefined ? -1 : rows.findIndex((r) => r.key === splitKey)
+  const splitRow = rows[split]
+  layout.splitX = splitRow ? rowX(ctx, splitRow, 'StackedAreaChart') : undefined
+
+  const solid: AreaColumn<D>[][] = []
+  const hatched: AreaColumn<D>[][] = []
+  let run: AreaColumn<D>[] = []
+  const flush = () => {
+    const before = split < 0 ? run : run.filter((c) => c.at <= split)
+    const after = split < 0 ? [] : run.filter((c) => c.at >= split)
+    if (before.length > 1) solid.push(before)
+    if (after.length > 1) hatched.push(after)
+    run = []
+  }
+  rows.forEach((row, at) => {
+    const stack = stacks[at]
+    const x = stack ? rowX(ctx, row, 'StackedAreaChart') : undefined
+    if (!stack || x === undefined) {
+      flush()
+      return
+    }
+    const column: AreaColumn<D> = {
+      at,
+      row,
+      x,
+      stack,
+      ys: stack.extents.map(([from, to]): [number, number] => [yOf(from), yOf(to)]),
+    }
+    layout.columns.push(column)
+    run.push(column)
+  })
+  flush()
+
+  const ys = (c: AreaColumn<D>, k: number) => c.ys[k] ?? [0, 0]
+  const band = (part: AreaColumn<D>[], k: number) =>
+    bandPath(part.map((c) => ({ x: c.x, low: ys(c, k)[0], high: ys(c, k)[1] })))
+  const upper = (parts: AreaColumn<D>[][], k: number) =>
+    parts.map((part) => linePath(part.map((c) => ({ x: c.x, y: ys(c, k)[1] })))).join('')
+
+  layout.layers.forEach((layer, k) => {
+    layer.solid = solid.map((part) => band(part, k))
+    layer.hatched = hatched.map((part) => band(part, k))
+  })
+  if (solid.length > 0) {
+    layout.separators = tones.slice(0, -1).map((_, k) => upper(solid, k))
+  }
+  if (hatched.length > 0) {
+    layout.edges = tones.map((tone, k) => ({ tone, d: upper(hatched, k) }))
+  }
+  // A solid accent-soft keeps no 3:1 edge on the surface by itself: rule the top layer, as
+  // theme.css outlines solid accent-soft bars. Lower layers end at a separator.
+  const top = tones.length - 1
+  if (solid.length > 0 && tones[top] === 'accent-soft') {
+    layout.edges.push({ tone: 'accent-soft', d: upper(solid, top) })
+  }
+  return layout
 }
 
 /**
  * Inside <Chart>: per series the layer paths (solid, then hatched from the split x), the surface
- * separators between neighbouring layers in the solid part, the upper edges of the hatched
- * layers, and the forecast rule with its label.
+ * separators, the upper edges, and the forecast rule with its label.
  */
 function AreaLayers<D>({
   rows,
@@ -295,41 +413,14 @@ function AreaLayers<D>({
   forecastLabel: string | undefined
 }) {
   const ctx = useChartContext('StackedAreaChart')
-  if (ctx.y.kind !== 'linear') return null
-  const linear = ctx.y.scale
-  const yOf = (value: number) => clampToRange(linear, linear(value))
-
-  // The first row with the split key is the real one; a break row after it repeats the key.
-  const splitAt = splitKey === undefined ? -1 : rows.findIndex((r) => r.key === splitKey)
-  const splitRow = rows[splitAt]
-  const splitX = splitRow ? rowX(ctx, splitRow, 'StackedAreaChart') : undefined
-  const split = splitX === undefined ? -1 : splitAt
-
-  // Runs of consecutive drawable rows, each cut at the split into a solid and a hatched part
-  // that share the split x. A part of one row draws nothing.
-  const solid: Column[][] = []
-  const hatched: Column[][] = []
-  let run: { at: number; column: Column }[] = []
-  const flush = () => {
-    const before = split < 0 ? run : run.filter((c) => c.at <= split)
-    const after = split < 0 ? [] : run.filter((c) => c.at >= split)
-    if (before.length > 1) solid.push(before.map((c) => c.column))
-    if (after.length > 1) hatched.push(after.map((c) => c.column))
-    run = []
-  }
-  rows.forEach((row, at) => {
-    const stack = stacks[at]
-    const px = stack ? rowX(ctx, row, 'StackedAreaChart') : undefined
-    if (stack && px !== undefined) run.push({ at, column: { x: px, stack } })
-    else flush()
-  })
-  flush()
-
-  const extent = (c: Column, k: number) => c.stack.extents[k] ?? [0, 0]
-  const layer = (part: Column[], k: number) =>
-    bandPath(part.map((c) => ({ x: c.x, low: yOf(extent(c, k)[0]), high: yOf(extent(c, k)[1]) })))
-  const upper = (parts: Column[][], k: number) =>
-    parts.map((part) => linePath(part.map((c) => ({ x: c.x, y: yOf(extent(c, k)[1]) })))).join('')
+  const { x: xScale, y: yScale } = ctx
+  // The layout reads only the scales (and warns through the chart's warner, which is stable).
+  // biome-ignore lint/correctness/useExhaustiveDependencies: ctx is a new object on every render; the scales are what the layout depends on
+  const layout = useMemo(
+    () => layoutAreas(ctx, rows, stacks, tones, splitKey),
+    [xScale, yScale, rows, stacks, tones, splitKey],
+  )
+  const { layers, separators, edges, splitX } = layout
 
   const paint = (tone: Tone, fill: Fill) =>
     ({
@@ -340,56 +431,48 @@ function AreaLayers<D>({
 
   return (
     <g data-ch-part="area-layers">
-      {tones.map((tone, k) => (
+      {layers.map((layer, k) => (
         // biome-ignore lint/suspicious/noArrayIndexKey: series ids may repeat (warned about), the position keeps keys unique
         <Fragment key={k}>
-          {solid.map((part, r) => (
+          {layer.solid.map((d, r) => (
             <path
               // biome-ignore lint/suspicious/noArrayIndexKey: parts have no id of their own
               key={`s${r}`}
               data-ch-part="area-layer"
-              data-ch-tone={tone}
+              data-ch-tone={layer.tone}
               data-ch-fill="solid"
-              d={layer(part, k)}
-              style={paint(tone, 'solid')}
+              d={d}
+              style={paint(layer.tone, 'solid')}
             />
           ))}
-          {hatched.map((part, r) => (
+          {layer.hatched.map((d, r) => (
             <path
               // biome-ignore lint/suspicious/noArrayIndexKey: parts have no id of their own
               key={`h${r}`}
               data-ch-part="area-layer"
-              data-ch-tone={tone}
+              data-ch-tone={layer.tone}
               data-ch-fill="hatch"
-              d={layer(part, k)}
-              style={paint(tone, 'hatch')}
+              d={d}
+              style={paint(layer.tone, 'hatch')}
             />
           ))}
         </Fragment>
       ))}
       {/* Between neighbouring layers only: none on the top edge, none along the baseline. */}
-      {solid.length > 0
-        ? tones.slice(0, -1).map((_, k) => (
-            <path
-              // biome-ignore lint/suspicious/noArrayIndexKey: one separator per boundary, in order
-              key={k}
-              data-ch-part="area-separator"
-              d={upper(solid, k)}
-            />
-          ))
-        : null}
-      {hatched.length > 0
-        ? tones.map((tone, k) => (
-            <path
-              // biome-ignore lint/suspicious/noArrayIndexKey: series ids may repeat, the position keeps keys unique
-              key={k}
-              data-ch-part="area-edge"
-              data-ch-tone={tone}
-              d={upper(hatched, k)}
-              style={{ '--_ch-swatch-color': `var(--ch-${tone})` } as CSSProperties}
-            />
-          ))
-        : null}
+      {separators.map((d, k) => (
+        // biome-ignore lint/suspicious/noArrayIndexKey: one separator per boundary, in order
+        <path key={k} data-ch-part="area-separator" d={d} />
+      ))}
+      {edges.map((edge, k) => (
+        <path
+          // biome-ignore lint/suspicious/noArrayIndexKey: tones may repeat, the position keeps keys unique
+          key={k}
+          data-ch-part="area-edge"
+          data-ch-tone={edge.tone}
+          d={edge.d}
+          style={{ '--_ch-swatch-color': `var(--ch-${edge.tone})` } as CSSProperties}
+        />
+      ))}
       {splitX === undefined ? null : (
         <>
           <line
