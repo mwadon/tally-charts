@@ -304,9 +304,32 @@ describe('theme.css', () => {
       /\[data-ch-part="target"\],\s*\[data-ch-part="forecast-rule"\] \{\s*stroke: var\(--ch-ink\);[^}]*stroke-dasharray: 3 3;/,
     )
     expect(themed).toMatch(
-      /\[data-ch-part="target-label"\],\s*\[data-ch-part="forecast-label"\] \{\s*fill: var\(--ch-ink-muted\);/,
+      /\[data-ch-part="target-label"\],\s*\[data-ch-part="forecast-label"\],\s*\[data-ch-part="end-label"\] \{\s*fill: var\(--ch-ink-muted\);/,
     )
     expect(forced).toMatch(/\[data-ch-part="forecast-label"\],[\s\S]*?\) \{\s*fill: GrayText;/)
+  })
+
+  it('styles stacked area end labels and the cursor like the labels and dots they join', () => {
+    // The series name reads as an axis label, the value as a value label.
+    expect(forced).toMatch(/\[data-ch-part="end-label"\],[\s\S]*?\) \{\s*fill: GrayText;/)
+    expect(themed).toMatch(
+      /\[data-ch-part="value-label"\],\s*\[data-ch-part="end-value"\] \{\s*fill: var\(--ch-ink\);\s*font-size: 13px;/,
+    )
+    expect(themed).toMatch(
+      /\[data-ch-part="cursor"\] \{\s*stroke: var\(--ch-ink\);\s*stroke-width: 1;/,
+    )
+    expect(themed).toMatch(
+      /\[data-ch-part="cursor-dot"\] \{\s*stroke: var\(--ch-surface\);\s*stroke-width: 2;/,
+    )
+    // A soft accent dot keeps its inked outline, as the dot part does.
+    expect(themed).toMatch(
+      /\[data-ch-part="cursor-dot"\]\[data-ch-tone="accent-soft"\] \{\s*stroke: color-mix/,
+    )
+    expect(forced).toMatch(/\[data-ch-part="cursor"\] \{\s*stroke: CanvasText;/)
+    expect(forced).toMatch(/\[data-ch-part="cursor-dot"\] \{\s*stroke: Canvas;/)
+    expect(css).toMatch(
+      /\[data-ch-part="cursor"\],\s*\[data-ch-part="cursor-dot"\],[^{]*\{\s*pointer-events: none;/,
+    )
   })
 
   it('lets the pointer rest on a hover tooltip but not on a pinned callout', () => {

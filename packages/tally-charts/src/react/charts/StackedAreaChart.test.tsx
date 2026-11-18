@@ -1,6 +1,20 @@
-import { render } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
+import type { ChartPoint } from '../types'
 import { type AreaSeries, StackedAreaChart, type StackedAreaChartProps } from './StackedAreaChart'
+
+// Records every points array a mark registers, so a test can see whether a re-render with the
+// same props registers a new array. The real hook still runs.
+const registered = vi.hoisted(() => [] as (readonly ChartPoint[])[])
+vi.mock('../useRegisterPoints', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../useRegisterPoints')>()
+  return {
+    useRegisterPoints: (points: readonly ChartPoint[]) => {
+      if (points.length > 0) registered.push(points)
+      actual.useRegisterPoints(points)
+    },
+  }
+})
 
 type Week = {
   week: string
@@ -584,5 +598,305 @@ describe('<StackedAreaChart> dev warnings', () => {
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
     renderChart({ forecastFrom: 'W10', forecastLabel: 'today' })
     expect(warn).not.toHaveBeenCalled()
+  })
+})
+
+/** The weeks at 600 × 280 with the default margins and domain, as an end-label reader sees them. */
+function renderLabelled(props: Partial<StackedAreaChartProps<Week>> = {}) {
+  return render(
+    <StackedAreaChart<Week>
+      data={weeks}
+      x="week"
+      series={three}
+      format={(v) => `${v} h`}
+      width={600}
+      title="Crew hours per week"
+      animate={false}
+      {...props}
+    />,
+  )
+}
+
+/** The last (rightmost) extent of a layer path in px: [lower y, upper y] and its x. */
+function lastColumn(el: Element | undefined) {
+  const { upper, lower } = edgesOf(el)
+  const top = upper.at(-1) as P
+  const bottom = lower.at(-1) as P
+  return { x: top.x, low: bottom.y, high: top.y }
+}
+
+describe('<StackedAreaChart> end labels', () => {
+  it('names each layer and its last value to the right of the plot, centred on the layer', () => {
+    const { container } = renderLabelled()
+    const labels = parts(container, 'end-label')
+    const values = parts(container, 'end-value')
+    expect(labels.map((t) => t.textContent)).toEqual(['Install', 'Service', 'Warranty'])
+    expect(values.map((t) => t.textContent)).toEqual(['270 h', '165 h', '78 h'])
+    // Right margin 10 + "Warranty" (8 × 6.5) + 8 = 70: the plot is 600 − 44 − 70 = 486 wide.
+    for (const t of [...labels, ...values]) {
+      expect(t).toHaveAttribute('x', '496')
+      expect(t).toHaveAttribute('text-anchor', 'start')
+    }
+    // The scale decided before layout agrees with the rendered one.
+    const install = lastColumn(layers(container, 'accent')[0])
+    const mid = (install.low + install.high) / 2
+    expect(Math.abs(Number(labels[0]?.getAttribute('y')) - mid)).toBeLessThanOrEqual(0.5)
+    expect(Math.abs(Number(values[0]?.getAttribute('y')) - mid)).toBeLessThanOrEqual(0.5)
+    const top = lastColumn(layers(container, 'warn')[0])
+    expect(
+      Math.abs(Number(labels[2]?.getAttribute('y')) - (top.low + top.high) / 2),
+    ).toBeLessThanOrEqual(0.5)
+    // The plot is narrower than without end labels.
+    const plain = renderLabelled({ endLabels: false })
+    expect(parts(plain.container, 'end-label')).toHaveLength(0)
+    expect(parts(plain.container, 'end-value')).toHaveLength(0)
+    expect(install.x).toBeLessThan(lastColumn(layers(plain.container, 'accent')[0]).x)
+  })
+
+  it('draws none, and keeps the default margin, when two labels would overlap', () => {
+    const data = patched({ 12: { service: 5 } })
+    const { container } = renderLabelled({ data })
+    expect(parts(container, 'end-label')).toHaveLength(0)
+    expect(parts(container, 'end-value')).toHaveLength(0)
+    const plain = renderLabelled({ data, endLabels: false })
+    expect(lastColumn(layers(container, 'accent')[0]).x).toBe(
+      lastColumn(layers(plain.container, 'accent')[0]).x,
+    )
+  })
+
+  it('fits the right margin to a long series name', () => {
+    const long = 'A thirty character series name'
+    expect(long).toHaveLength(30)
+    const { container } = renderLabelled({
+      series: [{ ...(three[0] as AreaSeries<Week>), label: long }, ...three.slice(1)],
+    })
+    const labels = parts(container, 'end-label')
+    expect(labels).toHaveLength(3)
+    expect(labels[0]).toHaveTextContent(long)
+    // 10 + 30 × 6.5 + 8 = 213.
+    expect(labels[0]).toHaveAttribute('x', String(600 - 44 - 213 + 10))
+  })
+
+  it('draws none when the last row is incomplete', () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const { container } = renderLabelled({ data: patched({ 12: { service: null } }) })
+    expect(parts(container, 'end-label')).toHaveLength(0)
+    expect(parts(container, 'end-value')).toHaveLength(0)
+  })
+
+  it('skips a zero layer', () => {
+    const { container } = renderLabelled({ data: patched({ 12: { warranty: 0 } }) })
+    expect(parts(container, 'end-label').map((t) => t.textContent)).toEqual(['Install', 'Service'])
+  })
+
+  it('lets a user margin win over the end-label column', () => {
+    const { container } = renderLabelled({ margin: { right: 0 } })
+    expect(parts(container, 'end-label')[0]).toHaveAttribute('x', String(600 - 44 + 10))
+  })
+})
+
+const tooltip = (root: HTMLElement) => root.querySelector('[data-ch-part="tooltip"]')
+const live = (root: HTMLElement) => root.querySelector('[aria-live]')?.textContent
+
+describe('<StackedAreaChart> points and tooltip', () => {
+  it('shows every series top layer first, then the total, when hovering near an x', () => {
+    const { container } = renderChart()
+    const layer = container.querySelector('[data-ch-part="pointer-layer"]') as Element
+    // jsdom's bounding box is at 0,0, so client coordinates are plot coordinates.
+    fireEvent.pointerMove(layer, { clientX: xOf(4) + 10, clientY: 300 })
+    expect(tooltip(container)).toHaveTextContent(
+      /^W468 hWarranty130 hService210 hInstall408 hTotal$/,
+    )
+    expect(tooltip(container)?.querySelector('[data-ch-tone="warn"]')).toHaveTextContent(
+      '68 hWarranty',
+    )
+  })
+
+  it('announces every series and the total for the keyboard', () => {
+    const { container } = renderChart()
+    const chart = screen.getByRole('application', { name: 'Crew hours per week' })
+    fireEvent.keyDown(chart, { key: 'ArrowRight' })
+    expect(live(container)).toBe(
+      '1 of 12, W1, 60 h Warranty, 120 h Service, 180 h Install, 360 h Total',
+    )
+    fireEvent.keyDown(chart, { key: 'ArrowRight' })
+    expect(live(container)).toBe(
+      '2 of 12, W2, 55 h Warranty, 125 h Service, 190 h Install, 370 h Total',
+    )
+    fireEvent.keyDown(chart, { key: 'End' })
+    expect(live(container)).toBe(
+      '12 of 12, W12, 78 h Warranty, 165 h Service, 270 h Install, 513 h Total',
+    )
+  })
+
+  it('reports the user row to onSelect and to a function tooltip', () => {
+    const onSelect = vi.fn()
+    const content = vi.fn(() => 'custom')
+    const { container } = renderChart({ onSelect, tooltip: content })
+    const layer = container.querySelector('[data-ch-part="pointer-layer"]') as Element
+    fireEvent.click(layer, { clientX: xOf(4), clientY: 300 })
+    expect(onSelect).toHaveBeenCalledWith('W4', expect.objectContaining({ datum: weeks[3] }))
+    fireEvent.pointerMove(layer, { clientX: xOf(4), clientY: 300 })
+    expect(content).toHaveBeenLastCalledWith(expect.objectContaining({ datum: weeks[3] }))
+    expect(tooltip(container)).toHaveTextContent('custom')
+  })
+
+  it('marks the active x with a cursor from the baseline to the top and a dot per layer', () => {
+    const { container } = renderChart({ activeId: 'W4' })
+    const cursor = parts(container, 'cursor')
+    expect(cursor).toHaveLength(1)
+    expect(cursor[0]).toHaveAttribute('x1', String(xOf(4)))
+    expect(cursor[0]).toHaveAttribute('x2', String(xOf(4)))
+    expect(cursor[0]).toHaveAttribute('y1', '600')
+    expect(cursor[0]).toHaveAttribute('y2', String(yOf(408)))
+    const dots = parts(container, 'cursor-dot')
+    expect(dots.map((d) => d.getAttribute('cy'))).toEqual(
+      [210, 340, 408].map((v) => String(yOf(v))),
+    )
+    expect(dots.every((d) => d.getAttribute('cx') === String(xOf(4)))).toBe(true)
+    expect(dots.map((d) => d.getAttribute('r'))).toEqual(['4', '4', '4'])
+    expect(dots.map((d) => d.getAttribute('data-ch-tone'))).toEqual([
+      'accent',
+      'accent-soft',
+      'warn',
+    ])
+  })
+
+  it('draws no cursor without an active point', () => {
+    const { container } = renderChart()
+    expect(parts(container, 'cursor')).toHaveLength(0)
+    expect(parts(container, 'cursor-dot')).toHaveLength(0)
+  })
+
+  it('keeps a point for a row with a missing value: its finite series and no total', () => {
+    const { container } = renderChart({ data: patched({ 5: { service: null } }), activeId: 'W5' })
+    expect(tooltip(container)).toHaveTextContent(/^W562 hWarranty205 hInstall$/)
+    // The cursor runs to the top of the plot, with no dots.
+    expect(parts(container, 'cursor')[0]).toHaveAttribute('y2', '0')
+    expect(parts(container, 'cursor-dot')).toHaveLength(0)
+    const row = within(screen.getByRole('table')).getAllByRole('row')[5] as HTMLElement
+    const cells = within(row).getAllByRole('cell')
+    // An empty cell reads as the table's "no value".
+    expect(cells.map((c) => c.textContent)).toEqual(['205 h', '—no value', '62 h', '—no value'])
+  })
+
+  it('shows a negative value as it is, and the drawn total', () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const { container } = renderChart({ data: patched({ 3: { warranty: -20 } }), activeId: 'W3' })
+    expect(tooltip(container)).toHaveTextContent(
+      /^W3-20 hWarranty118 hService200 hInstall318 hTotal$/,
+    )
+    const row = within(screen.getByRole('table')).getAllByRole('row')[3] as HTMLElement
+    expect(
+      within(row)
+        .getAllByRole('cell')
+        .map((c) => c.textContent),
+    ).toEqual(['200 h', '118 h', '-20 h', '318 h'])
+  })
+
+  it('has one point for one row, and a cursor without a crash', () => {
+    const { container } = renderChart({ data: weeks.slice(0, 1), activeId: 'W1' })
+    expect(registered.at(-1)).toHaveLength(1)
+    expect(parts(container, 'cursor')).toHaveLength(1)
+    expect(parts(container, 'cursor-dot')).toHaveLength(3)
+    expect(container.innerHTML).not.toContain('NaN')
+  })
+
+  it('walks unsorted dates in date order', () => {
+    type Day = { at: string; a: number; b: number }
+    const days: Day[] = [
+      { at: '2026-01-03', a: 30, b: 10 },
+      { at: '2026-01-01', a: 10, b: 10 },
+      { at: '2026-01-02', a: 20, b: 10 },
+    ]
+    const onActiveChange = vi.fn()
+    render(
+      <StackedAreaChart<Day>
+        data={days}
+        x={{ type: 'time', field: 'at' }}
+        series={[
+          { id: 'a', label: 'A', value: 'a' },
+          { id: 'b', label: 'B', value: 'b' },
+        ]}
+        width={400}
+        title="Daily"
+        animate={false}
+        onActiveChange={onActiveChange}
+      />,
+    )
+    const chart = screen.getByRole('application', { name: 'Daily' })
+    fireEvent.keyDown(chart, { key: 'Home' })
+    fireEvent.keyDown(chart, { key: 'ArrowRight' })
+    fireEvent.keyDown(chart, { key: 'ArrowRight' })
+    expect(onActiveChange.mock.calls.map((c) => c[0])).toEqual([
+      '2026-01-01T00:00:00.000Z',
+      '2026-01-02T00:00:00.000Z',
+      '2026-01-03T00:00:00.000Z',
+    ])
+    expect(onActiveChange.mock.calls.map((c) => c[1]?.datum)).toEqual([days[1], days[2], days[0]])
+  })
+
+  it('registers the same points array again when re-rendered with the same props', () => {
+    const props: StackedAreaChartProps<Week> = {
+      data: weeks,
+      x: 'week',
+      series: three,
+      format: (v) => `${v} h`,
+      forecastFrom: 'W10',
+      width: 600,
+      title: 'Crew hours per week',
+      animate: false,
+    }
+    const { rerender } = render(<StackedAreaChart<Week> {...props} />)
+    const first = registered.at(-1)
+    expect(first).toHaveLength(12)
+    rerender(<StackedAreaChart<Week> {...props} />)
+    rerender(<StackedAreaChart<Week> {...props} />)
+    expect(registered.at(-1)).toBe(first)
+  })
+
+  it('shows no tooltip with `tooltip={false}`', () => {
+    const { container } = renderChart({ tooltip: false, activeId: 'W4' })
+    expect(tooltip(container)).toBeNull()
+  })
+})
+
+describe('<StackedAreaChart> with interactive={false}', () => {
+  it('has no tab stop, pointer, cursor or tooltip, and keeps the end labels and the table', () => {
+    const { container } = renderLabelled({ interactive: false, tooltip: true, activeId: 'W4' })
+    expect(container.querySelector('[role="application"]')).toBeNull()
+    expect(container.querySelector('[tabindex]')).toBeNull()
+    expect(parts(container, 'pointer-layer')).toHaveLength(0)
+    expect(parts(container, 'cursor')).toHaveLength(0)
+    expect(parts(container, 'cursor-dot')).toHaveLength(0)
+    expect(tooltip(container)).toBeNull()
+    const plot = container.querySelector('[data-ch-part="plot"]') as Element
+    fireEvent.pointerMove(plot, { clientX: 150, clientY: 50 })
+    expect(tooltip(container)).toBeNull()
+    expect(parts(container, 'end-label')).toHaveLength(3)
+    expect(container.querySelector('table')).not.toBeNull()
+    expect(container.textContent).toContain('Crew hours per week')
+  })
+})
+
+describe('<StackedAreaChart> total column', () => {
+  const headers = () =>
+    within(screen.getByRole('table'))
+      .getAllByRole('columnheader')
+      .map((th) => th.textContent)
+
+  it('ends the table with the drawn total, renamed or dropped on request', () => {
+    const { unmount } = renderChart()
+    expect(headers()).toEqual(['Week', 'Install', 'Service', 'Warranty', 'Total'])
+    const rows = within(screen.getByRole('table')).getAllByRole('row').slice(1)
+    expect(rows).toHaveLength(12)
+    const w12 = within(rows[11] as HTMLElement).getAllByRole('cell')
+    expect(w12.at(-1)?.textContent).toBe('513 h')
+    unmount()
+    const renamed = renderChart({ dataTable: { columns: { Total: 'All work' } } })
+    expect(headers().at(-1)).toBe('All work')
+    renamed.unmount()
+    const none = renderChart({ dataTable: false })
+    expect(none.container.querySelector('table')).toBeNull()
   })
 })
