@@ -119,6 +119,8 @@ tone functions, `color`, sorting, grouped-and-stacked.
   margin, centred on the line, when vertical; in the top margin, centred on the line, when
   horizontal. The default margin on that side grows to fit the label. `Target` itself does not
   change.
+- A total label never overlaps the target line: a label the line would cross sits just beyond
+  the line instead of just beyond its stack.
 - Corner radius: the `--ch-radius` token on every segment, as `Bars` draws it.
 - Horizontal: label column on the left, automatic height `rows × (20 + 20) + margins` unless
   `height` or `aspectRatio` is set.

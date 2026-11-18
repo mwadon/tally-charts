@@ -182,13 +182,14 @@ export function StackedBarChart<D>({
   const band = useMemo((): BandScaleSpec<D> => ({ type: 'band', field: x, padding }), [x, padding])
   const linear = useMemo((): LinearScaleSpec<D> => ({ domain: valueDomain }), [valueDomain])
   const showValueAxis = valueAxis !== 'none'
-  // The target label sits outside the plot, where no stack can run into it, and only when
-  // `Target` draws the line, i.e. the target is inside the domain.
+  // The target where `Target` draws its line, i.e. inside the domain. Its label sits outside the
+  // plot, where no stack can run into it.
   const [d0, d1] = valueDomain
-  const targetLabel =
+  const line =
     targetValue !== undefined && targetValue >= Math.min(d0, d1) && targetValue <= Math.max(d0, d1)
-      ? targetSpec?.label
+      ? targetValue
       : undefined
+  const targetLabel = line !== undefined ? targetSpec?.label : undefined
   const m: Margin = {
     ...(vertical
       ? {
@@ -271,7 +272,8 @@ export function StackedBarChart<D>({
         format={format}
         totals={valueLabel === 'total'}
         totalFormat={valueFormat ?? format}
-        targetLine={targetLabel ? { value: targetValue as number, label: targetLabel } : undefined}
+        line={line}
+        targetLabel={targetLabel}
       />
       {showValueAxis ? (
         <Axis side={vertical ? 'left' : 'bottom'} ticks={valueAxis} format={valueFmt} />
@@ -360,8 +362,10 @@ interface StackedMarksProps<D> {
   /** Draw the total labels. */
   totals: boolean
   totalFormat: FormatSpec | undefined
-  /** The target and its label, drawn outside the plot; only when `Target` draws the line. */
-  targetLine: { value: number; label: string } | undefined
+  /** The target, only when `Target` draws its line; total labels keep clear of it. */
+  line: number | undefined
+  /** The target label, drawn outside the plot. */
+  targetLabel: string | undefined
 }
 
 const LABEL_OFFSET = 6
@@ -390,7 +394,8 @@ function StackedMarks<D>({
   format,
   totals,
   totalFormat,
-  targetLine,
+  line,
+  targetLabel,
 }: StackedMarksProps<D>) {
   const ctx = useChartContext('StackedBarChart')
   const data = ctx.data as readonly D[]
@@ -521,10 +526,10 @@ function StackedMarks<D>({
 
   // The target label, where no stack can run into it: in the right margin, centred on the line,
   // when vertical; in the top margin, centred on the line but kept inside the svg, when horizontal.
+  const linePos = line === undefined ? undefined : scale(line)
   let targetText: ReactElement | null = null
-  if (targetLine) {
-    const pos = scale(targetLine.value)
-    const half = estimateWidth({ label: targetLine.label } as Tick) / 2
+  if (targetLabel && linePos !== undefined) {
+    const half = estimateWidth({ label: targetLabel } as Tick) / 2
     targetText = (
       <text
         data-ch-part="target-label"
@@ -533,14 +538,14 @@ function StackedMarks<D>({
             ? ctx.innerWidth + 6
             : Math.max(
                 half - ctx.margin.left,
-                Math.min(ctx.innerWidth + ctx.margin.right - half, pos),
+                Math.min(ctx.innerWidth + ctx.margin.right - half, linePos),
               )
         }
-        y={vertical ? pos : -6}
+        y={vertical ? linePos : -6}
         textAnchor={vertical ? 'start' : 'middle'}
         dominantBaseline={vertical ? 'middle' : undefined}
       >
-        {targetLine.label}
+        {targetLabel}
       </text>
     )
   }
@@ -554,9 +559,19 @@ function StackedMarks<D>({
       const start = bandScale.scale(String(category(d, i)))
       if (!stack || stack.segments.length === 0 || start === undefined) return
       const end = clampToRange(scale, scale(stack.positive))
-      const along = vertical ? end - LABEL_OFFSET : end + LABEL_OFFSET
-      const across = start + bandwidth / 2
       const text = totalFmt(stack.total)
+      let along = vertical ? end - LABEL_OFFSET : end + LABEL_OFFSET
+      // A label the target line would cross moves beyond it: its baseline 4 px above the line when
+      // vertical (the text runs from about 14 px above the baseline to 2 px below it), its start
+      // 6 px right of the line when horizontal (2 px slack on either side of the text).
+      if (linePos !== undefined) {
+        if (vertical) {
+          if (linePos >= along - 14 && linePos <= along + 2) along = linePos - 4
+        } else if (linePos >= along - 2 && linePos <= along + text.length * LABEL_CHAR_WIDTH + 2) {
+          along = linePos + LABEL_OFFSET
+        }
+      }
+      const across = start + bandwidth / 2
       const tone = target !== undefined && stack.positive > target ? over : undefined
       // Labels wider than a column would run into their neighbours: draw none rather than some.
       if (vertical && text.length * LABEL_CHAR_WIDTH > bandwidth) labelsFit = false

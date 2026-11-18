@@ -704,3 +704,34 @@ describe('<StackedBarChart> target label', () => {
     expect(targetLabels(explicit.container)).toHaveLength(1)
   })
 })
+
+describe('<StackedBarChart> total labels clear the target line', () => {
+  const labelsOf = (root: HTMLElement) => parts(root, 'value-label')
+  const xOf = (v: number) => (v * 156) / 80 // horizontal: 300 − 96 − 48 px for [0, 80]
+
+  it('lifts a vertical total label that the target line would cross to 4 px above it', () => {
+    const { container } = renderChart({ width: 584, target: 60 })
+    const [jan, feb, mar, apr, may] = labelsOf(container) as SVGElement[]
+    const lineY = yOf(60)
+    for (const label of [feb, mar, may] as SVGElement[])
+      expect(num(label, 'y')).toBeCloseTo(lineY - 4)
+    expect(num(jan as SVGElement, 'y')).toBeCloseTo(yOf(51) - 6)
+    expect(num(apr as SVGElement, 'y')).toBeCloseTo(yOf(66) - 6)
+  })
+
+  it('moves a horizontal total label that the target line would cross to 6 px right of it', () => {
+    const { container } = renderChart({ orientation: 'horizontal', height: undefined, target: 60 })
+    const labels = labelsOf(container)
+    expect(num(labels[1] as SVGElement, 'x')).toBeCloseTo(xOf(60) + 6)
+    // Mar (58) starts 2.1 px right of the line, just outside the 2 px slack: it stays.
+    expect(num(labels[2] as SVGElement, 'x')).toBeCloseTo(xOf(58) + 6)
+    expect(num(labels[3] as SVGElement, 'x')).toBeCloseTo(xOf(66) + 6)
+  })
+
+  it('leaves the labels at the stack end without a target', () => {
+    const { container } = renderChart({ width: 584 })
+    const labels = labelsOf(container)
+    expect(num(labels[1] as SVGElement, 'y')).toBeCloseTo(yOf(56) - 6)
+    expect(num(labels[2] as SVGElement, 'y')).toBeCloseTo(yOf(58) - 6)
+  })
+})
