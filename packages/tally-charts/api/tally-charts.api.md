@@ -137,6 +137,15 @@ export type BarChartProps<D> = ChartName & ChartPassThroughProps<D> & {
 export function Bars<D>(props: BarsProps<D>): JSX.Element | null;
 
 // @public (undocumented)
+export interface BarSeries<D> {
+    fill?: Fill;
+    id: string;
+    label: string;
+    tone?: Tone;
+    value: Accessor<D, number>;
+}
+
+// @public (undocumented)
 export interface BarsProps<D> {
     align?: BarAlign;
     ariaLabel?: (d: D, i: number) => string;
@@ -338,6 +347,7 @@ export interface ChartPoint<D = unknown> {
     segments: readonly TooltipSegment[];
     selectable?: boolean;
     series?: string;
+    seriesId?: string;
     // (undocumented)
     x: number;
     // (undocumented)
@@ -633,6 +643,37 @@ export interface GridProps {
     extent?: readonly [number, number];
     ticks?: TickSpec;
 }
+
+// @public (undocumented)
+export function GroupedBarChart<D>(input: GroupedBarChartProps<D>): JSX.Element;
+
+// @public (undocumented)
+export type GroupedBarChartProps<D> = ChartName & ChartPassThroughProps<D> & {
+    data: readonly D[];
+    x: Accessor<D, string | number>;
+    series: readonly BarSeries<D>[];
+    id?: Accessor<D, Id>;
+    label?: Accessor<D, string>;
+    orientation?: 'vertical' | 'horizontal';
+    domain?: readonly [number, number];
+    target?: number | {
+        value: number;
+        label?: string;
+    };
+    fill?: PerItem<D, Fill | undefined>;
+    valueLabel?: 'all' | 'none';
+    valueFormat?: FormatSpec;
+    format?: FormatSpec;
+    axis?: TickSpec | 'none';
+    axisFormat?: AxisFormat;
+    valueAxis?: TickSpec | 'none';
+    valueAxisFormat?: AxisFormat;
+    grid?: boolean;
+    padding?: number;
+    gap?: number;
+    dataTable?: boolean | DataTableOptions;
+    tooltip?: ChartTooltip<D>;
+};
 
 // @public (undocumented)
 export function Heatmap<D>(input: HeatmapProps<D>): JSX.Element;

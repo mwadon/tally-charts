@@ -1,0 +1,252 @@
+{
+  "versionId": "fixture-grouped-bar-chart-v1",
+  "version": 1,
+  "locale": "en",
+  "publishedAt": "2026-11-18T00:00:00.000Z",
+  "codeInjection": {},
+  "layout": {
+    "key": "default",
+    "header": null,
+    "footer": null
+  },
+  "pageId": "fixture-grouped-bar-chart",
+  "title": "GroupedBarChart",
+  "slug": "grouped-bar-chart",
+  "seo": {
+    "metaTitle": "GroupedBarChart · tally-charts",
+    "metaDescription": "Several series side by side in each category, with tones by series, a fill per row for forecasts, keyboard navigation and a hidden data table."
+  },
+  "componentTree": [
+    {
+      "id": "n1",
+      "type": "prose",
+      "props": {
+        "markdown": "Several series side by side inside each category. `GroupedBarChart` takes your rows, the field for the category and one entry per series, and handles the scales, the tooltip, the keyboard and the screen reader."
+      }
+    },
+    {
+      "id": "n2",
+      "type": "heading",
+      "props": {
+        "text": "When to use it",
+        "level": "2",
+        "anchor": "when-to-use"
+      }
+    },
+    {
+      "id": "n3",
+      "type": "prose",
+      "props": {
+        "markdown": "Use it to compare a few measures within each category: jobs per crew per quarter, revenue per service line per month. One row is one group, and each series is one bar in every group. Keep it to about four series, because the bars get thin. For one series, use [`BarChart`](/docs/bar-chart). For plan against actual in rows, use `ComparisonBars`. For trends over many periods, [`LineChart`](/docs/line-chart) usually reads better."
+      }
+    },
+    {
+      "id": "n4",
+      "type": "heading",
+      "props": {
+        "text": "Import",
+        "level": "2",
+        "anchor": "install"
+      }
+    },
+    {
+      "id": "n5",
+      "type": "code-block",
+      "props": {
+        "code": "npm i tally-charts",
+        "lang": "bash"
+      }
+    },
+    {
+      "id": "n6",
+      "type": "code-block",
+      "props": {
+        "code": "import { GroupedBarChart } from 'tally-charts'\nimport 'tally-charts/theme.css'",
+        "lang": "tsx",
+        "filename": "app/jobs.tsx"
+      }
+    },
+    {
+      "id": "n7",
+      "type": "heading",
+      "props": {
+        "text": "Examples",
+        "level": "2",
+        "anchor": "examples"
+      }
+    },
+    {
+      "id": "n8",
+      "type": "prose",
+      "props": {
+        "markdown": "Each series says which field it reads and how to name it. Props stay serializable here, so the chart renders in a server component. The third series sets `tone: 'neutral'` in its series object."
+      }
+    },
+    {
+      "id": "n9",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "grouped-bar-chart/jobs-by-crew",
+        "defaultView": "preview"
+      }
+    },
+    {
+      "id": "n10",
+      "type": "heading",
+      "props": {
+        "text": "Series",
+        "level": "2",
+        "anchor": "series"
+      }
+    },
+    {
+      "id": "n11",
+      "type": "prose",
+      "props": {
+        "markdown": "A `BarSeries` has an `id` that is unique within the chart, a `label` for the tooltip, the announcements and the data table header, a `value` accessor, and optionally a `tone` and a `fill`. Without a `tone`, series take the tones by position: `accent`, `accent-soft`, `warn`, `neutral`, `gain`, and then the order repeats. The default order never uses `loss`; choose it explicitly. Series are drawn in the order of the `series` array: left to right, or top to bottom when horizontal."
+      }
+    },
+    {
+      "id": "n12",
+      "type": "prose",
+      "props": {
+        "markdown": "Tone is the series, and fill is the state. A row's `fill` applies to every bar of that row, so a forecast quarter reads as one thing. A series `fill` marks a whole series, such as last year. When both are set, the row's `fill` wins. The row `fill` is a function, so this example is a client component."
+      }
+    },
+    {
+      "id": "n13",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "grouped-bar-chart/forecast-quarter",
+        "defaultView": "preview",
+        "height": 292
+      }
+    },
+    {
+      "id": "n14",
+      "type": "prose",
+      "props": {
+        "markdown": "`orientation=\"horizontal\"` puts the categories on the left. `x` is still the category and the series values are still the values. Here last year is a `'hatch-fade'` series. In both orientations `grid` and `valueAxis` are independent: `valueAxis=\"none\"` hides the value axis and keeps the grid lines at the default ticks, and `grid={false}` removes the lines."
+      }
+    },
+    {
+      "id": "n15",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "grouped-bar-chart/horizontal",
+        "defaultView": "preview",
+        "height": 292
+      }
+    },
+    {
+      "id": "n16",
+      "type": "heading",
+      "props": {
+        "text": "Legend",
+        "level": "2",
+        "anchor": "legend"
+      }
+    },
+    {
+      "id": "n17",
+      "type": "prose",
+      "props": {
+        "markdown": "The chart has no legend of its own. Compose `Legend` with the same tones, as with `LineChart`. For a series without a `tone`, use the tone from the default order."
+      }
+    },
+    {
+      "id": "n18",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "grouped-bar-chart/with-legend",
+        "defaultView": "preview",
+        "height": 313
+      }
+    },
+    {
+      "id": "n19",
+      "type": "heading",
+      "props": {
+        "text": "Value labels",
+        "level": "2",
+        "anchor": "value-labels"
+      }
+    },
+    {
+      "id": "n20",
+      "type": "prose",
+      "props": {
+        "markdown": "`valueLabel=\"all\"` (the default) writes the value above each bar, or beside it when horizontal. A horizontal chart always draws its value labels. In a vertical chart, when any label is wider than its bar, no label is drawn at that width, and the values stay in the tooltip and the data table. A downward bar whose label does not fit below it gets the label above its base. Use `valueLabel=\"none\"` to turn the labels off."
+      }
+    },
+    {
+      "id": "n21",
+      "type": "heading",
+      "props": {
+        "text": "Props",
+        "level": "2",
+        "anchor": "props"
+      }
+    },
+    {
+      "id": "n22",
+      "type": "props-table",
+      "props": {
+        "symbol": "GroupedBarChart"
+      }
+    },
+    {
+      "id": "n23",
+      "type": "heading",
+      "props": {
+        "text": "Series and points",
+        "level": "2",
+        "anchor": "points"
+      }
+    },
+    {
+      "id": "n24",
+      "type": "prose",
+      "props": {
+        "markdown": "A bar's id is `${rowId}:${series.id}`, where the row id is the `id` accessor or the data index. Every bar is a point. In `onSelect` and `onActiveChange`, the `ChartPoint` has `seriesId` with the `id` of the series, `series` with its label, and `datum` with your row. You do not need to parse the id."
+      }
+    },
+    {
+      "id": "n25",
+      "type": "heading",
+      "props": {
+        "text": "Keyboard and screen readers",
+        "level": "2",
+        "anchor": "keyboard"
+      }
+    },
+    {
+      "id": "n26",
+      "type": "prose",
+      "props": {
+        "markdown": "The chart is a single tab stop. Arrow keys walk the bars in visual order, group by group and series by series. `Home` and `End` jump to the first and last bar, `Enter` or `Space` selects the active bar when the chart has `onSelect`, and `Esc` clears the active bar."
+      }
+    },
+    {
+      "id": "n27",
+      "type": "prose",
+      "props": {
+        "markdown": "Screen readers get the title and description, then an announcement for each bar the keyboard moves to, such as “North, 3 of 4, Q3, 55”: the series, the position within the series, then the category and the formatted value. A visually hidden data table follows the chart, with one row per category and one column per series."
+      }
+    },
+    {
+      "id": "n28",
+      "type": "prose",
+      "props": {
+        "markdown": "In forced colors mode (Windows high contrast), tones collapse to a few system colors and several share one: `accent` becomes Highlight, `accent-soft` and `neutral` GrayText, `warn` and `gain` CanvasText. Series that share a color are told apart by their position in each group, the gap between the bars keeps them separate, and the data table carries the values."
+      }
+    },
+    {
+      "id": "n29",
+      "type": "prose",
+      "props": {
+        "markdown": "The full model is in the [accessibility guide](https://github.com/mwadon/tally-charts/blob/main/docs/a11y.md)."
+      }
+    }
+  ]
+}

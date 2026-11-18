@@ -47,6 +47,8 @@ export type { ComparisonBarsProps } from './react/charts/ComparisonBars'
 export { ComparisonBars } from './react/charts/ComparisonBars'
 export type { DotHistogramProps } from './react/charts/DotHistogram'
 export { DotHistogram } from './react/charts/DotHistogram'
+export type { BarSeries, GroupedBarChartProps } from './react/charts/GroupedBarChart'
+export { GroupedBarChart } from './react/charts/GroupedBarChart'
 export type { HeatmapCell, HeatmapProps } from './react/charts/Heatmap'
 export { Heatmap } from './react/charts/Heatmap'
 export type {

@@ -54,6 +54,10 @@
           "slug": "bar-chart"
         },
         {
+          "label": "GroupedBarChart",
+          "slug": "grouped-bar-chart"
+        },
+        {
           "label": "ComparisonBars",
           "slug": "comparison-bars"
         },

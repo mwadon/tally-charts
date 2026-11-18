@@ -20,6 +20,7 @@ describe('public entry points', () => {
     'createFormatter',
     'TONES',
     'BarChart',
+    'GroupedBarChart',
     'ComparisonBars',
     'RankedBars',
     'RunwayChart',

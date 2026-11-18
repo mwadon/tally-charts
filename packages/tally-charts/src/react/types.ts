@@ -38,6 +38,11 @@ export interface ChartPoint<D = unknown> {
    * one series, announcements start with it; the position ("2 of 7") counts within it.
    */
   series?: string
+  /**
+   * Stable key of the point's series. Set by charts that take a `series` array with ids and
+   * register one point per series value, such as GroupedBarChart.
+   */
+  seriesId?: string
   segments: readonly TooltipSegment[]
   /** Stack or row membership; arrow keys move within and across groups when set. */
   group?: PointGroup

@@ -3,6 +3,7 @@ import { version } from 'react'
 import { renderToString } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
 import {
+  CrewQuarters,
   DrillColumn,
   EstimateVsActual,
   InstallsStrip,
@@ -134,6 +135,19 @@ describe('server rendering', () => {
     expect(heatmap.match(/data-ch-part="heatmap-cell"/g)).toHaveLength(6)
     expect(heatmap).toContain('$14.8K')
     expect(heatmap).toContain('$13K and up')
+  })
+
+  it('renders the GroupedBarChart without a DOM, deterministically', () => {
+    const html = renderToString(<CrewQuarters />)
+    expect(html).toBe(renderToString(<CrewQuarters />))
+    expect(html).not.toContain('NaN')
+    // 4 quarters × 3 crews, the forecast quarter hatched across its group.
+    expect(html.match(/data-ch-part="bar"/g)).toHaveLength(12)
+    expect(html.match(/data-ch-fill="hatch"/g)).toHaveLength(3)
+    expect(html.match(/data-ch-part="bar-hit"/g)).toHaveLength(12)
+    expect(html).toContain('<pattern')
+    expect(html).toContain('data-ch-part="target"')
+    expect(html).toContain('data-ch-part="data-table"')
   })
 
   it('renders the runway without a DOM, with its strips drawn at the initial width', () => {

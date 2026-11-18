@@ -17,6 +17,14 @@ export default [
     gzip: true,
   },
   {
+    name: 'GroupedBarChart',
+    path: 'dist/index.js',
+    import: '{ GroupedBarChart }',
+    ignore: ['react', 'react-dom'],
+    limit: '15 KB',
+    gzip: true,
+  },
+  {
     name: 'ComparisonBars',
     path: 'dist/index.js',
     import: '{ ComparisonBars }',
