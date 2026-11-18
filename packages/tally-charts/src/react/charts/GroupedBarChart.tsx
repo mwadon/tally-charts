@@ -1,23 +1,32 @@
 import { useMemo } from 'react'
-import { resolveAccessor, resolveIds, resolvePerItem } from '../../core/accessor'
-import { groupSlots } from '../../core/bars'
+import { type FieldGetter, resolveAccessor, resolveIds, resolvePerItem } from '../../core/accessor'
+import { computeBars, groupSlots } from '../../core/bars'
 import type { FormatSpec } from '../../core/format'
 import { niceDomain } from '../../core/linear'
 import { type BandScaleSpec, inferLinearDomain, type LinearScaleSpec } from '../../core/scale'
-import { linearTicks, type TickSpec } from '../../core/ticks'
+import { estimateWidth, linearTicks, type TickSpec } from '../../core/ticks'
 import type { Accessor, Fill, Id, PerItem, Tone } from '../../core/types'
 import { createWarner, DEV } from '../../core/warn'
 import { Chart, type ChartName } from '../Chart'
+import { useFormat, useMessages } from '../ChartsProvider'
 import { type Margin, useChartContext } from '../context'
+import type { DataTableSpec } from '../DataTable'
 import { Axis, type AxisFormat } from '../marks/Axis'
 import { Bars } from '../marks/Bars'
 import { Grid } from '../marks/Grid'
 import { Target } from '../marks/Target'
+import { HEADER_CATEGORY } from '../messages'
+import { Tooltip } from '../overlays/Tooltip'
+import type { ChartPoint } from '../types'
+import { useRegisterPoints } from '../useRegisterPoints'
 import {
   type ChartPassThroughProps,
   type ChartTooltip,
   type DataTableOptions,
+  headerOf,
   toNumber,
+  tooltipContent,
+  withTableOptions,
 } from './shared'
 
 export interface BarSeries<D> {
@@ -113,15 +122,16 @@ export function GroupedBarChart<D>({
   margin,
   height,
   children,
-  // Behaviour of these arrives with the points, labels, tooltip and table.
-  label: _label,
-  valueLabel: _valueLabel,
-  valueFormat: _valueFormat,
-  dataTable: _dataTable,
-  tooltip: _tooltip,
+  label,
+  valueLabel = 'all',
+  valueFormat,
+  dataTable = true,
+  tooltip = true,
   ...chart
 }: GroupedBarChartProps<D>) {
   const warn = useMemo(() => createWarner(), [])
+  const { create } = useFormat()
+  const messages = useMessages()
   const vertical = orientation === 'vertical'
   if (DEV) {
     if (series.length === 0) {
@@ -178,10 +188,33 @@ export function GroupedBarChart<D>({
       : undefined
   const valueFmt: AxisFormat | undefined = valueAxisFormat ?? (format as AxisFormat | undefined)
 
+  let table: DataTableSpec<D> | undefined
+  if (dataTable) {
+    const getCategory = resolveAccessor(x)
+    const getLabel = label ? resolveAccessor(label) : undefined
+    const formatValue = create(format)
+    table = {
+      columns: [
+        {
+          header: headerOf(x, messages.headerCategory ?? HEADER_CATEGORY),
+          value: (d, i) => String((getLabel ? getLabel(d, i) : getCategory(d, i)) ?? ''),
+        },
+        ...series.map((s, k) => ({
+          header: s.label,
+          value: (d: D, i: number) => {
+            const value = toNumber((getters[k] as (d: D, i: number) => unknown)(d, i))
+            return Number.isFinite(value) ? formatValue(value) : ''
+          },
+        })),
+      ],
+    }
+  }
+
   return (
     <Chart<D>
       {...chart}
       data={series.length === 0 ? [] : data}
+      dataTable={withTableOptions(table, dataTable)}
       x={vertical ? band : linear}
       y={vertical ? linear : band}
       margin={m}
@@ -207,6 +240,10 @@ export function GroupedBarChart<D>({
         rowFill={fill}
         gap={gap}
         vertical={vertical}
+        label={label}
+        format={format}
+        valueFormat={valueFormat}
+        labels={valueLabel === 'all'}
       />
       {showValueAxis ? (
         <Axis side={vertical ? 'left' : 'bottom'} ticks={valueAxis} format={valueFmt} />
@@ -214,6 +251,7 @@ export function GroupedBarChart<D>({
       {axis === 'none' ? null : (
         <Axis side={vertical ? 'bottom' : 'left'} ticks={axis} format={axisFormat} />
       )}
+      {tooltip ? <Tooltip content={tooltipContent(tooltip, false)} /> : null}
       {children}
     </Chart>
   )
@@ -247,10 +285,25 @@ interface GroupedLayersProps<D> {
   rowFill: PerItem<D, Fill | undefined> | undefined
   gap: number
   vertical: boolean
+  label: Accessor<D, string> | undefined
+  format: FormatSpec | undefined
+  valueFormat: FormatSpec | undefined
+  labels: boolean
 }
 
 // Inside <Chart>: the slots need the band width, which only exists once the scale does.
-function GroupedLayers<D>({ series, getters, id, rowFill, gap, vertical }: GroupedLayersProps<D>) {
+function GroupedLayers<D>({
+  series,
+  getters,
+  id,
+  rowFill,
+  gap,
+  vertical,
+  label,
+  format,
+  valueFormat,
+  labels,
+}: GroupedLayersProps<D>) {
   const ctx = useChartContext('GroupedBarChart')
   const data = ctx.data as readonly D[]
   const band = vertical ? ctx.x : ctx.y
@@ -258,13 +311,14 @@ function GroupedLayers<D>({ series, getters, id, rowFill, gap, vertical }: Group
   const slots = groupSlots(bandwidth, series.length, gap)
   const rowIds = useMemo(() => resolveIds(data, id, ctx.warn), [data, id, ctx.warn])
   const rowFillOf = useMemo(() => resolvePerItem(rowFill ?? undefined), [rowFill])
+  const tones = series.map((s, i) => s.tone ?? (DEFAULT_TONES[i % DEFAULT_TONES.length] as Tone))
   return (
     <>
       {series.map((s, i) => {
         const getter = getters[i] as (d: D, i: number) => number
         const bars = {
           id: (_: D, j: number) => `${rowIds[j]}:${s.id}`,
-          tone: s.tone ?? DEFAULT_TONES[i % DEFAULT_TONES.length],
+          tone: tones[i] as Tone,
           fill: (d: D, j: number, all: readonly D[]) =>
             (rowFillOf(d, j, all) as Fill | undefined) ?? s.fill ?? 'solid',
           size: slots.size,
@@ -282,6 +336,193 @@ function GroupedLayers<D>({ series, getters, id, rowFill, gap, vertical }: Group
           />
         )
       })}
+      <GroupedPoints<D>
+        series={series}
+        getters={getters}
+        rowIds={rowIds}
+        tones={tones}
+        slots={slots}
+        gap={gap}
+        vertical={vertical}
+        label={label}
+        format={format}
+        valueFormat={valueFormat}
+        labels={labels}
+      />
+    </>
+  )
+}
+
+interface GroupedPointsProps<D> {
+  series: readonly BarSeries<D>[]
+  getters: readonly ((d: D, i: number) => number)[]
+  rowIds: readonly Id[]
+  tones: readonly Tone[]
+  slots: { size: number; offsets: number[] }
+  gap: number
+  vertical: boolean
+  label: Accessor<D, string> | undefined
+  format: FormatSpec | undefined
+  valueFormat: FormatSpec | undefined
+  labels: boolean
+}
+
+const LABEL_OFFSET = 6
+const LABEL_HEIGHT = 14
+
+interface SeriesBar {
+  seriesIndex: number
+  rect: ReturnType<typeof computeBars>['bars'][number]
+}
+
+/** Points, hit slices and value labels. Geometry comes from the same `computeBars` as the bars. */
+function GroupedPoints<D>({
+  series,
+  getters,
+  rowIds,
+  tones,
+  slots,
+  gap,
+  vertical,
+  label,
+  format,
+  valueFormat,
+  labels,
+}: GroupedPointsProps<D>) {
+  const ctx = useChartContext('GroupedBarChart')
+  const data = ctx.data as readonly D[]
+  const { x: scaleX, y: scaleY, warn, format: createFormat } = ctx
+  const fmt = useMemo(() => createFormat(format), [createFormat, format])
+  const labelFmt = useMemo(
+    () => createFormat(valueFormat ?? format),
+    [createFormat, valueFormat, format],
+  )
+
+  // Group by group, series order inside, as the eye (and the arrow keys) read the chart.
+  const layout = useMemo(() => {
+    const categoryOf = vertical ? scaleX.field : scaleY.field
+    const perSeries = series.map((s, i) => {
+      const getter = getters[i] as FieldGetter
+      const getX = vertical ? categoryOf : getter
+      const getY = vertical ? getter : categoryOf
+      if (!getX || !getY) return []
+      return computeBars({
+        data,
+        ids: rowIds.map((rowId) => `${rowId}:${s.id}`),
+        x: scaleX,
+        y: scaleY,
+        getX,
+        getY,
+        warn,
+        size: slots.size,
+        align: 'start',
+        offset: slots.offsets[i],
+      }).bars
+    })
+    const ordered: SeriesBar[] = []
+    for (let row = 0; row < data.length; row++) {
+      perSeries.forEach((bars, seriesIndex) => {
+        const rect = bars.find((b) => b.index === row)
+        if (rect) ordered.push({ seriesIndex, rect })
+      })
+    }
+    return ordered
+  }, [series, getters, rowIds, data, scaleX, scaleY, vertical, warn, slots])
+
+  const points: ChartPoint[] = useMemo(() => {
+    const getLabel = label ? resolveAccessor(label) : undefined
+    return layout.map(({ seriesIndex, rect }) => {
+      const s = series[seriesIndex] as BarSeries<D>
+      const datum = rect.datum as D
+      const name = getLabel ? getLabel(datum, rect.index) : rect.category
+      const value = fmt(rect.value)
+      return {
+        id: rect.id,
+        index: rect.index,
+        datum,
+        x: rect.anchor.x,
+        y: rect.anchor.y,
+        series: s.label,
+        seriesId: s.id,
+        label: `${name}, ${value}`,
+        segments: [{ value: name }, { label: s.label, value, tone: tones[seriesIndex] }],
+      }
+    })
+  }, [layout, label, series, tones, fmt])
+  useRegisterPoints(points)
+
+  // Labels that overflow a slot would run into their neighbours: draw none rather than some.
+  const texts = layout.map(({ rect }) => labelFmt(rect.value))
+  const fits =
+    !vertical ||
+    texts.every(
+      (text) =>
+        estimateWidth({ value: 0, position: 0, label: text, anchor: 'middle' }) <= slots.size,
+    )
+
+  const last = series.length - 1
+  return (
+    <>
+      <g>
+        {layout.map(({ seriesIndex, rect }, k) => {
+          const point = points[k] as ChartPoint
+          const start = rect.band.start + (slots.offsets[seriesIndex] ?? 0)
+          const from = seriesIndex === 0 ? rect.band.start : start - gap / 2
+          const to =
+            seriesIndex === last ? rect.band.start + rect.band.size : start + slots.size + gap / 2
+          const slice = vertical
+            ? { x: from, y: -ctx.margin.top, width: Math.max(0, to - from), height: ctx.height }
+            : { x: -ctx.margin.left, y: from, width: ctx.width, height: Math.max(0, to - from) }
+          return (
+            // biome-ignore lint/a11y/noStaticElementInteractions: pointer-only hit area; keyboard selection lives on the focusable figure
+            <rect
+              key={`${rect.index}:${seriesIndex}`}
+              data-ch-part="bar-hit"
+              data-ch-selectable={ctx.selectable ? 'true' : undefined}
+              fill="transparent"
+              {...slice}
+              onPointerEnter={() => ctx.setActive(rect.id, 'pointer')}
+              onClick={() => ctx.select(point)}
+            />
+          )
+        })}
+      </g>
+      {labels && fits ? (
+        <g data-ch-part="value-labels">
+          {layout.map(({ seriesIndex, rect }, k) => {
+            if (vertical) {
+              const below =
+                rect.dir === 'down' &&
+                rect.anchor.y + LABEL_OFFSET + LABEL_HEIGHT <= ctx.innerHeight
+              return (
+                <text
+                  key={`${rect.index}:${seriesIndex}`}
+                  data-ch-part="value-label"
+                  x={rect.anchor.x}
+                  y={below ? rect.anchor.y + LABEL_OFFSET : rect.anchor.y - LABEL_OFFSET}
+                  textAnchor="middle"
+                  dominantBaseline={below ? 'hanging' : 'auto'}
+                >
+                  {texts[k]}
+                </text>
+              )
+            }
+            const left = rect.dir === 'left'
+            return (
+              <text
+                key={`${rect.index}:${seriesIndex}`}
+                data-ch-part="value-label"
+                x={left ? rect.anchor.x - LABEL_OFFSET : rect.anchor.x + LABEL_OFFSET}
+                y={rect.anchor.y}
+                textAnchor={left ? 'end' : 'start'}
+                dominantBaseline="middle"
+              >
+                {texts[k]}
+              </text>
+            )
+          })}
+        </g>
+      ) : null}
     </>
   )
 }

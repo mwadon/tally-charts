@@ -1,4 +1,4 @@
-import { render } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { type BarSeries, GroupedBarChart, type GroupedBarChartProps } from './GroupedBarChart'
 
@@ -206,5 +206,169 @@ describe('<GroupedBarChart>', () => {
     const all = bars(container)
     expect(all).toHaveLength(12)
     for (const b of all) expect(num(b, 'width')).toBeGreaterThanOrEqual(0)
+  })
+})
+
+describe('<GroupedBarChart> points, labels, tooltip and table', () => {
+  const hits = (root: HTMLElement) => parts(root, 'bar-hit')
+  const labelsOf = (root: HTMLElement) => parts(root, 'value-label')
+  const wide = 584
+
+  it('shows a tooltip with the category, the series and the value on hover', () => {
+    const { container } = renderChart()
+    // Group-major: Q1 north, south, west, Q2 ... so Q3 south is the 8th slice.
+    fireEvent.pointerEnter(hits(container)[7] as Element)
+    const tip = container.querySelector('[data-ch-part="tooltip"]')
+    expect(tip).toHaveTextContent('Q3')
+    expect(tip).toHaveTextContent('South')
+    expect(tip).toHaveTextContent('36')
+  })
+
+  it('selects with a composite id, the series and the user row', () => {
+    const onSelect = vi.fn()
+    const { container, unmount } = renderChart({ onSelect })
+    fireEvent.click(hits(container)[7] as Element)
+    expect(onSelect).toHaveBeenCalledTimes(1)
+    const [id, point] = onSelect.mock.calls[0] as [unknown, Record<string, unknown>]
+    expect(id).toBe('2:south')
+    expect(point).toMatchObject({ seriesId: 'south', series: 'South', datum: quarters[2] })
+    unmount()
+    const byId = vi.fn()
+    const named = renderChart({ onSelect: byId, id: 'quarter' })
+    fireEvent.click(hits(named.container)[7] as Element)
+    expect(byId.mock.calls[0]?.[0]).toBe('Q3:south')
+  })
+
+  it('keeps bars selectable when composite ids collide, without a React key warning', () => {
+    const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const rows = [
+      { k: 'a:b', one: 1, two: 2 },
+      { k: 'a', one: 3, two: 4 },
+    ]
+    const onSelect = vi.fn()
+    const { container } = render(
+      <GroupedBarChart
+        data={rows}
+        x="k"
+        id="k"
+        series={[
+          { id: 'c', label: 'One', value: 'one' },
+          { id: 'b:c', label: 'Two', value: 'two' },
+        ]}
+        width={300}
+        title="Collisions"
+        animate={false}
+        onSelect={onSelect}
+      />,
+    )
+    expect(bars(container)).toHaveLength(4)
+    expect(hits(container)).toHaveLength(4)
+    fireEvent.click(hits(container)[0] as Element)
+    fireEvent.click(hits(container)[3] as Element)
+    expect(onSelect.mock.calls.map((c) => (c[1] as { seriesId: string }).seriesId)).toEqual([
+      'c',
+      'b:c',
+    ])
+    expect(error).not.toHaveBeenCalled()
+    error.mockRestore()
+  })
+
+  it('visits bars in visual order with the arrow keys and announces the series first', () => {
+    const { container } = renderChart()
+    const chart = screen.getByRole('application', { name: 'Jobs completed by crew' })
+    const live = container.querySelector('[aria-live="polite"]') as HTMLElement
+    const seen: string[] = []
+    for (let i = 0; i < 4; i++) {
+      fireEvent.keyDown(chart, { key: 'ArrowRight' })
+      seen.push(live.textContent ?? '')
+    }
+    expect(seen.map((t) => t.split(',')[0])).toEqual(['North', 'South', 'West', 'North'])
+    expect(seen.map((t) => /Q\d/.exec(t)?.[0])).toEqual(['Q1', 'Q1', 'Q1', 'Q2'])
+  })
+
+  it('marks one controlled active bar and dims the other eleven', () => {
+    const { container } = renderChart({ activeId: '2:south', dimInactive: true })
+    const all = bars(container)
+    expect(all.filter((b) => b.hasAttribute('data-ch-active'))).toHaveLength(1)
+    expect(all.filter((b) => b.hasAttribute('data-ch-dimmed'))).toHaveLength(11)
+  })
+
+  it('gives a missing value no hit slice, no point and an empty table cell', () => {
+    const warn = quiet()
+    const data = quarters.map((q) => (q.quarter === 'Q2' ? { ...q, south: null } : q))
+    const { container } = renderChart({ data })
+    expect(hits(container)).toHaveLength(11)
+    const chart = screen.getByRole('application', { name: 'Jobs completed by crew' })
+    const live = container.querySelector('[aria-live="polite"]') as HTMLElement
+    for (let i = 0; i < 5; i++) fireEvent.keyDown(chart, { key: 'ArrowRight' })
+    // Q1 north, south, west, Q2 north, then Q2 west: the empty slot is skipped.
+    expect(live.textContent).toMatch(/^West/)
+    expect(live.textContent).toContain('Q2')
+    const rowCells = within(screen.getByRole('table')).getAllByRole('row')[2] as HTMLElement
+    expect(within(rowCells).getAllByRole('cell')[1]?.textContent).toBe('—no value')
+    expect(warn).toHaveBeenCalledTimes(1)
+    warn.mockRestore()
+  })
+
+  it('labels every bar when the labels fit, and none when they do not', () => {
+    const { container, unmount } = renderChart({ width: wide })
+    expect(labelsOf(container)).toHaveLength(12)
+    expect(labelsOf(container)[0]?.textContent).toBe('42')
+    unmount()
+    const narrow = renderChart({ width: 200 })
+    expect(labelsOf(narrow.container)).toHaveLength(0)
+    narrow.unmount()
+    const none = renderChart({ width: wide, valueLabel: 'none' })
+    expect(labelsOf(none.container)).toHaveLength(0)
+  })
+
+  it('always labels a horizontal chart, and lets valueFormat win over format', () => {
+    const { container, unmount } = renderChart({ orientation: 'horizontal', width: 200 })
+    expect(labelsOf(container)).toHaveLength(12)
+    unmount()
+    const formatted = renderChart({ width: wide, format: 'percent', valueFormat: 'hours' })
+    expect(labelsOf(formatted.container)[0]?.textContent).not.toContain('%')
+    expect(labelsOf(formatted.container)[0]?.textContent).toContain('h')
+    formatted.unmount()
+    const fallback = renderChart({ width: wide, format: 'hours' })
+    expect(labelsOf(fallback.container)[0]?.textContent).toContain('h')
+  })
+
+  it('renders a hidden table with a column per series, and renames or drops it on request', () => {
+    const { unmount } = renderChart()
+    const table = screen.getByRole('table', { name: 'Jobs completed by crew' })
+    expect(
+      within(table)
+        .getAllByRole('columnheader')
+        .map((th) => th.textContent),
+    ).toEqual(['Quarter', 'North', 'South', 'West'])
+    expect(within(table).getAllByRole('row')).toHaveLength(5)
+    unmount()
+    const renamed = renderChart({ dataTable: { columns: { North: 'North crew' } } })
+    expect(
+      within(screen.getByRole('table'))
+        .getAllByRole('columnheader')
+        .map((th) => th.textContent),
+    ).toEqual(['Quarter', 'North crew', 'South', 'West'])
+    renamed.unmount()
+    renderChart({ dataTable: false })
+    expect(screen.queryByRole('table')).toBeNull()
+  })
+
+  it('draws no tooltip when tooltip is false, and passes the user row to a function tooltip', () => {
+    const off = renderChart({ tooltip: false })
+    fireEvent.pointerEnter(hits(off.container)[0] as Element)
+    expect(off.container.querySelector('[data-ch-part="tooltip"]')).toBeNull()
+    off.unmount()
+    const seen: unknown[] = []
+    const custom = renderChart({
+      tooltip: (point) => {
+        seen.push(point.datum)
+        return <span>custom</span>
+      },
+    })
+    fireEvent.pointerEnter(hits(custom.container)[7] as Element)
+    expect(custom.container.querySelector('[data-ch-part="tooltip"]')).toHaveTextContent('custom')
+    expect(seen).toContain(quarters[2])
   })
 })
