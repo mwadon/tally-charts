@@ -10,7 +10,8 @@ dashed rule with `forecastLabel` above it is drawn at the x before it, and the l
 from there to the end (with `forecastFrom="W10"` the rule is at W9); when no x comes before it,
 nothing is hatched. End labels (series name and last value) sit at the right edge and the right
 margin grows to fit them; none is drawn when the last row is incomplete, for a layer that is zero
-there, or at all when two neighbouring labels would be closer than 30 px, so compose a `Legend`
+there, when no area reaches the last x (it is outside the x domain, or a lone x after an
+incomplete row), or at all when two neighbouring labels would be closer than 36 px, so compose a `Legend`
 instead (`endLabels={false}` turns them off). A negative value counts as zero in the geometry and
 the total (with a development warning), and a row with a missing value breaks every layer at that
 x. With `interactive` (the default), each x with at least one value is a `ChartPoint` whose id is

@@ -6,7 +6,7 @@ import { clampToRange, type LinearScale, linearScale, niceDomain } from '../../c
 import { round2 } from '../../core/path'
 import { inferLinearDomain, type TimeScaleSpec } from '../../core/scale'
 import { estimateWidth, type Tick, type TickSpec } from '../../core/ticks'
-import { type TimeInput, toTime } from '../../core/time'
+import { inferTimeDomain, niceTimeDomain, type TimeInput, toTime } from '../../core/time'
 import type { Accessor, Fill, Tone } from '../../core/types'
 import { createWarner, DEV } from '../../core/warn'
 import { paintFor } from '../../theme/patterns'
@@ -37,6 +37,7 @@ import {
   timeSpecOf,
   useXLabels,
   withBreaks,
+  type XProp,
   type XRow,
   xColumn,
   xScaleOf,
@@ -113,8 +114,14 @@ const LABEL_OFFSET = 6
 const END_GAP = 10
 /** Space kept right of the widest end label. */
 const END_PAD = 8
-/** Neighbouring end labels need centres at least this far apart, or none is drawn. */
-const END_SPACING = 30
+/** The name's baseline sits this far above the layer's midpoint. */
+const END_LABEL_RISE = 4
+/** The value's baseline sits this far below the layer's midpoint (18 px under the name's). */
+const END_VALUE_DROP = 14
+/** Neighbouring end labels (a pair is about 33 px tall) need centres this far apart, or none is drawn. */
+const END_SPACING = 36
+/** Width per character of the value line (13 px, weight 500), as `StackedBarChart`'s value labels. */
+const END_VALUE_CHAR = 8
 /** Radius of the cursor's dots in px. */
 const CURSOR_DOT = 4
 
@@ -158,19 +165,44 @@ function plotY(scale: LinearScale, value: number) {
 }
 
 /**
- * The end labels, or undefined when none is drawn: the last row is incomplete, every layer is
- * zero there, or two neighbouring labels would sit closer than END_SPACING. `scale` is the value
- * scale the chart will lay out with; it is known before <Chart> renders because it depends only
- * on the height, the top and bottom margins and the domain, and the right margin depends on this.
+ * The x domain <Chart> will lay out a time axis with when `x` sets a valid `domain` (rounded when
+ * `nice` is true, as `createScale` does); undefined when the domain comes from the rows, which it
+ * then holds.
+ */
+function explicitTimeDomain<D>(x: XProp<D>): [number, number] | undefined {
+  const time = timeSpecOf(x)
+  if (!time?.domain) return undefined
+  const explicit = time.domain.map(toTime)
+  if (!explicit.every((t) => t !== undefined)) return undefined
+  const domain = inferTimeDomain(explicit as number[])
+  return time.nice ? niceTimeDomain(domain, time.zone ?? 'utc') : domain
+}
+
+/**
+ * The end labels, or undefined when none is drawn: the last row is incomplete, no area reaches
+ * it (the row before it is incomplete or outside the x domain), it is outside the x domain, every
+ * layer is zero there, or two neighbouring labels would sit closer than END_SPACING. `scale` is
+ * the value scale the chart will lay out with; it is known before <Chart> renders because it
+ * depends only on the height, the top and bottom margins and the domain, and the right margin
+ * depends on this. `xDomain` is the explicit time domain, if any.
  */
 function endLabelsOf<D>(
-  row: XRow<D> | undefined,
+  rows: readonly XRow<D>[],
   series: readonly AreaSeries<D>[],
   fmt: Formatter,
   scale: LinearScale,
+  xDomain: readonly [number, number] | undefined,
 ): EndLabel[] | undefined {
-  const stack = row ? stackOf(row.values, series.length) : undefined
-  if (!row || !stack) return undefined
+  const row = rows.at(-1)
+  const before = rows.at(-2)
+  const n = series.length
+  const drawn = (r: XRow<D> | undefined) =>
+    r !== undefined &&
+    stackOf(r.values, n) !== undefined &&
+    (xDomain === undefined || (r.time >= xDomain[0] && r.time <= xDomain[1]))
+  // The area reaches the last row only from a drawn row before it with no break in between.
+  if (!row || !drawn(row) || !drawn(before) || before?.gapAfter) return undefined
+  const stack = stackOf(row.values, n) as Stack
   const labels = series.flatMap((s, k): EndLabel[] => {
     const [from, to] = stack.extents[k] ?? [0, 0]
     return to > from ? [{ label: s.label, value: fmt(row.values[k] as number), from, to }] : []
@@ -318,12 +350,15 @@ export function StackedAreaChart<D>({
   const ends = useMemo(() => {
     if (!endLabels) return undefined
     const scale = linearScale(resolvedDomain, [Math.max(0, h - top - bottom), 0])
-    return endLabelsOf(rows.at(-1), series, fmt, scale)
-  }, [endLabels, resolvedDomain, h, top, bottom, rows, series, fmt])
+    return endLabelsOf(rows, series, fmt, scale, explicitTimeDomain(x))
+  }, [endLabels, resolvedDomain, h, top, bottom, rows, series, fmt, x])
   const right = ends
     ? END_GAP +
       Math.max(
-        ...ends.flatMap((e) => [e.label, e.value]).map((label) => estimateWidth({ label } as Tick)),
+        ...ends.flatMap((e) => [
+          estimateWidth({ label: e.label } as Tick),
+          e.value.length * END_VALUE_CHAR,
+        ]),
       ) +
       END_PAD
     : MARGIN.right
@@ -546,15 +581,25 @@ function EndLabels({ ctx, ends }: { ctx: InternalChartContext; ends: readonly En
   return (
     <>
       {ends.map((e, k) => {
-        const y = round2((plotY(scale, e.from) + plotY(scale, e.to)) / 2)
+        const mid = (plotY(scale, e.from) + plotY(scale, e.to)) / 2
         return (
           // biome-ignore lint/suspicious/noArrayIndexKey: series labels may repeat, the position keeps keys unique
           <Fragment key={k}>
-            {/* The pair is centred on y: the name sits above it, the value below. */}
-            <text data-ch-part="end-label" x={x} y={y} dy="-0.3em" textAnchor="start">
+            {/* The pair is centred on the midpoint: the name above it, the value below. */}
+            <text
+              data-ch-part="end-label"
+              x={x}
+              y={round2(mid - END_LABEL_RISE)}
+              textAnchor="start"
+            >
               {e.label}
             </text>
-            <text data-ch-part="end-value" x={x} y={y} dy="0.95em" textAnchor="start">
+            <text
+              data-ch-part="end-value"
+              x={x}
+              y={round2(mid + END_VALUE_DROP)}
+              textAnchor="start"
+            >
               {e.value}
             </text>
           </Fragment>

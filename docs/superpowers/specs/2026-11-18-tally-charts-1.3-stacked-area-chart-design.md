@@ -111,9 +111,12 @@ legend, a second value scale, smoothing (straight segments, as `Line`).
   development warning. A row with a missing or non-numeric value breaks every layer at that x, as
   a missing value breaks a `Line`; a lone x between two breaks draws nothing.
 - End labels: at the right edge, per layer, the series name and under it the formatted last
-  value, centred on the layer's last extent. The right margin grows to fit the longest (as the
-  `StackedBarChart` target label). If two neighbouring labels would overlap (centres closer than
-  30 px), no end label is drawn and the margin does not grow: compose `<Legend>` instead.
+  value, centred on the layer's last extent (name baseline 4 px above the midpoint, value
+  baseline 14 px below it). The right margin grows to fit the longest (as the `StackedBarChart`
+  target label; 8 px per character for the value line). If two neighbouring labels would overlap
+  (centres closer than 36 px), or the last x is not drawn as part of an area (outside the x
+  domain, or a lone x after an incomplete row), no end label is drawn and the margin does not
+  grow: compose `<Legend>` instead.
 - Margins as `LineChart`, plus the end-label column.
 
 Implementation sketch (not verified beyond reading `LineChart.tsx` props and `Area.tsx` props):

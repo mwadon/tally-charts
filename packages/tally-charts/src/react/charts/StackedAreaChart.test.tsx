@@ -625,6 +625,14 @@ function lastColumn(el: Element | undefined) {
   return { x: top.x, low: bottom.y, high: top.y }
 }
 
+/** The k-th end label pair has its baselines at `mid − 4` and `mid + 14`, within 0.5 px. */
+function expectPair(root: HTMLElement, k: number, mid: number) {
+  const label = Number(parts(root, 'end-label')[k]?.getAttribute('y'))
+  const value = Number(parts(root, 'end-value')[k]?.getAttribute('y'))
+  expect(Math.abs(label - (mid - 4))).toBeLessThanOrEqual(0.5)
+  expect(Math.abs(value - (mid + 14))).toBeLessThanOrEqual(0.5)
+}
+
 describe('<StackedAreaChart> end labels', () => {
   it('names each layer and its last value to the right of the plot, centred on the layer', () => {
     const { container } = renderLabelled()
@@ -637,15 +645,13 @@ describe('<StackedAreaChart> end labels', () => {
       expect(t).toHaveAttribute('x', '496')
       expect(t).toHaveAttribute('text-anchor', 'start')
     }
-    // The scale decided before layout agrees with the rendered one.
+    // The scale decided before layout agrees with the rendered one: the name's baseline sits
+    // 4 px above the layer's midpoint, the value's 14 px below it.
     const install = lastColumn(layers(container, 'accent')[0])
-    const mid = (install.low + install.high) / 2
-    expect(Math.abs(Number(labels[0]?.getAttribute('y')) - mid)).toBeLessThanOrEqual(0.5)
-    expect(Math.abs(Number(values[0]?.getAttribute('y')) - mid)).toBeLessThanOrEqual(0.5)
+    expectPair(container, 0, (install.low + install.high) / 2)
     const top = lastColumn(layers(container, 'warn')[0])
-    expect(
-      Math.abs(Number(labels[2]?.getAttribute('y')) - (top.low + top.high) / 2),
-    ).toBeLessThanOrEqual(0.5)
+    expectPair(container, 2, (top.low + top.high) / 2)
+    for (const t of [...labels, ...values]) expect(t).not.toHaveAttribute('dy')
     // The plot is narrower than without end labels.
     const plain = renderLabelled({ endLabels: false })
     expect(parts(plain.container, 'end-label')).toHaveLength(0)
@@ -687,6 +693,109 @@ describe('<StackedAreaChart> end labels', () => {
   it('skips a zero layer', () => {
     const { container } = renderLabelled({ data: patched({ 12: { warranty: 0 } }) })
     expect(parts(container, 'end-label').map((t) => t.textContent)).toEqual(['Install', 'Service'])
+  })
+
+  it('places the pair on the rendered scale with a custom height and top and bottom margins', () => {
+    const { container } = renderLabelled({ height: 400, margin: { top: 50, bottom: 70 } })
+    expect(parts(container, 'end-label')).toHaveLength(3)
+    for (const [k, tone] of ['accent', 'accent-soft', 'warn'].entries()) {
+      const column = lastColumn(layers(container, tone)[0])
+      expectPair(container, k, (column.low + column.high) / 2)
+    }
+  })
+
+  it('keeps all three labels for the weeks at the default height', () => {
+    // W12 centres over [0, 600] in 224 px: 50.4, 131.6 and 177.0 px above the baseline; the
+    // closest two are 45.4 px apart.
+    const { container } = renderLabelled()
+    const ys = parts(container, 'end-label').map((t) => Number(t.getAttribute('y')))
+    expect(ys).toHaveLength(3)
+    expect(Math.abs((ys[1] as number) - (ys[2] as number))).toBeCloseTo(45.36, 1)
+  })
+
+  it('draws none when two centres are closer than 36 px, and all at 36 px', () => {
+    // 600 px over [0, 600]: service and warranty centres sit (service + warranty) / 2 apart.
+    const close = renderChart({ data: patched({ 12: { service: 33, warranty: 33 } }) })
+    expect(parts(close.container, 'end-label')).toHaveLength(0)
+    close.unmount()
+    const apart = renderChart({ data: patched({ 12: { service: 36, warranty: 36 } }) })
+    expect(parts(apart.container, 'end-label')).toHaveLength(3)
+  })
+
+  it('fits the right margin to a long value at 8 px per character', () => {
+    const format = (v: number) => `${v} hours of crew work`
+    const { container } = renderLabelled({
+      format,
+      series: three.map((s, i) => ({ ...s, label: `S${i}` })),
+    })
+    const labels = parts(container, 'end-label')
+    expect(labels).toHaveLength(3)
+    // 10 + "270 hours of crew work" (22 × 8) + 8 = 194.
+    expect(labels[0]).toHaveAttribute('x', String(600 - 44 - (10 + 22 * 8 + 8) + 10))
+  })
+
+  it('draws none, and keeps the default margin, for a lone last x after an incomplete row', () => {
+    vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const data = patched({ 11: { service: null } })
+    const { container } = renderLabelled({ data })
+    expect(parts(container, 'end-label')).toHaveLength(0)
+    const plain = renderLabelled({ data, endLabels: false })
+    expect(lastColumn(layers(container, 'accent')[0]).x).toBe(
+      lastColumn(layers(plain.container, 'accent')[0]).x,
+    )
+  })
+
+  describe('on a time axis', () => {
+    type Day = { at: string; a: number; b: number }
+    const days: Day[] = [
+      { at: '2026-01-01', a: 100, b: 100 },
+      { at: '2026-01-02', a: 100, b: 100 },
+      { at: '2026-01-03', a: 100, b: 100 },
+      { at: '2026-01-04', a: 100, b: 100 },
+      { at: '2026-01-05', a: 100, b: 100 },
+    ]
+    const renderDays = (domain?: [string, string], nice?: boolean) =>
+      render(
+        <StackedAreaChart<Day>
+          data={days}
+          x={{ type: 'time', field: 'at', domain, nice }}
+          series={[
+            { id: 'a', label: 'A', value: 'a' },
+            { id: 'b', label: 'B', value: 'b' },
+          ]}
+          width={600}
+          title="Daily"
+          animate={false}
+        />,
+      )
+    const firstX = (root: HTMLElement) => edgesOf(parts(root, 'area-layer')[0]).upper.at(-1)?.x
+
+    it('draws none, and keeps the default margin, when the last date is outside the x domain', () => {
+      vi.spyOn(console, 'warn').mockImplementation(() => {})
+      const cut = renderDays(['2026-01-01', '2026-01-04'])
+      expect(parts(cut.container, 'end-label')).toHaveLength(0)
+      // Jan 4 sits at the right edge of a 600 − 44 − 16 = 540 px plot.
+      expect(firstX(cut.container)).toBe(540)
+    })
+
+    it('draws them when the explicit domain holds the last date', () => {
+      const all = renderDays(['2026-01-01', '2026-01-05'])
+      expect(parts(all.container, 'end-label')).toHaveLength(2)
+      const inferred = renderDays()
+      expect(parts(inferred.container, 'end-label')).toHaveLength(2)
+    })
+
+    it('decides on the nice domain when `nice` widens an explicit one', () => {
+      vi.spyOn(console, 'warn').mockImplementation(() => {})
+      // A domain ending at 18:00 on Jan 4 leaves Jan 5 out, unless `nice` rounds it to Jan 5.
+      const exact = renderDays(['2026-01-01', '2026-01-04T18:00:00Z'])
+      expect(parts(exact.container, 'end-label')).toHaveLength(0)
+      exact.unmount()
+      const rounded = renderDays(['2026-01-01', '2026-01-04T18:00:00Z'], true)
+      // Jan 5 is drawn (five columns), so the labels describe it.
+      expect(edgesOf(parts(rounded.container, 'area-layer')[0]).upper).toHaveLength(5)
+      expect(parts(rounded.container, 'end-label')).toHaveLength(2)
+    })
   })
 
   it('lets a user margin win over the end-label column', () => {
