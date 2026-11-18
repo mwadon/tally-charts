@@ -149,8 +149,10 @@ height, reaching into the margins). `Bars` itself does not change.
 - `dimInactive` dims every bar except the active one.
 - Data table: one row per category; columns are the category and one per series, with the series
   label as the header.
-- Forced colors: tones collapse to system colors, so series are told apart by position only. The
-  gap between bars keeps them separate. Documented as a limit; the data table carries the values.
+- Forced colors: tones collapse to three system colors (`accent` to Highlight, `accent-soft` and
+  `neutral` to GrayText, `warn` and `gain` to CanvasText), so series that share one are told apart
+  by position. The gap between bars keeps them separate. Documented as a limit; the data table
+  carries the values.
 
 ## 5. Dev warnings
 
