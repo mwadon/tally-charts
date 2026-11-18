@@ -67,8 +67,9 @@ export type StackedAreaChartProps<D> = ChartName &
      */
     series: readonly AreaSeries<D>[]
     /**
-     * The first forecast x (a category, or a date on a time axis). From the x before it to the
-     * end the layers are hatched, and a dashed rule marks that x.
+     * The first forecast x: a category, or any date on a time axis. The layers are hatched from
+     * the last x before it to the end, and a dashed rule sits at that last x before it (with
+     * `forecastFrom="W10"`, at W9). Nothing is hatched when no x comes before it.
      */
     forecastFrom?: TimeInput
     /** Text above the rule, e.g. "today". */
@@ -102,7 +103,11 @@ export type StackedAreaChartProps<D> = ChartName &
      * content for a point (`point.datum` is your row). Default true.
      */
     tooltip?: ChartTooltip<D>
-    /** As `LineChart`. Default true. */
+    /**
+     * Default true. With false the chart is static: no points are registered, so it has no tab
+     * stop, no keyboard hint, no pointer response and no tooltip (`tooltip` is ignored), and
+     * `onSelect` and `onActiveChange` never fire. The title and the data table stay.
+     */
     interactive?: boolean
   }
 
@@ -310,7 +315,7 @@ export function StackedAreaChart<D>({
       else if (at > 0) splitKey = rows[at - 1]?.key
     }
   }
-  if (DEV && unknownForecast) {
+  if (DEV && unknownForecast && rows.length > 0) {
     warn(
       'stacked-area-forecast',
       time

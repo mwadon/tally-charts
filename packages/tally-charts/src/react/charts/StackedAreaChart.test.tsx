@@ -293,6 +293,23 @@ describe('<StackedAreaChart> forecast part', () => {
     expect(warn.mock.calls[0]?.[0]).toMatch(/^\[tally-charts\] .*"W99"/)
   })
 
+  it('does not warn about `forecastFrom` while there are no rows', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    render(
+      <StackedAreaChart<Week>
+        data={[]}
+        x="week"
+        series={three}
+        width={600}
+        height={600}
+        title="Crew hours per week"
+        animate={false}
+        forecastFrom="W10"
+      />,
+    )
+    expect(warn).not.toHaveBeenCalled()
+  })
+
   it('breaks the hatched layers at a missing value inside the forecast part', () => {
     const { container } = renderChart({
       data: patched({ 11: { service: null } }),
@@ -498,6 +515,15 @@ describe('<StackedAreaChart> on a time axis', () => {
       expect(parts(container, 'forecast-label')).toHaveLength(0)
       unmount()
     }
+    expect(warn).not.toHaveBeenCalled()
+  })
+
+  it('draws the rule and the label at the last x, and hatches nothing, for a `forecastFrom` after every date', () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    const { container } = renderDays({ forecastFrom: '2026-02-01', forecastLabel: 'today' })
+    expect(hatchedXs(container)).toEqual([])
+    expect(parts(container, 'forecast-rule')[0]).toHaveAttribute('x1', '400')
+    expect(parts(container, 'forecast-label')).toHaveLength(1)
     expect(warn).not.toHaveBeenCalled()
   })
 

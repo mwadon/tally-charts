@@ -60,8 +60,9 @@ type StackedAreaChartProps<D> = ChartName &
     /** One layer per series; the first series sits on the baseline. */
     series: readonly AreaSeries<D>[]
     /**
-     * The first forecast x (a category, or a date on a time axis). From the x before it to the
-     * end the layers are hatched, and a dashed rule marks that x.
+     * The first forecast x: a category, or any date on a time axis. The layers are hatched from
+     * the last x before it to the end, and a dashed rule sits at that last x before it (with
+     * `forecastFrom="W10"`, at W9). Nothing is hatched when no x comes before it.
      */
     forecastFrom?: TimeInput
     /** Text above the rule, e.g. "today". */

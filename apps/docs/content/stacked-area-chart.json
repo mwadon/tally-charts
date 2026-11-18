@@ -104,7 +104,7 @@
       "id": "n11",
       "type": "prose",
       "props": {
-        "markdown": "At the right edge of each layer the chart writes the series name and its last value, and the right margin grows to fit them. `endLabels={false}` turns them off. None is drawn for a layer that is zero at the last x, and none at all when the last row is incomplete or when no area reaches the last x (it is outside the x domain, or it is a lone x after an incomplete row). When the centres of two neighbouring labels would be closer than 36 px, no label is drawn, so a chart with many thin layers has none: compose a [`Legend`](#legend) instead."
+        "markdown": "At the right edge of each layer the chart writes the series name and its last value, and the right margin grows to fit them. `endLabels={false}` turns them off. None is drawn for a layer that is zero at the last x, and none at all when the last row is incomplete or when no area reaches the last x (it is outside the x domain, or it is a lone x after an incomplete row). When the centres of two neighbouring labels would be closer than 36 px, no label is drawn, so a chart with many thin layers has none: compose a [`Legend`](#legend) instead. Long series names take plot width, because the margin grows with the longest label; use `endLabels={false}` and a `Legend` on narrow charts. A `margin.right` you pass overrides the grown margin, so labels can clip. A chart with a single row has no end labels."
       }
     },
     {
@@ -145,7 +145,7 @@
       "id": "n16",
       "type": "prose",
       "props": {
-        "markdown": "With `x={{ field: 'date', type: 'time' }}` the rows are sorted by date and spaced by time, as in `LineChart`. On a time axis `forecastFrom` can be any date: the rule sits at the last row before it, and the layers are hatched from there. The tick labels, the tooltip headers and the announcements share `xAxisFormat`, which is `'auto'` for dates."
+        "markdown": "With `x={{ field: 'date', type: 'time' }}` the rows are sorted by date and spaced by time, as in `LineChart`. On a time axis `forecastFrom` can be any date: the rule sits at the last row before it, and the layers are hatched from there. A `forecastFrom` later than every date puts the rule at the last x and hatches nothing. The tick labels, the tooltip headers and the announcements share `xAxisFormat`, which is `'auto'` for dates."
       }
     },
     {
@@ -243,7 +243,7 @@
       "id": "n28",
       "type": "prose",
       "props": {
-        "markdown": "There is one point per x, not per series, and its id is the row key: the category as a string, or the ISO date. A row with no value at all has no point. In `onSelect` and `onActiveChange`, the `ChartPoint` has your row as `datum`. The default tooltip shows the x, then the series with their tone swatches and values, the top layer first, and then the total (a complete row only). The active x gets a cursor line from the baseline to the top of the stack, with a dot on each layer."
+        "markdown": "There is one point per x, not per series, and its id is the row key: the category as a string, or the ISO date. A row with no value at all has no point. In `onSelect` and `onActiveChange`, the `ChartPoint` has your row as `datum`. The default tooltip shows the x, then the series with their tone swatches and values, the top layer first, and then the total (a complete row only). The active x gets a cursor: for a complete row a line from the baseline to the top of the stack with a dot on each layer, and for a row with a missing value a line to the top of the plot and no dots."
       }
     },
     {
@@ -259,7 +259,7 @@
       "id": "n30",
       "type": "prose",
       "props": {
-        "markdown": "The chart is a single tab stop. The arrow keys move from one x to the next and back, `Home` and `End` jump to the first and last, `Enter` or `Space` selects the active x when the chart has `onSelect`, and `Esc` clears it. Hovering snaps to the nearest x."
+        "markdown": "The chart is a single tab stop. The arrow keys move from one x to the next and back, `Home` and `End` jump to the first and last, `Enter` or `Space` selects the active x when the chart has `onSelect`, and `Esc` clears it. Hovering snaps to the nearest x. With `interactive={false}` the chart registers no points, so it has no tab stop, no tooltip and no cursor; the title, the end labels and the data table stay."
       }
     },
     {

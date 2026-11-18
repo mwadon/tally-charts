@@ -18,7 +18,7 @@ const months = [
   { date: '2026-08-01', install: 240, service: 150, warranty: 72 },
 ]
 
-// On a time axis `forecastFrom` can be any date; the rule sits at the last month before it.
+// On a time axis `forecastFrom` can be any date; the rule sits at the last month before it (June here).
 export default function TimeAxis() {
   return (
     <StackedAreaChart
@@ -29,11 +29,11 @@ export default function TimeAxis() {
         { id: 'service', label: 'Service', value: 'service' },
         { id: 'warranty', label: 'Warranty', value: 'warranty', tone: 'neutral' },
       ]}
-      forecastFrom="2026-06-15"
+      forecastFrom="2026-07-01"
       forecastLabel="today"
       height={260}
       title={meta.title}
-      description="Hours grow from January to August; from the middle of June they are booked."
+      description="Hours grow from January to August; the rule is at June, and July and August are booked."
     />
   )
 }
