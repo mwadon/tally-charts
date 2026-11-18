@@ -142,7 +142,6 @@ export interface BarSeries<D> {
     id: string;
     label: string;
     tone?: Tone;
-    // (undocumented)
     value: Accessor<D, number>;
 }
 

@@ -79,7 +79,7 @@
       "id": "n8",
       "type": "prose",
       "props": {
-        "markdown": "Each series says which field it reads and how to name it. Props stay serializable here, so the chart renders in a server component. The third series sets `tone=\"neutral\"` itself."
+        "markdown": "Each series says which field it reads and how to name it. Props stay serializable here, so the chart renders in a server component. The third series sets `tone: 'neutral'` in its series object."
       }
     },
     {
@@ -126,7 +126,7 @@
       "id": "n14",
       "type": "prose",
       "props": {
-        "markdown": "`orientation=\"horizontal\"` puts the categories on the left. `x` is still the category and the series values are still the values. Here last year is a `'hatch-fade'` series."
+        "markdown": "`orientation=\"horizontal\"` puts the categories on the left. `x` is still the category and the series values are still the values. Here last year is a `'hatch-fade'` series. In both orientations `grid` and `valueAxis` are independent: `valueAxis=\"none\"` hides the value axis and keeps the grid lines at the default ticks, and `grid={false}` removes the lines."
       }
     },
     {
@@ -176,7 +176,7 @@
       "id": "n20",
       "type": "prose",
       "props": {
-        "markdown": "`valueLabel=\"all\"` (the default) writes the value above each bar, or beside it when horizontal. When any label is wider than its bar, no label is drawn at that width, and the values stay in the tooltip and the data table. A downward bar whose label does not fit below it gets the label above its base. Use `valueLabel=\"none\"` to turn the labels off."
+        "markdown": "`valueLabel=\"all\"` (the default) writes the value above each bar, or beside it when horizontal. A horizontal chart always draws its value labels. In a vertical chart, when any label is wider than its bar, no label is drawn at that width, and the values stay in the tooltip and the data table. A downward bar whose label does not fit below it gets the label above its base. Use `valueLabel=\"none\"` to turn the labels off."
       }
     },
     {
@@ -231,14 +231,14 @@
       "id": "n27",
       "type": "prose",
       "props": {
-        "markdown": "Screen readers get the title and description, then an announcement for each bar the keyboard moves to, such as “North: Q3, 55, 3 of 4”: the series, the category, the formatted value and the position within the series. A visually hidden data table follows the chart, with one row per category and one column per series."
+        "markdown": "Screen readers get the title and description, then an announcement for each bar the keyboard moves to, such as “North, 3 of 4, Q3, 55”: the series, the position within the series, then the category and the formatted value. A visually hidden data table follows the chart, with one row per category and one column per series."
       }
     },
     {
       "id": "n28",
       "type": "prose",
       "props": {
-        "markdown": "In forced colors mode (Windows high contrast), tones collapse to system colors, so the series are told apart by their position in each group only. The gap between the bars keeps them separate, and the data table carries the values."
+        "markdown": "In forced colors mode (Windows high contrast), tones collapse to a few system colors and several share one: `accent` becomes Highlight, `accent-soft` and `neutral` GrayText, `warn` and `gain` CanvasText. Series that share a color are told apart by their position in each group, the gap between the bars keeps them separate, and the data table carries the values."
       }
     },
     {

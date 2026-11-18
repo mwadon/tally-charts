@@ -144,8 +144,8 @@ height, reaching into the margins). `Bars` itself does not change.
   (no `PointGroup`). Home / End as in `BarChart`.
 - Default tooltip: the category, then the series label with its tone swatch and the formatted
   value: "Q3 · North 55".
-- Announcement: "North: Q3, 55, 3 of 4" (series first, position within the series, as
-  `ChartPoint.series` defines).
+- Announcement: "North, 3 of 4, Q3, 55" (series first, then the position within the series, as
+  `ChartPoint.series` defines, then the category and the value).
 - `dimInactive` dims every bar except the active one.
 - Data table: one row per category; columns are the category and one per series, with the series
   label as the header.

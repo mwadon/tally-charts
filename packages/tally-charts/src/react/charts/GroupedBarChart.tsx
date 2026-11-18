@@ -4,7 +4,7 @@ import { computeBars, groupSlots } from '../../core/bars'
 import type { FormatSpec } from '../../core/format'
 import { niceDomain } from '../../core/linear'
 import { type BandScaleSpec, inferLinearDomain, type LinearScaleSpec } from '../../core/scale'
-import { estimateWidth, linearTicks, type TickSpec } from '../../core/ticks'
+import { linearTicks, type TickSpec } from '../../core/ticks'
 import type { Accessor, Fill, Id, PerItem, Tone } from '../../core/types'
 import { createWarner, DEV } from '../../core/warn'
 import { Chart, type ChartName } from '../Chart'
@@ -34,6 +34,7 @@ export interface BarSeries<D> {
   id: string
   /** Name for the tooltip, announcements and the data table header. */
   label: string
+  /** Value field of the series. */
   value: Accessor<D, number>
   /** Default: the next tone of the default order: accent, accent-soft, warn, neutral, gain. */
   tone?: Tone
@@ -101,6 +102,7 @@ export type GroupedBarChartProps<D> = ChartName &
 const DEFAULT_TONES: readonly Tone[] = ['accent', 'accent-soft', 'warn', 'neutral', 'gain']
 const BAR_THICKNESS = 16
 const ROW_PADDING = 20
+const NO_ROWS: readonly never[] = []
 
 export function GroupedBarChart<D>({
   data,
@@ -133,6 +135,8 @@ export function GroupedBarChart<D>({
   const { create } = useFormat()
   const messages = useMessages()
   const vertical = orientation === 'vertical'
+  // One reading of `gap` for the slots, the hit slices and the automatic height.
+  const barGap = Number.isFinite(gap) && gap > 0 ? gap : 0
   if (DEV) {
     if (series.length === 0) {
       warn(
@@ -169,8 +173,9 @@ export function GroupedBarChart<D>({
     return niceDomain(inferLinearDomain(values, true), valueTicks)
   }, [domain, getters, data, targetValue, valueTicks])
 
-  const band: BandScaleSpec<D> = { type: 'band', field: x, padding }
-  const linear: LinearScaleSpec<D> = { domain: valueDomain }
+  // Stable scale specs, so the chart keeps its scales (and the marks their layout) across renders.
+  const band = useMemo((): BandScaleSpec<D> => ({ type: 'band', field: x, padding }), [x, padding])
+  const linear = useMemo((): LinearScaleSpec<D> => ({ domain: valueDomain }), [valueDomain])
   const showValueAxis = valueAxis !== 'none'
   const m: Margin = {
     ...(vertical
@@ -182,11 +187,11 @@ export function GroupedBarChart<D>({
   const rows = Math.max(1, data.length)
   const autoHeight =
     !vertical && chart.aspectRatio === undefined
-      ? rows * (count * BAR_THICKNESS + Math.max(0, count - 1) * gap + ROW_PADDING) +
+      ? rows * (count * BAR_THICKNESS + Math.max(0, count - 1) * barGap + ROW_PADDING) +
         m.top +
         m.bottom
       : undefined
-  const valueFmt: AxisFormat | undefined = valueAxisFormat ?? (format as AxisFormat | undefined)
+  const valueFmt: AxisFormat | undefined = valueAxisFormat ?? format
 
   let table: DataTableSpec<D> | undefined
   if (dataTable) {
@@ -213,18 +218,19 @@ export function GroupedBarChart<D>({
   return (
     <Chart<D>
       {...chart}
-      data={series.length === 0 ? [] : data}
+      data={series.length === 0 ? NO_ROWS : data}
       dataTable={withTableOptions(table, dataTable)}
       x={vertical ? band : linear}
       y={vertical ? linear : band}
       margin={m}
       height={height ?? autoHeight}
     >
-      {grid && showValueAxis ? (
+      {/* The grid does not follow the value axis: without one it rules the default ticks. */}
+      {grid ? (
         vertical ? (
-          <Grid ticks={valueAxis} />
+          <Grid ticks={showValueAxis ? valueAxis : 'all'} />
         ) : (
-          <VerticalGrid ticks={valueAxis} />
+          <VerticalGrid ticks={showValueAxis ? valueAxis : 'all'} />
         )
       ) : null}
       {targetSpec ? (
@@ -238,7 +244,7 @@ export function GroupedBarChart<D>({
         getters={getters}
         id={id}
         rowFill={fill}
-        gap={gap}
+        gap={barGap}
         vertical={vertical}
         label={label}
         format={format}
@@ -308,19 +314,35 @@ function GroupedLayers<D>({
   const data = ctx.data as readonly D[]
   const band = vertical ? ctx.x : ctx.y
   const bandwidth = band.kind === 'band' ? band.scale.bandwidth() : 0
-  const slots = groupSlots(bandwidth, series.length, gap)
+  const slots = useMemo(
+    () => groupSlots(bandwidth, series.length, gap),
+    [bandwidth, series.length, gap],
+  )
   const rowIds = useMemo(() => resolveIds(data, id, ctx.warn), [data, id, ctx.warn])
   const rowFillOf = useMemo(() => resolvePerItem(rowFill ?? undefined), [rowFill])
-  const tones = series.map((s, i) => s.tone ?? (DEFAULT_TONES[i % DEFAULT_TONES.length] as Tone))
+  const tones = useMemo(
+    () => series.map((s, i) => s.tone ?? (DEFAULT_TONES[i % DEFAULT_TONES.length] as Tone)),
+    [series],
+  )
+  // Per-layer id and fill functions that only change with their inputs, so `Bars` keeps its layout.
+  const layers = useMemo(
+    () =>
+      series.map((s) => ({
+        id: (_: D, j: number) => `${rowIds[j]}:${s.id}`,
+        fill: (d: D, j: number, all: readonly D[]) =>
+          (rowFillOf(d, j, all) as Fill | undefined) ?? s.fill ?? 'solid',
+      })),
+    [series, rowIds, rowFillOf],
+  )
   return (
     <>
       {series.map((s, i) => {
         const getter = getters[i] as (d: D, i: number) => number
+        const layer = layers[i] as (typeof layers)[number]
         const bars = {
-          id: (_: D, j: number) => `${rowIds[j]}:${s.id}`,
+          id: layer.id,
           tone: tones[i] as Tone,
-          fill: (d: D, j: number, all: readonly D[]) =>
-            (rowFillOf(d, j, all) as Fill | undefined) ?? s.fill ?? 'solid',
+          fill: layer.fill,
           size: slots.size,
           align: 'start' as const,
           offset: slots.offsets[i],
@@ -369,6 +391,8 @@ interface GroupedPointsProps<D> {
 
 const LABEL_OFFSET = 6
 const LABEL_HEIGHT = 14
+/** Width of a character of a value label (13 px, weight 500); wider than an axis label's. */
+const LABEL_CHAR_WIDTH = 8
 
 interface SeriesBar {
   seriesIndex: number
@@ -428,10 +452,16 @@ function GroupedPoints<D>({
         offset: slots.offsets[i],
       }).bars
     })
+    // Index each series' bars by row once; a missing value leaves its row empty.
+    const byRow = perSeries.map((bars) => {
+      const rects: (SeriesBar['rect'] | undefined)[] = new Array(data.length)
+      for (const bar of bars) rects[bar.index] = bar
+      return rects
+    })
     const ordered: SeriesBar[] = []
     for (let row = 0; row < data.length; row++) {
-      perSeries.forEach((bars, seriesIndex) => {
-        const rect = bars.find((b) => b.index === row)
+      byRow.forEach((rects, seriesIndex) => {
+        const rect = rects[row]
         if (rect) ordered.push({ seriesIndex, rect })
       })
     }
@@ -462,12 +492,7 @@ function GroupedPoints<D>({
 
   // Labels that overflow a slot would run into their neighbours: draw none rather than some.
   const texts = layout.map(({ rect }) => labelFmt(rect.value))
-  const fits =
-    !vertical ||
-    texts.every(
-      (text) =>
-        estimateWidth({ value: 0, position: 0, label: text, anchor: 'middle' }) <= slots.size,
-    )
+  const fits = !vertical || texts.every((text) => text.length * LABEL_CHAR_WIDTH <= slots.size)
 
   const last = series.length - 1
   return (

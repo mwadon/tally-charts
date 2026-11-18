@@ -4,7 +4,7 @@ import { act, version } from 'react'
 import { hydrateRoot } from 'react-dom/client'
 import { renderToString } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
-import { LastTwelveWeeks } from '../test/fixtures'
+import { CrewQuarters, LastTwelveWeeks } from '../test/fixtures'
 import { thresholds } from './core/thresholds'
 import { ShareBar } from './react/ui/ShareBar'
 import { ZoneMeter } from './react/ui/ZoneMeter'
@@ -32,6 +32,29 @@ describe('hydration', () => {
     })
     expect(onRecoverableError).not.toHaveBeenCalled()
     expect(errors).not.toHaveBeenCalled()
+    await act(async () => {
+      root?.unmount()
+    })
+    container.remove()
+    errors.mockRestore()
+  })
+
+  // Server markup from this environment's React, so its useId values match on both CI legs;
+  // ssr.node.test.tsx renders the same fixture without a DOM.
+  it('hydrates GroupedBarChart server markup without mismatches', async () => {
+    const errors = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const container = document.createElement('div')
+    container.innerHTML = renderToString(<CrewQuarters />)
+    expect(container.querySelectorAll('[data-ch-part="bar"]')).toHaveLength(12)
+    document.body.appendChild(container)
+    const onRecoverableError = vi.fn()
+    let root: ReturnType<typeof hydrateRoot> | undefined
+    await act(async () => {
+      root = hydrateRoot(container, <CrewQuarters />, { onRecoverableError })
+    })
+    expect(onRecoverableError).not.toHaveBeenCalled()
+    expect(errors).not.toHaveBeenCalled()
+    expect(container.querySelectorAll('[data-ch-part="bar"]')).toHaveLength(12)
     await act(async () => {
       root?.unmount()
     })

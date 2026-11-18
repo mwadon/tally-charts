@@ -2721,13 +2721,21 @@ Gałąź `ui-refresh-palette`, bez commita. Zmiany tylko w `apps/docs` (bibliote
 - Lighthouse nie był uruchamiany po odświeżeniu strony głównej.
 - Ręczny przebieg a11y (VoiceOver, NVDA, high contrast, 400%) i test dotykowy na iOS Safari (PR #12).
 
-## GroupedBarChart 1.1: strona docs (2026-11-18)
+## GroupedBarChart 1.1 (2026-11-18)
 
-Gałąź `grouped-bar-chart`, bez commita. Zadanie 6 planu: strona, przykłady i kafelek na `/`.
+Gałąź `grouped-bar-chart`. Spec: `docs/superpowers/specs/2026-11-18-tally-charts-1.1-grouped-bar-chart-design.md`. Pierwszy z typów wykresów odłożonych w SPEC §4 na 1.x; wydanie 1.1.0 (minor, tylko dodatki).
 
-- Strona `/docs/grouped-bar-chart` (fiksturka `content/grouped-bar-chart.json`, w nawigacji po BarChart) z czterema przykładami w `examples/grouped-bar-chart/` (`jobs-by-crew`, `forecast-quarter`, `horizontal`, `with-legend`), tabelą propsów `GroupedBarChart`, opisem `BarSeries`, `ChartPoint.seriesId`, etykiet wartości, klawiatury i limitu forced colors oraz składaniem `Legend`.
-- Strona główna: nowa miniatura `grouped-bars` w `blocks/chart-thumbs.tsx` i kafelek w `chart-index` po BarChart. Kafelków jest 13, więc ostatni rząd ma jeden; nagłówek bloku nadal mówi „Eleven charts” (był nieaktualny już przy 12).
-- Liczby: strony w nawigacji 26, `API coverage: 54/54`. Rozmiar `GroupedBarChart` w `pnpm size`: 14.22 kB z 15 kB (zadanie 5).
-- Baseline'y `/` odświeżone na darwin i linux; `/docs/line-chart` bez zmian.
-- Pułapki: nazwa linku `BarChart` pasuje też do `GroupedBarChart` (`bar-chart.spec.ts` ma `exact: true`); wysokości kart z wykresem 260 px i z `Legend` wpisane w `height` bloków (292, 292, 313), bez wpisu w `NARROW_CHART_HEIGHTS`.
-- Otwarte: `pnpm --filter docs seed` (nowa strona i kafelek w glokki), decyzja o nagłówku „Eleven charts”, wydanie 1.1.0 (changeset jest).
+- Komponent `GroupedBarChart` (`src/react/charts/GroupedBarChart.tsx`): słupki kilku serii obok siebie w grupie na kategorię, pionowo albo poziomo. Jedna warstwa `Bars` na serię (`size`, `align: 'start'`, `offset`, `interactive: false`) i wewnętrzny mark z punktami, wycinkami trafień (szerokość slotu, cała wysokość wykresu) i etykietami wartości. Sloty liczy czysta funkcja `groupSlots` w `core/bars.ts`. Id słupka to `${rowId}:${series.id}`. Domyślne tony po pozycji serii: accent, accent-soft, warn, neutral, gain (nigdy loss). `fill` wiersza wygrywa z `fill` serii. Etykiety pionowe: przy szerokości 8 px na znak (13 px, waga 500), gdy któraś nie mieści się w slocie, nie rysuje się żadna; poziome zawsze. `grid` nie zależy od `valueAxis` (bez osi siatka idzie po domyślnych tickach). Ostrzeżenia dev: więcej niż 4 serie, powtórzone id serii, pusta tablica `series`.
+- Eksporty: `GroupedBarChart`, `GroupedBarChartProps`, `BarSeries` i nowe opcjonalne `ChartPoint.seriesId`. `Bars`, `BarChart` i `ValueLabel` bez zmian. Raport API zaktualizowany, changeset `minor` (`.changeset/grouped-bar-chart.md`).
+- Rozmiar: wpis `GroupedBarChart` w `pnpm size` 14.3 kB z 15 kB; `tally-charts/core` 2.02 kB z 8 kB. `check:treeshake` obejmuje nowy wpis size-limit.
+- Testy biblioteki: układ w obu orientacjach, fill, tony, braki wartości, dopasowanie etykiet, wartości ujemne, cel, `seriesId` w callbackach, tabela danych, ostrzeżenia, stabilna tablica punktów przy ponownym renderze z tymi samymi propsami, SSR (`ssr.node.test.tsx`) i hydratacja (`hydration.test.tsx`, fiksturka `CrewQuarters`).
+- Storybook: stories `charts-groupedbarchart--{light,dark,horizontal,negative,five-series}` z baseline'ami na darwin i linux, axe, kontrastem i reflow; e2e klawiatury (Tab, ArrowRight, tekst live regionu) i forced colors (słupki grupy widoczne i rozdzielone przerwą).
+- Docs: strona `/docs/grouped-bar-chart` (fiksturka `content/grouped-bar-chart.json`, w nawigacji po BarChart) z czterema przykładami w `examples/grouped-bar-chart/` (`jobs-by-crew`, `forecast-quarter`, `horizontal`, `with-legend`), tabelą propsów, opisem `BarSeries`, `ChartPoint.seriesId`, etykiet, klawiatury i forced colors. Wiersz GroupedBarChart w tabeli komunikatów `docs/a11y.md` („North, 1 of 4, Q1, 42”) i uwaga o szerokości celów wskaźnika. Strona główna: miniatura `grouped-bars` i kafelek w `chart-index` po BarChart, nagłówek bloku „Twelve charts, one grammar”. Stron w nawigacji 26, `API coverage: 54/54`. Baseline'y `/` odświeżone na darwin i linux, `/docs/line-chart` bez zmian.
+- Pułapki: nazwa linku `BarChart` w sidebarze pasuje też do `GroupedBarChart`, więc oba e2e szukają linku z `exact: true`; karty z wykresem 260 px i z `Legend` mają `height` bloku (292, 292, 313), bez wpisu w `NARROW_CHART_HEIGHTS`.
+- Bramki: `pnpm test` 1403/1403, `pnpm --filter docs test` 858/858, `typecheck`, `lint`, `api:check`, `size`, `check:dev-strip`, `check:treeshake`, `check:dts`, `test:scripts` 39/39, `check:content` 0 błędów (`API coverage: 54/54`), e2e Storybook 427/427 i docs 487/487 na darwin i w dockerze (linux).
+
+**Otwarte kwestie:**
+- Mieszane położenie etykiet słupków ujemnych w jednym wykresie (etykieta pod słupkiem, gdy się mieści, inaczej nad podstawą): decyzja właściciela.
+- `ValueLabel` w `BarChart` nadal rysuje etykietę na słupku skierowanym w dół, gdy pod nim brak miejsca (stan sprzed tej gałęzi).
+- Wydanie 1.1.0 nie zostało zrobione (changeset jest).
+- `pnpm --filter docs seed` (nowa strona i kafelek w glokki).

@@ -8,6 +8,7 @@ import {
   DotCount,
   DotHistogram,
   fmt,
+  GroupedBarChart,
   Heatmap,
   InlineBar,
   LineChart,
@@ -360,6 +361,30 @@ export function UsageRunway() {
       onSelect={() => {}}
       selectedId="pro"
       dataTable
+    />
+  )
+}
+
+export const crewQuarters = [
+  { quarter: 'Q1', north: 42, south: 35, west: 18 },
+  { quarter: 'Q2', north: 48, south: 38, west: 27 },
+  { quarter: 'Q3', north: 55, south: 36, west: 33 },
+  { quarter: 'Q4', north: 61, south: 44, west: 41, forecast: true },
+]
+
+export function CrewQuarters() {
+  return (
+    <GroupedBarChart
+      title="Jobs completed by crew"
+      data={crewQuarters}
+      x="quarter"
+      series={[
+        { id: 'north', label: 'North', value: 'north' },
+        { id: 'south', label: 'South', value: 'south' },
+        { id: 'west', label: 'West', value: 'west', tone: 'neutral' },
+      ]}
+      fill={(d) => (d.forecast ? 'hatch' : undefined)}
+      target={{ value: 50, label: 'Target' }}
     />
   )
 }

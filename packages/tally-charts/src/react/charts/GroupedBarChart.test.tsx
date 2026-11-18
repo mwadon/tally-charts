@@ -1,6 +1,20 @@
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
+import type { ChartPoint } from '../types'
 import { type BarSeries, GroupedBarChart, type GroupedBarChartProps } from './GroupedBarChart'
+
+// Records every points array a mark registers, so a test can see whether a re-render with the
+// same props registers a new array. The real hook still runs.
+const registered = vi.hoisted(() => [] as (readonly ChartPoint[])[])
+vi.mock('../useRegisterPoints', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../useRegisterPoints')>()
+  return {
+    useRegisterPoints: (points: readonly ChartPoint[]) => {
+      if (points.length > 0) registered.push(points)
+      actual.useRegisterPoints(points)
+    },
+  }
+})
 
 type Quarter = {
   quarter: string
@@ -132,6 +146,31 @@ describe('<GroupedBarChart>', () => {
     for (const b of all) expect(num(b, 'height')).toBeGreaterThanOrEqual(0)
   })
 
+  it('gives an all-negative dataset a domain with zero, down bars and labels at their outer end', () => {
+    const data = [
+      { quarter: 'A', north: -42, south: -35, west: -18 },
+      { quarter: 'B', north: -28, south: -12, west: -30 },
+    ]
+    const { container } = renderChart({ data, width: 584 })
+    const all = bars(container)
+    expect(all).toHaveLength(6)
+    for (const b of all) expect(b.getAttribute('data-ch-direction')).toBe('down')
+    // Zero is in the domain: every bar starts at the same baseline, which is the top tick.
+    const tops = new Set(all.map((b) => num(b, 'y')))
+    expect(tops.size).toBe(1)
+    const ticks = parts(container, 'axis-label').map((t) => t.textContent)
+    expect(ticks).toContain('0')
+    const labels = parts(container, 'value-label')
+    expect(labels).toHaveLength(6)
+    // Labels in group order: A north, south, west, B north, south, west; bars are series-major.
+    const groupOrder = [0, 2, 4, 1, 3, 5].map((k) => all[k] as SVGElement)
+    labels.forEach((label, k) => {
+      const bar = groupOrder[k] as SVGElement
+      expect(label.getAttribute('dominant-baseline')).toBe('hanging')
+      expect(num(label, 'y')).toBeCloseTo(num(bar, 'y') + num(bar, 'height') + 6)
+    })
+  })
+
   it('puts the label of a down bar that does not fit below it above its base, not over the bar', () => {
     const data = [{ quarter: 'A', north: -8, south: 10, west: 0 }]
     const { container } = renderChart({ data, height: 200, domain: [-8, 10] })
@@ -158,6 +197,21 @@ describe('<GroupedBarChart>', () => {
     expect(container.querySelector('svg')?.getAttribute('height')).toBe('340')
   })
 
+  it('treats a non-finite or negative gap as 0, also in the automatic height', () => {
+    for (const gap of [Number.NaN, -4]) {
+      const { container, unmount } = renderChart({ orientation: 'horizontal', gap })
+      // 4 rows × (3 × 16 + 20) + 8 + 28
+      expect(container.querySelector('svg')?.getAttribute('height')).toBe('308')
+      const [a, b] = group(container, 0) as [SVGElement, SVGElement]
+      expect(num(b, 'y')).toBeCloseTo(num(a, 'y') + num(a, 'height'))
+      for (const hit of parts(container, 'bar-hit')) {
+        expect(Number.isFinite(num(hit, 'y'))).toBe(true)
+        expect(Number.isFinite(num(hit, 'height'))).toBe(true)
+      }
+      unmount()
+    }
+  })
+
   it('draws the grid and both axes, and drops them on request', () => {
     const { container, unmount } = renderChart()
     expect(parts(container, 'grid-line').length).toBeGreaterThan(0)
@@ -166,9 +220,22 @@ describe('<GroupedBarChart>', () => {
     const noGrid = renderChart({ grid: false })
     expect(parts(noGrid.container, 'grid-line')).toHaveLength(0)
     noGrid.unmount()
-    const noValueAxis = renderChart({ valueAxis: 'none' })
+    const noValueAxis = renderChart({ valueAxis: 'none', grid: false })
     expect(parts(noValueAxis.container, 'grid-line')).toHaveLength(0)
     expect(parts(noValueAxis.container, 'axis')).toHaveLength(1)
+  })
+
+  it('keeps the grid at the default ticks without a value axis, in both orientations', () => {
+    for (const orientation of ['vertical', 'horizontal'] as const) {
+      const withAxis = renderChart({ orientation })
+      const expected = parts(withAxis.container, 'grid-line').length
+      expect(expected).toBeGreaterThan(0)
+      withAxis.unmount()
+      const { container, unmount } = renderChart({ orientation, valueAxis: 'none' })
+      expect(parts(container, 'grid-line')).toHaveLength(expected)
+      expect(parts(container, 'axis')).toHaveLength(1)
+      unmount()
+    }
   })
 
   it('rules vertical grid lines for a horizontal chart', () => {
@@ -185,7 +252,13 @@ describe('<GroupedBarChart>', () => {
     expect(parts(container, 'target')).toHaveLength(1)
     expect(parts(container, 'target-label')[0]?.textContent).toBe('Target')
     const line = parts(container, 'target')[0] as SVGElement
-    expect(num(line, 'y1')).toBeGreaterThanOrEqual(0)
+    const y = num(line, 'y1')
+    // Inside the plot: below its top edge and above the bottom margin (top 24, bottom 28).
+    const plotHeight = num(container.querySelector('svg') as Element, 'height') - 24 - 28
+    expect(y).toBeGreaterThanOrEqual(0)
+    expect(y).toBeLessThanOrEqual(plotHeight)
+    // Every value is below the target, so the line sits above every bar's top.
+    for (const bar of bars(container)) expect(y).toBeLessThan(num(bar, 'y'))
   })
 
   it('uses an explicit domain as given', () => {
@@ -297,8 +370,32 @@ describe('<GroupedBarChart> points, labels, tooltip and table', () => {
       fireEvent.keyDown(chart, { key: 'ArrowRight' })
       seen.push(live.textContent ?? '')
     }
-    expect(seen.map((t) => t.split(',')[0])).toEqual(['North', 'South', 'West', 'North'])
-    expect(seen.map((t) => /Q\d/.exec(t)?.[0])).toEqual(['Q1', 'Q1', 'Q1', 'Q2'])
+    // Series, position within the series, then the category and the value.
+    expect(seen).toEqual([
+      'North, 1 of 4, Q1, 42',
+      'South, 1 of 4, Q1, 35',
+      'West, 1 of 4, Q1, 18',
+      'North, 2 of 4, Q2, 48',
+    ])
+    for (let i = 0; i < 3; i++) fireEvent.keyDown(chart, { key: 'ArrowRight' })
+    expect(live.textContent).toBe('North, 3 of 4, Q3, 55')
+  })
+
+  it('registers the same points array again when re-rendered with the same props', () => {
+    const props: GroupedBarChartProps<Quarter> = {
+      data: quarters,
+      x: 'quarter',
+      series: three,
+      width: 300,
+      title: 'Jobs completed by crew',
+      animate: false,
+    }
+    const { rerender } = render(<GroupedBarChart<Quarter> {...props} />)
+    const first = registered.at(-1)
+    expect(first).toHaveLength(12)
+    rerender(<GroupedBarChart<Quarter> {...props} />)
+    rerender(<GroupedBarChart<Quarter> {...props} />)
+    expect(registered.at(-1)).toBe(first)
   })
 
   it('marks one controlled active bar and dims the other eleven', () => {
@@ -337,15 +434,37 @@ describe('<GroupedBarChart> points, labels, tooltip and table', () => {
     expect(labelsOf(none.container)).toHaveLength(0)
   })
 
+  it('measures value labels at their 13 px size: two digits need a slot of about 16 px', () => {
+    // 300 px wide: a slot of about 13.7 px, too narrow for "42" at 13 px weight 500.
+    const tight = renderChart({ width: 300 })
+    const slot = num(bars(tight.container)[0] as Element, 'width')
+    expect(slot).toBeGreaterThan(13)
+    expect(slot).toBeLessThan(15)
+    expect(labelsOf(tight.container)).toHaveLength(0)
+    tight.unmount()
+    // 360 px wide: a slot of about 17.5 px, wide enough.
+    const roomy = renderChart({ width: 360 })
+    const roomySlot = num(bars(roomy.container)[0] as Element, 'width')
+    expect(roomySlot).toBeGreaterThanOrEqual(17)
+    expect(roomySlot).toBeLessThan(18)
+    expect(labelsOf(roomy.container)).toHaveLength(12)
+  })
+
   it('always labels a horizontal chart, and lets valueFormat win over format', () => {
     const { container, unmount } = renderChart({ orientation: 'horizontal', width: 200 })
     expect(labelsOf(container)).toHaveLength(12)
     unmount()
-    const formatted = renderChart({ width: wide, format: 'percent', valueFormat: 'hours' })
+    // Horizontal, so the longer formatted labels are always drawn.
+    const formatted = renderChart({
+      orientation: 'horizontal',
+      width: wide,
+      format: 'percent',
+      valueFormat: 'hours',
+    })
     expect(labelsOf(formatted.container)[0]?.textContent).not.toContain('%')
     expect(labelsOf(formatted.container)[0]?.textContent).toContain('h')
     formatted.unmount()
-    const fallback = renderChart({ width: wide, format: 'hours' })
+    const fallback = renderChart({ orientation: 'horizontal', width: wide, format: 'hours' })
     expect(labelsOf(fallback.container)[0]?.textContent).toContain('h')
   })
 

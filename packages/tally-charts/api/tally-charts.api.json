@@ -2187,7 +2187,7 @@
             {
               "kind": "PropertySignature",
               "canonicalReference": "tally-charts!BarSeries#value:member",
-              "docComment": "",
+              "docComment": "/**\n * Value field of the series.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -6282,7 +6282,7 @@
             {
               "kind": "PropertySignature",
               "canonicalReference": "tally-charts!ChartPoint#seriesId:member",
-              "docComment": "/**\n * Stable key of the point's series, when the chart has several.\n */\n",
+              "docComment": "/**\n * Stable key of the point's series. Set by charts that take a `series` array with ids and\n * register one point per series value, such as GroupedBarChart.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",

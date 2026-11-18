@@ -15,7 +15,7 @@ test('/docs/grouped-bar-chart is a page, and the sidebar links to it', async ({ 
 
   await expect(page.getByRole('heading', { level: 1, name: 'GroupedBarChart' })).toBeVisible()
   const nav = page.getByRole('navigation', { name: 'Documentation' })
-  const link = nav.getByRole('link', { name: 'GroupedBarChart' })
+  const link = nav.getByRole('link', { name: 'GroupedBarChart', exact: true })
   await expect(link).toHaveAttribute('href', '/docs/grouped-bar-chart')
   await expect(link).toHaveAttribute('aria-current', 'page')
   await expect(nav.locator('.nav-soon', { hasText: 'GroupedBarChart' })).toHaveCount(0)

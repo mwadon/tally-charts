@@ -80,6 +80,47 @@ for (const colorScheme of ['light', 'dark'] as const) {
       expect([...solid, ...bars].filter((color) => !allowed.has(color))).toEqual([])
     })
 
+    test(`grouped bars stay visible and apart (${colorScheme})`, async ({ page }) => {
+      await openForced(page, 'charts-groupedbarchart--light', colorScheme)
+      const canvas = await systemColor(page, 'Canvas')
+      const bars = await page
+        .locator('#storybook-root rect[data-ch-part="bar"]')
+        .evaluateAll((els) =>
+          els.map((el) => {
+            const style = getComputedStyle(el)
+            const box = el.getBoundingClientRect()
+            return {
+              fill: style.fill,
+              stroke: style.stroke,
+              hatched: el.getAttribute('data-ch-fill') !== 'solid',
+              left: box.left,
+              right: box.right,
+            }
+          }),
+        )
+      // 4 quarters × 3 crews, drawn one crew after another.
+      expect(bars).toHaveLength(12)
+      for (const bar of bars) {
+        if (bar.hatched) {
+          // A hatch is a pattern; its tone outline keeps the bar's edge.
+          expect(bar.stroke).not.toBe('none')
+          continue
+        }
+        expect(bar.fill).not.toBe(canvas)
+        expect(bar.fill).not.toBe('none')
+        expect(bar.fill).not.toMatch(/rgba\(.*, 0\)$/)
+      }
+      // Tones collapse onto a few system colors, so the gap is what keeps a group's bars apart.
+      for (let row = 0; row < 4; row++) {
+        const group = [0, 1, 2].map((s) => bars[s * 4 + row] as (typeof bars)[number])
+        for (let k = 1; k < group.length; k++) {
+          const prev = group[k - 1] as (typeof bars)[number]
+          const next = group[k] as (typeof bars)[number]
+          expect(next.left - prev.right).toBeGreaterThanOrEqual(3)
+        }
+      }
+    })
+
     test('heatmap levels differ by border width and keep a focus ring', async ({ page }) => {
       await openForced(page, 'reference-where-it-leaks--light', colorScheme)
       const borders = await page

@@ -144,6 +144,19 @@ test('the dot histogram walks bins with the arrow keys', async ({ page }) => {
   await expect(chart.locator('[aria-live]')).toHaveText('Critical, 2 of 6, #5601, 4.2%')
 })
 
+test('the grouped bar chart walks bars group by group and announces the series', async ({
+  page,
+}) => {
+  await open(page, 'charts-groupedbarchart--light')
+  const chart = page.getByRole('figure', { name: 'Jobs completed by crew, per quarter' })
+  await page.keyboard.press('Tab')
+  await expect(chart.getByRole('application')).toBeFocused()
+  await expect(chart.locator('[aria-live]')).toHaveText('North, 1 of 4, Q1, 42')
+  await page.keyboard.press('ArrowRight')
+  await expect(chart.locator('[aria-live]')).toHaveText('South, 1 of 4, Q1, 35')
+  await expect(page.locator('[data-ch-part="tooltip"]')).toContainText('South')
+})
+
 test('hovering near a strip dot shows its tooltip', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 600 })
   await open(page, 'reference-dallas-installs--light')
