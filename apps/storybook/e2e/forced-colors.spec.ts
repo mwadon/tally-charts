@@ -164,21 +164,37 @@ for (const colorScheme of ['light', 'dark'] as const) {
     }) => {
       await openForced(page, 'charts-stackedareachart--light', colorScheme)
       const canvas = await systemColor(page, 'Canvas')
+      const isRealColor = (value: string) =>
+        value !== canvas && value !== 'none' && !/^rgba\(.*, 0\)$/.test(value)
       const layers = await page
         .locator('#storybook-root path[data-ch-part="area-layer"]')
         .evaluateAll((els) =>
-          els.map((el) => ({
-            fill: getComputedStyle(el).fill,
-            kind: el.getAttribute('data-ch-fill'),
-          })),
+          els.map((el) => {
+            const fill = getComputedStyle(el).fill
+            const id = /^url\("?#([^")]+)"?\)$/.exec(fill)?.[1]
+            const pattern = id ? document.getElementById(id) : null
+            const line = pattern?.querySelector('line')
+            const style = line ? getComputedStyle(line) : undefined
+            return {
+              fill,
+              kind: el.getAttribute('data-ch-fill'),
+              hatchStroke: style?.stroke,
+              hatchWidth: style ? Number.parseFloat(style.strokeWidth) : 0,
+            }
+          }),
         )
       // Three layers, each a solid part (W1 to W9) and a hatched one (W9 to W12).
-      expect(layers.filter((l) => l.kind === 'solid')).toHaveLength(3)
-      expect(layers.filter((l) => l.kind === 'hatch')).toHaveLength(3)
-      for (const layer of layers) {
-        expect(layer.fill).not.toBe(canvas)
-        expect(layer.fill).not.toBe('none')
-        expect(layer.fill).not.toMatch(/rgba\(.*, 0\)$/)
+      const solid = layers.filter((l) => l.kind === 'solid')
+      const hatched = layers.filter((l) => l.kind === 'hatch')
+      expect(solid).toHaveLength(3)
+      expect(hatched).toHaveLength(3)
+      for (const layer of solid) expect(isRealColor(layer.fill)).toBe(true)
+      // A hatched fill is a url(); what keeps it visible is the stripe line inside its pattern.
+      for (const layer of hatched) {
+        expect(layer.fill).toMatch(/^url\(/)
+        expect(layer.hatchStroke).toBeDefined()
+        expect(isRealColor(layer.hatchStroke as string)).toBe(true)
+        expect(layer.hatchWidth).toBeGreaterThan(0)
       }
       // Tones collapse onto few system colors, so the separators keep neighbouring layers apart.
       const separators = await page
@@ -194,26 +210,34 @@ for (const colorScheme of ['light', 'dark'] as const) {
         expect(sep.stroke).toBe(canvas)
         expect(sep.width).toBeGreaterThanOrEqual(1.5)
       }
-      // The hatched part also keeps its upper edge, in an ink that differs from the canvas.
+      // The hatched part keeps its upper edge: a real stroke, not the canvas colour.
       const edges = await page
         .locator('#storybook-root path[data-ch-part="area-edge"]')
-        .evaluateAll((els) => els.map((el) => getComputedStyle(el).stroke))
-      expect(edges.length).toBeGreaterThan(0)
-      for (const stroke of edges) expect(stroke).not.toBe(canvas)
+        .evaluateAll((els) =>
+          els.map((el) => {
+            const style = getComputedStyle(el)
+            return { stroke: style.stroke, width: Number.parseFloat(style.strokeWidth) }
+          }),
+        )
+      expect(edges.length).toBeGreaterThanOrEqual(3)
+      for (const edge of edges) {
+        expect(isRealColor(edge.stroke)).toBe(true)
+        expect(edge.width).toBeGreaterThanOrEqual(1)
+      }
       const rule = await page
         .locator('#storybook-root [data-ch-part="forecast-rule"]')
         .evaluate((el) => ({
           stroke: getComputedStyle(el).stroke,
           box: el.getBoundingClientRect().height,
         }))
-      expect(rule.stroke).not.toBe(canvas)
+      expect(isRealColor(rule.stroke)).toBe(true)
       expect(rule.box).toBeGreaterThan(50)
-      for (const part of ['forecast-label', 'end-label']) {
+      for (const part of ['forecast-label', 'end-label', 'end-value']) {
         const fills = await page
           .locator(`#storybook-root [data-ch-part="${part}"]`)
           .evaluateAll((els) => els.map((el) => getComputedStyle(el).fill))
         expect(fills.length).toBeGreaterThan(0)
-        for (const fill of fills) expect(fill).not.toBe(canvas)
+        for (const fill of fills) expect(isRealColor(fill)).toBe(true)
       }
     })
 
