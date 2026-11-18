@@ -167,10 +167,10 @@ change.
   (split, label tone, none without `over`), ids and `seriesId` in callbacks, data table with the
   total column, dev warnings, SSR and hydration (server render before the `console.error` spy, as
   fixed for `GroupedBarChart` on the React 18 leg).
-- Storybook stories (`light`, `dark`, `horizontal`, `negative`, `over-budget`) with e2e gates:
+- Storybook stories (`light` and `dark` with the over-budget target, `horizontal`, `negative`, `plain`) with e2e gates:
   screenshots darwin + linux, axe, contrast, reflow at 320 CSS px, forced colors, keyboard.
 - New size-limit entry `StackedBarChart` ≤ 15.5 KB gzip (15 KB planned; the target label outside
-  the plot took it to 15.02 KB); `check:treeshake` fixture;
+  the plot and the label clearance took it to 15.07 KB); `check:treeshake` fixture;
   `GroupedBarChart` stays ≤ 15 KB after the shared module is extracted; `tally-charts/core`
   stays ≤ 8 KB.
 - `api:update`: the report gains `StackedBarChart` and `StackedBarChartProps`, nothing else.
