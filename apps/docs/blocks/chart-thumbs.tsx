@@ -9,6 +9,7 @@ import type { ReactNode } from 'react'
 export const thumbNames = [
   'bar-chart',
   'grouped-bars',
+  'stacked-bars',
   'comparison-bars',
   'ranked-bars',
   'waterfall-chart',
@@ -68,6 +69,18 @@ const THUMBS: Record<ThumbName, ReactNode> = {
       <rect className="ct-accent" x="86" y="6" width="8" height="44" />
       <rect className="ct-accent ct-half" x="96" y="16" width="8" height="34" />
       <rect className="ct-gain ct-half" x="106" y="24" width="8" height="26" />
+    </>
+  ),
+  'stacked-bars': (
+    <>
+      <rect className="ct-accent" x="12" y="34" width="20" height="16" />
+      <rect className="ct-accent ct-half" x="12" y="24" width="20" height="8" />
+      <rect className="ct-accent" x="50" y="26" width="20" height="24" />
+      <rect className="ct-accent ct-half" x="50" y="14" width="20" height="10" />
+      <rect className="ct-loss" x="50" y="8" width="20" height="4" />
+      <rect className="ct-accent" x="88" y="30" width="20" height="20" />
+      <rect className="ct-accent ct-half" x="88" y="18" width="20" height="10" />
+      <rect className="ct-gain ct-half" x="88" y="12" width="20" height="4" />
     </>
   ),
   'comparison-bars': (

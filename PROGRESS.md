@@ -2739,3 +2739,20 @@ Gałąź `grouped-bar-chart`. Spec: `docs/superpowers/specs/2026-11-18-tally-cha
 - `ValueLabel` w `BarChart` nadal rysuje etykietę na słupku skierowanym w dół, gdy pod nim brak miejsca (stan sprzed tej gałęzi).
 - Wydanie 1.1.0 nie zostało zrobione (changeset jest).
 - `pnpm --filter docs seed` (nowa strona i kafelek w glokki).
+
+## StackedBarChart 1.2 (2026-11-18)
+
+Gałąź `stacked-bar-chart`. Spec: `docs/superpowers/specs/2026-11-18-tally-charts-1.2-stacked-bar-chart-design.md`. Wydanie 1.2.0 (minor, tylko dodatki, changeset `.changeset/stacked-bar-chart.md`).
+
+- Komponent `StackedBarChart`: suma na kategorię i jej skład, pionowo albo poziomo, te same wiersze i `BarSeries` co `GroupedBarChart`. Segmenty od zera na zewnątrz, ujemne osobno w dół, etykieta sumy (netto przy mieszanych znakach), `gap` między segmentami, `target` z `over` (część powyżej celu w tonie `over`, segment dzielony na celu), etykieta celu poza obszarem wykresu, etykieta sumy nie leży na linii celu. Punkt na segment (`seriesId`), tooltip z sumą, tabela danych z kolumną Total.
+- Rozmiar: wpis `StackedBarChart` w `pnpm size` 15.07 kB, limit 15.5 KB (podniesiony z planowanych 15 KB, gdy etykieta celu przeszła poza obszar wykresu); `GroupedBarChart` 14.31 kB.
+- Testy biblioteki 1443, e2e Storybook 455/455 na darwin i linux.
+- Docs: strona `/docs/stacked-bar-chart` (fiksturka, nawigacja po GroupedBarChart) z czterema przykładami w `examples/stacked-bar-chart/` (`cost-by-type`, `over-budget`, `horizontal`, `with-legend`), miniatura `stacked-bars` i kafelek w `chart-index`, nagłówek „Thirteen charts, one grammar”. Stron w nawigacji 27, `API coverage: 55/55`, `check:content` 0 błędów w 28 stronach. Wiersz StackedBarChart w `docs/a11y.md` („Materials, 4 of 6, Apr, $21k”) i uwaga o celach wskaźnika. Baseline'y `/` odświeżone na darwin i linux.
+
+**Otwarte kwestie:**
+- `GroupedBarChart` i `BarChart` nadal rysują etykietę celu w obszarze wykresu, gdzie może wylądować na słupku przekraczającym cel.
+- Mały zapas rozmiaru: 15.07 kB z 15.5 KB.
+- Segment cieńszy niż ok. 1 px jest przykryty przez sąsiada.
+- Cele wskaźnika cienkich segmentów są małe (klawiatura i tabela danych dosięgają każdej wartości).
+- Wydanie 1.2.0 nie zostało zrobione (changeset jest).
+- `pnpm --filter docs seed` (nowa strona i kafelek w glokki).
