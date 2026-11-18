@@ -4,7 +4,7 @@ import { type StackRow, type StackSegment, stackRow } from '../../core/bars'
 import type { FormatSpec } from '../../core/format'
 import { clampToRange, niceDomain } from '../../core/linear'
 import { type BandScaleSpec, inferLinearDomain, type LinearScaleSpec } from '../../core/scale'
-import type { TickSpec } from '../../core/ticks'
+import { estimateWidth, type Tick, type TickSpec } from '../../core/ticks'
 import type { Accessor, Fill, Id, PerItem, Tone } from '../../core/types'
 import { createWarner, DEV } from '../../core/warn'
 import { Chart, type ChartName } from '../Chart'
@@ -182,10 +182,22 @@ export function StackedBarChart<D>({
   const band = useMemo((): BandScaleSpec<D> => ({ type: 'band', field: x, padding }), [x, padding])
   const linear = useMemo((): LinearScaleSpec<D> => ({ domain: valueDomain }), [valueDomain])
   const showValueAxis = valueAxis !== 'none'
+  // The target label sits outside the plot, where no stack can run into it, and only when
+  // `Target` draws the line, i.e. the target is inside the domain.
+  const [d0, d1] = valueDomain
+  const targetLabel =
+    targetValue !== undefined && targetValue >= Math.min(d0, d1) && targetValue <= Math.max(d0, d1)
+      ? targetSpec?.label
+      : undefined
   const m: Margin = {
     ...(vertical
-      ? { top: 24, right: 0, bottom: 28, left: showValueAxis ? 40 : 0 }
-      : { top: 8, right: 48, bottom: showValueAxis ? 28 : 8, left: 96 }),
+      ? {
+          top: 24,
+          right: targetLabel ? estimateWidth({ label: targetLabel } as Tick) + 8 : 0,
+          bottom: 28,
+          left: showValueAxis ? 40 : 0,
+        }
+      : { top: targetLabel ? 24 : 8, right: 48, bottom: showValueAxis ? 28 : 8, left: 96 }),
     ...margin,
   }
   const rows = Math.max(1, data.length)
@@ -244,10 +256,7 @@ export function StackedBarChart<D>({
         )
       ) : null}
       {targetSpec ? (
-        <Target
-          {...(vertical ? { y: targetSpec.value } : { x: targetSpec.value })}
-          label={targetSpec.label}
-        />
+        <Target {...(vertical ? { y: targetSpec.value } : { x: targetSpec.value })} />
       ) : null}
       <StackedMarks<D>
         series={series}
@@ -262,6 +271,7 @@ export function StackedBarChart<D>({
         format={format}
         totals={valueLabel === 'total'}
         totalFormat={valueFormat ?? format}
+        targetLine={targetLabel ? { value: targetValue as number, label: targetLabel } : undefined}
       />
       {showValueAxis ? (
         <Axis side={vertical ? 'left' : 'bottom'} ticks={valueAxis} format={valueFmt} />
@@ -350,6 +360,8 @@ interface StackedMarksProps<D> {
   /** Draw the total labels. */
   totals: boolean
   totalFormat: FormatSpec | undefined
+  /** The target and its label, drawn outside the plot; only when `Target` draws the line. */
+  targetLine: { value: number; label: string } | undefined
 }
 
 const LABEL_OFFSET = 6
@@ -378,6 +390,7 @@ function StackedMarks<D>({
   format,
   totals,
   totalFormat,
+  targetLine,
 }: StackedMarksProps<D>) {
   const ctx = useChartContext('StackedBarChart')
   const data = ctx.data as readonly D[]
@@ -506,6 +519,32 @@ function StackedMarks<D>({
   const hi = Math.max(upEdge, downEdge)
   const px = (value: number) => Math.min(hi, Math.max(lo, scale(value)))
 
+  // The target label, where no stack can run into it: in the right margin, centred on the line,
+  // when vertical; in the top margin, centred on the line but kept inside the svg, when horizontal.
+  let targetText: ReactElement | null = null
+  if (targetLine) {
+    const pos = scale(targetLine.value)
+    const half = estimateWidth({ label: targetLine.label } as Tick) / 2
+    targetText = (
+      <text
+        data-ch-part="target-label"
+        x={
+          vertical
+            ? ctx.innerWidth + 6
+            : Math.max(
+                half - ctx.margin.left,
+                Math.min(ctx.innerWidth + ctx.margin.right - half, pos),
+              )
+        }
+        y={vertical ? pos : -6}
+        textAnchor={vertical ? 'start' : 'middle'}
+        dominantBaseline={vertical ? 'middle' : undefined}
+      >
+        {targetLine.label}
+      </text>
+    )
+  }
+
   // One total label per stack, just beyond the end of its positive part.
   const labels: ReactElement[] = []
   let labelsFit = true
@@ -543,6 +582,7 @@ function StackedMarks<D>({
   const valueProps = vertical ? { x: pieceCategory, y: pieceTo } : { x: pieceTo, y: pieceCategory }
   return (
     <>
+      {targetText}
       {layers.map((layer, k) => (
         // biome-ignore lint/suspicious/noArrayIndexKey: series ids may repeat (warned about), the position keeps keys unique
         <Fragment key={k}>

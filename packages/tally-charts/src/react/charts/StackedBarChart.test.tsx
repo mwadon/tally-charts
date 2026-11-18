@@ -618,3 +618,89 @@ describe('<StackedBarChart> points, hit areas, tooltip and table', () => {
     expect(seen).toContain(months[3])
   })
 })
+
+describe('<StackedBarChart> target label', () => {
+  const labelled = { value: 60, label: 'budget $60k', over: 'loss' } as const
+  const targetLabels = (root: HTMLElement) => parts(root, 'target-label')
+  const line = (root: HTMLElement) => parts(root, 'target')[0] as SVGElement
+  /** The right edge of the last column's bars. */
+  const plotRight = (root: HTMLElement) =>
+    Math.max(...bars(root).map((b) => num(b, 'x') + num(b, 'width')))
+
+  it('draws the label in the right margin, centred on the line, and widens that margin', () => {
+    const { container, unmount } = renderChart({ target: labelled })
+    const labels = targetLabels(container)
+    expect(labels).toHaveLength(1)
+    const label = labels[0] as SVGElement
+    expect(label.textContent).toBe('budget $60k')
+    expect(label.getAttribute('text-anchor')).toBe('start')
+    expect(label.getAttribute('dominant-baseline')).toBe('middle')
+    expect(num(label, 'y')).toBeCloseTo(num(line(container), 'y1'))
+    // The plot's right edge is where the line ends.
+    const right = num(line(container), 'x2')
+    expect(num(label, 'x')).toBeGreaterThanOrEqual(right)
+    const narrowed = plotRight(container)
+    unmount()
+    const plain = renderChart({ target: 60 })
+    expect(targetLabels(plain.container)).toHaveLength(0)
+    expect(plotRight(plain.container)).toBeGreaterThan(narrowed + 40)
+  })
+
+  it('draws the label in the top margin of a horizontal chart, centred on the line', () => {
+    const { container } = renderChart({
+      orientation: 'horizontal',
+      height: undefined,
+      target: labelled,
+    })
+    const label = targetLabels(container)[0] as SVGElement
+    expect(targetLabels(container)).toHaveLength(1)
+    expect(num(label, 'y')).toBeLessThan(0)
+    expect(num(label, 'y')).toBeCloseTo(-6)
+    expect(label.getAttribute('text-anchor')).toBe('middle')
+    expect(num(label, 'x')).toBeCloseTo(num(line(container), 'x1'))
+    // 6 rows × 40 + top 24 + bottom 28.
+    expect(container.querySelector('svg')?.getAttribute('height')).toBe('292')
+  })
+
+  it('keeps a horizontal label inside the svg when the line is near an edge', () => {
+    const { container } = renderChart({
+      orientation: 'horizontal',
+      height: undefined,
+      target: { value: 79, label: 'a long budget label' },
+    })
+    const label = targetLabels(container)[0] as SVGElement
+    const half = ('a long budget label'.length * 6.5) / 2
+    // Plot coordinates: the svg ends at 300 - left margin 96.
+    expect(num(label, 'x') + half).toBeLessThanOrEqual(300 - 96 + 0.01)
+    expect(num(label, 'x')).toBeLessThan(num(line(container), 'x1'))
+  })
+
+  it('draws no label when the target is outside the domain, and keeps the margins', () => {
+    const warn = quiet()
+    const { container, unmount } = renderChart({
+      domain: [0, 50],
+      target: { value: 60, label: 'budget $60k' },
+    })
+    expect(targetLabels(container)).toHaveLength(0)
+    const outside = plotRight(container)
+    unmount()
+    const none = renderChart({ domain: [0, 50] })
+    expect(plotRight(none.container)).toBeCloseTo(outside)
+    warn.mockRestore()
+  })
+
+  it('leaves the margins as before for a target without a label, and respects an explicit margin', () => {
+    const { container, unmount } = renderChart()
+    const base = plotRight(container)
+    unmount()
+    const plain = renderChart({ target: 60 })
+    expect(plotRight(plain.container)).toBeCloseTo(base)
+    plain.unmount()
+    const horizontal = renderChart({ orientation: 'horizontal', height: undefined, target: 60 })
+    expect(horizontal.container.querySelector('svg')?.getAttribute('height')).toBe('276')
+    horizontal.unmount()
+    const explicit = renderChart({ target: labelled, margin: { right: 0 } })
+    expect(plotRight(explicit.container)).toBeCloseTo(base)
+    expect(targetLabels(explicit.container)).toHaveLength(1)
+  })
+})

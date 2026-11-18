@@ -114,6 +114,11 @@ tone functions, `color`, sorting, grouped-and-stacked.
   target, with the same gap between the parts. The total label of a stack over the target uses
   the tone's text colour (tone mixed with ink through `--ch-tone-text-mix`). Without `over`, the
   target is only a line. `over` ignores the negative stack.
+- Target label: stacks routinely pass the target, so the label cannot sit inside the plot as
+  `Target` draws it (it would land on a stack). The chart draws it outside the plot: in the right
+  margin, centred on the line, when vertical; in the top margin, centred on the line, when
+  horizontal. The default margin on that side grows to fit the label. `Target` itself does not
+  change.
 - Corner radius: the `--ch-radius` token on every segment, as `Bars` draws it.
 - Horizontal: label column on the left, automatic height `rows × (20 + 20) + margins` unless
   `height` or `aspectRatio` is set.
@@ -162,7 +167,8 @@ change.
   fixed for `GroupedBarChart` on the React 18 leg).
 - Storybook stories (`light`, `dark`, `horizontal`, `negative`, `over-budget`) with e2e gates:
   screenshots darwin + linux, axe, contrast, reflow at 320 CSS px, forced colors, keyboard.
-- New size-limit entry `StackedBarChart` ≤ 15 KB gzip; `check:treeshake` fixture;
+- New size-limit entry `StackedBarChart` ≤ 15.5 KB gzip (15 KB planned; the target label outside
+  the plot took it to 15.02 KB); `check:treeshake` fixture;
   `GroupedBarChart` stays ≤ 15 KB after the shared module is extracted; `tally-charts/core`
   stays ≤ 8 KB.
 - `api:update`: the report gains `StackedBarChart` and `StackedBarChartProps`, nothing else.
