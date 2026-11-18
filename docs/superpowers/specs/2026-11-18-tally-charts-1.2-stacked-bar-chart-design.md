@@ -101,8 +101,12 @@ tone functions, `color`, sorting, grouped-and-stacked.
   (right when horizontal), negative values stack down from zero independently. A pure helper in
   `core/bars.ts` returns `{ from, to }` per segment and the row totals.
 - Segment gap: `gap` px is taken from the far end of every segment except the outermost one, so
-  the stack's total length stays exact. A segment not longer than the gap keeps 1 px. A zero value
-  draws nothing and registers no point.
+  the stack's length stays exact, except that a non-zero piece shorter than 1 px is drawn 1 px
+  long; the total label always sits at the true value. A segment not longer than the gap plus 1 px
+  keeps 1 px. A zero value draws nothing and registers no point. A row with no drawn segment (all
+  values zero or missing) has no total label, no point and no hit area; its Total cell in the data
+  table shows the formatted zero when at least one value is finite and is empty when every value
+  is missing.
 - Missing or non-numeric value: the segment is skipped and counts as zero in the total;
   development warning as in `Bars`.
 - Total label: above the stack (beside it when horizontal), the sum of the row's finite values.
@@ -136,7 +140,8 @@ change.
 
 ## 4. Interaction and accessibility
 
-- Every segment is a point, in visual order: stack by stack, from the baseline outwards. Arrow
+- Every segment is a point, in visual order: stack by stack, in `series` order inside a stack (so in a diverging stack positive and
+  negative segments alternate as the series do). Arrow
   keys walk them in that order; Home / End as in `BarChart`.
 - Hit area of a segment: the band extent `Bars` uses for its own hit areas by the segment's
   extent on the value axis. The outermost segment's area extends to the plot edge,

@@ -185,6 +185,7 @@ export function StackedBarChart<D>({
   // The target where `Target` draws its line, i.e. inside the domain. Its label sits outside the
   // plot, where no stack can run into it.
   const [d0, d1] = valueDomain
+  // Mirrors the domain check in `marks/Target.tsx`; the two must stay in sync.
   const line =
     targetValue !== undefined && targetValue >= Math.min(d0, d1) && targetValue <= Math.max(d0, d1)
       ? targetValue

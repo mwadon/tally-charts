@@ -524,6 +524,45 @@ describe('<StackedBarChart> points, hit areas, tooltip and table', () => {
     expect(all.filter((b) => b.hasAttribute('data-ch-dimmed'))).toHaveLength(18)
   })
 
+  it('tiles the full chart width with the hit areas of a horizontal row, also with mixed signs', () => {
+    type Mixed = { k: string; a: number; b: number; c: number; d: number }
+    const series: BarSeries<Mixed>[] = (['a', 'b', 'c', 'd'] as const).map((key) => ({
+      id: key,
+      label: key.toUpperCase(),
+      value: key,
+    }))
+    const { container } = render(
+      <StackedBarChart<Mixed>
+        data={[
+          { k: 'A', a: 10, b: -4, c: 5, d: -6 },
+          { k: 'B', a: -3, b: -2, c: -1, d: -1 },
+        ]}
+        x="k"
+        series={series}
+        orientation="horizontal"
+        width={300}
+        domain={[-20, 20]}
+        target={{ value: 12, over: 'loss' }}
+        title="Mixed"
+        animate={false}
+      />,
+    )
+    const all = hits(container)
+    const ys = [...new Set(all.map((h) => num(h, 'y')))].sort((p, q) => p - q)
+    expect(ys).toHaveLength(2)
+    for (const y of ys) {
+      const rects = all.filter((h) => num(h, 'y') === y).sort((p, q) => num(p, 'x') - num(q, 'x'))
+      expect(rects).toHaveLength(4)
+      let edge = -96
+      for (const r of rects) {
+        expect(num(r, 'x')).toBeCloseTo(edge)
+        expect(num(r, 'width')).toBeGreaterThanOrEqual(0)
+        edge += num(r, 'width')
+      }
+      expect(edge).toBeCloseTo(300 - 96)
+    }
+  })
+
   it('gives a missing or zero value no point and no hit area; the table shows the zero only', () => {
     const warn = quiet()
     const data = months.map((m) =>
@@ -579,6 +618,16 @@ describe('<StackedBarChart> points, hit areas, tooltip and table', () => {
     const cells = within(rows[2] as HTMLElement).getAllByRole('cell')
     expect(cells[cells.length - 1]?.textContent).toBe('—no value')
     warn.mockRestore()
+  })
+
+  it('shows 0 in the total cell for a row whose values are all 0', () => {
+    const data = months.map((m) =>
+      m.month === 'Feb' ? { ...m, labor: 0, materials: 0, subcontract: 0 } : m,
+    )
+    renderChart({ data })
+    const rows = within(screen.getByRole('table')).getAllByRole('row')
+    const cells = within(rows[2] as HTMLElement).getAllByRole('cell')
+    expect(cells[cells.length - 1]?.textContent).toBe('0')
   })
 
   it('renders a hidden table with a total column, and renames or drops it on request', () => {
@@ -638,7 +687,7 @@ describe('<StackedBarChart> target label', () => {
     expect(num(label, 'y')).toBeCloseTo(num(line(container), 'y1'))
     // The plot's right edge is where the line ends.
     const right = num(line(container), 'x2')
-    expect(num(label, 'x')).toBeGreaterThanOrEqual(right)
+    expect(num(label, 'x')).toBeCloseTo(right + 6)
     const narrowed = plotRight(container)
     unmount()
     const plain = renderChart({ target: 60 })
@@ -726,6 +775,27 @@ describe('<StackedBarChart> total labels clear the target line', () => {
     // Mar (58) starts 2.1 px right of the line, just outside the 2 px slack: it stays.
     expect(num(labels[2] as SVGElement, 'x')).toBeCloseTo(xOf(58) + 6)
     expect(num(labels[3] as SVGElement, 'x')).toBeCloseTo(xOf(66) + 6)
+  })
+
+  it('keeps the over tone on labels above the target and none on labels the line moved', () => {
+    const toneOf = (el: SVGElement) => el.getAttribute('data-ch-tone')
+    const vertical = renderChart({ width: 584, target: { value: 60, over: 'loss' } })
+    const v = labelsOf(vertical.container) as SVGElement[]
+    // Feb, Mar and May end below the line and move above it: not over the target, no tone.
+    for (const i of [0, 1, 2, 4]) expect(toneOf(v[i] as SVGElement)).toBeNull()
+    // Apr (66) and Jun (69) are above the target and keep the tone.
+    for (const i of [3, 5]) expect(toneOf(v[i] as SVGElement)).toBe('loss')
+    vertical.unmount()
+    const horizontal = renderChart({
+      orientation: 'horizontal',
+      height: undefined,
+      target: { value: 60, over: 'loss' },
+    })
+    const h = labelsOf(horizontal.container) as SVGElement[]
+    expect(num(h[1] as SVGElement, 'x')).toBeCloseTo(xOf(60) + 6)
+    expect(toneOf(h[1] as SVGElement)).toBeNull()
+    expect(toneOf(h[3] as SVGElement)).toBe('loss')
+    expect(toneOf(h[5] as SVGElement)).toBe('loss')
   })
 
   it('leaves the labels at the stack end without a target', () => {
