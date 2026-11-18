@@ -164,8 +164,36 @@ for (const colorScheme of ['light', 'dark'] as const) {
     }) => {
       await openForced(page, 'charts-stackedareachart--light', colorScheme)
       const canvas = await systemColor(page, 'Canvas')
-      const isRealColor = (value: string) =>
-        value !== canvas && value !== 'none' && !/^rgba\(.*, 0\)$/.test(value)
+      // Computed colors serialize as rgb(), rgba() or color(srgb ...), so resolve them to RGBA
+      // numbers in the page (a 1x1 canvas parses every form) and compare those.
+      const resolve = (value: string) =>
+        page.evaluate((v) => {
+          const ctx = document.createElement('canvas').getContext('2d', {
+            willReadFrequently: true,
+          }) as CanvasRenderingContext2D
+          ctx.fillStyle = '#010203'
+          ctx.fillStyle = v
+          ctx.fillRect(0, 0, 1, 1)
+          return [...ctx.getImageData(0, 0, 1, 1).data]
+        }, value)
+      const canvasRgba = await resolve(canvas)
+      // Real: not 'none', at least 20% opaque, and after compositing over the Canvas color some
+      // channel differs from Canvas by more than 24.
+      const isRealColor = async (value: string) => {
+        if (value === 'none') return false
+        const [r = 0, g = 0, b = 0, a = 0] = await resolve(value)
+        if (a < 0.2 * 255) return false
+        const over = [r, g, b].map((c, i) => (c * a + (canvasRgba[i] ?? 0) * (255 - a)) / 255)
+        return over.some((c, i) => Math.abs(c - (canvasRgba[i] ?? 0)) > 24)
+      }
+      // The helper can fail: Canvas itself in any serialization, fully transparent, none.
+      const [cr = 0, cg = 0, cb = 0] = canvasRgba
+      expect(await isRealColor(`color(srgb ${cr / 255} ${cg / 255} ${cb / 255})`)).toBe(false)
+      expect(await isRealColor(canvas)).toBe(false)
+      expect(await isRealColor('color(srgb 0 0 0 / 0)')).toBe(false)
+      expect(await isRealColor('rgb(0 0 0 / 0)')).toBe(false)
+      expect(await isRealColor('none')).toBe(false)
+      expect(await isRealColor('rgb(255 0 0)')).toBe(true)
       const layers = await page
         .locator('#storybook-root path[data-ch-part="area-layer"]')
         .evaluateAll((els) =>
@@ -188,12 +216,12 @@ for (const colorScheme of ['light', 'dark'] as const) {
       const hatched = layers.filter((l) => l.kind === 'hatch')
       expect(solid).toHaveLength(3)
       expect(hatched).toHaveLength(3)
-      for (const layer of solid) expect(isRealColor(layer.fill)).toBe(true)
+      for (const layer of solid) expect(await isRealColor(layer.fill)).toBe(true)
       // A hatched fill is a url(); what keeps it visible is the stripe line inside its pattern.
       for (const layer of hatched) {
         expect(layer.fill).toMatch(/^url\(/)
         expect(layer.hatchStroke).toBeDefined()
-        expect(isRealColor(layer.hatchStroke as string)).toBe(true)
+        expect(await isRealColor(layer.hatchStroke as string)).toBe(true)
         expect(layer.hatchWidth).toBeGreaterThan(0)
       }
       // Tones collapse onto few system colors, so the separators keep neighbouring layers apart.
@@ -221,7 +249,7 @@ for (const colorScheme of ['light', 'dark'] as const) {
         )
       expect(edges.length).toBeGreaterThanOrEqual(3)
       for (const edge of edges) {
-        expect(isRealColor(edge.stroke)).toBe(true)
+        expect(await isRealColor(edge.stroke)).toBe(true)
         expect(edge.width).toBeGreaterThanOrEqual(1)
       }
       const rule = await page
@@ -230,14 +258,14 @@ for (const colorScheme of ['light', 'dark'] as const) {
           stroke: getComputedStyle(el).stroke,
           box: el.getBoundingClientRect().height,
         }))
-      expect(isRealColor(rule.stroke)).toBe(true)
+      expect(await isRealColor(rule.stroke)).toBe(true)
       expect(rule.box).toBeGreaterThan(50)
       for (const part of ['forecast-label', 'end-label', 'end-value']) {
         const fills = await page
           .locator(`#storybook-root [data-ch-part="${part}"]`)
           .evaluateAll((els) => els.map((el) => getComputedStyle(el).fill))
         expect(fills.length).toBeGreaterThan(0)
-        for (const fill of fills) expect(isRealColor(fill)).toBe(true)
+        for (const fill of fills) expect(await isRealColor(fill)).toBe(true)
       }
     })
 
