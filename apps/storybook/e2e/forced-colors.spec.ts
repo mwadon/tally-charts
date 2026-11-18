@@ -166,22 +166,33 @@ for (const colorScheme of ['light', 'dark'] as const) {
       const canvas = await systemColor(page, 'Canvas')
       // Computed colors serialize as rgb(), rgba() or color(srgb ...), so resolve them to RGBA
       // numbers in the page (a 1x1 canvas parses every form) and compare those.
+      // Resolved twice with different seeds: a value the canvas ignores keeps the seed, so the
+      // two results differ and the value counts as unparseable (null), never as a colour.
       const resolve = (value: string) =>
         page.evaluate((v) => {
           const ctx = document.createElement('canvas').getContext('2d', {
             willReadFrequently: true,
           }) as CanvasRenderingContext2D
-          ctx.fillStyle = '#010203'
-          ctx.fillStyle = v
-          ctx.fillRect(0, 0, 1, 1)
-          return [...ctx.getImageData(0, 0, 1, 1).data]
+          const paint = (seed: string) => {
+            ctx.clearRect(0, 0, 1, 1)
+            ctx.fillStyle = seed
+            ctx.fillStyle = v
+            ctx.fillRect(0, 0, 1, 1)
+            return [...ctx.getImageData(0, 0, 1, 1).data]
+          }
+          const first = paint('#010203')
+          const second = paint('#fdfcfb')
+          return first.every((c, i) => c === second[i]) ? first : null
         }, value)
       const canvasRgba = await resolve(canvas)
+      if (!canvasRgba) throw new Error(`Canvas (${canvas}) did not resolve to a color`)
       // Real: not 'none', at least 20% opaque, and after compositing over the Canvas color some
       // channel differs from Canvas by more than 24.
       const isRealColor = async (value: string) => {
-        if (value === 'none') return false
-        const [r = 0, g = 0, b = 0, a = 0] = await resolve(value)
+        if (value === 'none' || value.startsWith('url(')) return false
+        const rgba = await resolve(value)
+        if (!rgba) return false
+        const [r = 0, g = 0, b = 0, a = 0] = rgba
         if (a < 0.2 * 255) return false
         const over = [r, g, b].map((c, i) => (c * a + (canvasRgba[i] ?? 0) * (255 - a)) / 255)
         return over.some((c, i) => Math.abs(c - (canvasRgba[i] ?? 0)) > 24)
@@ -193,6 +204,9 @@ for (const colorScheme of ['light', 'dark'] as const) {
       expect(await isRealColor('color(srgb 0 0 0 / 0)')).toBe(false)
       expect(await isRealColor('rgb(0 0 0 / 0)')).toBe(false)
       expect(await isRealColor('none')).toBe(false)
+      expect(await isRealColor('url(#nope)')).toBe(false)
+      expect(await isRealColor('notacolor')).toBe(false)
+      expect(await resolve('notacolor')).toBeNull()
       expect(await isRealColor('rgb(255 0 0)')).toBe(true)
       const layers = await page
         .locator('#storybook-root path[data-ch-part="area-layer"]')
