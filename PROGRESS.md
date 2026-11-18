@@ -2756,3 +2756,20 @@ Gałąź `stacked-bar-chart`. Spec: `docs/superpowers/specs/2026-11-18-tally-cha
 - Cele wskaźnika cienkich segmentów są małe (klawiatura i tabela danych dosięgają każdej wartości).
 - Wydanie 1.2.0 nie zostało zrobione (changeset jest).
 - `pnpm --filter docs seed` (nowa strona i kafelek w glokki).
+
+## StackedAreaChart 1.3 (2026-11-18)
+
+Gałąź `stacked-area-chart`. Spec: `docs/superpowers/specs/2026-11-18-tally-charts-1.3-stacked-area-chart-design.md`. Wydanie 1.3.0 (minor, tylko dodatki, changeset `.changeset/stacked-area-chart.md`).
+
+- Komponent `StackedAreaChart`: warstwy ułożone nad uporządkowanym x (kategoria albo data na osi czasu, jak `LineChart`), pierwsza seria na linii bazowej. `forecastFrom` rysuje przerywaną linię w x przed nim i zakreskowuje warstwy od niej do końca, etykiety końcowe (nazwa serii i ostatnia wartość) znikają razem, gdy środki sąsiednich etykiet byłyby bliżej niż 36 px. Wartość ujemna liczy się jako zero w geometrii i sumie (tooltip i tabela pokazują prawdziwą), brak wartości łamie wszystkie warstwy w tym x. Jeden punkt na x, tooltip od górnej warstwy z sumą, kursor z kropką na warstwie, tabela danych z kolumną Total.
+- Rozmiar: wpis `StackedAreaChart` w `pnpm size` 14.17 kB, limit 15 KB; `LineChart` 13.89 kB, limit 14 KB (zapas ok. 110 B po przeniesieniu obsługi x do wspólnego `charts/x-rows.ts`).
+- Testy biblioteki 1517, testy docs 878, e2e Storybook 495/495 na darwin i linux, e2e docs 517 na linux (CI=1) i darwin.
+- Docs: strona `/docs/stacked-area-chart` (fiksturka, nawigacja po LineChart) z czterema przykładami w `examples/stacked-area-chart/` (`hours-by-type`, `booked-weeks`, `time-axis`, `with-legend`), miniatura `stacked-area` i kafelek w `chart-index`, nagłówek „Fourteen charts, one grammar”. Stron w nawigacji 28, `API coverage: 56/56`, `check:content` 0 błędów w 29 stronach. `with-legend` ma wpis 309 w `NARROW_CHART_HEIGHTS`. Wiersz StackedAreaChart i uwaga o stanie prognozy i kursorze w `docs/a11y.md`. Baseline'y `/` odświeżone na darwin i linux (baseline'y `/docs/line-chart` bez zmian).
+
+**Otwarte kwestie:**
+- Mały zapas rozmiaru `LineChart`: 13.89 kB z 14 KB.
+- Tabela danych nie oznacza wierszy prognozy (tak samo w `LineChart`).
+- Brak linii celu, stosów 100 % i wygładzania.
+- Listy ticków są tylko liczbowe, więc etykietowanie co drugiej kategorii idzie przez liczbę ticków (`xAxis={6}`).
+- Wydanie 1.3.0 nie zostało zrobione (changeset jest).
+- `pnpm --filter docs seed` (nowa strona i kafelek w glokki).

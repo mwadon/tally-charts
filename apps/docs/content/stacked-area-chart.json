@@ -1,0 +1,280 @@
+{
+  "versionId": "fixture-stacked-area-chart-v1",
+  "version": 1,
+  "locale": "en",
+  "publishedAt": "2026-11-18T00:00:00.000Z",
+  "codeInjection": {},
+  "layout": {
+    "key": "default",
+    "header": null,
+    "footer": null
+  },
+  "pageId": "fixture-stacked-area-chart",
+  "title": "StackedAreaChart",
+  "slug": "stacked-area-chart",
+  "seo": {
+    "metaTitle": "StackedAreaChart · tally-charts",
+    "metaDescription": "A total over time and what it is made of, with a hatched forecast, end labels, a time axis, keyboard navigation and a hidden data table."
+  },
+  "componentTree": [
+    {
+      "id": "n1",
+      "type": "prose",
+      "props": {
+        "markdown": "A total over time and what it is made of. `StackedAreaChart` stacks one layer per series over an ordered x, with the first series on the baseline, and handles the scales, the tooltip, the keyboard and the screen reader. The x is a category or a date, as in `LineChart`, and a forecast part is hatched."
+      }
+    },
+    {
+      "id": "n2",
+      "type": "heading",
+      "props": {
+        "text": "When to use it",
+        "level": "2",
+        "anchor": "when-to-use"
+      }
+    },
+    {
+      "id": "n3",
+      "type": "prose",
+      "props": {
+        "markdown": "Use it when the total over time matters and so does its composition: crew hours per week split by type of work, tickets per month split by priority. Keep it to about five series, because the tones repeat from the sixth. The top of each layer is the running sum, so only the first layer reads against a flat baseline: to compare series with each other, use [`LineChart`](/docs/line-chart). For a total per category rather than over time, use [`StackedBarChart`](/docs/stacked-bar-chart). It has no target line, no 100 % stacks and no smoothing."
+      }
+    },
+    {
+      "id": "n4",
+      "type": "heading",
+      "props": {
+        "text": "Import",
+        "level": "2",
+        "anchor": "install"
+      }
+    },
+    {
+      "id": "n5",
+      "type": "code-block",
+      "props": {
+        "code": "npm i tally-charts",
+        "lang": "bash"
+      }
+    },
+    {
+      "id": "n6",
+      "type": "code-block",
+      "props": {
+        "code": "import { StackedAreaChart } from 'tally-charts'\nimport 'tally-charts/theme.css'",
+        "lang": "tsx",
+        "filename": "app/hours.tsx"
+      }
+    },
+    {
+      "id": "n7",
+      "type": "heading",
+      "props": {
+        "text": "Examples",
+        "level": "2",
+        "anchor": "examples"
+      }
+    },
+    {
+      "id": "n8",
+      "type": "prose",
+      "props": {
+        "markdown": "Each series says which field it reads and how to name it. The first series sits on the baseline, and the others stack on it in the order of the `series` array. Props stay serializable here, so the chart renders in a server component. The third series sets `tone: 'neutral'` in its series object."
+      }
+    },
+    {
+      "id": "n9",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "stacked-area-chart/hours-by-type",
+        "defaultView": "preview",
+        "height": 292
+      }
+    },
+    {
+      "id": "n10",
+      "type": "heading",
+      "props": {
+        "text": "End labels",
+        "level": "2",
+        "anchor": "end-labels"
+      }
+    },
+    {
+      "id": "n11",
+      "type": "prose",
+      "props": {
+        "markdown": "At the right edge of each layer the chart writes the series name and its last value, and the right margin grows to fit them. `endLabels={false}` turns them off. None is drawn for a layer that is zero at the last x, and none at all when the last row is incomplete or when no area reaches the last x (it is outside the x domain, or it is a lone x after an incomplete row). When the centres of two neighbouring labels would be closer than 36 px, no label is drawn, so a chart with many thin layers has none: compose a [`Legend`](#legend) instead."
+      }
+    },
+    {
+      "id": "n12",
+      "type": "heading",
+      "props": {
+        "text": "Forecast",
+        "level": "2",
+        "anchor": "forecast"
+      }
+    },
+    {
+      "id": "n13",
+      "type": "prose",
+      "props": {
+        "markdown": "`forecastFrom` is the first forecast x. The dashed rule sits at the x before it, with `forecastLabel` above it, and the layers are hatched from the rule to the end. With `forecastFrom=\"W10\"` the rule is at W9, so the interval that leads into the first forecast x is already hatched. When no x comes before `forecastFrom`, nothing is hatched and there is no rule. A value that is not on the axis hatches nothing and warns in development. `xAxis={6}` asks for about six ticks: tick lists are numeric only, so labelling every other category takes a tick count."
+      }
+    },
+    {
+      "id": "n14",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "stacked-area-chart/booked-weeks",
+        "defaultView": "preview",
+        "height": 292
+      }
+    },
+    {
+      "id": "n15",
+      "type": "heading",
+      "props": {
+        "text": "Time axis",
+        "level": "2",
+        "anchor": "time-axis"
+      }
+    },
+    {
+      "id": "n16",
+      "type": "prose",
+      "props": {
+        "markdown": "With `x={{ field: 'date', type: 'time' }}` the rows are sorted by date and spaced by time, as in `LineChart`. On a time axis `forecastFrom` can be any date: the rule sits at the last row before it, and the layers are hatched from there. The tick labels, the tooltip headers and the announcements share `xAxisFormat`, which is `'auto'` for dates."
+      }
+    },
+    {
+      "id": "n17",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "stacked-area-chart/time-axis",
+        "defaultView": "preview",
+        "height": 292
+      }
+    },
+    {
+      "id": "n18",
+      "type": "heading",
+      "props": {
+        "text": "Legend",
+        "level": "2",
+        "anchor": "legend"
+      }
+    },
+    {
+      "id": "n19",
+      "type": "prose",
+      "props": {
+        "markdown": "The chart has no legend of its own. Compose `Legend` with the same tones, as with `LineChart`. For a series without a `tone`, use the tone from the default order. A hatched item such as “Booked” explains the forecast part."
+      }
+    },
+    {
+      "id": "n20",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "stacked-area-chart/with-legend",
+        "defaultView": "preview",
+        "height": 313
+      }
+    },
+    {
+      "id": "n21",
+      "type": "heading",
+      "props": {
+        "text": "Series and tones",
+        "level": "2",
+        "anchor": "series"
+      }
+    },
+    {
+      "id": "n22",
+      "type": "prose",
+      "props": {
+        "markdown": "An `AreaSeries` has an `id` that is unique within the chart, a `label` for the end label, the tooltip, the announcements and the data table header, a `value` accessor, and optionally a `tone`. Without a `tone`, series take the tones by position: `accent`, `accent-soft`, `warn`, `neutral`, `gain`, and then the order repeats. The default order never uses `loss`; choose it explicitly. A thin line in the surface colour separates neighbouring solid layers, in forced colors mode too; a hatched layer gets an edge line in its tone."
+      }
+    },
+    {
+      "id": "n23",
+      "type": "heading",
+      "props": {
+        "text": "Negative and missing values",
+        "level": "2",
+        "anchor": "values"
+      }
+    },
+    {
+      "id": "n24",
+      "type": "prose",
+      "props": {
+        "markdown": "A negative value counts as zero in the layers and in the total, with a warning in development, while the tooltip and the data table show the real value. A missing or non-numeric value breaks every layer at that x: the layers end on both sides of it, and an x between two breaks draws no area. The row still has a point that lists the series that have a value, and it has no total. The default value domain runs from zero to the largest total, rounded to nice ticks."
+      }
+    },
+    {
+      "id": "n25",
+      "type": "heading",
+      "props": {
+        "text": "Props",
+        "level": "2",
+        "anchor": "props"
+      }
+    },
+    {
+      "id": "n26",
+      "type": "props-table",
+      "props": {
+        "symbol": "StackedAreaChart"
+      }
+    },
+    {
+      "id": "n27",
+      "type": "heading",
+      "props": {
+        "text": "Series and points",
+        "level": "2",
+        "anchor": "points"
+      }
+    },
+    {
+      "id": "n28",
+      "type": "prose",
+      "props": {
+        "markdown": "There is one point per x, not per series, and its id is the row key: the category as a string, or the ISO date. A row with no value at all has no point. In `onSelect` and `onActiveChange`, the `ChartPoint` has your row as `datum`. The default tooltip shows the x, then the series with their tone swatches and values, the top layer first, and then the total (a complete row only). The active x gets a cursor line from the baseline to the top of the stack, with a dot on each layer."
+      }
+    },
+    {
+      "id": "n29",
+      "type": "heading",
+      "props": {
+        "text": "Keyboard and screen readers",
+        "level": "2",
+        "anchor": "keyboard"
+      }
+    },
+    {
+      "id": "n30",
+      "type": "prose",
+      "props": {
+        "markdown": "The chart is a single tab stop. The arrow keys move from one x to the next and back, `Home` and `End` jump to the first and last, `Enter` or `Space` selects the active x when the chart has `onSelect`, and `Esc` clears it. Hovering snaps to the nearest x."
+      }
+    },
+    {
+      "id": "n31",
+      "type": "prose",
+      "props": {
+        "markdown": "Screen readers get the title and description, then an announcement for each x the keyboard moves to, such as “2 of 12, W2, 55 h Warranty, 125 h Service, 190 h Install, 370 h Total”: the position, the x, then the series from the top layer down and the total. A visually hidden data table follows the chart, with one row per x, one column per series and a last column with the total. It does not mark the forecast rows, so say in the title or the description which part is a forecast, as the examples do."
+      }
+    },
+    {
+      "id": "n32",
+      "type": "prose",
+      "props": {
+        "markdown": "The full model is in the [accessibility guide](https://github.com/mwadon/tally-charts/blob/main/docs/a11y.md)."
+      }
+    }
+  ]
+}

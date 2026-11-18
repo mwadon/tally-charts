@@ -18,6 +18,7 @@ export const thumbNames = [
   'strip-plot',
   'waffle-columns',
   'line-chart',
+  'stacked-area',
   'heatmap',
   'runway-chart',
   'small-pieces',
@@ -159,6 +160,13 @@ const THUMBS: Record<ThumbName, ReactNode> = {
       <path className="ct-gain ct-third" d="M8 42l22-10 22 6 22-20v36H8z" />
       <path className="ct-stroke" d="M8 42l22-10 22 6 22-20" />
       <path className="ct-stroke ct-forecast ct-dashed" d="M74 18l36-10" />
+    </>
+  ),
+  'stacked-area': (
+    <>
+      <path className="ct-accent" d="M8 50V36L42 30L76 34L110 26V50z" />
+      <path className="ct-accent ct-half" d="M8 36L42 30L76 34L110 26V18L76 26L42 22L8 28z" />
+      <path className="ct-gain ct-third" d="M8 28L42 22L76 26L110 18V10L76 18L42 14L8 20z" />
     </>
   ),
   heatmap: (
