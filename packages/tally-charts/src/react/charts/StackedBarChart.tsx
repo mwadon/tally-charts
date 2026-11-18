@@ -1,6 +1,6 @@
 import { Fragment, useMemo } from 'react'
 import { resolveAccessor, resolveIds, resolvePerItem } from '../../core/accessor'
-import { type StackRow, stackRow } from '../../core/bars'
+import { type StackRow, type StackSegment, stackRow } from '../../core/bars'
 import type { FormatSpec } from '../../core/format'
 import { clampToRange, niceDomain } from '../../core/linear'
 import { type BandScaleSpec, inferLinearDomain, type LinearScaleSpec } from '../../core/scale'
@@ -15,9 +15,11 @@ import { Axis, type AxisFormat } from '../marks/Axis'
 import { Bars } from '../marks/Bars'
 import { Grid } from '../marks/Grid'
 import { Target } from '../marks/Target'
-import { HEADER_CATEGORY } from '../messages'
+import { HEADER_CATEGORY, HEADER_TOTAL, TOTAL } from '../messages'
 import { Tooltip } from '../overlays/Tooltip'
+import type { ChartPoint } from '../types'
 import { toneVar } from '../ui/util'
+import { useRegisterPoints } from '../useRegisterPoints'
 import { type BarSeries, seriesTones, VerticalGrid, warnSeries } from './bar-series'
 import {
   type ChartPassThroughProps,
@@ -213,6 +215,10 @@ export function StackedBarChart<D>({
             return Number.isFinite(value) ? formatValue(value) : ''
           },
         })),
+        {
+          header: messages.headerTotal ?? HEADER_TOTAL,
+          value: (_: D, i: number) => formatValue(stacked.rows[i]?.total ?? 0),
+        },
       ],
     }
   }
@@ -250,6 +256,8 @@ export function StackedBarChart<D>({
         vertical={vertical}
         target={over ? targetValue : undefined}
         over={over}
+        label={label}
+        format={format}
       />
       {valueLabel === 'total' ? (
         <StackedTotals<D>
@@ -298,6 +306,27 @@ interface StackedLayersProps<D> {
   /** The target, only when `over` is set (and the target is above zero). */
   target: number | undefined
   over: Tone | undefined
+  label: Accessor<D, string> | undefined
+  format: FormatSpec | undefined
+}
+
+/** The pieces of a segment: split in two at the target when it crosses it, else the whole. */
+function piecesOf(seg: StackSegment, target: number | undefined) {
+  if (target !== undefined && seg.value > 0 && seg.from < target && seg.to > target) {
+    return [
+      { series: seg.series, from: seg.from, to: target, over: false },
+      { series: seg.series, from: target, to: seg.to, over: true },
+    ]
+  }
+  const isOver = target !== undefined && seg.value > 0 && seg.from >= target
+  return [{ series: seg.series, from: seg.from, to: seg.to, over: isOver }]
+}
+
+/** Px per value unit of a linear scale; NaN for a degenerate one. */
+function pxPerUnitOf(scale: { domain(): number[]; range(): number[] }) {
+  const [d0 = 0, d1 = 0] = scale.domain()
+  const [r0 = 0, r1 = 0] = scale.range()
+  return Math.abs(r1 - r0) / Math.abs(d1 - d0)
 }
 
 /**
@@ -322,6 +351,8 @@ function StackedLayers<D>({
   vertical,
   target,
   over,
+  label,
+  format,
 }: StackedLayersProps<D>) {
   const ctx = useChartContext('StackedBarChart')
   const data = ctx.data as readonly D[]
@@ -336,22 +367,11 @@ function StackedLayers<D>({
     const out = series.map(() => ({ base: [] as Piece[], over: [] as Piece[] }))
     const category = bandScale.field
     if (valueScale.kind !== 'linear' || !category) return out
-    const [d0, d1] = valueScale.scale.domain()
-    const [r0, r1] = valueScale.scale.range()
-    const pxPerUnit = Math.abs(r1 - r0) / Math.abs(d1 - d0)
+    const pxPerUnit = pxPerUnitOf(valueScale.scale)
     data.forEach((d, i) => {
       const stack = stacks[i]
       if (!stack) return
-      const pieces: { series: number; from: number; to: number; over: boolean }[] = []
-      for (const seg of stack.segments) {
-        if (target !== undefined && seg.value > 0 && seg.from < target && seg.to > target) {
-          pieces.push({ series: seg.series, from: seg.from, to: target, over: false })
-          pieces.push({ series: seg.series, from: target, to: seg.to, over: true })
-        } else {
-          const isOver = target !== undefined && seg.value > 0 && seg.from >= target
-          pieces.push({ series: seg.series, from: seg.from, to: seg.to, over: isOver })
-        }
-      }
+      const pieces = stack.segments.flatMap((seg) => piecesOf(seg, target))
       let lastUp = -1
       let lastDown = -1
       pieces.forEach((p, k) => {
@@ -404,7 +424,175 @@ function StackedLayers<D>({
           ) : null}
         </Fragment>
       ))}
+      <StackedPoints<D>
+        series={series}
+        stacks={stacks}
+        rowIds={rowIds}
+        tones={tones}
+        gap={gap}
+        vertical={vertical}
+        target={target}
+        label={label}
+        format={format}
+      />
     </>
+  )
+}
+
+interface StackedPointsProps<D> {
+  series: readonly BarSeries<D>[]
+  stacks: readonly StackRow[]
+  rowIds: readonly Id[]
+  tones: readonly Tone[]
+  gap: number
+  vertical: boolean
+  target: number | undefined
+  label: Accessor<D, string> | undefined
+  format: FormatSpec | undefined
+}
+
+/** A segment's place: its row, its band, and where its hit area ends on the value axis. */
+interface SegmentSpot {
+  row: number
+  seg: StackSegment
+  id: string
+  bandStart: number
+  /** The value where the hit area meets the next segment outwards; `undefined` for the outermost. */
+  end: number | undefined
+  /** Whether the row has a segment on the other side of zero. */
+  opposite: boolean
+}
+
+/**
+ * One point and one hit area per segment, row by row and in series order inside. A segment's hit
+ * area spans its band and, on the value axis, runs from its neighbour inwards to its neighbour
+ * outwards, meeting each in the middle of the gap; the outermost segment of each side reaches into
+ * the margin, so the hit areas of a stack cover the whole chart.
+ */
+function StackedPoints<D>({
+  series,
+  stacks,
+  rowIds,
+  tones,
+  gap,
+  vertical,
+  target,
+  label,
+  format,
+}: StackedPointsProps<D>) {
+  const ctx = useChartContext('StackedBarChart')
+  const data = ctx.data as readonly D[]
+  const bandScale = vertical ? ctx.x : ctx.y
+  const valueScale = vertical ? ctx.y : ctx.x
+  const fmt = useMemo(() => ctx.format(format), [ctx.format, format])
+  const messages = useMessages()
+  const totalLabel = messages.total ?? TOTAL
+
+  const spots = useMemo(() => {
+    const out: SegmentSpot[] = []
+    const category = bandScale.field
+    if (bandScale.kind !== 'band' || valueScale.kind !== 'linear' || !category) return out
+    const pxPerUnit = pxPerUnitOf(valueScale.scale)
+    data.forEach((d, i) => {
+      const stack = stacks[i]
+      if (!stack || stack.segments.length === 0) return
+      const bandStart = bandScale.scale(String(category(d, i)))
+      if (bandStart === undefined) return
+      let lastUp = -1
+      let lastDown = -1
+      stack.segments.forEach((seg, k) => {
+        if (seg.value > 0) lastUp = k
+        else lastDown = k
+      })
+      stack.segments.forEach((seg, k) => {
+        const outermost = k === lastUp || k === lastDown
+        // The drawn end of the segment's far piece, as `StackedLayers` shrinks it.
+        const far = piecesOf(seg, target).at(-1) as { from: number; to: number }
+        const drawn = shrink(far.from, far.to, gap, outermost, pxPerUnit)
+        out.push({
+          row: i,
+          seg,
+          id: `${rowIds[i]}:${(series[seg.series] as BarSeries<D>).id}`,
+          bandStart,
+          end: outermost ? undefined : (drawn + seg.to) / 2,
+          opposite: seg.value > 0 ? lastDown >= 0 : lastUp >= 0,
+        })
+      })
+    })
+    return out
+  }, [series, stacks, data, bandScale, valueScale, rowIds, gap, target])
+
+  const points: ChartPoint[] = useMemo(() => {
+    const category = bandScale.field
+    const getLabel = label ? resolveAccessor(label) : undefined
+    return spots.map(({ row, seg, id, bandStart }) => {
+      const s = series[seg.series] as BarSeries<D>
+      const datum = data[row] as D
+      const name = getLabel ? getLabel(datum, row) : String(category ? category(datum, row) : '')
+      const value = fmt(seg.value)
+      const bandwidth = bandScale.kind === 'band' ? bandScale.scale.bandwidth() : 0
+      const along =
+        valueScale.kind === 'linear' ? clampToRange(valueScale.scale, valueScale.scale(seg.to)) : 0
+      const across = bandStart + bandwidth / 2
+      return {
+        id,
+        index: row,
+        datum,
+        x: vertical ? across : along,
+        y: vertical ? along : across,
+        series: s.label,
+        seriesId: s.id,
+        label: `${name}, ${value}`,
+        segments: [
+          { value: name },
+          { label: s.label, value, tone: tones[seg.series] },
+          { label: totalLabel, value: fmt((stacks[row] as StackRow).total) },
+        ],
+      }
+    })
+  }, [spots, series, data, label, fmt, bandScale, valueScale, vertical, tones, totalLabel, stacks])
+  useRegisterPoints(points)
+
+  if (bandScale.kind !== 'band' || valueScale.kind !== 'linear') return null
+  const bandwidth = bandScale.scale.bandwidth()
+  const scale = valueScale.scale
+  // The value axis reaches into the margins: up (positive) and down (negative) edges in px.
+  const upEdge = vertical ? -ctx.margin.top : ctx.innerWidth + ctx.margin.right
+  const downEdge = vertical ? ctx.innerHeight + ctx.margin.bottom : -ctx.margin.left
+  const lo = Math.min(upEdge, downEdge)
+  const hi = Math.max(upEdge, downEdge)
+  const px = (value: number) => Math.min(hi, Math.max(lo, scale(value)))
+  // The inner end of each segment's hit area: the outer end of the previous one on its side.
+  const inner = new Map<string, number>()
+
+  return (
+    <g>
+      {spots.map((spot, k) => {
+        const point = points[k] as ChartPoint
+        const up = spot.seg.value > 0
+        const side = `${spot.row}:${up ? 'up' : 'down'}`
+        const start = inner.get(side) ?? (spot.opposite ? px(0) : up ? downEdge : upEdge)
+        const end = spot.end === undefined ? (up ? upEdge : downEdge) : px(spot.end)
+        inner.set(side, end)
+        const a = Math.min(start, end)
+        const size = Math.abs(end - start)
+        const hit = vertical
+          ? { x: spot.bandStart, y: a, width: bandwidth, height: size }
+          : { x: a, y: spot.bandStart, width: size, height: bandwidth }
+        return (
+          // biome-ignore lint/a11y/noStaticElementInteractions: pointer-only hit area; keyboard selection lives on the focusable figure
+          <rect
+            key={`${spot.row}:${spot.seg.series}`}
+            data-ch-part="bar-hit"
+            data-ch-selectable={ctx.selectable ? 'true' : undefined}
+            fill="transparent"
+            {...hit}
+            onPointerEnter={() => ctx.setActive(spot.id, 'pointer')}
+            onClick={() => ctx.select(point)}
+          />
+        )
+      })}
+    </g>
   )
 }
 

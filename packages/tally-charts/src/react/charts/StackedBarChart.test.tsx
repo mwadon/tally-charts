@@ -1,4 +1,4 @@
-import { render } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import type { BarSeries } from './bar-series'
 import { StackedBarChart, type StackedBarChartProps } from './StackedBarChart'
@@ -359,5 +359,219 @@ describe('<StackedBarChart>', () => {
     expect(warn).toHaveBeenCalledTimes(1)
     expect(bars(zero.container).filter((b) => tone(b) === 'loss')).toHaveLength(0)
     warn.mockRestore()
+  })
+})
+
+describe('<StackedBarChart> points, hit areas, tooltip and table', () => {
+  const hits = (root: HTMLElement) => parts(root, 'bar-hit')
+  /** The hit areas of category column `row` (vertical), top-down. */
+  function hitColumn(root: HTMLElement, index: number) {
+    const all = hits(root)
+    const xs = [...new Set(all.map((h) => num(h, 'x')))].sort((a, b) => a - b)
+    return all.filter((h) => num(h, 'x') === xs[index]).sort((a, b) => num(a, 'y') - num(b, 'y'))
+  }
+  /** Asserts the rects tile [-top, -top + size] along y: contiguous, no overlap. */
+  function expectTiles(rects: SVGElement[], top: number, size: number) {
+    let edge = -top
+    for (const r of rects) {
+      expect(num(r, 'y')).toBeCloseTo(edge)
+      expect(num(r, 'height')).toBeGreaterThanOrEqual(0)
+      edge += num(r, 'height')
+    }
+    expect(edge).toBeCloseTo(-top + size)
+  }
+  const chartOf = () => screen.getByRole('application', { name: 'Monthly cost against budget' })
+  const liveOf = (root: HTMLElement) => root.querySelector('[aria-live="polite"]') as HTMLElement
+
+  it('treats a non-finite or negative gap as 0', () => {
+    for (const gap of [Number.NaN, -1]) {
+      const { container, unmount } = renderChart({ gap })
+      const [labor, materials] = column(container, 0) as [SVGElement, SVGElement]
+      expect(num(labor, 'y')).toBeCloseTo(yOf(24))
+      expect(bottom(materials)).toBeCloseTo(num(labor, 'y'))
+      unmount()
+    }
+  })
+
+  it('shows the category, the series, its value and the stack total on hover', () => {
+    const { container } = renderChart()
+    // Row by row, series order inside: Apr materials is the 11th hit area.
+    fireEvent.pointerEnter(hits(container)[10] as Element)
+    const tip = container.querySelector('[data-ch-part="tooltip"]')
+    for (const text of ['Apr', 'Materials', '21', 'Total', '66'])
+      expect(tip).toHaveTextContent(text)
+  })
+
+  it('selects with a composite id, the series and the user row', () => {
+    const onSelect = vi.fn()
+    const { container, unmount } = renderChart({ onSelect })
+    fireEvent.click(hits(container)[10] as Element)
+    expect(onSelect).toHaveBeenCalledTimes(1)
+    const [id, point] = onSelect.mock.calls[0] as [unknown, Record<string, unknown>]
+    expect(id).toBe('3:materials')
+    expect(point).toMatchObject({ seriesId: 'materials', series: 'Materials', datum: months[3] })
+    unmount()
+    const byId = vi.fn()
+    const named = renderChart({ onSelect: byId, id: 'month' })
+    fireEvent.click(hits(named.container)[10] as Element)
+    expect(byId.mock.calls[0]?.[0]).toBe('Apr:materials')
+  })
+
+  it('walks the segments stack by stack with the arrow keys and announces the series first', () => {
+    const { container } = renderChart()
+    const chart = chartOf()
+    const seen: string[] = []
+    for (let i = 0; i < 4; i++) {
+      fireEvent.keyDown(chart, { key: 'ArrowRight' })
+      seen.push(liveOf(container).textContent ?? '')
+    }
+    expect(seen).toEqual([
+      'Labor, 1 of 6, Jan, 24',
+      'Materials, 1 of 6, Jan, 18',
+      'Subcontract, 1 of 6, Jan, 9',
+      'Labor, 2 of 6, Feb, 26',
+    ])
+  })
+
+  it('tiles the full chart height with the hit areas of a stack, also with mixed signs', () => {
+    const { container, unmount } = renderChart()
+    const jan = hitColumn(container, 0)
+    expect(jan).toHaveLength(3)
+    expectTiles(jan, 24, HEIGHT)
+    // Bottom-up: labor's area meets materials' in the middle of the 2 px gap above 24.
+    expect(bottom(jan[1] as SVGElement)).toBeCloseTo(yOf(24) + 1)
+    // A hit area spans the band, as the bars do.
+    const bar = column(container, 0)[0] as SVGElement
+    expect(num(jan[0] as SVGElement, 'x')).toBeCloseTo(num(bar, 'x'))
+    expect(num(jan[0] as SVGElement, 'width')).toBeCloseTo(num(bar, 'width'))
+    unmount()
+
+    type Mixed = { k: string; a: number; b: number; c: number; d: number }
+    const series: BarSeries<Mixed>[] = (['a', 'b', 'c', 'd'] as const).map((key) => ({
+      id: key,
+      label: key.toUpperCase(),
+      value: key,
+    }))
+    const mixed = render(
+      <StackedBarChart<Mixed>
+        data={[
+          { k: 'A', a: 10, b: -4, c: 5, d: -6 },
+          { k: 'B', a: -3, b: -2, c: -1, d: -1 },
+        ]}
+        x="k"
+        series={series}
+        width={300}
+        height={HEIGHT}
+        domain={[-20, 20]}
+        target={{ value: 12, over: 'loss' }}
+        title="Mixed"
+        animate={false}
+      />,
+    )
+    const y = (v: number) => PLOT - ((v + 20) * PLOT) / 40
+    const a = hitColumn(mixed.container, 0)
+    expect(a).toHaveLength(4)
+    expectTiles(a, 24, HEIGHT)
+    // Top-down: c (outermost up), a, b, d (outermost down); a and b meet at zero.
+    expect(bottom(a[1] as SVGElement)).toBeCloseTo(y(0))
+    // All negative: the first segment reaches the top edge.
+    const b = hitColumn(mixed.container, 1)
+    expect(b).toHaveLength(4)
+    expectTiles(b, 24, HEIGHT)
+  })
+
+  it('tiles the full chart width in a horizontal chart', () => {
+    const { container } = renderChart({ orientation: 'horizontal', height: undefined })
+    const all = hits(container)
+    const ys = [...new Set(all.map((h) => num(h, 'y')))].sort((a, b) => a - b)
+    const first = all.filter((h) => num(h, 'y') === ys[0]).sort((a, b) => num(a, 'x') - num(b, 'x'))
+    expect(first).toHaveLength(3)
+    let edge = -96
+    for (const r of first) {
+      expect(num(r, 'x')).toBeCloseTo(edge)
+      edge += num(r, 'width')
+    }
+    expect(edge).toBeCloseTo(300 - 96)
+  })
+
+  it('marks both pieces of a segment split at the target active and dims every other piece', () => {
+    const { container } = renderChart({
+      target: { value: 60, over: 'loss' },
+      activeId: '3:subcontract',
+      dimInactive: true,
+    })
+    const all = bars(container)
+    expect(all).toHaveLength(20)
+    const active = all.filter((b) => b.hasAttribute('data-ch-active'))
+    expect(active).toHaveLength(2)
+    expect(active.map(tone).sort()).toEqual(['loss', 'warn'])
+    for (const b of active)
+      expect(num(b, 'x')).toBeCloseTo(num(column(container, 3)[0] as SVGElement, 'x'))
+    expect(all.filter((b) => b.hasAttribute('data-ch-dimmed'))).toHaveLength(18)
+  })
+
+  it('gives a missing or zero value no point and no hit area; the table shows the zero only', () => {
+    const warn = quiet()
+    const data = months.map((m) =>
+      m.month === 'Feb'
+        ? { ...m, materials: null }
+        : m.month === 'Mar'
+          ? { ...m, materials: 0 }
+          : m,
+    )
+    const { container } = renderChart({ data })
+    expect(hits(container)).toHaveLength(16)
+    expectTiles(hitColumn(container, 1), 24, HEIGHT)
+    const chart = chartOf()
+    const seen: string[] = []
+    for (let i = 0; i < 7; i++) {
+      fireEvent.keyDown(chart, { key: 'ArrowRight' })
+      seen.push(liveOf(container).textContent ?? '')
+    }
+    // Jan ×3, Feb labor, Feb subcontract, Mar labor, Mar subcontract.
+    expect(seen[4]).toMatch(/^Subcontract.*Feb/)
+    expect(seen[6]).toMatch(/^Subcontract.*Mar/)
+    const rows = within(screen.getByRole('table')).getAllByRole('row')
+    expect(within(rows[2] as HTMLElement).getAllByRole('cell')[1]?.textContent).toBe('—no value')
+    expect(within(rows[3] as HTMLElement).getAllByRole('cell')[1]?.textContent).toBe('0')
+    expect(warn).toHaveBeenCalledTimes(1)
+    warn.mockRestore()
+  })
+
+  it('renders a hidden table with a total column, and renames or drops it on request', () => {
+    const headers = () =>
+      within(screen.getByRole('table'))
+        .getAllByRole('columnheader')
+        .map((th) => th.textContent)
+    const { unmount } = renderChart()
+    const table = screen.getByRole('table', { name: 'Monthly cost against budget' })
+    expect(headers()).toEqual(['Month', 'Labor', 'Materials', 'Subcontract', 'Total'])
+    const rows = within(table).getAllByRole('row')
+    expect(rows).toHaveLength(7)
+    const apr = within(rows[4] as HTMLElement).getAllByRole('cell')
+    expect(apr.at(-1)?.textContent).toBe('66')
+    unmount()
+    const renamed = renderChart({ dataTable: { columns: { Total: 'Cost' } } })
+    expect(headers()).toEqual(['Month', 'Labor', 'Materials', 'Subcontract', 'Cost'])
+    renamed.unmount()
+    renderChart({ dataTable: false })
+    expect(screen.queryByRole('table')).toBeNull()
+  })
+
+  it('draws no tooltip when tooltip is false, and passes the user row to a function tooltip', () => {
+    const off = renderChart({ tooltip: false })
+    fireEvent.pointerEnter(hits(off.container)[0] as Element)
+    expect(off.container.querySelector('[data-ch-part="tooltip"]')).toBeNull()
+    off.unmount()
+    const seen: unknown[] = []
+    const custom = renderChart({
+      tooltip: (point) => {
+        seen.push(point.datum)
+        return <span>custom</span>
+      },
+    })
+    fireEvent.pointerEnter(hits(custom.container)[10] as Element)
+    expect(custom.container.querySelector('[data-ch-part="tooltip"]')).toHaveTextContent('custom')
+    expect(seen).toContain(months[3])
   })
 })
