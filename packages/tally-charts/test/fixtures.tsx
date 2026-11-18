@@ -18,6 +18,7 @@ import {
   RunwayChart,
   runwayForecast,
   ShareBar,
+  StackedAreaChart,
   StackedBarChart,
   Stat,
   StripPlot,
@@ -29,8 +30,6 @@ import {
   WaterfallChart,
   ZoneMeter,
 } from '../src'
-// Not exported from the package yet (1.3 Task 4).
-import { StackedAreaChart } from '../src/react/charts/StackedAreaChart'
 
 export const weeks = [
   { week: 'Jul 6', margin: 37.5 },

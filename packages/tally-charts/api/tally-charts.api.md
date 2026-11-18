@@ -30,6 +30,15 @@ export interface AreaProps<D> {
 }
 
 // @public (undocumented)
+export interface AreaSeries<D> {
+    id: string;
+    label: string;
+    tone?: Tone;
+    // (undocumented)
+    value: Accessor<D, number>;
+}
+
+// @public (undocumented)
 export function Axis(input: AxisProps): JSX.Element | null;
 
 // @public
@@ -1187,6 +1196,31 @@ export interface SparklineProps {
     tone?: Tone;
     values: readonly (number | null)[];
 }
+
+// @public (undocumented)
+export function StackedAreaChart<D>(input: StackedAreaChartProps<D>): JSX.Element;
+
+// @public (undocumented)
+export type StackedAreaChartProps<D> = ChartName & Omit<ChartPassThroughProps<D>, 'aspectRatio'> & {
+    data: readonly D[];
+    x: Accessor<D, string | number> | (TimeScaleSpec<D> & {
+        field: Accessor<D, TimeInput>;
+    });
+    series: readonly AreaSeries<D>[];
+    forecastFrom?: TimeInput;
+    forecastLabel?: string;
+    domain?: readonly [number, number];
+    endLabels?: boolean;
+    format?: FormatSpec;
+    yAxis?: TickSpec | 'none';
+    yAxisFormat?: AxisFormat;
+    xAxis?: TickSpec | 'none';
+    xAxisFormat?: AxisFormat;
+    grid?: boolean;
+    dataTable?: boolean | DataTableOptions;
+    tooltip?: ChartTooltip<D>;
+    interactive?: boolean;
+};
 
 // @public (undocumented)
 export function StackedBarChart<D>(input: StackedBarChartProps<D>): JSX.Element;
