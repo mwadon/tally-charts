@@ -1,20 +1,13 @@
 import { type ReactNode, useMemo } from 'react'
-import { resolveAccessor } from '../../core/accessor'
-import { createDateFormatter, isDateFormat } from '../../core/date'
 import type { FormatSpec, Formatter } from '../../core/format'
 import { clampToRange, niceDomain } from '../../core/linear'
-import {
-  categoryCenter,
-  categoryStep,
-  inferLinearDomain,
-  type TimeScaleSpec,
-} from '../../core/scale'
+import { inferLinearDomain, type TimeScaleSpec } from '../../core/scale'
 import type { TickSpec } from '../../core/ticks'
-import { DAY, type TimeInput, toTime } from '../../core/time'
+import { type TimeInput, toTime } from '../../core/time'
 import type { Accessor, Tone } from '../../core/types'
 import { createWarner, DEV } from '../../core/warn'
 import { Chart, type ChartName } from '../Chart'
-import { useFormat, useLocale, useMessages } from '../ChartsProvider'
+import { useFormat, useMessages } from '../ChartsProvider'
 import { type Margin, useChartContext } from '../context'
 import type { DataTableColumn, DataTableSpec } from '../DataTable'
 import { Axis, type AxisFormat } from '../marks/Axis'
@@ -23,9 +16,8 @@ import { Grid } from '../marks/Grid'
 import { Line } from '../marks/Line'
 import { NearestPointer } from '../marks/NearestPointer'
 import { Region } from '../marks/Region'
-import { timeX } from '../marks/series'
 import { Target } from '../marks/Target'
-import { HEADER_CATEGORY, HEADER_DATE, HEADER_RANGE } from '../messages'
+import { HEADER_RANGE } from '../messages'
 import { Tooltip } from '../overlays/Tooltip'
 import type { ChartPoint, TooltipSegment } from '../types'
 import { useRegisterPoints } from '../useRegisterPoints'
@@ -33,12 +25,21 @@ import {
   type ChartPassThroughProps,
   type ChartTooltip,
   type DataTableOptions,
-  headerOf,
-  toNumber,
   tooltipContent,
   userCallbacks,
   withTableOptions,
 } from './shared'
+import {
+  buildXRows,
+  rowX,
+  snapRadius,
+  timeSpecOf,
+  useXLabels,
+  withBreaks,
+  type XRow,
+  xColumn,
+  xScaleOf,
+} from './x-rows'
 
 export type LineSeriesStyle = 'actual' | 'forecast' | 'scenario'
 
@@ -137,23 +138,6 @@ export type LineChartProps<D> = ChartName &
     underlay?: ReactNode
   }
 
-interface LineRow<D> {
-  /** Point id: the category as a string, or the date as an ISO string. */
-  key: string
-  /** Epoch ms on a time axis; NaN on a category axis. */
-  time: number
-  /** The x as people read it: the formatted category or date. */
-  label: string
-  datum: D
-  index: number
-  /** One value per series, NaN when missing. */
-  values: number[]
-  low: number
-  high: number
-  /** A skipped row followed this one in data order: the lines and the band break after it. */
-  gapAfter?: boolean
-}
-
 const MARGIN: Margin = { top: 24, right: 16, bottom: 32, left: 44 }
 
 function styleOf<D>(s: LineSeries<D>): LineSeriesStyle {
@@ -164,31 +148,18 @@ function toneOf<D>(s: LineSeries<D>): Tone {
   return s.tone ?? (styleOf(s) === 'scenario' ? 'gain' : 'accent')
 }
 
-/** The smallest distance between neighbouring sorted values; Infinity for fewer than two. */
-function minGap(values: readonly number[]): number {
-  return values.reduce(
-    (gap, v, i) => (i ? Math.min(gap, v - (values[i - 1] as number)) : gap),
-    Number.POSITIVE_INFINITY,
-  )
-}
-
 /** One point per x, carrying every series with a value there; snaps the pointer along x. */
 function LinePoints<D>(props: {
-  rows: readonly LineRow<D>[]
+  rows: readonly XRow<D>[]
   series: readonly LineSeries<D>[]
   fmt: Formatter
   radius: number
 }) {
   const ctx = useChartContext('LineChart')
   const linear = ctx.y.kind === 'linear' ? ctx.y.scale : undefined
-  const xScale = ctx.x
   const points: ChartPoint[] = linear
     ? props.rows.flatMap((row, index): ChartPoint[] => {
-        // Off-domain dates are neither drawn nor registered, so pointer and keys can't reach them.
-        const x =
-          xScale.kind === 'time'
-            ? timeX(ctx, xScale.scale, row.time, 'LineChart')
-            : categoryCenter(xScale, row.key)
+        const x = rowX(ctx, row, 'LineChart')
         if (x === undefined) return []
         // Forecasts repeat the last actual at the join; there the actual is listed once.
         const actualHere = props.series.some(
@@ -200,8 +171,12 @@ function LinePoints<D>(props: {
           return [{ text: props.fmt(value), label: s.tooltipLabel ?? s.label, tone: toneOf(s) }]
         })
         if (shown.length === 0) return []
+        // The band's values follow the series' ones and don't lift the point.
         const top = Math.min(
-          ...row.values.filter(Number.isFinite).map((v) => clampToRange(linear, linear(v))),
+          ...row.values
+            .slice(0, props.series.length)
+            .filter(Number.isFinite)
+            .map((v) => clampToRange(linear, linear(v))),
         )
         const segments: TooltipSegment[] = [
           { value: row.label },
@@ -227,10 +202,15 @@ function LinePoints<D>(props: {
       })
     : []
   useRegisterPoints(points)
-  // Half the smallest gap between neighbouring x values: categories are a step apart, dates
-  // can be anything.
-  const gap = xScale.kind === 'time' ? minGap(points.map((p) => p.x)) : categoryStep(xScale)
-  return <NearestPointer axis="x" radius={Math.max(12, Number.isFinite(gap) ? gap / 2 : 0)} />
+  return (
+    <NearestPointer
+      axis="x"
+      radius={snapRadius(
+        ctx,
+        points.map((p) => p.x),
+      )}
+    />
+  )
 }
 
 export function LineChart<D>({
@@ -261,87 +241,19 @@ export function LineChart<D>({
 }: LineChartProps<D>) {
   const { create } = useFormat()
   const messages = useMessages()
-  const { locale } = useLocale()
   const warn = useMemo(() => createWarner(), [])
   const fmt = useMemo(() => create(format), [create, format])
-  const timeX = typeof x === 'object' ? x : undefined
-  const zone = timeX?.zone ?? 'utc'
-
-  const rows = useMemo(() => {
-    const getX = resolveAccessor(timeX ? timeX.field : (x as Accessor<D, string | number>))
-    const getters = series.map((s) => resolveAccessor(s.value))
-    const getLow = band ? resolveAccessor(band.low) : undefined
-    const getHigh = band ? resolveAccessor(band.high) : undefined
-    const seen = new Set<string>()
-    let previous: LineRow<D> | undefined
-    const all = data.flatMap((d, i): LineRow<D>[] => {
-      const raw = getX(d, i)
-      const time = timeX ? toTime(raw) : Number.NaN
-      const key =
-        time === undefined
-          ? ''
-          : timeX
-            ? new Date(time).toISOString()
-            : raw === null || raw === undefined
-              ? ''
-              : String(raw)
-      if (key === '') {
-        if (DEV) {
-          warn(
-            'line-x-missing',
-            timeX
-              ? `LineChart skipped an x value that is not a date at index ${i}.`
-              : `LineChart skipped a missing x value at index ${i}.`,
-          )
-        }
-        if (previous) previous.gapAfter = true
-        return []
-      }
-      if (seen.has(key)) {
-        if (DEV) {
-          warn('line-x-repeated', `LineChart skipped a repeated x value "${key}" at index ${i}.`)
-        }
-        return []
-      }
-      seen.add(key)
-      const row: LineRow<D> = {
-        key,
-        time: time ?? Number.NaN,
-        label: key,
-        datum: d,
-        index: i,
-        values: getters.map((get) => toNumber(get(d, i))),
-        low: getLow ? toNumber(getLow(d, i)) : Number.NaN,
-        high: getHigh ? toNumber(getHigh(d, i)) : Number.NaN,
-      }
-      previous = row
-      return [row]
-    })
-    // Dates draw and step left to right, whatever order the data has. Sort is stable.
-    return timeX ? all.sort((a, b) => a.time - b.time) : all
-  }, [data, x, timeX, series, band, warn])
-
-  // The x as people read it, shared by the axis, the tooltip, announcements and the table.
-  const xLabel = useMemo((): ((row: LineRow<D>) => string) => {
-    if (typeof xAxisFormat === 'function') {
-      return (row) => xAxisFormat(timeX ? new Date(row.time) : row.key)
-    }
-    if (!timeX) return (row) => row.key
-    const step = minGap(rows.map((r) => r.time))
-    const spec = isDateFormat(xAxisFormat) ? xAxisFormat : 'auto'
-    const date = createDateFormatter(spec, {
-      locale,
-      zone,
-      step: Number.isFinite(step) ? step : DAY,
-    })
-    return (row) => date(row.time)
-  }, [xAxisFormat, timeX, rows, locale, zone])
-  const labelled = useMemo(() => rows.map((r) => ({ ...r, label: xLabel(r) })), [rows, xLabel])
-  // What the lines and the band draw: `labelled`, with a row of NaN values after each row that a
-  // skipped one followed. It has a valid x, so the marks don't warn, and its NaN breaks the path.
-  const drawn = labelled.flatMap((row) =>
-    row.gapAfter ? [row, { ...row, values: [], low: Number.NaN }] : [row],
-  )
+  const timeX = timeSpecOf(x)
+  // The band's low and high ride after the series' values.
+  const n = series.length
+  const built = useMemo(() => {
+    const getters = [...series.map((s) => s.value), ...(band ? [band.low, band.high] : [])]
+    return buildXRows(data, x, getters, warn, 'LineChart', 'line')
+  }, [data, x, series, band, warn])
+  const rows = useXLabels(built, x, xAxisFormat)
+  const drawn = withBreaks(rows)
+  const low = (r: XRow<D>) => r.values[n] ?? Number.NaN
+  const high = (r: XRow<D>) => r.values[n + 1] ?? Number.NaN
 
   const targetSpec = typeof target === 'number' ? { value: target } : target
   // The target counts toward the inferred domain, so a goal above or below the data is drawn. The
@@ -349,10 +261,7 @@ export function LineChart<D>({
   const resolvedDomain =
     domain ??
     niceDomain(
-      inferLinearDomain(
-        [...rows.flatMap((r) => [...r.values, r.low, r.high]), targetSpec?.value ?? Number.NaN],
-        false,
-      ),
+      inferLinearDomain([...rows.flatMap((r) => r.values), targetSpec?.value ?? Number.NaN], false),
       typeof yAxis === 'number' ? yAxis : undefined,
     )
   if (DEV) {
@@ -383,17 +292,12 @@ export function LineChart<D>({
     regionFrom = before ? (before.time + fromTime) / 2 : fromTime
   }
 
-  let table: DataTableSpec<LineRow<D>> | undefined
+  let table: DataTableSpec<XRow<D>> | undefined
   if (dataTable) {
-    const columns: DataTableColumn<LineRow<D>>[] = [
-      {
-        header: timeX
-          ? headerOf(timeX.field, messages.headerDate ?? HEADER_DATE)
-          : headerOf(x, messages.headerCategory ?? HEADER_CATEGORY),
-        value: (r) => r.label,
-      },
+    const columns: DataTableColumn<XRow<D>>[] = [
+      xColumn(x, messages),
       ...series.map(
-        (s, i): DataTableColumn<LineRow<D>> => ({
+        (s, i): DataTableColumn<XRow<D>> => ({
           header: s.label,
           value: (r) => fmt(r.values[i] ?? Number.NaN),
         }),
@@ -403,23 +307,21 @@ export function LineChart<D>({
       columns.push({
         header: band.label ?? messages.headerRange ?? HEADER_RANGE,
         value: (r) =>
-          Number.isFinite(r.low) && Number.isFinite(r.high) ? `${fmt(r.low)}–${fmt(r.high)}` : '',
+          Number.isFinite(low(r)) && Number.isFinite(high(r))
+            ? `${fmt(low(r))}–${fmt(high(r))}`
+            : '',
       })
     }
     table = { columns }
   }
-  const xField = timeX ? 'time' : 'key'
+  const xScale = xScaleOf(x)
 
   return (
-    <Chart<LineRow<D>>
+    <Chart<XRow<D>>
       {...chart}
       {...userCallbacks(onSelect, onActiveChange)}
-      data={labelled}
-      x={
-        timeX
-          ? { type: 'time', field: 'time', domain: timeX.domain, nice: timeX.nice, zone }
-          : { type: 'point', field: 'key' }
-      }
+      data={rows}
+      x={xScale}
       y={{ domain: resolvedDomain }}
       margin={m}
       height={height ?? 280}
@@ -432,14 +334,14 @@ export function LineChart<D>({
         <Target y={targetSpec.value} label={targetSpec.label} labelPosition="start" />
       ) : null}
       {band ? (
-        <Band<LineRow<D>> data={drawn} x={xField} low="low" high="high" tone={band.tone} />
+        <Band<XRow<D>> data={drawn} x={xScale.field} low={low} high={high} tone={band.tone} />
       ) : null}
       {ordered.map(({ s, i }) => (
-        <Line<LineRow<D>>
+        <Line<XRow<D>>
           // Index first: repeated series ids still get distinct keys.
           key={`${i}:${s.id}`}
           data={drawn}
-          x={xField}
+          x={xScale.field}
           y={(r) => r.values[i] ?? Number.NaN}
           tone={toneOf(s)}
           dashed={styleOf(s) !== 'actual'}
@@ -447,9 +349,7 @@ export function LineChart<D>({
           radius={radius}
         />
       ))}
-      {interactive ? (
-        <LinePoints rows={labelled} series={series} fmt={fmt} radius={radius} />
-      ) : null}
+      {interactive ? <LinePoints rows={rows} series={series} fmt={fmt} radius={radius} /> : null}
       {yAxis === 'none' ? null : <Axis side="left" ticks={yAxis} format={valueFormat} />}
       {xAxis === 'none' ? null : <Axis side="bottom" ticks={xAxis} format={xAxisFormat} />}
       {interactive && tooltip ? <Tooltip content={tooltipContent(tooltip)} /> : null}
