@@ -2720,3 +2720,14 @@ Gałąź `ui-refresh-palette`, bez commita. Zmiany tylko w `apps/docs` (bibliote
 - Dependabot: PR #30 oraz alerty `minimatch` i `glob` (medium) bez PR-ów.
 - Lighthouse nie był uruchamiany po odświeżeniu strony głównej.
 - Ręczny przebieg a11y (VoiceOver, NVDA, high contrast, 400%) i test dotykowy na iOS Safari (PR #12).
+
+## GroupedBarChart 1.1: strona docs (2026-11-18)
+
+Gałąź `grouped-bar-chart`, bez commita. Zadanie 6 planu: strona, przykłady i kafelek na `/`.
+
+- Strona `/docs/grouped-bar-chart` (fiksturka `content/grouped-bar-chart.json`, w nawigacji po BarChart) z czterema przykładami w `examples/grouped-bar-chart/` (`jobs-by-crew`, `forecast-quarter`, `horizontal`, `with-legend`), tabelą propsów `GroupedBarChart`, opisem `BarSeries`, `ChartPoint.seriesId`, etykiet wartości, klawiatury i limitu forced colors oraz składaniem `Legend`.
+- Strona główna: nowa miniatura `grouped-bars` w `blocks/chart-thumbs.tsx` i kafelek w `chart-index` po BarChart. Kafelków jest 13, więc ostatni rząd ma jeden; nagłówek bloku nadal mówi „Eleven charts” (był nieaktualny już przy 12).
+- Liczby: strony w nawigacji 26, `API coverage: 54/54`. Rozmiar `GroupedBarChart` w `pnpm size`: 14.22 kB z 15 kB (zadanie 5).
+- Baseline'y `/` odświeżone na darwin i linux; `/docs/line-chart` bez zmian.
+- Pułapki: nazwa linku `BarChart` pasuje też do `GroupedBarChart` (`bar-chart.spec.ts` ma `exact: true`); wysokości kart z wykresem 260 px i z `Legend` wpisane w `height` bloków (292, 292, 313), bez wpisu w `NARROW_CHART_HEIGHTS`.
+- Otwarte: `pnpm --filter docs seed` (nowa strona i kafelek w glokki), decyzja o nagłówku „Eleven charts”, wydanie 1.1.0 (changeset jest).

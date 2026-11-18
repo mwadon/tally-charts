@@ -85,6 +85,12 @@
             "thumb": "bar-chart"
           },
           {
+            "label": "GroupedBarChart",
+            "text": "Several series side by side in each category",
+            "href": "/docs/grouped-bar-chart",
+            "thumb": "grouped-bars"
+          },
+          {
             "label": "ComparisonBars",
             "text": "Plan against actual, side by side",
             "href": "/docs/comparison-bars",

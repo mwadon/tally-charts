@@ -15,7 +15,7 @@ test('/docs/bar-chart is a page, and the sidebar links to it', async ({ page }) 
 
   await expect(page.getByRole('heading', { level: 1, name: 'BarChart' })).toBeVisible()
   const nav = page.getByRole('navigation', { name: 'Documentation' })
-  const link = nav.getByRole('link', { name: 'BarChart' })
+  const link = nav.getByRole('link', { name: 'BarChart', exact: true })
   await expect(link).toHaveAttribute('href', '/docs/bar-chart')
   await expect(link).toHaveAttribute('aria-current', 'page')
   await expect(nav.locator('.nav-soon', { hasText: 'BarChart' })).toHaveCount(0)
