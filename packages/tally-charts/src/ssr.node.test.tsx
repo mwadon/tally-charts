@@ -157,7 +157,7 @@ describe('server rendering', () => {
     expect(html).not.toContain('NaN')
     // 6 months × 3 series, Apr and Jun split at the target: 20 pieces, 18 segments.
     expect(html.match(/data-ch-part="bar"/g)).toHaveLength(20)
-    expect(html.match(/data-ch-tone="loss"/g)?.length).toBeGreaterThanOrEqual(2)
+    expect(html.match(/<rect[^>]*data-ch-part="bar"[^>]*data-ch-tone="loss"/g)).toHaveLength(2)
     expect(html.match(/data-ch-part="bar-hit"/g)).toHaveLength(18)
     expect(html).toContain('data-ch-part="target"')
     expect(html).toContain('data-ch-part="data-table"')

@@ -63,6 +63,8 @@ export type { RankedBarsProps } from './react/charts/RankedBars'
 export { RankedBars } from './react/charts/RankedBars'
 export type { RunwayChartProps, RunwayFacts, RunwayRow } from './react/charts/RunwayChart'
 export { RunwayChart } from './react/charts/RunwayChart'
+export type { StackedBarChartProps } from './react/charts/StackedBarChart'
+export { StackedBarChart } from './react/charts/StackedBarChart'
 export type { StripPlotProps, StripSeries } from './react/charts/StripPlot'
 export { StripPlot } from './react/charts/StripPlot'
 export type {

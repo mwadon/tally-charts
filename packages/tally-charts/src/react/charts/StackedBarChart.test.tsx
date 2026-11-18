@@ -1,7 +1,21 @@
 import { fireEvent, render, screen, within } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
+import type { ChartPoint } from '../types'
 import type { BarSeries } from './bar-series'
 import { StackedBarChart, type StackedBarChartProps } from './StackedBarChart'
+
+// Records every points array a mark registers, so a test can see whether a re-render with the
+// same props registers a new array. The real hook still runs.
+const registered = vi.hoisted(() => [] as (readonly ChartPoint[])[])
+vi.mock('../useRegisterPoints', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../useRegisterPoints')>()
+  return {
+    useRegisterPoints: (points: readonly ChartPoint[]) => {
+      if (points.length > 0) registered.push(points)
+      actual.useRegisterPoints(points)
+    },
+  }
+})
 
 type Month = {
   month: string
@@ -535,6 +549,35 @@ describe('<StackedBarChart> points, hit areas, tooltip and table', () => {
     expect(within(rows[2] as HTMLElement).getAllByRole('cell')[1]?.textContent).toBe('—no value')
     expect(within(rows[3] as HTMLElement).getAllByRole('cell')[1]?.textContent).toBe('0')
     expect(warn).toHaveBeenCalledTimes(1)
+    warn.mockRestore()
+  })
+
+  it('registers the same points array again when re-rendered with the same props', () => {
+    const props: StackedBarChartProps<Month> = {
+      data: months,
+      x: 'month',
+      series: three,
+      width: 300,
+      title: 'Monthly cost against budget',
+      animate: false,
+    }
+    const { rerender } = render(<StackedBarChart<Month> {...props} />)
+    const first = registered.at(-1)
+    expect(first).toHaveLength(18)
+    rerender(<StackedBarChart<Month> {...props} />)
+    rerender(<StackedBarChart<Month> {...props} />)
+    expect(registered.at(-1)).toBe(first)
+  })
+
+  it('shows a missing total cell for a row with no segments', () => {
+    const data = months.map((m) =>
+      m.month === 'Feb' ? { ...m, labor: null, materials: null, subcontract: null } : m,
+    )
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+    renderChart({ data })
+    const rows = within(screen.getByRole('table')).getAllByRole('row')
+    const cells = within(rows[2] as HTMLElement).getAllByRole('cell')
+    expect(cells[cells.length - 1]?.textContent).toBe('—no value')
     warn.mockRestore()
   })
 

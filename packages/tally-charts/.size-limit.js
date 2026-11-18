@@ -25,6 +25,14 @@ export default [
     gzip: true,
   },
   {
+    name: 'StackedBarChart',
+    path: 'dist/index.js',
+    import: '{ StackedBarChart }',
+    ignore: ['react', 'react-dom'],
+    limit: '15 KB',
+    gzip: true,
+  },
+  {
     name: 'ComparisonBars',
     path: 'dist/index.js',
     import: '{ ComparisonBars }',
