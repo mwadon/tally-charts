@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { computeBars } from './bars'
+import { computeBars, groupSlots } from './bars'
 import { createScale } from './scale'
 
 type Row = { k: string; v: number | null }
@@ -230,5 +230,28 @@ describe('computeBars options', () => {
     ]
     const { bars } = layout(rows, [0, 10])
     expect(bars.map((b) => b.category)).toEqual(['c'])
+  })
+})
+
+describe('groupSlots', () => {
+  it('splits the band into equal slots separated by gaps', () => {
+    expect(groupSlots(92, 3, 4)).toEqual({ size: 28, offsets: [0, 32, 64] })
+  })
+
+  it('gives a single bar the whole band', () => {
+    expect(groupSlots(40, 1, 4)).toEqual({ size: 40, offsets: [0] })
+  })
+
+  it('spreads zero-width slots evenly when the gaps exceed the band', () => {
+    expect(groupSlots(6, 4, 4)).toEqual({ size: 0, offsets: [0, 1.5, 3, 4.5] })
+  })
+
+  it('returns no slots for a count of zero', () => {
+    expect(groupSlots(92, 0, 4)).toEqual({ size: 0, offsets: [] })
+  })
+
+  it('treats a NaN or negative gap as zero', () => {
+    expect(groupSlots(90, 3, Number.NaN)).toEqual({ size: 30, offsets: [0, 30, 60] })
+    expect(groupSlots(90, 3, -5)).toEqual({ size: 30, offsets: [0, 30, 60] })
   })
 })

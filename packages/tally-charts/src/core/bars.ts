@@ -151,3 +151,21 @@ function layoutBars(
 
   return { orientation, bars }
 }
+
+/**
+ * Splits one band into `count` equal bar slots separated by `gap` px. Used by grouped bars.
+ * When the gaps alone exceed the band, slots collapse to zero width and spread evenly.
+ * A non-finite or negative `gap` counts as 0.
+ */
+export function groupSlots(
+  bandwidth: number,
+  count: number,
+  gap: number,
+): { size: number; offsets: number[] } {
+  if (count <= 0) return { size: 0, offsets: [] }
+  const safeGap = Number.isFinite(gap) && gap > 0 ? gap : 0
+  const size = Math.max(0, (bandwidth - safeGap * (count - 1)) / count)
+  const step = size > 0 ? size + safeGap : bandwidth / count
+  const offsets = Array.from({ length: count }, (_, i) => i * step)
+  return { size, offsets }
+}
