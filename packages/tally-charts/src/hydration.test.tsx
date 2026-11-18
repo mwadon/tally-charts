@@ -4,7 +4,7 @@ import { act, version } from 'react'
 import { hydrateRoot } from 'react-dom/client'
 import { renderToString } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
-import { CrewQuarters, LastTwelveWeeks } from '../test/fixtures'
+import { CrewQuarters, LastTwelveWeeks, MonthlyCost } from '../test/fixtures'
 import { thresholds } from './core/thresholds'
 import { ShareBar } from './react/ui/ShareBar'
 import { ZoneMeter } from './react/ui/ZoneMeter'
@@ -58,6 +58,30 @@ describe('hydration', () => {
     expect(onRecoverableError).not.toHaveBeenCalled()
     expect(errors).not.toHaveBeenCalled()
     expect(container.querySelectorAll('[data-ch-part="bar"]')).toHaveLength(12)
+    await act(async () => {
+      root?.unmount()
+    })
+    container.remove()
+    errors.mockRestore()
+  })
+
+  // As above: the server render comes before the console.error spy.
+  it('hydrates StackedBarChart server markup without mismatches', async () => {
+    const html = renderToString(<MonthlyCost />)
+    const errors = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const container = document.createElement('div')
+    container.innerHTML = html
+    expect(container.querySelectorAll('[data-ch-part="bar"]')).toHaveLength(20)
+    expect(container.querySelectorAll('[data-ch-part="bar-hit"]')).toHaveLength(18)
+    document.body.appendChild(container)
+    const onRecoverableError = vi.fn()
+    let root: ReturnType<typeof hydrateRoot> | undefined
+    await act(async () => {
+      root = hydrateRoot(container, <MonthlyCost />, { onRecoverableError })
+    })
+    expect(onRecoverableError).not.toHaveBeenCalled()
+    expect(errors).not.toHaveBeenCalled()
+    expect(container.querySelectorAll('[data-ch-part="bar"]')).toHaveLength(20)
     await act(async () => {
       root?.unmount()
     })

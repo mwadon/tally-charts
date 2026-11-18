@@ -18,6 +18,7 @@ import {
   RunwayChart,
   runwayForecast,
   ShareBar,
+  StackedBarChart,
   Stat,
   StripPlot,
   Target,
@@ -385,6 +386,32 @@ export function CrewQuarters() {
       ]}
       fill={(d) => (d.forecast ? 'hatch' : undefined)}
       target={{ value: 50, label: 'Target' }}
+    />
+  )
+}
+
+// Totals 51/56/58/66/56/69; Apr and Jun go over the budget of 60.
+export const monthlyCost = [
+  { month: 'Jan', labor: 24, materials: 18, subcontract: 9 },
+  { month: 'Feb', labor: 26, materials: 20, subcontract: 10 },
+  { month: 'Mar', labor: 27, materials: 20, subcontract: 11 },
+  { month: 'Apr', labor: 28, materials: 21, subcontract: 17 },
+  { month: 'May', labor: 27, materials: 19, subcontract: 10 },
+  { month: 'Jun', labor: 29, materials: 20, subcontract: 20 },
+]
+
+export function MonthlyCost() {
+  return (
+    <StackedBarChart
+      title="Monthly cost against budget"
+      data={monthlyCost}
+      x="month"
+      series={[
+        { id: 'labor', label: 'Labor', value: 'labor' },
+        { id: 'materials', label: 'Materials', value: 'materials' },
+        { id: 'subcontract', label: 'Subcontract', value: 'subcontract' },
+      ]}
+      target={{ value: 60, over: 'loss' }}
     />
   )
 }

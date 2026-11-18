@@ -1188,6 +1188,38 @@ export interface SparklineProps {
     values: readonly (number | null)[];
 }
 
+// @public (undocumented)
+export function StackedBarChart<D>(input: StackedBarChartProps<D>): JSX.Element;
+
+// @public (undocumented)
+export type StackedBarChartProps<D> = ChartName & ChartPassThroughProps<D> & {
+    data: readonly D[];
+    x: Accessor<D, string | number>;
+    series: readonly BarSeries<D>[];
+    id?: Accessor<D, Id>;
+    label?: Accessor<D, string>;
+    orientation?: 'vertical' | 'horizontal';
+    domain?: readonly [number, number];
+    target?: number | {
+        value: number;
+        label?: string;
+        over?: Tone;
+    };
+    fill?: PerItem<D, Fill | undefined>;
+    valueLabel?: 'total' | 'none';
+    valueFormat?: FormatSpec;
+    format?: FormatSpec;
+    axis?: TickSpec | 'none';
+    axisFormat?: AxisFormat;
+    valueAxis?: TickSpec | 'none';
+    valueAxisFormat?: AxisFormat;
+    grid?: boolean;
+    padding?: number;
+    gap?: number;
+    dataTable?: boolean | DataTableOptions;
+    tooltip?: ChartTooltip<D>;
+};
+
 // @public
 export function Stat(input: StatProps): JSX.Element;
 

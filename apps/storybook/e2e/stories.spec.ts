@@ -157,6 +157,24 @@ test('the grouped bar chart walks bars group by group and announces the series',
   await expect(page.locator('[data-ch-part="tooltip"]')).toContainText('South')
 })
 
+test('the stacked bar chart walks segments up each stack, then on to the next', async ({
+  page,
+}) => {
+  await open(page, 'charts-stackedbarchart--light')
+  const chart = page.getByRole('figure', { name: 'Monthly job cost against the $60k budget' })
+  await page.keyboard.press('Tab')
+  await expect(chart.getByRole('application')).toBeFocused()
+  const live = chart.locator('[aria-live]')
+  await expect(live).toHaveText('Labor, 1 of 6, Jan, $24k')
+  await page.keyboard.press('ArrowRight')
+  await expect(live).toHaveText('Materials, 1 of 6, Jan, $18k')
+  await page.keyboard.press('ArrowRight')
+  await expect(live).toHaveText('Subcontract, 1 of 6, Jan, $9k')
+  await page.keyboard.press('ArrowRight')
+  await expect(live).toHaveText('Labor, 2 of 6, Feb, $26k')
+  await expect(page.locator('[data-ch-part="tooltip"]')).toContainText('Labor')
+})
+
 test('hovering near a strip dot shows its tooltip', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 600 })
   await open(page, 'reference-dallas-installs--light')

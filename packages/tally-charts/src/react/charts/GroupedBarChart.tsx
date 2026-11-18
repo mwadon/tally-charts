@@ -4,7 +4,7 @@ import { computeBars, groupSlots } from '../../core/bars'
 import type { FormatSpec } from '../../core/format'
 import { niceDomain } from '../../core/linear'
 import { type BandScaleSpec, inferLinearDomain, type LinearScaleSpec } from '../../core/scale'
-import { linearTicks, type TickSpec } from '../../core/ticks'
+import type { TickSpec } from '../../core/ticks'
 import type { Accessor, Fill, Id, PerItem, Tone } from '../../core/types'
 import { createWarner, DEV } from '../../core/warn'
 import { Chart, type ChartName } from '../Chart'
@@ -19,6 +19,7 @@ import { HEADER_CATEGORY } from '../messages'
 import { Tooltip } from '../overlays/Tooltip'
 import type { ChartPoint } from '../types'
 import { useRegisterPoints } from '../useRegisterPoints'
+import { type BarSeries, seriesTones, VerticalGrid, warnSeries } from './bar-series'
 import {
   type ChartPassThroughProps,
   type ChartTooltip,
@@ -29,18 +30,7 @@ import {
   withTableOptions,
 } from './shared'
 
-export interface BarSeries<D> {
-  /** Stable key of the series; unique within the chart. */
-  id: string
-  /** Name for the tooltip, announcements and the data table header. */
-  label: string
-  /** Value field of the series. */
-  value: Accessor<D, number>
-  /** Default: the next tone of the default order: accent, accent-soft, warn, neutral, gain. */
-  tone?: Tone
-  /** Default 'solid'. */
-  fill?: Fill
-}
+export type { BarSeries }
 
 export type GroupedBarChartProps<D> = ChartName &
   ChartPassThroughProps<D> & {
@@ -99,7 +89,6 @@ export type GroupedBarChartProps<D> = ChartName &
     tooltip?: ChartTooltip<D>
   }
 
-const DEFAULT_TONES: readonly Tone[] = ['accent', 'accent-soft', 'warn', 'neutral', 'gain']
 const BAR_THICKNESS = 16
 const ROW_PADDING = 20
 const NO_ROWS: readonly never[] = []
@@ -138,24 +127,12 @@ export function GroupedBarChart<D>({
   // One reading of `gap` for the slots, the hit slices and the automatic height.
   const barGap = Number.isFinite(gap) && gap > 0 ? gap : 0
   if (DEV) {
-    if (series.length === 0) {
-      warn(
-        'grouped-series-empty',
-        'GroupedBarChart needs at least one series; showing the empty state.',
-      )
-    }
+    warnSeries(series, warn, 'GroupedBarChart', 'grouped')
     if (series.length > 4) {
       warn(
         'grouped-series-count',
         `GroupedBarChart has ${series.length} series; bars get thin above 4${series.length > 5 ? ' and tones repeat from 6' : ''}.`,
       )
-    }
-    const seen = new Set<string>()
-    for (const s of series) {
-      if (seen.has(s.id)) {
-        warn('grouped-series-id', `GroupedBarChart has a repeated series id "${s.id}".`)
-      }
-      seen.add(s.id)
     }
   }
 
@@ -230,7 +207,7 @@ export function GroupedBarChart<D>({
         vertical ? (
           <Grid ticks={showValueAxis ? valueAxis : 'all'} />
         ) : (
-          <VerticalGrid ticks={showValueAxis ? valueAxis : 'all'} />
+          <VerticalGrid ticks={showValueAxis ? valueAxis : 'all'} chart="GroupedBarChart" />
         )
       ) : null}
       {targetSpec ? (
@@ -260,27 +237,6 @@ export function GroupedBarChart<D>({
       {tooltip ? <Tooltip content={tooltipContent(tooltip, false)} /> : null}
       {children}
     </Chart>
-  )
-}
-
-/** Vertical rules at the value ticks of a horizontal chart; `Grid` only rules a linear y. */
-function VerticalGrid({ ticks }: { ticks: TickSpec }) {
-  const ctx = useChartContext('GroupedBarChart')
-  if (ctx.x.kind !== 'linear') return null
-  const lines = linearTicks(ctx.x.scale, ticks, String)
-  return (
-    <g data-ch-part="grid">
-      {lines.map((tick) => (
-        <line
-          key={tick.value}
-          data-ch-part="grid-line"
-          x1={tick.position}
-          x2={tick.position}
-          y1={0}
-          y2={ctx.innerHeight}
-        />
-      ))}
-    </g>
   )
 }
 
@@ -320,10 +276,7 @@ function GroupedLayers<D>({
   )
   const rowIds = useMemo(() => resolveIds(data, id, ctx.warn), [data, id, ctx.warn])
   const rowFillOf = useMemo(() => resolvePerItem(rowFill ?? undefined), [rowFill])
-  const tones = useMemo(
-    () => series.map((s, i) => s.tone ?? (DEFAULT_TONES[i % DEFAULT_TONES.length] as Tone)),
-    [series],
-  )
+  const tones = useMemo(() => seriesTones(series), [series])
   // Per-layer id and fill functions that only change with their inputs, so `Bars` keeps its layout.
   const layers = useMemo(
     () =>

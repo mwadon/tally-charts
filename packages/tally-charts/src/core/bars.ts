@@ -169,3 +169,44 @@ export function groupSlots(
   const offsets = Array.from({ length: count }, (_, i) => i * step)
   return { size, offsets }
 }
+
+/** One series' segment of a stacked row, spanning `from` to `to` on the value axis. */
+export interface StackSegment {
+  /** Index of the series in the `values` passed to `stackRow`. */
+  series: number
+  value: number
+  from: number
+  to: number
+}
+
+/** The segments of one stacked row and its sums. */
+export interface StackRow {
+  segments: StackSegment[]
+  /** Sum of all finite values. */
+  total: number
+  /** Sum of the positive values, at least 0. */
+  positive: number
+  /** Sum of the negative values, at most 0. */
+  negative: number
+}
+
+/**
+ * Stacks one row of values: positive values run upwards from 0, negative values downwards from 0,
+ * each in series order. Zero and non-finite values produce no segment.
+ */
+export function stackRow(values: readonly number[]): StackRow {
+  const segments: StackSegment[] = []
+  let positive = 0
+  let negative = 0
+  values.forEach((value, series) => {
+    if (!Number.isFinite(value) || value === 0) return
+    if (value > 0) {
+      segments.push({ series, value, from: positive, to: positive + value })
+      positive += value
+    } else {
+      segments.push({ series, value, from: negative, to: negative + value })
+      negative += value
+    }
+  })
+  return { segments, total: positive + negative, positive, negative }
+}

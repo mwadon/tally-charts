@@ -58,6 +58,10 @@
           "slug": "grouped-bar-chart"
         },
         {
+          "label": "StackedBarChart",
+          "slug": "stacked-bar-chart"
+        },
+        {
           "label": "ComparisonBars",
           "slug": "comparison-bars"
         },

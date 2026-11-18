@@ -1,0 +1,262 @@
+{
+  "versionId": "fixture-stacked-bar-chart-v1",
+  "version": 1,
+  "locale": "en",
+  "publishedAt": "2026-11-18T00:00:00.000Z",
+  "codeInjection": {},
+  "layout": {
+    "key": "default",
+    "header": null,
+    "footer": null
+  },
+  "pageId": "fixture-stacked-bar-chart",
+  "title": "StackedBarChart",
+  "slug": "stacked-bar-chart",
+  "seo": {
+    "metaTitle": "StackedBarChart · tally-charts",
+    "metaDescription": "A total per category and what it is made of, with a target and an over-budget tone, diverging negatives, keyboard navigation and a hidden data table."
+  },
+  "componentTree": [
+    {
+      "id": "n1",
+      "type": "prose",
+      "props": {
+        "markdown": "A total per category and what it is made of. `StackedBarChart` takes your rows, the field for the category and one entry per series, and handles the scales, the tooltip, the keyboard and the screen reader. It takes the same rows and the same series as `GroupedBarChart`, so switching between the two is a change of component name."
+      }
+    },
+    {
+      "id": "n2",
+      "type": "heading",
+      "props": {
+        "text": "When to use it",
+        "level": "2",
+        "anchor": "when-to-use"
+      }
+    },
+    {
+      "id": "n3",
+      "type": "prose",
+      "props": {
+        "markdown": "Use it when the total matters and so does its composition: monthly cost split into labor, materials and subcontract, jobs per quarter split by crew. One row is one stack, and each series is one segment of it. Keep it to about five series, because the tones repeat from the sixth. To compare series with each other inside a category, use [`GroupedBarChart`](/docs/grouped-bar-chart). For one series, use [`BarChart`](/docs/bar-chart). For trends over many periods, [`LineChart`](/docs/line-chart) usually reads better."
+      }
+    },
+    {
+      "id": "n4",
+      "type": "heading",
+      "props": {
+        "text": "Import",
+        "level": "2",
+        "anchor": "install"
+      }
+    },
+    {
+      "id": "n5",
+      "type": "code-block",
+      "props": {
+        "code": "npm i tally-charts",
+        "lang": "bash"
+      }
+    },
+    {
+      "id": "n6",
+      "type": "code-block",
+      "props": {
+        "code": "import { StackedBarChart } from 'tally-charts'\nimport 'tally-charts/theme.css'",
+        "lang": "tsx",
+        "filename": "app/cost.tsx"
+      }
+    },
+    {
+      "id": "n7",
+      "type": "heading",
+      "props": {
+        "text": "Examples",
+        "level": "2",
+        "anchor": "examples"
+      }
+    },
+    {
+      "id": "n8",
+      "type": "prose",
+      "props": {
+        "markdown": "Each series says which field it reads and how to name it. The first series sits on the baseline, and the others stack on it in the order of the `series` array. The label above each stack is its total. Props stay serializable here, so the chart renders in a server component. The third series sets `tone: 'neutral'` in its series object."
+      }
+    },
+    {
+      "id": "n9",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "stacked-bar-chart/cost-by-type",
+        "defaultView": "preview",
+        "height": 292
+      }
+    },
+    {
+      "id": "n10",
+      "type": "heading",
+      "props": {
+        "text": "Target and over budget",
+        "level": "2",
+        "anchor": "target"
+      }
+    },
+    {
+      "id": "n11",
+      "type": "prose",
+      "props": {
+        "markdown": "`target` draws a line at a value, with an optional label. Stacks routinely pass the target, so the label is drawn outside the plot: above it when horizontal, and in the right margin when vertical. That margin grows with the label, so keep the label short: a long label takes plot width, most noticeably on narrow screens. Add `over: 'loss'` and the part of each stack beyond the target is painted in that tone, whichever series it belongs to. A segment that crosses the target is split in two at the line. The total label of a stack over the target takes the same tone, so the state is also text. A total label never sits on the line: when the line would cross it, the label moves just beyond the line. `over` only colours the positive stack, and it needs a target above zero. The tooltip swatch shows the series' tone even when the pointer is on the part painted in the `over` tone."
+      }
+    },
+    {
+      "id": "n12",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "stacked-bar-chart/over-budget",
+        "defaultView": "preview",
+        "height": 292
+      }
+    },
+    {
+      "id": "n13",
+      "type": "prose",
+      "props": {
+        "markdown": "`orientation=\"horizontal\"` puts the categories on the left and the totals at the end of each bar. `x` is still the category and the series values are still the values. The height follows the number of rows unless you set `height` or `aspectRatio`. `grid` and `valueAxis` are independent: `valueAxis=\"none\"` hides the value axis and keeps the grid lines at the default ticks, and `grid={false}` removes the lines."
+      }
+    },
+    {
+      "id": "n14",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "stacked-bar-chart/horizontal",
+        "defaultView": "preview",
+        "height": 292
+      }
+    },
+    {
+      "id": "n15",
+      "type": "heading",
+      "props": {
+        "text": "Legend",
+        "level": "2",
+        "anchor": "legend"
+      }
+    },
+    {
+      "id": "n16",
+      "type": "prose",
+      "props": {
+        "markdown": "The chart has no legend of its own. Compose `Legend` with the same tones, as with `LineChart`. For a series without a `tone`, use the tone from the default order."
+      }
+    },
+    {
+      "id": "n17",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "stacked-bar-chart/with-legend",
+        "defaultView": "preview",
+        "height": 313
+      }
+    },
+    {
+      "id": "n18",
+      "type": "heading",
+      "props": {
+        "text": "Series, tones and fills",
+        "level": "2",
+        "anchor": "series"
+      }
+    },
+    {
+      "id": "n19",
+      "type": "prose",
+      "props": {
+        "markdown": "A `BarSeries` has an `id` that is unique within the chart, a `label` for the tooltip, the announcements and the data table header, a `value` accessor, and optionally a `tone` and a `fill`. Without a `tone`, series take the tones by position: `accent`, `accent-soft`, `warn`, `neutral`, `gain`, and then the order repeats. The default order never uses `loss`; choose it explicitly. Tone is the series, and fill is the state: a row's `fill` applies to every segment of that row, and when both are set, the row's `fill` wins. The part painted by `target.over` is always solid."
+      }
+    },
+    {
+      "id": "n20",
+      "type": "heading",
+      "props": {
+        "text": "Negative values and totals",
+        "level": "2",
+        "anchor": "totals"
+      }
+    },
+    {
+      "id": "n21",
+      "type": "prose",
+      "props": {
+        "markdown": "Positive values stack up from zero, and negative values stack down from zero on their own, so a diverging stack has a positive and a negative part. The label shows the net sum of the row, above the positive stack. A missing or non-numeric value draws nothing, counts as zero in the total, and the stack closes up with no hole. The gap between segments is `gap` px, taken from the far end of every segment except the outermost one, so the stack keeps its length, except that a non-zero piece shorter than 1 px is drawn 1 px long; the total label always sits at the true value. A segment not longer than the gap plus 1 px keeps 1 px, and a segment thinner than that is covered by its neighbour. With `valueLabel=\"total\"` (the default) every stack is labelled; in a vertical chart, when any label is wider than its column, none is drawn at that width, and the totals stay in the tooltip and the data table. Use `valueLabel=\"none\"` to turn the labels off. A category whose values are all zero or missing has no total label and is skipped by the keyboard; the data table still lists it."
+      }
+    },
+    {
+      "id": "n22",
+      "type": "heading",
+      "props": {
+        "text": "Props",
+        "level": "2",
+        "anchor": "props"
+      }
+    },
+    {
+      "id": "n23",
+      "type": "props-table",
+      "props": {
+        "symbol": "StackedBarChart"
+      }
+    },
+    {
+      "id": "n24",
+      "type": "heading",
+      "props": {
+        "text": "Series and points",
+        "level": "2",
+        "anchor": "points"
+      }
+    },
+    {
+      "id": "n25",
+      "type": "prose",
+      "props": {
+        "markdown": "A segment's id is `${rowId}:${series.id}`, where the row id is the `id` accessor or the data index. Every segment is a point. In `onSelect` and `onActiveChange`, the `ChartPoint` has `seriesId` with the `id` of the series, `series` with its label, and `datum` with your row. You do not need to parse the id. The default tooltip shows the category, the series of the hovered or focused segment with its tone swatch and value, and the total of the stack."
+      }
+    },
+    {
+      "id": "n26",
+      "type": "heading",
+      "props": {
+        "text": "Keyboard and screen readers",
+        "level": "2",
+        "anchor": "keyboard"
+      }
+    },
+    {
+      "id": "n27",
+      "type": "prose",
+      "props": {
+        "markdown": "The chart is a single tab stop. Arrow keys walk the segments stack by stack, and inside a stack in the order of the `series` array. In a diverging stack, positive and negative segments alternate as the series do. `Home` and `End` jump to the first and last segment, `Enter` or `Space` selects the active segment when the chart has `onSelect`, and `Esc` clears the active segment."
+      }
+    },
+    {
+      "id": "n28",
+      "type": "prose",
+      "props": {
+        "markdown": "Screen readers get the title and description, then an announcement for each segment the keyboard moves to, such as “Materials, 4 of 6, Apr, $21K”: the series, the position within the series, then the category and the formatted value. A visually hidden data table follows the chart, with one row per category, one column per series and a last column with the total."
+      }
+    },
+    {
+      "id": "n29",
+      "type": "prose",
+      "props": {
+        "markdown": "Pointer targets of thin segments are small: the hit areas of neighbouring segments meet in the middle of the gap, and the outermost segment's area reaches the edge of the chart, but a thin inner segment is still a small target. The keyboard and the data table reach every value, and they are the equivalents. In forced colors mode (Windows high contrast), tones collapse to a few system colors and several share one, so segments are told apart by their order in the stack and the gap between them, and the over-budget part falls back to the system color of its tone."
+      }
+    },
+    {
+      "id": "n30",
+      "type": "prose",
+      "props": {
+        "markdown": "The full model is in the [accessibility guide](https://github.com/mwadon/tally-charts/blob/main/docs/a11y.md)."
+      }
+    }
+  ]
+}

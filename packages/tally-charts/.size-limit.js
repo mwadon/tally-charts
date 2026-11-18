@@ -24,6 +24,16 @@ export default [
     limit: '15 KB',
     gzip: true,
   },
+  // 15.5 KB: stacking, the over-target split and the target label drawn outside the plot (a label
+  // inside it lands on a stack) measure 15.07 KB after the inner components were merged.
+  {
+    name: 'StackedBarChart',
+    path: 'dist/index.js',
+    import: '{ StackedBarChart }',
+    ignore: ['react', 'react-dom'],
+    limit: '15.5 KB',
+    gzip: true,
+  },
   {
     name: 'ComparisonBars',
     path: 'dist/index.js',

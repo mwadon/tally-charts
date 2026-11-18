@@ -121,6 +121,44 @@ for (const colorScheme of ['light', 'dark'] as const) {
       }
     })
 
+    test(`stacked segments stay visible and apart (${colorScheme})`, async ({ page }) => {
+      await openForced(page, 'charts-stackedbarchart--light', colorScheme)
+      const canvas = await systemColor(page, 'Canvas')
+      const bars = await page
+        .locator('#storybook-root rect[data-ch-part="bar"]')
+        .evaluateAll((els) =>
+          els.map((el) => {
+            const style = getComputedStyle(el)
+            const box = el.getBoundingClientRect()
+            return {
+              fill: style.fill,
+              centre: Math.round((box.left + box.right) / 2),
+              top: box.top,
+              bottom: box.bottom,
+            }
+          }),
+        )
+      // 6 months × 3 series, plus the over-budget piece of April's and June's top segment.
+      expect(bars).toHaveLength(20)
+      for (const bar of bars) {
+        expect(bar.fill).not.toBe(canvas)
+        expect(bar.fill).not.toBe('none')
+        expect(bar.fill).not.toMatch(/rgba\(.*, 0\)$/)
+      }
+      // Tones collapse onto a few system colors, so the gap is what keeps a stack's segments apart.
+      const stacks = new Map<number, typeof bars>()
+      for (const bar of bars) stacks.set(bar.centre, [...(stacks.get(bar.centre) ?? []), bar])
+      expect(stacks.size).toBe(6)
+      for (const stack of stacks.values()) {
+        const sorted = [...stack].sort((a, b) => b.top - a.top)
+        for (let k = 1; k < sorted.length; k++) {
+          const below = sorted[k - 1] as (typeof bars)[number]
+          const above = sorted[k] as (typeof bars)[number]
+          expect(below.top - above.bottom).toBeGreaterThanOrEqual(1.5)
+        }
+      }
+    })
+
     test('heatmap levels differ by border width and keep a focus ring', async ({ page }) => {
       await openForced(page, 'reference-where-it-leaks--light', colorScheme)
       const borders = await page
