@@ -132,8 +132,6 @@ for (const colorScheme of ['light', 'dark'] as const) {
             const box = el.getBoundingClientRect()
             return {
               fill: style.fill,
-              stroke: style.stroke,
-              hatched: el.getAttribute('data-ch-fill') !== 'solid',
               centre: Math.round((box.left + box.right) / 2),
               top: box.top,
               bottom: box.bottom,
@@ -143,10 +141,6 @@ for (const colorScheme of ['light', 'dark'] as const) {
       // 6 months × 3 series, plus the over-budget piece of April's and June's top segment.
       expect(bars).toHaveLength(20)
       for (const bar of bars) {
-        if (bar.hatched) {
-          expect(bar.stroke).not.toBe('none')
-          continue
-        }
         expect(bar.fill).not.toBe(canvas)
         expect(bar.fill).not.toBe('none')
         expect(bar.fill).not.toMatch(/rgba\(.*, 0\)$/)
