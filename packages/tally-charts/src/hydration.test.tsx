@@ -40,11 +40,14 @@ describe('hydration', () => {
   })
 
   // Server markup from this environment's React, so its useId values match on both CI legs;
-  // ssr.node.test.tsx renders the same fixture without a DOM.
+  // ssr.node.test.tsx renders the same fixture without a DOM. The server render comes before the
+  // console.error spy: in jsdom `window` exists, so React 18 warns that useLayoutEffect does
+  // nothing on the server, which says nothing about hydration.
   it('hydrates GroupedBarChart server markup without mismatches', async () => {
+    const html = renderToString(<CrewQuarters />)
     const errors = vi.spyOn(console, 'error').mockImplementation(() => {})
     const container = document.createElement('div')
-    container.innerHTML = renderToString(<CrewQuarters />)
+    container.innerHTML = html
     expect(container.querySelectorAll('[data-ch-part="bar"]')).toHaveLength(12)
     document.body.appendChild(container)
     const onRecoverableError = vi.fn()
