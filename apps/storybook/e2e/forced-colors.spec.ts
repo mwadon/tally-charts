@@ -159,6 +159,130 @@ for (const colorScheme of ['light', 'dark'] as const) {
       }
     })
 
+    test(`stacked area layers, hatch, rule and labels stay visible (${colorScheme})`, async ({
+      page,
+    }) => {
+      await openForced(page, 'charts-stackedareachart--light', colorScheme)
+      const canvas = await systemColor(page, 'Canvas')
+      // Computed colors serialize as rgb(), rgba() or color(srgb ...), so resolve them to RGBA
+      // numbers in the page (a 1x1 canvas parses every form) and compare those.
+      // Resolved twice with different seeds: a value the canvas ignores keeps the seed, so the
+      // two results differ and the value counts as unparseable (null), never as a colour.
+      const resolve = (value: string) =>
+        page.evaluate((v) => {
+          const ctx = document.createElement('canvas').getContext('2d', {
+            willReadFrequently: true,
+          }) as CanvasRenderingContext2D
+          const paint = (seed: string) => {
+            ctx.clearRect(0, 0, 1, 1)
+            ctx.fillStyle = seed
+            ctx.fillStyle = v
+            ctx.fillRect(0, 0, 1, 1)
+            return [...ctx.getImageData(0, 0, 1, 1).data]
+          }
+          const first = paint('#010203')
+          const second = paint('#fdfcfb')
+          return first.every((c, i) => c === second[i]) ? first : null
+        }, value)
+      const canvasRgba = await resolve(canvas)
+      if (!canvasRgba) throw new Error(`Canvas (${canvas}) did not resolve to a color`)
+      // Real: not 'none', at least 20% opaque, and after compositing over the Canvas color some
+      // channel differs from Canvas by more than 24.
+      const isRealColor = async (value: string) => {
+        if (value === 'none' || value.startsWith('url(')) return false
+        const rgba = await resolve(value)
+        if (!rgba) return false
+        const [r = 0, g = 0, b = 0, a = 0] = rgba
+        if (a < 0.2 * 255) return false
+        const over = [r, g, b].map((c, i) => (c * a + (canvasRgba[i] ?? 0) * (255 - a)) / 255)
+        return over.some((c, i) => Math.abs(c - (canvasRgba[i] ?? 0)) > 24)
+      }
+      // The helper can fail: Canvas itself in any serialization, fully transparent, none.
+      const [cr = 0, cg = 0, cb = 0] = canvasRgba
+      expect(await isRealColor(`color(srgb ${cr / 255} ${cg / 255} ${cb / 255})`)).toBe(false)
+      expect(await isRealColor(canvas)).toBe(false)
+      expect(await isRealColor('color(srgb 0 0 0 / 0)')).toBe(false)
+      expect(await isRealColor('rgb(0 0 0 / 0)')).toBe(false)
+      expect(await isRealColor('none')).toBe(false)
+      expect(await isRealColor('url(#nope)')).toBe(false)
+      expect(await isRealColor('notacolor')).toBe(false)
+      expect(await resolve('notacolor')).toBeNull()
+      expect(await isRealColor('rgb(255 0 0)')).toBe(true)
+      const layers = await page
+        .locator('#storybook-root path[data-ch-part="area-layer"]')
+        .evaluateAll((els) =>
+          els.map((el) => {
+            const fill = getComputedStyle(el).fill
+            const id = /^url\("?#([^")]+)"?\)$/.exec(fill)?.[1]
+            const pattern = id ? document.getElementById(id) : null
+            const line = pattern?.querySelector('line')
+            const style = line ? getComputedStyle(line) : undefined
+            return {
+              fill,
+              kind: el.getAttribute('data-ch-fill'),
+              hatchStroke: style?.stroke,
+              hatchWidth: style ? Number.parseFloat(style.strokeWidth) : 0,
+            }
+          }),
+        )
+      // Three layers, each a solid part (W1 to W9) and a hatched one (W9 to W12).
+      const solid = layers.filter((l) => l.kind === 'solid')
+      const hatched = layers.filter((l) => l.kind === 'hatch')
+      expect(solid).toHaveLength(3)
+      expect(hatched).toHaveLength(3)
+      for (const layer of solid) expect(await isRealColor(layer.fill)).toBe(true)
+      // A hatched fill is a url(); what keeps it visible is the stripe line inside its pattern.
+      for (const layer of hatched) {
+        expect(layer.fill).toMatch(/^url\(/)
+        expect(layer.hatchStroke).toBeDefined()
+        expect(await isRealColor(layer.hatchStroke as string)).toBe(true)
+        expect(layer.hatchWidth).toBeGreaterThan(0)
+      }
+      // Tones collapse onto few system colors, so the separators keep neighbouring layers apart.
+      const separators = await page
+        .locator('#storybook-root path[data-ch-part="area-separator"]')
+        .evaluateAll((els) =>
+          els.map((el) => {
+            const style = getComputedStyle(el)
+            return { stroke: style.stroke, width: Number.parseFloat(style.strokeWidth) }
+          }),
+        )
+      expect(separators.length).toBeGreaterThanOrEqual(2)
+      for (const sep of separators) {
+        expect(sep.stroke).toBe(canvas)
+        expect(sep.width).toBeGreaterThanOrEqual(1.5)
+      }
+      // The hatched part keeps its upper edge: a real stroke, not the canvas colour.
+      const edges = await page
+        .locator('#storybook-root path[data-ch-part="area-edge"]')
+        .evaluateAll((els) =>
+          els.map((el) => {
+            const style = getComputedStyle(el)
+            return { stroke: style.stroke, width: Number.parseFloat(style.strokeWidth) }
+          }),
+        )
+      expect(edges.length).toBeGreaterThanOrEqual(3)
+      for (const edge of edges) {
+        expect(await isRealColor(edge.stroke)).toBe(true)
+        expect(edge.width).toBeGreaterThanOrEqual(1)
+      }
+      const rule = await page
+        .locator('#storybook-root [data-ch-part="forecast-rule"]')
+        .evaluate((el) => ({
+          stroke: getComputedStyle(el).stroke,
+          box: el.getBoundingClientRect().height,
+        }))
+      expect(await isRealColor(rule.stroke)).toBe(true)
+      expect(rule.box).toBeGreaterThan(50)
+      for (const part of ['forecast-label', 'end-label', 'end-value']) {
+        const fills = await page
+          .locator(`#storybook-root [data-ch-part="${part}"]`)
+          .evaluateAll((els) => els.map((el) => getComputedStyle(el).fill))
+        expect(fills.length).toBeGreaterThan(0)
+        for (const fill of fills) expect(await isRealColor(fill)).toBe(true)
+      }
+    })
+
     test('heatmap levels differ by border width and keep a focus ring', async ({ page }) => {
       await openForced(page, 'reference-where-it-leaks--light', colorScheme)
       const borders = await page

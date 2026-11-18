@@ -21,6 +21,7 @@ describe('public entry points', () => {
     'TONES',
     'BarChart',
     'GroupedBarChart',
+    'StackedAreaChart',
     'StackedBarChart',
     'ComparisonBars',
     'RankedBars',

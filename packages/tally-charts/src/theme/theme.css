@@ -296,6 +296,12 @@
 [data-ch-part="column-highlight"],
 [data-ch-part="connector"],
 [data-ch-part="area"],
+[data-ch-part="area-layer"],
+[data-ch-part="area-edge"],
+[data-ch-part="area-separator"],
+[data-ch-part="forecast-rule"],
+[data-ch-part="cursor"],
+[data-ch-part="cursor-dot"],
 [data-ch-part="dot"],
 [data-ch-part="dot-ring"],
 [data-ch-part="median"],
@@ -500,14 +506,49 @@
   fill: color-mix(in srgb, var(--_ch-swatch-color) 6%, transparent);
 }
 
+/* Stacked area layers paint their tone (solid) or its hatch pattern inline, like bars. A
+   surface-coloured line keeps neighbouring solid layers apart, in forced colors too; a hatched
+   layer gets its upper edge in the inked tone, like the outline of a hatched bar. */
+[data-ch-part="area-separator"],
+[data-ch-part="area-edge"] {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+[data-ch-part="area-separator"] {
+  stroke: var(--ch-surface);
+  stroke-width: 2;
+}
+
+[data-ch-part="area-edge"] {
+  stroke: color-mix(in srgb, var(--_ch-swatch-color) var(--ch-tone-text-mix), var(--ch-ink));
+  stroke-width: 1.5;
+}
+
+/* The active x of a stacked area: a rule up to the top of the stack, and on each layer's upper
+   edge a dot in its tone, ringed with the surface like the separators. */
+[data-ch-part="cursor"] {
+  stroke: var(--ch-ink);
+  stroke-width: 1;
+}
+
+[data-ch-part="cursor-dot"] {
+  stroke: var(--ch-surface);
+  stroke-width: 2;
+}
+
 /* ---------- Labels and reference marks ---------- */
 [data-ch-part="axis-label"],
-[data-ch-part="target-label"] {
+[data-ch-part="target-label"],
+[data-ch-part="forecast-label"],
+[data-ch-part="end-label"] {
   fill: var(--ch-ink-muted);
   font-size: 12px;
 }
 
-[data-ch-part="value-label"] {
+[data-ch-part="value-label"],
+[data-ch-part="end-value"] {
   fill: var(--ch-ink);
   font-size: 13px;
   font-weight: 500;
@@ -544,7 +585,8 @@
   filter: drop-shadow(0 1px 3px rgb(0 0 0 / 0.08));
 }
 
-[data-ch-part="target"] {
+[data-ch-part="target"],
+[data-ch-part="forecast-rule"] {
   stroke: var(--ch-ink);
   stroke-width: 1;
   stroke-dasharray: 3 3;
@@ -742,7 +784,8 @@
 [data-ch-part="bar"][data-ch-fill="hatch"],
 [data-ch-part="region"][data-ch-fill="hatch"],
 [data-ch-part="bar"][data-ch-tone="accent-soft"],
-[data-ch-part="dot"][data-ch-tone="accent-soft"]:not([data-ch-soft]) {
+[data-ch-part="dot"][data-ch-tone="accent-soft"]:not([data-ch-soft]),
+[data-ch-part="cursor-dot"][data-ch-tone="accent-soft"] {
   stroke: color-mix(in srgb, var(--_ch-swatch-color) var(--ch-tone-text-mix), var(--ch-ink));
   stroke-width: 1px;
 }
@@ -1616,6 +1659,8 @@
     :is(
       [data-ch-part="axis-label"],
       [data-ch-part="target-label"],
+      [data-ch-part="forecast-label"],
+      [data-ch-part="end-label"],
       [data-ch-part="row-sublabel"],
       [data-ch-part="group-label"]
     ) {
@@ -1676,6 +1721,14 @@
 
   [data-ch-part="value-label-pill"] {
     fill: CanvasText;
+  }
+
+  [data-ch-part="cursor"] {
+    stroke: CanvasText;
+  }
+
+  [data-ch-part="cursor-dot"] {
+    stroke: Canvas;
   }
 
   [data-ch-part="value-label"][data-ch-variant="pill"] {

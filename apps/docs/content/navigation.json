@@ -94,6 +94,10 @@
           "slug": "line-chart"
         },
         {
+          "label": "StackedAreaChart",
+          "slug": "stacked-area-chart"
+        },
+        {
           "label": "Heatmap",
           "slug": "heatmap"
         },

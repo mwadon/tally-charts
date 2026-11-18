@@ -3,6 +3,7 @@ import { version } from 'react'
 import { renderToString } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
 import {
+  CrewHours,
   CrewQuarters,
   DrillColumn,
   EstimateVsActual,
@@ -160,6 +161,19 @@ describe('server rendering', () => {
     expect(html.match(/<rect[^>]*data-ch-part="bar"[^>]*data-ch-tone="loss"/g)).toHaveLength(2)
     expect(html.match(/data-ch-part="bar-hit"/g)).toHaveLength(18)
     expect(html).toContain('data-ch-part="target"')
+    expect(html).toContain('data-ch-part="data-table"')
+  })
+
+  it('renders the StackedAreaChart without a DOM, deterministically', () => {
+    const html = renderToString(<CrewHours />)
+    expect(html).toBe(renderToString(<CrewHours />))
+    expect(html).not.toContain('NaN')
+    // 3 series, solid up to W9 and hatched from it.
+    expect(html.match(/data-ch-part="area-layer"/g)).toHaveLength(6)
+    expect(html.match(/data-ch-part="area-layer"[^>]*data-ch-fill="solid"/g)).toHaveLength(3)
+    expect(html.match(/data-ch-part="area-layer"[^>]*data-ch-fill="hatch"/g)).toHaveLength(3)
+    expect(html.match(/data-ch-part="end-label"/g)).toHaveLength(3)
+    expect(html).toContain('data-ch-part="forecast-rule"')
     expect(html).toContain('data-ch-part="data-table"')
   })
 

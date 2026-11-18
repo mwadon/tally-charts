@@ -18,6 +18,7 @@ import {
   RunwayChart,
   runwayForecast,
   ShareBar,
+  StackedAreaChart,
   StackedBarChart,
   Stat,
   StripPlot,
@@ -412,6 +413,34 @@ export function MonthlyCost() {
         { id: 'subcontract', label: 'Subcontract', value: 'subcontract' },
       ]}
       target={{ value: 60, over: 'loss' }}
+    />
+  )
+}
+
+const crewInstall = [180, 190, 200, 210, 205, 220, 235, 240, 250, 255, 262, 270]
+const crewService = [120, 125, 118, 130, 140, 138, 145, 150, 155, 158, 162, 165]
+const crewWarranty = [60, 55, 65, 68, 62, 58, 66, 72, 70, 74, 76, 78]
+export const crewHours = crewInstall.map((install, i) => ({
+  week: `W${i + 1}`,
+  install,
+  service: crewService[i] as number,
+  warranty: crewWarranty[i] as number,
+}))
+
+export function CrewHours() {
+  return (
+    <StackedAreaChart
+      title="Crew hours per week"
+      data={crewHours}
+      x="week"
+      series={[
+        { id: 'install', label: 'Install', value: 'install' },
+        { id: 'service', label: 'Service', value: 'service' },
+        { id: 'warranty', label: 'Warranty', value: 'warranty' },
+      ]}
+      format={(v) => `${v} h`}
+      forecastFrom="W10"
+      forecastLabel="today"
     />
   )
 }

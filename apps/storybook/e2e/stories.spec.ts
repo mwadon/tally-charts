@@ -175,6 +175,25 @@ test('the stacked bar chart walks segments up each stack, then on to the next', 
   await expect(page.locator('[data-ch-part="tooltip"]')).toContainText('Labor')
 })
 
+test('the stacked area chart walks the weeks and announces the stack with its total', async ({
+  page,
+}) => {
+  await open(page, 'charts-stackedareachart--light')
+  const chart = page.getByRole('figure', { name: 'Crew hours per week, booked from W10' })
+  await page.keyboard.press('Tab')
+  await expect(chart.getByRole('application')).toBeFocused()
+  const live = chart.locator('[aria-live]')
+  // Focusing the plot announces the first week; ArrowRight then moves to the second.
+  await expect(live).toHaveText(
+    '1 of 12, W1, 60 h Warranty, 120 h Service, 180 h Install, 360 h Total',
+  )
+  await page.keyboard.press('ArrowRight')
+  await expect(live).toHaveText(
+    '2 of 12, W2, 55 h Warranty, 125 h Service, 190 h Install, 370 h Total',
+  )
+  await expect(page.locator('[data-ch-part="tooltip"]')).toContainText('Total')
+})
+
 test('hovering near a strip dot shows its tooltip', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 600 })
   await open(page, 'reference-dallas-installs--light')
