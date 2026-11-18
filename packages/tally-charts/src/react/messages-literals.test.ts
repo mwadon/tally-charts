@@ -32,7 +32,7 @@ const ARIA_NOT_TEXT = new Set([
   'aria-activedescendant',
 ])
 // The mark's name, passed on so that its error and warning messages can say who is speaking.
-const NAME_CALLEES = new Set(['useChartContext', 'useSeriesScales', 'timeX'])
+const NAME_CALLEES = new Set(['useChartContext', 'useSeriesScales', 'timeX', 'warnSeries'])
 
 // Properties whose string value reaches the screen: tooltip segments, ticks, table cells.
 const SHOWN_KEYS = new Set(['label', 'text', 'value'])

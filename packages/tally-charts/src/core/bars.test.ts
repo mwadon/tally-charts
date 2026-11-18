@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { computeBars, groupSlots } from './bars'
+import { computeBars, groupSlots, stackRow } from './bars'
 import { createScale } from './scale'
 
 type Row = { k: string; v: number | null }
@@ -253,5 +253,48 @@ describe('groupSlots', () => {
   it('treats a NaN or negative gap as zero', () => {
     expect(groupSlots(90, 3, Number.NaN)).toEqual({ size: 30, offsets: [0, 30, 60] })
     expect(groupSlots(90, 3, -5)).toEqual({ size: 30, offsets: [0, 30, 60] })
+  })
+})
+
+describe('stackRow', () => {
+  const segs = (values: number[]) =>
+    stackRow(values).segments.map((s) => [s.series, s.from, s.to, s.value])
+
+  it('stacks positive values upwards from zero', () => {
+    const row = stackRow([24, 18, 9])
+    expect(row.segments).toEqual([
+      { series: 0, value: 24, from: 0, to: 24 },
+      { series: 1, value: 18, from: 24, to: 42 },
+      { series: 2, value: 9, from: 42, to: 51 },
+    ])
+    expect([row.total, row.positive, row.negative]).toEqual([51, 51, 0])
+  })
+
+  it('stacks negative values downwards from zero, apart from the positive ones', () => {
+    const row = stackRow([10, -4, 5, -6])
+    expect(segs([10, -4, 5, -6])).toEqual([
+      [0, 0, 10, 10],
+      [1, 0, -4, -4],
+      [2, 10, 15, 5],
+      [3, -4, -10, -6],
+    ])
+    expect([row.positive, row.negative, row.total]).toEqual([15, -10, 5])
+  })
+
+  it('skips non-finite and zero values', () => {
+    const row = stackRow([10, Number.NaN, 0, 5])
+    expect(row.segments.map((s) => [s.series, s.from, s.to])).toEqual([
+      [0, 0, 10],
+      [3, 10, 15],
+    ])
+    expect(row.total).toBe(15)
+  })
+
+  it('returns no segments for an empty or all-invalid row', () => {
+    for (const values of [[], [Number.NaN]]) {
+      const row = stackRow(values)
+      expect(row.segments).toEqual([])
+      expect([row.total, row.positive, row.negative]).toEqual([0, 0, 0])
+    }
   })
 })
