@@ -186,7 +186,7 @@
       "id": "n21",
       "type": "prose",
       "props": {
-        "markdown": "Positive values stack up from zero, and negative values stack down from zero on their own, so a diverging stack has a positive and a negative part. The label shows the net sum of the row, above the positive stack. A missing or non-numeric value draws nothing, counts as zero in the total, and the stack closes up with no hole. The gap between segments is `gap` px, taken from the far end of every segment except the outermost one, so the stack keeps its exact length. A segment shorter than the gap keeps 1 px, and a segment thinner than that is covered by its neighbour. With `valueLabel=\"total\"` (the default) every stack is labelled; in a vertical chart, when any label is wider than its column, none is drawn at that width, and the totals stay in the tooltip and the data table. Use `valueLabel=\"none\"` to turn the labels off."
+        "markdown": "Positive values stack up from zero, and negative values stack down from zero on their own, so a diverging stack has a positive and a negative part. The label shows the net sum of the row, above the positive stack. A missing or non-numeric value draws nothing, counts as zero in the total, and the stack closes up with no hole. The gap between segments is `gap` px, taken from the far end of every segment except the outermost one, so the stack keeps its exact length. A segment not longer than the gap plus 1 px keeps 1 px, and a segment thinner than that is covered by its neighbour. With `valueLabel=\"total\"` (the default) every stack is labelled; in a vertical chart, when any label is wider than its column, none is drawn at that width, and the totals stay in the tooltip and the data table. Use `valueLabel=\"none\"` to turn the labels off."
       }
     },
     {
@@ -218,7 +218,7 @@
       "id": "n25",
       "type": "prose",
       "props": {
-        "markdown": "A segment's id is `${rowId}:${series.id}`, where the row id is the `id` accessor or the data index. Every segment is a point. In `onSelect` and `onActiveChange`, the `ChartPoint` has `seriesId` with the `id` of the series, `series` with its label, and `datum` with your row. You do not need to parse the id. The default tooltip shows the category, each series with its tone swatch and value, and the total."
+        "markdown": "A segment's id is `${rowId}:${series.id}`, where the row id is the `id` accessor or the data index. Every segment is a point. In `onSelect` and `onActiveChange`, the `ChartPoint` has `seriesId` with the `id` of the series, `series` with its label, and `datum` with your row. You do not need to parse the id. The default tooltip shows the category, the series of the hovered or focused segment with its tone swatch and value, and the total of the stack."
       }
     },
     {
@@ -234,7 +234,7 @@
       "id": "n27",
       "type": "prose",
       "props": {
-        "markdown": "The chart is a single tab stop. Arrow keys walk the segments in visual order: stack by stack, and inside a stack from the baseline outwards. `Home` and `End` jump to the first and last segment, `Enter` or `Space` selects the active segment when the chart has `onSelect`, and `Esc` clears the active segment."
+        "markdown": "The chart is a single tab stop. Arrow keys walk the segments stack by stack, and inside a stack in the order of the `series` array. In a diverging stack, positive and negative segments alternate as the series do. `Home` and `End` jump to the first and last segment, `Enter` or `Space` selects the active segment when the chart has `onSelect`, and `Esc` clears the active segment."
       }
     },
     {
@@ -248,7 +248,7 @@
       "id": "n29",
       "type": "prose",
       "props": {
-        "markdown": "Pointer targets of thin segments are small: a segment's hit area is as long as the segment. The keyboard and the data table reach every value, and they are the equivalents. In forced colors mode (Windows high contrast), tones collapse to a few system colors and several share one, so segments are told apart by their order in the stack and the gap between them, and the over-budget part falls back to the system color of its tone."
+        "markdown": "Pointer targets of thin segments are small: the hit areas of neighbouring segments meet in the middle of the gap, and the outermost segment's area reaches the edge of the chart, but a thin inner segment is still a small target. The keyboard and the data table reach every value, and they are the equivalents. In forced colors mode (Windows high contrast), tones collapse to a few system colors and several share one, so segments are told apart by their order in the stack and the gap between them, and the over-budget part falls back to the system color of its tone."
       }
     },
     {
