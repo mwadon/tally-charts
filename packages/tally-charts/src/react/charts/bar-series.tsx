@@ -20,7 +20,7 @@ export interface BarSeries<D> {
 const DEFAULT_TONES: readonly Tone[] = ['accent', 'accent-soft', 'warn', 'neutral', 'gain']
 
 /** The tone of every series: its own, else the next of the default order (repeating). */
-export function seriesTones<D>(series: readonly BarSeries<D>[]): Tone[] {
+export function seriesTones(series: readonly { tone?: Tone }[]): Tone[] {
   return series.map((s, i) => s.tone ?? (DEFAULT_TONES[i % DEFAULT_TONES.length] as Tone))
 }
 
@@ -46,8 +46,8 @@ export function VerticalGrid({ ticks, chart }: { ticks: TickSpec; chart: string 
 }
 
 /** Development warnings for an empty series list and repeated series ids. */
-export function warnSeries<D>(
-  series: readonly BarSeries<D>[],
+export function warnSeries(
+  series: readonly { id: string }[],
   warn: Warn,
   chart: string,
   prefix: string,

@@ -276,10 +276,37 @@ describe('theme.css', () => {
     expect(rule?.[0]).toContain('[data-ch-part="dot"]')
     expect(rule?.[0]).toContain('[data-ch-part="dot-ring"]')
     expect(rule?.[0]).toContain('[data-ch-part="median"]')
-    for (const part of ['line', 'line-dot', 'band', 'grid-line', 'region']) {
+    for (const part of [
+      'line',
+      'line-dot',
+      'band',
+      'grid-line',
+      'region',
+      'area-layer',
+      'area-edge',
+      'area-separator',
+      'forecast-rule',
+    ]) {
       expect(rule?.[0]).toContain(`[data-ch-part="${part}"]`)
     }
     expect(rule?.[1]).toContain('pointer-events: none')
+  })
+
+  it('draws stacked area separators, hatched edges and the forecast rule and label', () => {
+    expect(themed).toMatch(
+      /\[data-ch-part="area-separator"\] \{\s*stroke: var\(--ch-surface\);\s*stroke-width: 2;/,
+    )
+    expect(themed).toMatch(
+      /\[data-ch-part="area-edge"\] \{\s*stroke: color-mix\(in srgb, var\(--_ch-swatch-color\) var\(--ch-tone-text-mix\), var\(--ch-ink\)\);\s*stroke-width: 1\.5;/,
+    )
+    // The rule and the label share the target's and the axis labels' rules.
+    expect(themed).toMatch(
+      /\[data-ch-part="target"\],\s*\[data-ch-part="forecast-rule"\] \{\s*stroke: var\(--ch-ink\);[^}]*stroke-dasharray: 3 3;/,
+    )
+    expect(themed).toMatch(
+      /\[data-ch-part="target-label"\],\s*\[data-ch-part="forecast-label"\] \{\s*fill: var\(--ch-ink-muted\);/,
+    )
+    expect(forced).toMatch(/\[data-ch-part="forecast-label"\],[\s\S]*?\) \{\s*fill: GrayText;/)
   })
 
   it('lets the pointer rest on a hover tooltip but not on a pinned callout', () => {

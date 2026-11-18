@@ -57,7 +57,11 @@ const TOKENS = [
 
 const PARTS = [
   'area',
+  'area-edge',
   'area-group',
+  'area-layer',
+  'area-layers',
+  'area-separator',
   'axis',
   'axis-label',
   'band',
@@ -85,6 +89,8 @@ const PARTS = [
   'dot-ring',
   'dots',
   'empty',
+  'forecast-label',
+  'forecast-rule',
   'grid',
   'grid-line',
   'group-label',
