@@ -159,6 +159,64 @@ for (const colorScheme of ['light', 'dark'] as const) {
       }
     })
 
+    test(`stacked area layers, hatch, rule and labels stay visible (${colorScheme})`, async ({
+      page,
+    }) => {
+      await openForced(page, 'charts-stackedareachart--light', colorScheme)
+      const canvas = await systemColor(page, 'Canvas')
+      const layers = await page
+        .locator('#storybook-root path[data-ch-part="area-layer"]')
+        .evaluateAll((els) =>
+          els.map((el) => ({
+            fill: getComputedStyle(el).fill,
+            kind: el.getAttribute('data-ch-fill'),
+          })),
+        )
+      // Three layers, each a solid part (W1 to W9) and a hatched one (W9 to W12).
+      expect(layers.filter((l) => l.kind === 'solid')).toHaveLength(3)
+      expect(layers.filter((l) => l.kind === 'hatch')).toHaveLength(3)
+      for (const layer of layers) {
+        expect(layer.fill).not.toBe(canvas)
+        expect(layer.fill).not.toBe('none')
+        expect(layer.fill).not.toMatch(/rgba\(.*, 0\)$/)
+      }
+      // Tones collapse onto few system colors, so the separators keep neighbouring layers apart.
+      const separators = await page
+        .locator('#storybook-root path[data-ch-part="area-separator"]')
+        .evaluateAll((els) =>
+          els.map((el) => {
+            const style = getComputedStyle(el)
+            return { stroke: style.stroke, width: Number.parseFloat(style.strokeWidth) }
+          }),
+        )
+      expect(separators.length).toBeGreaterThanOrEqual(2)
+      for (const sep of separators) {
+        expect(sep.stroke).toBe(canvas)
+        expect(sep.width).toBeGreaterThanOrEqual(1.5)
+      }
+      // The hatched part also keeps its upper edge, in an ink that differs from the canvas.
+      const edges = await page
+        .locator('#storybook-root path[data-ch-part="area-edge"]')
+        .evaluateAll((els) => els.map((el) => getComputedStyle(el).stroke))
+      expect(edges.length).toBeGreaterThan(0)
+      for (const stroke of edges) expect(stroke).not.toBe(canvas)
+      const rule = await page
+        .locator('#storybook-root [data-ch-part="forecast-rule"]')
+        .evaluate((el) => ({
+          stroke: getComputedStyle(el).stroke,
+          box: el.getBoundingClientRect().height,
+        }))
+      expect(rule.stroke).not.toBe(canvas)
+      expect(rule.box).toBeGreaterThan(50)
+      for (const part of ['forecast-label', 'end-label']) {
+        const fills = await page
+          .locator(`#storybook-root [data-ch-part="${part}"]`)
+          .evaluateAll((els) => els.map((el) => getComputedStyle(el).fill))
+        expect(fills.length).toBeGreaterThan(0)
+        for (const fill of fills) expect(fill).not.toBe(canvas)
+      }
+    })
+
     test('heatmap levels differ by border width and keep a focus ring', async ({ page }) => {
       await openForced(page, 'reference-where-it-leaks--light', colorScheme)
       const borders = await page
