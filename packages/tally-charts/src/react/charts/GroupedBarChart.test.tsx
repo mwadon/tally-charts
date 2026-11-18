@@ -132,6 +132,21 @@ describe('<GroupedBarChart>', () => {
     for (const b of all) expect(num(b, 'height')).toBeGreaterThanOrEqual(0)
   })
 
+  it('puts the label of a down bar that does not fit below it above its base, not over the bar', () => {
+    const data = [{ quarter: 'A', north: -8, south: 10, west: 0 }]
+    const { container } = renderChart({ data, height: 200, domain: [-8, 10] })
+    const bar = bars(container).find(
+      (b) => b.getAttribute('data-ch-direction') === 'down',
+    ) as SVGElement
+    const label = parts(container, 'value-label').find((l) =>
+      l.textContent?.includes('8'),
+    ) as SVGElement
+    expect(label).toBeDefined()
+    const y = num(label, 'y')
+    expect(y).toBeLessThan(num(bar, 'y'))
+    expect(y).toBeCloseTo(num(bar, 'y') - 6)
+  })
+
   it('lays out horizontally: bars of a group share x and step down, with an automatic height', () => {
     const { container } = renderChart({ orientation: 'horizontal' })
     const [a, b, c] = group(container, 0) as [SVGElement, SVGElement, SVGElement]

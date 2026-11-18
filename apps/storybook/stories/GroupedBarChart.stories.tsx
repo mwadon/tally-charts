@@ -76,7 +76,6 @@ export const Negative: Story = {
           { id: 'hardware', label: 'Hardware', value: 'hardware' },
           { id: 'services', label: 'Services', value: 'services' },
         ]}
-        domain={[-20, 20]}
         height={240}
         title="Margin change by product line"
         description="Hardware dipped in August; services dipped in July."
@@ -98,7 +97,7 @@ export const FiveSeries: Story = {
       <GroupedBarChart
         data={regions}
         x="region"
-        series={['a', 'b', 'c', 'd', 'e'].map((k) => ({
+        series={(['a', 'b', 'c', 'd', 'e'] as const).map((k) => ({
           id: k,
           label: `Crew ${k.toUpperCase()}`,
           value: k,

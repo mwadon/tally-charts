@@ -375,6 +375,15 @@ interface SeriesBar {
   rect: ReturnType<typeof computeBars>['bars'][number]
 }
 
+/**
+ * Vertical label baseline: below a down bar's end when it fits, else above the bar's base so it
+ * never sits on the bar body. Up bars label above their end.
+ */
+function labelY(rect: { dir: string; y: number; anchor: { y: number } }, below: boolean) {
+  if (below) return rect.anchor.y + LABEL_OFFSET
+  return (rect.dir === 'down' ? rect.y : rect.anchor.y) - LABEL_OFFSET
+}
+
 /** Points, hit slices and value labels. Geometry comes from the same `computeBars` as the bars. */
 function GroupedPoints<D>({
   series,
@@ -499,7 +508,7 @@ function GroupedPoints<D>({
                   key={`${rect.index}:${seriesIndex}`}
                   data-ch-part="value-label"
                   x={rect.anchor.x}
-                  y={below ? rect.anchor.y + LABEL_OFFSET : rect.anchor.y - LABEL_OFFSET}
+                  y={labelY(rect, below)}
                   textAnchor="middle"
                   dominantBaseline={below ? 'hanging' : 'auto'}
                 >
