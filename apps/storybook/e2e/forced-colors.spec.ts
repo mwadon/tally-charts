@@ -365,6 +365,72 @@ for (const colorScheme of ['light', 'dark'] as const) {
       await checkActive('loss')
     })
 
+    for (const [story, layers] of [
+      ['charts-funnelchart--light', 1],
+      ['charts-funnelchart--series', 4],
+    ] as const) {
+      test(`funnel ribbon, active guide and headers stay visible in ${story} (${colorScheme})`, async ({
+        page,
+      }) => {
+        await openForced(page, story, colorScheme)
+        const { canvas, resolve, isRealColor } = await colorHelpers(page)
+        const root = '#storybook-root'
+        const canvasRgba = await resolve(canvas)
+        const areas = await page
+          .locator(`${root} path[data-ch-part="funnel-area"]`)
+          .evaluateAll((els) =>
+            els.map((el) => {
+              const style = getComputedStyle(el)
+              return {
+                fill: style.fill,
+                stroke: style.stroke,
+                width: Number.parseFloat(style.strokeWidth),
+                series: el.getAttribute('data-ch-series'),
+              }
+            }),
+          )
+        // The ribbon, or one layer per series: each filled with a system colour, not the page.
+        expect(areas).toHaveLength(layers)
+        for (const area of areas) {
+          expect(await isRealColor(area.fill)).toBe(true)
+          // Tones collapse onto few system colours, so Canvas separators keep the layers apart.
+          if (area.series) {
+            expect(await resolve(area.stroke)).toEqual(canvasRgba)
+            expect(area.width).toBeGreaterThanOrEqual(1)
+          }
+        }
+        // Every header text (value, name, continue rate) is painted in a real colour.
+        for (const [part, count] of [
+          ['funnel-value', 5],
+          ['funnel-name', 5],
+          ['funnel-rate', 4],
+        ] as const) {
+          const fills = await page
+            .locator(`${root} [data-ch-part="${part}"]`)
+            .evaluateAll((els) => els.map((el) => getComputedStyle(el).fill))
+          expect(fills).toHaveLength(count)
+          for (const fill of fills) expect(await isRealColor(fill)).toBe(true)
+        }
+        // Walking with the keyboard draws the active step's guide in Highlight, across the figure.
+        const highlight = await resolve(await systemColor(page, 'Highlight'))
+        expect(highlight).not.toBeNull()
+        await page.keyboard.press('Tab')
+        await expect(page.locator(`${root} [role="application"]`)).toBeFocused()
+        await page.keyboard.press('ArrowRight')
+        const guide = page.locator(`${root} [data-ch-part="funnel-guide"][data-ch-active="true"]`)
+        await expect(guide).toHaveCount(1)
+        const paint = await guide.evaluate((el) => ({
+          stroke: getComputedStyle(el).stroke,
+          width: Number.parseFloat(getComputedStyle(el).strokeWidth),
+          height: el.getBoundingClientRect().height,
+        }))
+        expect(await isRealColor(paint.stroke)).toBe(true)
+        expect(await resolve(paint.stroke)).toEqual(highlight)
+        expect(paint.width).toBeGreaterThanOrEqual(1.5)
+        expect(paint.height).toBeGreaterThan(200)
+      })
+    }
+
     test('heatmap levels differ by border width and keep a focus ring', async ({ page }) => {
       await openForced(page, 'reference-where-it-leaks--light', colorScheme)
       const borders = await page

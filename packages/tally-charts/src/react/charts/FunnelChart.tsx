@@ -240,9 +240,9 @@ function FunnelMarks<D>(props: {
   const points = stable.current
   useRegisterPoints(points)
 
-  // The active step: its guide is inked over the ribbon, the other steps dim.
+  // The active step: its guide is inked over the ribbon. Headers and labels never dim, so their
+  // text keeps its contrast whatever `dimInactive` says.
   const active = ctx.activeId === null ? -1 : steps.findIndex((s) => s.rowId === ctx.activeId)
-  const dimming = ctx.dimInactive && active >= 0
   // A guide (or a segment of one) along the funnel's cross axis at `along`, from `a` to `b`.
   const guide = (along: number, a: number, b: number) =>
     vertical
@@ -339,11 +339,7 @@ function FunnelMarks<D>(props: {
           </text>
         ) : null
         return (
-          <g
-            key={step.index}
-            data-ch-part="funnel-step"
-            data-ch-dimmed={dimming && i !== active ? 'true' : undefined}
-          >
+          <g key={step.index} data-ch-part="funnel-step">
             {name !== step.name ? <title>{step.name}</title> : null}
             <text
               data-ch-part="funnel-value"

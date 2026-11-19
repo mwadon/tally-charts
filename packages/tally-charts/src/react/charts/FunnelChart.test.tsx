@@ -553,7 +553,7 @@ const tooltipOf = (root: Element) => root.querySelector('[data-ch-part="tooltip"
 const activeGuides = (root: Element) =>
   parts(root, 'funnel-guide').filter((g) => g.getAttribute('data-ch-active') === 'true')
 const dimmed = (root: Element) =>
-  parts(root, 'funnel-step').map((g) => g.getAttribute('data-ch-dimmed') === 'true')
+  parts(root, 'funnel-step').map((g) => g.hasAttribute('data-ch-dimmed'))
 const headers = () =>
   within(screen.getByRole('table'))
     .getAllByRole('columnheader')
@@ -717,7 +717,7 @@ describe('FunnelChart pointer and tooltip', () => {
 })
 
 describe('FunnelChart active step', () => {
-  it('inks the active guide over the ribbon and dims the other steps', () => {
+  it('inks the active guide over the ribbon and dims no step', () => {
     const { container } = renderChart({ activeId: 3 })
     const active = activeGuides(container)
     expect(active).toHaveLength(1)
@@ -728,13 +728,17 @@ describe('FunnelChart active step', () => {
       Node.DOCUMENT_POSITION_FOLLOWING,
     )
     expect(parts(container, 'funnel-guide')).toHaveLength(4)
-    expect(dimmed(container)).toEqual([true, true, true, false, true])
+    expect(active[0]?.getAttribute('data-ch-active')).toBe('true')
+    // Headers and labels keep their contrast: the active state is the inked guide alone.
+    expect(dimmed(container)).toEqual([false, false, false, false, false])
   })
 
-  it('dims nothing with dimInactive={false}', () => {
-    const { container } = renderChart({ activeId: 3, dimInactive: false })
+  it.each([true, false])('dims no step with dimInactive={%s}', (dimInactive) => {
+    const { container } = renderChart({ activeId: 3, dimInactive })
     expect(dimmed(container)).toEqual([false, false, false, false, false])
-    expect(activeGuides(container)).toHaveLength(1)
+    const active = activeGuides(container)
+    expect(active).toHaveLength(1)
+    expect(active[0]?.getAttribute('data-ch-active')).toBe('true')
   })
 
   it('gives the first step a guide only while it is active', () => {

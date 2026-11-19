@@ -208,6 +208,25 @@ test('the scatter chart walks the jobs by estimate and announces every measure',
   await expect(page.locator('[data-ch-part="tooltip"]')).toContainText('Birch Lane')
 })
 
+test('the funnel chart walks its steps and announces the continue rate', async ({ page }) => {
+  await open(page, 'charts-funnelchart--light')
+  const chart = page.getByRole('figure', { name: 'From lead to paid job' })
+  await expect(chart.locator('[data-ch-orientation="horizontal"]')).toHaveCount(1)
+  await page.keyboard.press('Tab')
+  await expect(chart.getByRole('application')).toBeFocused()
+  const live = chart.locator('[aria-live]')
+  await expect(live).toHaveText('1 of 5, Leads, 1,240')
+  const activeGuide = chart.locator('[data-ch-part="funnel-guide"][data-ch-active="true"]')
+  await expect(activeGuide).toHaveCount(1)
+  await page.keyboard.press('ArrowRight')
+  await expect(live).toHaveText('2 of 5, Site visits, 806, 65% of previous step')
+  await expect(page.locator('[data-ch-part="tooltip"]')).toContainText('Site visits')
+  // The active guide moved off the plot edge to the second step line.
+  await expect(activeGuide).toHaveCount(1)
+  const x = Number(await activeGuide.getAttribute('x1'))
+  expect(x).toBeGreaterThan(100)
+})
+
 test('hovering near a strip dot shows its tooltip', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 600 })
   await open(page, 'reference-dallas-installs--light')

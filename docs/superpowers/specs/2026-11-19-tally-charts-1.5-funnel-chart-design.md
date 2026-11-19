@@ -190,8 +190,9 @@ caller's choice when forcing the orientation.
 ### Active step
 
 The guide of the active step is drawn in ink at 1.5 px, over the ribbon too (the first step
-gets a guide while it is active). With `dimInactive` the other headers or label blocks dim.
-Nothing else changes; the ribbon never does.
+gets a guide while it is active). Nothing else changes: the ribbon never does, and headers
+and labels are never dimmed, whatever `dimInactive` says (dimmed text would fall under the
+4.5:1 contrast the library keeps for all text; no other chart dims text).
 
 ## 4. Interaction and accessibility
 
@@ -279,5 +280,5 @@ Author's calls (not yet confirmed by the owner): the series entry shape and defa
 tones (§2), the 96 px switch threshold and 64 px per vertical step (§3),
 the fixed `labelWidth` column (a new prop), `'auto'` also
 switching on header text that does not fit, the 2 px minimum on the whole ribbon, the active
-state being the guide alone, the three-step rule for the highlight, skipping invalid rows, the active
+state being the guide alone (`dimInactive` has no effect on this chart), the three-step rule for the highlight, skipping invalid rows, the active
 state, one point per step in series mode, the message keys, version 1.5.0 with this chart alone.
