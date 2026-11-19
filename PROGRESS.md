@@ -2781,12 +2781,13 @@ Gałąź `stacked-area-chart`. Spec: `docs/superpowers/specs/2026-11-18-tally-ch
 Gałąź `scatter-chart`. Spec: `docs/superpowers/specs/2026-11-19-tally-charts-1.4-scatter-chart-design.md`. Wydanie 1.4.0 (minor, tylko dodatki, changeset `.changeset/scatter-chart.md`).
 
 - Komponent `ScatterChart`: punkt na wiersz na dwóch osiach wartości (`x`, `y`), z `size` bąbel o polu proporcjonalnym do wartości (największy ma `maxRadius`, żaden mniejszy niż 3 px), więksi rysowani pierwsi. `tone` per element, `target` jako pozioma linia na y z etykietą poza wykresem, nazwy osi rysowane tylko przy `xLabel`/`yLabel`, tooltip, kolejność klawiatury po x, potem y, tabela danych z każdym wierszem. Nowe klucze `ChartMessages`: `headerX`, `headerY`, `headerSize`.
-- Rozmiar: wpis `ScatterChart` w `pnpm size` 13.18 kB, limit 15 KB; `LineChart` 13.89 kB (bez zmian).
-- Testy biblioteki 1574, testy docs 886, e2e docs 533 na linux (CI=1, docker) i na darwin (liczby z ostatnich przebiegów, patrz niżej).
-- Docs: strona `/docs/scatter-chart` (fiksturka, nawigacja po StripPlot) z czterema przykładami w `examples/scatter-chart/` (`crew-days`, `job-size-margin`, `fixed-domains`, `with-legend`; wszystkie `height={260}`), miniatura `scatter` i kafelek w `chart-index`, nagłówek „Fifteen charts, one grammar”. Stron w nawigacji 29, `API coverage: 57/57`, `check:content` 0 błędów w 30 stronach. Wiersz ScatterChart i dwie uwagi (cele wskaźnika, ton jako jedyny nośnik) w `docs/a11y.md`. Baseline'y `/` odświeżone na darwin i linux (baseline'y `/docs/line-chart` bez zmian). `tabTo` w `e2e/support.ts` ma limit 60 Tabów, bo sidebar urósł do 29 linków.
+- Rozmiar: wpis `ScatterChart` w `pnpm size` 13.19 kB, limit 15 KB; `LineChart` 13.89 kB (bez zmian).
+- Testy biblioteki 1581, testy docs 886, e2e docs 533 na darwin, e2e storybook 527 na darwin i linux (docker, tryb porównania; liczby z ostatnich przebiegów po końcowych poprawkach). Poprawki końcowe: kolejność klawiatury wg ekranu (też przy odwróconych domenach), skala rozmiarów ze wszystkich poprawnych wierszy (także poza domeną), nieskończone `radius`/`maxRadius` wracają do domyślnych, wypełnienie aktywnego bąbla w arkuszu stylów (reguła forced-colors działa), `tabTo` ma limit 45.
+- Docs: strona `/docs/scatter-chart` (fiksturka, nawigacja po StripPlot) z czterema przykładami w `examples/scatter-chart/` (`crew-days`, `job-size-margin`, `fixed-domains`, `with-legend`; wszystkie `height={260}`), miniatura `scatter` i kafelek w `chart-index`, nagłówek „Fifteen charts, one grammar”. Stron w nawigacji 29, `API coverage: 57/57`, `check:content` 0 błędów w 30 stronach. Wiersz ScatterChart i dwie uwagi (cele wskaźnika, ton jako jedyny nośnik) w `docs/a11y.md`. Baseline'y `/` odświeżone na darwin i linux (baseline'y `/docs/line-chart` bez zmian). `tabTo` w `e2e/support.ts` ma limit 45 Tabów (sidebar ma 29 linków).
 
 **Otwarte kwestie:**
 - Brak linii trendu, osi logarytmicznej i czasowej, powiększania oraz legendy rozmiaru.
 - Wskaźnik wybiera punkt o najbliższym środku, nie bąbel pod kursorem; mały bąbel jest małym celem.
+- Odziedziczony TSDoc `height` mówi „Default 240”, a `ScatterChart` (jak `LineChart` i `StackedAreaChart`) ma domyślnie 280.
 - Wydanie 1.4.0 nie zostało zrobione (changeset jest).
 - `pnpm --filter docs seed` (nowa strona i kafelek w glokki).

@@ -296,7 +296,7 @@ for (const colorScheme of ['light', 'dark'] as const) {
       page,
     }) => {
       await openForced(page, 'charts-scatterchart--light', colorScheme)
-      const { canvas, isRealColor } = await colorHelpers(page)
+      const { canvas, resolve, isRealColor } = await colorHelpers(page)
       const root = '#storybook-root'
       const bubbles = await page.locator(`${root} [data-ch-part="bubble"]`).evaluateAll((els) =>
         els.map((el) => {
@@ -308,7 +308,6 @@ for (const colorScheme of ['light', 'dark'] as const) {
       // The tinted fill gives way to the page, so the outline alone must carry every bubble.
       for (const bubble of bubbles) {
         expect(await isRealColor(bubble.stroke)).toBe(true)
-        expect(bubble.stroke).not.toBe(canvas)
         expect(bubble.width).toBeGreaterThanOrEqual(1)
       }
       const target = await page.locator(`${root} [data-ch-part="target"]`).evaluate((el) => ({
@@ -327,25 +326,43 @@ for (const colorScheme of ['light', 'dark'] as const) {
         for (const fill of fills) expect(await isRealColor(fill)).toBe(true)
       }
       // Walking with the keyboard activates a bubble: solid Highlight with a Canvas stroke, and a
-      // Highlight ring around it.
+      // Highlight ring around it, for an accent bubble and for a loss one (the stylesheet owns the
+      // fill, so the tone's own colour never leaks in). System colours are compared as resolved
+      // RGBA, not as strings.
+      const highlight = await resolve(await systemColor(page, 'Highlight'))
+      const canvasRgba = await resolve(canvas)
       await page.keyboard.press('Tab')
       await expect(page.locator(`${root} [role="application"]`)).toBeFocused()
-      const active = await page
-        .locator(`${root} [data-ch-part="bubble"][data-ch-active="true"]`)
-        .evaluate((el) => ({
+      const sameColor = async (value: string, expected: number[] | null) => {
+        expect(expected).not.toBeNull()
+        expect(await resolve(value)).toEqual(expected)
+      }
+      const checkActive = async (tone: string) => {
+        const active = page.locator(`${root} [data-ch-part="bubble"][data-ch-active="true"]`)
+        await expect(active).toHaveCount(1)
+        await expect(active).toHaveAttribute('data-ch-tone', tone)
+        const paint = await active.evaluate((el) => ({
           fill: getComputedStyle(el).fill,
           stroke: getComputedStyle(el).stroke,
+          width: Number.parseFloat(getComputedStyle(el).strokeWidth),
         }))
-      expect(await isRealColor(active.fill)).toBe(true)
-      expect(active.fill).toBe(await systemColor(page, 'Highlight'))
-      expect(active.stroke).toBe(canvas)
-      const ring = await page.locator(`${root} [data-ch-part="bubble-ring"]`).evaluate((el) => ({
-        stroke: getComputedStyle(el).stroke,
-        width: Number.parseFloat(getComputedStyle(el).strokeWidth),
-      }))
-      expect(await isRealColor(ring.stroke)).toBe(true)
-      expect(ring.stroke).toBe(await systemColor(page, 'Highlight'))
-      expect(ring.width).toBeGreaterThanOrEqual(1.5)
+        expect(await isRealColor(paint.fill)).toBe(true)
+        await sameColor(paint.fill, highlight)
+        await sameColor(paint.stroke, canvasRgba)
+        expect(paint.width).toBeGreaterThanOrEqual(1.5)
+        const ring = await page.locator(`${root} [data-ch-part="bubble-ring"]`).evaluate((el) => ({
+          stroke: getComputedStyle(el).stroke,
+          width: Number.parseFloat(getComputedStyle(el).strokeWidth),
+        }))
+        expect(await isRealColor(ring.stroke)).toBe(true)
+        await sameColor(ring.stroke, highlight)
+        expect(ring.width).toBeGreaterThanOrEqual(1.5)
+      }
+      await checkActive('accent')
+      // End is the largest estimate (accent); one step left is a job under target.
+      await page.keyboard.press('End')
+      await page.keyboard.press('ArrowLeft')
+      await checkActive('loss')
     })
 
     test('heatmap levels differ by border width and keep a focus ring', async ({ page }) => {

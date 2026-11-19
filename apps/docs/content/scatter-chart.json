@@ -104,14 +104,14 @@
       "id": "n11",
       "type": "prose",
       "props": {
-        "markdown": "With `size` the area of each point follows the value: the largest bubble gets `maxRadius` (default 18 px) and the others scale with the square root of their size, but none is drawn smaller than 3 px. A size of zero is drawn at that minimum too. Larger bubbles are drawn first, so a small bubble stays visible on top of a large one; equal sizes keep the data order. `sizeLabel` and `sizeFormat` name and format the value in the tooltip, the announcement and the data table. The size is never drawn as text."
+        "markdown": "With `size` the area of each point follows the value: the row with the largest `size` in the data gets `maxRadius` (default 18 px), also when an explicit domain leaves that row out, so bubble sizes do not change when a domain narrows; the others scale with the square root of their size, but none is drawn smaller than 3 px. A size of zero is drawn at that minimum too. Larger bubbles are drawn first, so a small bubble stays visible on top of a large one; equal sizes keep the data order. `sizeLabel` and `sizeFormat` name and format the value in the tooltip, the announcement and the data table. The size is never drawn as text."
       }
     },
     {
       "id": "n12",
       "type": "prose",
       "props": {
-        "markdown": "`tone` is per item: a tone, or a function of the row (default `accent`). Passing a function makes the example a client component, as does a format function. The example below colours the jobs under the margin target with `loss`, and writes the formats as functions."
+        "markdown": "`tone` is per item: a tone, or a function of the row (default `accent`). Passing a function makes the example a client component, as does a format function. The example below colours the jobs under the margin target with `loss`, and writes the y and size formats as functions."
       }
     },
     {
@@ -168,7 +168,7 @@
       "id": "n19",
       "type": "prose",
       "props": {
-        "markdown": "By default each domain is the range of the drawn values including zero, rounded to nice ticks; the y domain also includes the target. `xDomain` and `yDomain` fix them. A row outside an explicit domain is not drawn and gives no warning, but it keeps its row in the data table. `xAxis` and `yAxis` take a tick count or `'none'`, and `grid={false}` removes the horizontal grid lines."
+        "markdown": "By default each domain is the range of the drawn values including zero, rounded to nice ticks; the y domain also includes the target. `xDomain` and `yDomain` fix them. A row outside an explicit domain is not drawn and gives no warning, but it keeps its row in the data table. `xAxis` and `yAxis` take a tick spec (a count, a list of values, `'all'`, `'ends'`) or `'none'`, and `grid={false}` removes the horizontal grid lines."
       }
     },
     {
@@ -250,7 +250,7 @@
       "id": "n29",
       "type": "prose",
       "props": {
-        "markdown": "Each drawn row is one point, and its id is the `id` accessor or the data index. In `onSelect`, `onActiveChange` and a `tooltip` function, `point.datum` is your row. The pointer activates the point whose centre is nearest, within 24 px, or within `maxRadius` plus 6 px when that is larger, so a small bubble drawn over a large one is picked when the pointer is nearer to its centre. The default tooltip sits above the bubble and shows the name, then the x measure, the y measure with a swatch in the point's tone, and the size when there is one. The active bubble is drawn solid, with a surface-coloured outline and a ring around it."
+        "markdown": "Each drawn row is one point, and its id is the `id` accessor or the data index. In `onSelect`, `onActiveChange` and a `tooltip` function, `point.datum` is your row. The pointer activates the point whose centre is nearest, within 24 px, or within the dot `radius` (the bubble `maxRadius` with `size`) plus 6 px when that is larger, so a small bubble drawn over a large one is picked when the pointer is nearer to its centre. The default tooltip sits above the bubble and shows the name, then the x measure, the y measure with a swatch in the point's tone, and the size when there is one. The active bubble is drawn solid, with a surface-coloured outline and a ring around it."
       }
     },
     {
@@ -266,14 +266,14 @@
       "id": "n31",
       "type": "prose",
       "props": {
-        "markdown": "The chart is a single tab stop. The arrow keys move from one point to the next and back in order of x, then y, then data order, whatever the order of the rows. `Home` and `End` jump to the first and last, `Enter` or `Space` selects the active point when the chart has `onSelect`, and `Esc` clears it. A chart with no drawn point has no tab stop."
+        "markdown": "The chart is a single tab stop. The arrow keys move from one point to the next and back left to right on screen, then bottom to top, then data order, whatever the order of the rows. `Home` and `End` jump to the first and last, `Enter` or `Space` selects the active point when the chart has `onSelect`, and `Esc` clears it. A chart with no drawn point has no tab stop."
       }
     },
     {
       "id": "n32",
       "type": "prose",
       "props": {
-        "markdown": "Screen readers get the title and description, then an announcement for each point the keyboard moves to, such as “1 of 16, Alder Court, Estimate $8K, Margin 44%, Hours 40 h”: the position, the name, then each measure with its name and formatted value. A visually hidden data table follows the chart, with one row per data row and a column for the name (when there is a `label`), x, y and size. `dataTable` takes `false` to remove it, or `{ caption, columns }` to set the caption and rename the headers; the default headers can also be translated with the `headerX`, `headerY` and `headerSize` keys of [`ChartsProvider` messages](/docs/hooks-and-providers)."
+        "markdown": "Screen readers get the title and description, then an announcement for each point the keyboard moves to, such as “1 of 16, Alder Court, Estimate $8K, Margin 44%, Hours 40 h”: the position, the name, then each measure with its name and formatted value. A visually hidden data table follows the chart, with one row per data row and a column for the name (when there is a `label`), x, y and size. `dataTable` takes `false` to remove it, or `{ caption, columns }` to set the caption and rename the headers; the default headers can also be translated with the `headerName`, `headerX`, `headerY` and `headerSize` keys of [`ChartsProvider` messages](/docs/hooks-and-providers): `headerX`, `headerY` and `headerSize` are the fallback names when the accessor is a function and no label prop is set (a string field gives its name in sentence case), and `headerName` names the name column."
       }
     },
     {

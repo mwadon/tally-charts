@@ -107,7 +107,7 @@ export function themeSuite(spec: PageSpec) {
 }
 
 /** Presses Tab until `locator` has focus (at most `max` times) and returns its outline. */
-export async function tabTo(page: Page, selector: string, max = 60) {
+export async function tabTo(page: Page, selector: string, max = 45) {
   const target = page.locator(selector).first()
   for (let i = 0; i < max; i++) {
     await page.keyboard.press('Tab')

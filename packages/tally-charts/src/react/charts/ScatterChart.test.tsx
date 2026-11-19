@@ -157,6 +157,39 @@ describe('<ScatterChart> bubbles', () => {
     expect(bubbles(three.container).every((b) => num(b, 'r') === 3)).toBe(true)
   })
 
+  it('falls back to the default radii when radius or maxRadius is not finite', () => {
+    for (const bad of [Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY]) {
+      const dots = renderScatter({ size: undefined, radius: bad })
+      expect(bubbles(dots.container).every((b) => num(b, 'r') === 5)).toBe(true)
+      noBadNumbers(dots.container)
+      dots.unmount()
+      const sized = renderScatter({ maxRadius: bad })
+      expect(Math.max(...bubbles(sized.container).map((b) => num(b, 'r')))).toBe(18)
+      noBadNumbers(sized.container)
+      sized.unmount()
+    }
+    const negative = renderScatter({ size: undefined, radius: -4 })
+    expect(bubbles(negative.container).every((b) => num(b, 'r') === 0)).toBe(true)
+  })
+
+  it('keeps the size scale of every valid row, also when a domain leaves the largest out', () => {
+    const radiiOf = (root: HTMLElement) =>
+      bubbles(root)
+        .map((b) => num(b, 'r'))
+        .sort((a, b) => a - b)
+    const full = radiiOf(renderScatter({ xDomain: [0, 100000] }).container)
+    expect(Math.max(...full)).toBe(18)
+    // Juniper Mill (520 h, the largest) and Orchard Mews (361 h) are right of 70000.
+    const expected = jobs
+      .filter((j) => Number(j.estimate) <= 70000)
+      .map((j) => Math.max(3, 18 * Math.sqrt(Number(j.hours) / 520)))
+      .sort((a, b) => a - b)
+    const narrow = radiiOf(renderScatter({ xDomain: [0, 70000] }).container)
+    expect(narrow).toHaveLength(expected.length)
+    expect(Math.max(...narrow)).toBeLessThan(18)
+    for (const [i, r] of narrow.entries()) expect(r).toBeCloseTo(expected[i] as number, 5)
+  })
+
   it('draws larger bubbles first and keeps a 3 px minimum', () => {
     const data = [...jobs, { name: 'Tiny', estimate: 5000, margin: 20, hours: 1 }]
     const { container } = renderScatter({ data })
@@ -559,6 +592,8 @@ describe('<ScatterChart> active state', () => {
     expect(active).toHaveLength(1)
     const harbor = harborOf(container)
     expect(active[0]).toBe(harbor)
+    // The stylesheet paints the solid fill, so a forced-colors rule can reach it.
+    expect((harbor as SVGElement).style.fill).toBe('')
     const rings = parts(container, 'bubble-ring')
     expect(rings).toHaveLength(1)
     expect(num(rings[0] as Element, 'cx')).toBe(num(harbor, 'cx'))
@@ -570,6 +605,17 @@ describe('<ScatterChart> active state', () => {
     expect(rings[0]?.previousElementSibling?.getAttribute('data-ch-part')).toBe('bubble')
   })
 
+  it('dims nothing and draws no ring for an active id that has no drawn point', () => {
+    const warn = quiet()
+    const data = [...jobs, { name: 'Skipped', estimate: null, margin: 20, hours: 50 }]
+    const { container } = renderScatter({ data, activeId: 16 })
+    expect(bubbles(container)).toHaveLength(16)
+    expect(bubbles(container).some((b) => b.hasAttribute('data-ch-dimmed'))).toBe(false)
+    expect(bubbles(container).some((b) => b.hasAttribute('data-ch-active'))).toBe(false)
+    expect(parts(container, 'bubble-ring')).toHaveLength(0)
+    warn.mockRestore()
+  })
+
   it('dims nothing with dimInactive false, and draws no ring without an active point', () => {
     const keep = renderScatter({ activeId: 15, dimInactive: false })
     expect(bubbles(keep.container).some((b) => b.hasAttribute('data-ch-dimmed'))).toBe(false)
@@ -577,6 +623,38 @@ describe('<ScatterChart> active state', () => {
     const none = renderScatter()
     expect(parts(none.container, 'bubble-ring')).toHaveLength(0)
     expect(bubbles(none.container).some((b) => b.hasAttribute('data-ch-active'))).toBe(false)
+  })
+})
+
+describe('<ScatterChart> active bubble with repeated ids', () => {
+  const twins = (first: number, second: number) => [
+    { name: 'Twin', estimate: 10000, margin: 30, hours: first },
+    { name: 'Twin', estimate: 50000, margin: 30, hours: second },
+  ]
+
+  // `resolveIds` falls back to the index for every row when an id repeats, so the chart's ids are
+  // unique in practice; this pins that the ring follows the active point either way.
+  it('rings the bubble the keyboard reaches first, also when it is drawn last', () => {
+    const warn = quiet()
+    for (const [a, b] of [
+      [10, 400],
+      [400, 10],
+    ] as const) {
+      const { container, unmount } = renderScatter({ data: twins(a, b), id: 'name', activeId: 0 })
+      const all = bubbles(container)
+      const left = all.reduce((p, q) => (num(q, 'cx') < num(p, 'cx') ? q : p))
+      const active = all.filter((el) => el.getAttribute('data-ch-active') === 'true')
+      expect(active).toEqual([left])
+      expect(all.filter((el) => el.getAttribute('data-ch-dimmed') === 'true')).toEqual(
+        all.filter((el) => el !== left),
+      )
+      const rings = parts(container, 'bubble-ring')
+      expect(rings).toHaveLength(1)
+      expect(num(rings[0] as Element, 'cx')).toBe(num(left, 'cx'))
+      expect(num(rings[0] as Element, 'r')).toBeCloseTo(num(left, 'r') + 3, 5)
+      unmount()
+    }
+    warn.mockRestore()
   })
 })
 
@@ -647,6 +725,33 @@ describe('<ScatterChart> overlap and order', () => {
       )
       unmount()
     }
+  })
+
+  it('moves right on screen with ArrowRight on a reversed x domain', () => {
+    const { container } = renderScatter({ xDomain: [100000, 0] })
+    const names = keys(container, 'ArrowRight', 'ArrowRight', 'ArrowRight').map(
+      (t) => t?.split(', ')[1],
+    )
+    // Screen order from the left is descending estimate: Juniper Mill (88000), Orchard Mews (74000).
+    expect(names).toEqual(['Juniper Mill', 'Orchard Mews', 'Harbor Lofts'])
+  })
+
+  it('orders equal x from the bottom of the screen up on a reversed y domain', () => {
+    const data = [
+      { name: 'High', estimate: 20000, margin: 50, hours: 40 },
+      { name: 'Low', estimate: 20000, margin: 10, hours: 40 },
+    ]
+    const { container } = renderScatter({ data, yDomain: [60, 0] })
+    // y is flipped: margin 50 is now the lowest on screen, so it comes first.
+    expect(keys(container, 'ArrowRight', 'ArrowRight').map((t) => t?.split(', ')[1])).toEqual([
+      'High',
+      'Low',
+    ])
+  })
+
+  it('filters rows against a reversed explicit domain like a normal one', () => {
+    const { container } = renderScatter({ xDomain: [70000, 0], yDomain: [60, 0] })
+    expect(bubbles(container)).toHaveLength(14)
   })
 
   it('orders equal x by y', () => {

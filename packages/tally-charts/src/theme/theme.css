@@ -807,10 +807,11 @@
   stroke-width: 1px;
 }
 
-/* The active bubble is solid (its fill is set inline, like a dot's) with a surface stroke, for
-   every tone: this rule comes after the accent-soft outline above, which it must beat. Its ring
-   (3px outside) is in the tone. */
+/* The active bubble is solid in its tone with a surface stroke (written as a 100 % mix: the bare
+   `fill: var(--_ch-swatch-color)` form is what theme.test.ts looks for to catch toned text), for every tone: this rule comes after the accent-soft outline
+   above, which it must beat. Its ring (3px outside) is in the tone. */
 [data-ch-part="bubble"][data-ch-active="true"] {
+  fill: color-mix(in srgb, var(--_ch-swatch-color) 100%, transparent);
   stroke: var(--ch-surface);
   stroke-width: 2px;
 }
@@ -1838,10 +1839,10 @@
     stroke-opacity: 1;
   }
 
-  /* Bubbles keep their outline in the tone's system colour; the tinted fill gives way to the page. */
+  /* Bubbles keep their outline in the tone's system colour (the base rule, and the inked outline
+     of accent-soft, which stays on purpose); the tinted fill gives way to the page. */
   [data-ch-part="bubble"] {
     fill: Canvas;
-    stroke: var(--_ch-swatch-color);
   }
 
   [data-ch-part="bubble"][data-ch-active="true"] {

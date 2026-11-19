@@ -3,8 +3,9 @@
 ---
 
 New `ScatterChart`: one point per row on two value axes, `x` and `y`. With `size` each point is a
-bubble whose area follows the value: the largest bubble gets `maxRadius` (default 18 px) and none
-is drawn smaller than 3 px; without `size` every point is a dot of `radius` (default 5). Larger
+bubble whose area follows the value: the row with the largest `size` in the data gets `maxRadius`
+(default 18 px), also when an explicit domain leaves it out, so sizes do not change when a domain
+narrows, and none is drawn smaller than 3 px; without `size` every point is a dot of `radius` (default 5). Larger
 bubbles are drawn first so small ones stay visible on top. `tone` is per item (a tone, or a
 function of the row; default `accent`). `target` draws a horizontal line on y (a number, or
 `{ value, label }`); its label sits outside the plot and the right margin grows to fit it. `xLabel`
@@ -17,7 +18,7 @@ number or negative. A row outside an explicit `xDomain` or `yDomain` is not draw
 Skipped rows are not points, but every row has a place in the data table, with the table's usual
 placeholder for a missing value. Each drawn point is a
 `ChartPoint` whose id is the `id` accessor or the data index; there is a tooltip, a keyboard order
-by x, then y, and a hidden data table. Stylable parts: `bubbles`, `bubble`, `bubble-ring`,
+left to right on screen, then bottom to top, and a hidden data table. Stylable parts: `bubbles`, `bubble`, `bubble-ring`,
 `axis-title`, `target-label`.
 
 ```tsx

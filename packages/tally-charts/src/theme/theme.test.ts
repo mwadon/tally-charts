@@ -550,9 +550,9 @@ describe('theme.css', () => {
       /\[data-ch-part="axis-title"\],\s*\[data-ch-part="target-label"\],[^{]*\{\s*fill: var\(--ch-ink-muted\)/,
     )
     const forced = css.slice(css.indexOf('@media (forced-colors: active)'))
-    expect(forced).toMatch(
-      /\[data-ch-part="bubble"\] \{\s*fill: Canvas;\s*stroke: var\(--_ch-swatch-color\);/,
-    )
+    expect(forced).toMatch(/\[data-ch-part="bubble"\] \{\s*fill: Canvas;\s*\}/)
+    // The forced rule adds no stroke of its own: the outline is the base rule's.
+    expect(forced).not.toMatch(/\[data-ch-part="bubble"\] \{[^}]*stroke:/)
     expect(forced).toContain('[data-ch-part="axis-title"]')
   })
 
@@ -570,7 +570,7 @@ describe('theme.css', () => {
 
   it('styles the active bubble solid with a surface stroke, and its ring, with forced-colors twins', () => {
     expect(css).toMatch(
-      /\[data-ch-part="bubble"\]\[data-ch-active="true"\] \{\s*stroke: var\(--ch-surface\);\s*stroke-width: 2px;/,
+      /\[data-ch-part="bubble"\]\[data-ch-active="true"\] \{\s*fill: color-mix\(in srgb, var\(--_ch-swatch-color\) 100%, transparent\);\s*stroke: var\(--ch-surface\);\s*stroke-width: 2px;/,
     )
     expect(css).toMatch(
       /\[data-ch-part="dot-ring"\],\s*\[data-ch-part="bubble-ring"\] \{\s*fill: none;\s*stroke-width: 2;/,

@@ -122,7 +122,10 @@ labels drawn in the plot, clustering or jitter, brushing and zoom.
   surface and outlined 1.5 px in the tone, with or without `size`. An `accent-soft` point gets the
   inked outline that other `accent-soft` marks have.
 - Size: the area is proportional to the value: `r = maxRadius × √(size / largest size)`, never
-  less than 3 px. Without `size`, `r = radius`. A chart whose sizes are all zero draws 3 px dots.
+  less than 3 px. The largest size is taken over all valid rows, including rows outside an
+  explicit domain, so sizes do not change when a domain narrows. Without `size`, `r = radius`.
+  A non-finite `radius` or `maxRadius` falls back to the default (5 / 18). A chart whose sizes are
+  all zero draws 3 px dots.
 - Draw order: larger bubbles first, so a small bubble is never hidden behind a large one.
 - Points are not clipped: a bubble at the edge of the domain reaches into the margin.
 - Target: the line as `Target` draws it, under the bubbles. Its label sits outside the plot, in
@@ -138,7 +141,8 @@ labels drawn in the plot, clustering or jitter, brushing and zoom.
 
 ## 4. Interaction and accessibility
 
-- Every drawn row is a point. Keyboard order is by x, then y (ascending): arrow keys step through
+- Every drawn row is a point. Keyboard order follows the screen: left to right on screen, then bottom to top; data order for
+  equal positions (also on reversed domains). Arrow keys step through
   it, Home / End jump to the ends.
 - Pointer: the nearest point centre within `max(24, maxRadius + 6)` px (or `radius + 6` without
   `size`).
@@ -150,8 +154,9 @@ labels drawn in the plot, clustering or jitter, brushing and zoom.
   missing values): the name (when `label` is set), x, y and, with `size`, the size.
 - Tone is not the only carrier of a state: values are in the tooltip, the announcement and the
   table; a legend is composed with `<Legend>`.
-- Forced colors: bubbles keep an outline in the system colour of their tone; the active ring
-  stays.
+- Forced colors: bubbles keep an outline in the system colour of their tone and a Canvas fill;
+  the active bubble is solid `Highlight` (its fill is in the stylesheet, not inline) with a
+  Canvas stroke, and its ring is `Highlight`.
 - Pointer targets: small dots are small targets; the pointer snaps to the nearest one, and the
   keyboard and the table reach every value (documented in `docs/a11y.md`).
 
@@ -204,3 +209,5 @@ labels in the plot, brushing, zoom, clustering.
 6. **Target:** horizontal on y only, label outside the plot as in `StackedBarChart`.
 7. **Pointer:** nearest centre, reusing `NearestPointer`; no per-bubble hit shapes.
 8. **Version:** 1.4.0 with this chart alone.
+9. **Size scale under explicit domains:** stable (final review).
+10. **Keyboard order:** screen order, also on reversed domains (final review).

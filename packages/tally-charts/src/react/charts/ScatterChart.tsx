@@ -136,6 +136,8 @@ function drawnBubbles<D>(
   yDomain: readonly [number, number],
 ): BubbleItem<D>[] {
   const toneOf = resolvePerItem(tone)
+  // The largest size of every valid row, also outside the domains: bubbles keep their size when
+  // a domain narrows.
   let largest = 0
   for (const r of rows) if (r.size > largest) largest = r.size
   const rad = (size: number) =>
@@ -202,10 +204,8 @@ function Marks<D>({
   const built = useMemo((): ChartPoint[] => {
     if (!sx || !sy) return []
     const placed = items.map((b) => ({ b, cx: sx(b.row.x), cy: sy(b.row.y) }))
-    // Keyboard order: x, then y, then data order (the sort is stable and `items` is by radius).
-    placed.sort(
-      (p, q) => p.b.row.x - q.b.row.x || p.b.row.y - q.b.row.y || p.b.row.index - q.b.row.index,
-    )
+    // Keyboard order follows the screen: left to right, then bottom to top, then data order.
+    placed.sort((p, q) => p.cx - q.cx || q.cy - p.cy || p.b.row.index - q.b.row.index)
     return placed.map(({ b, cx, cy }, index): ChartPoint => {
       const { row } = b
       const xText = fmts.x(row.x)
@@ -247,7 +247,9 @@ function Marks<D>({
   useRegisterPoints(stable.current)
   if (!sx || !sy) return null
   const dimming = ctx.dimInactive && ctx.activeId !== null
-  const active = items.find((b) => b.row.rowId === ctx.activeId)
+  // The chart's active point is one of the registered points, so match its row, not its id.
+  const activeRow = ctx.activePoint?.datum
+  const active = activeRow === undefined ? undefined : items.find((b) => b.row === activeRow)
 
   const targetY = target !== undefined && inDomain(target, yDomain) ? sy(target) : undefined
   return (
@@ -276,7 +278,7 @@ function Marks<D>({
               cx={sx(b.row.x)}
               cy={sy(b.row.y)}
               r={b.r}
-              style={on ? { ...toneVar(b.tone), fill: `var(--ch-${b.tone})` } : toneVar(b.tone)}
+              style={toneVar(b.tone)}
             />
           )
         })}
@@ -348,6 +350,9 @@ export function ScatterChart<D>({
   const messages = useMessages()
   const warn = useMemo(() => createWarner(), [])
   const hasSize = size !== undefined
+  // A non-finite radius would reach the SVG as r="NaN": use the defaults.
+  const dotRadius = Number.isFinite(radius) ? radius : 5
+  const bubbleRadius = Number.isFinite(maxRadius) ? maxRadius : 18
   const { rows, valid, badValue, badSize } = useMemo(() => {
     const ids = resolveIds(data, id, warn)
     const getX = resolveAccessor(x)
@@ -483,8 +488,8 @@ export function ScatterChart<D>({
         rows={valid}
         hasSize={hasSize}
         tone={tone}
-        radius={radius}
-        maxRadius={maxRadius}
+        radius={dotRadius}
+        maxRadius={bubbleRadius}
         xDomain={xDom}
         yDomain={yDom}
         target={line}
