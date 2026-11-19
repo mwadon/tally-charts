@@ -1,4 +1,4 @@
-import { type CSSProperties, useMemo } from 'react'
+import { useMemo } from 'react'
 import { resolveAccessor, resolveIds, resolvePerItem } from '../../core/accessor'
 import type { FormatSpec } from '../../core/format'
 import { niceDomain } from '../../core/linear'
@@ -11,6 +11,7 @@ import { type Margin, useChartContext } from '../context'
 import { Axis, type AxisFormat } from '../marks/Axis'
 import { Grid } from '../marks/Grid'
 import { Target } from '../marks/Target'
+import { toneVar } from '../ui/util'
 import {
   type ChartPassThroughProps,
   type ChartTooltip,
@@ -95,8 +96,6 @@ interface ScatterRow<D> {
 
 /** Smallest drawn radius of a bubble, in px. */
 const MIN_RADIUS = 3
-/** Share of the tone in a bubble's fill; the rest is transparent. */
-const FILL_MIX = 22
 /** Gap between the plot top and the baseline of the y axis name, in px. */
 const Y_TITLE_RISE = 14
 /** Gap between the plot bottom and the baseline of the x axis name, in px. */
@@ -104,12 +103,47 @@ const X_TITLE_DROP = 40
 
 const DEFAULT_MARGIN = { top: 24, right: 16, bottom: 32, left: 44 }
 
+/** A drawn row without its position: validity, radius, tone and draw order are settled. */
 interface BubbleItem<D> {
   row: ScatterRow<D>
-  cx: number
-  cy: number
   r: number
   tone: Tone
+}
+
+const inDomain = (v: number, d: readonly [number, number]) =>
+  v >= Math.min(d[0], d[1]) && v <= Math.max(d[0], d[1])
+
+/** The drawn rows (inside the domains), larger bubbles first; ties keep data order. */
+function drawnBubbles<D>(
+  source: readonly D[],
+  rows: readonly ScatterRow<D>[],
+  hasSize: boolean,
+  tone: PerItem<D, Tone> | undefined,
+  radius: number,
+  maxRadius: number,
+  xDomain: readonly [number, number],
+  yDomain: readonly [number, number],
+): BubbleItem<D>[] {
+  const toneOf = resolvePerItem(tone)
+  let largest = 0
+  for (const r of rows) if (r.size > largest) largest = r.size
+  const rad = (size: number) =>
+    hasSize
+      ? largest > 0
+        ? Math.max(MIN_RADIUS, maxRadius * Math.sqrt(size / largest))
+        : MIN_RADIUS
+      : Math.max(0, radius)
+  const items: BubbleItem<D>[] = []
+  for (const row of rows) {
+    if (!inDomain(row.x, xDomain) || !inDomain(row.y, yDomain)) continue
+    items.push({
+      row,
+      r: rad(row.size),
+      tone: toneOf(row.datum, row.index, source) ?? 'accent',
+    })
+  }
+  // Array.sort is stable.
+  return items.sort((a, b) => b.r - a.r)
 }
 
 function Marks<D>({
@@ -144,37 +178,15 @@ function Marks<D>({
   showYTitle: boolean
 }) {
   const ctx = useChartContext('ScatterChart')
-  const toneOf = useMemo(() => resolvePerItem(tone), [tone])
+  const items = useMemo(
+    () => drawnBubbles(source, rows, hasSize, tone, radius, maxRadius, xDomain, yDomain),
+    [source, rows, hasSize, tone, radius, maxRadius, xDomain, yDomain],
+  )
   if (ctx.x.kind !== 'linear' || ctx.y.kind !== 'linear') return null
   const sx = ctx.x.scale
   const sy = ctx.y.scale
-  const inside = (v: number, d: readonly [number, number]) =>
-    v >= Math.min(d[0], d[1]) && v <= Math.max(d[0], d[1])
 
-  let largest = 0
-  for (const r of rows) if (r.size > largest) largest = r.size
-  const rad = (size: number) =>
-    hasSize
-      ? largest > 0
-        ? Math.max(MIN_RADIUS, maxRadius * Math.sqrt(size / largest))
-        : MIN_RADIUS
-      : Math.max(0, radius)
-
-  const items: BubbleItem<D>[] = []
-  for (const row of rows) {
-    if (!inside(row.x, xDomain) || !inside(row.y, yDomain)) continue
-    items.push({
-      row,
-      cx: sx(row.x),
-      cy: sy(row.y),
-      r: rad(row.size),
-      tone: toneOf(row.datum, row.index, source) ?? 'accent',
-    })
-  }
-  // Larger bubbles first, so a small one is never hidden; Array.sort is stable.
-  items.sort((a, b) => b.r - a.r)
-
-  const targetY = target !== undefined && inside(target, yDomain) ? sy(target) : undefined
+  const targetY = target !== undefined && inDomain(target, yDomain) ? sy(target) : undefined
   return (
     <>
       {target !== undefined && targetY !== undefined ? <Target y={target} /> : null}
@@ -194,15 +206,10 @@ function Marks<D>({
             key={b.row.index}
             data-ch-part="bubble"
             data-ch-tone={b.tone}
-            cx={b.cx}
-            cy={b.cy}
+            cx={sx(b.row.x)}
+            cy={sy(b.row.y)}
             r={b.r}
-            style={
-              {
-                fill: `color-mix(in srgb, var(--ch-${b.tone}) ${FILL_MIX}%, transparent)`,
-                '--_ch-swatch-color': `var(--ch-${b.tone})`,
-              } as CSSProperties
-            }
+            style={toneVar(b.tone)}
           />
         ))}
       </g>

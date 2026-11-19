@@ -163,12 +163,29 @@ describe('<ScatterChart> bubbles', () => {
     expect(xs[0]).toBeLessThan(xs[1] as number)
   })
 
-  it('fills with the tone at 22 % and outlines it through the swatch colour', () => {
+  it('sets only the swatch colour inline, so the stylesheet owns the fill', () => {
     const { container } = renderScatter({ tone: 'loss' })
     const b = bubbles(container)[0] as SVGElement
-    expect(b.style.fill).toContain('color-mix')
-    expect(b.style.fill).toContain('var(--ch-loss) 22%')
+    expect(b.style.fill).toBe('')
     expect(b.style.getPropertyValue('--_ch-swatch-color')).toBe('var(--ch-loss)')
+  })
+
+  it('draws the target under the bubbles', () => {
+    const { container } = renderScatter()
+    const line = parts(container, 'target')[0] as Element
+    const group = parts(container, 'bubbles')[0] as Element
+    expect(line.compareDocumentPosition(group) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
+
+  it('calls tone with the user datum, the index and the data array', () => {
+    const tone = vi.fn((_j: Job, _i: number, _all: readonly Job[]) => 'accent' as const)
+    renderScatter({ tone })
+    expect(tone).toHaveBeenCalled()
+    const [datum, index, all] = tone.mock.calls[0] as [Job, number, readonly Job[]]
+    expect(datum).toBe(jobs[0])
+    expect(index).toBe(0)
+    expect(all).toBe(jobs)
+    expect(tone.mock.calls.some(([d, i]) => d === jobs[i])).toBe(true)
   })
 })
 
@@ -231,48 +248,41 @@ describe('<ScatterChart> rows that cannot be drawn', () => {
 })
 
 describe('<ScatterChart> domains', () => {
-  const axisText = (root: HTMLElement, side: 'left' | 'bottom') =>
-    parts(root, 'axis-label')
-      .filter((t) => (side === 'left' ? t.getAttribute('text-anchor') === 'end' : true))
-      .map((t) => t.textContent ?? '')
+  /** Tick labels of one axis, as numbers (the number format has no separators below 1000). */
+  const ticks = (root: HTMLElement, axis: 'x' | 'y') =>
+    [...root.querySelectorAll('[data-ch-part="axis"]')]
+      .filter(
+        (a) =>
+          (a.querySelector('[data-ch-part="axis-label"]')?.getAttribute('text-anchor') ===
+            'end') ===
+          (axis === 'y'),
+      )
+      .flatMap((a) => [...a.querySelectorAll('[data-ch-part="axis-label"]')])
+      .map((t) => Number((t.textContent ?? '').replace(/,/g, '')))
+
+  const plain = {
+    xDomain: undefined,
+    yDomain: undefined,
+    xFormat: 'number',
+    yFormat: 'number',
+  } as const
 
   it('starts both axes at zero and reaches the data', () => {
-    const { container } = renderScatter({
-      xDomain: undefined,
-      yDomain: undefined,
-      target: undefined,
-      xFormat: undefined,
-      yFormat: undefined,
-    })
-    const labels = parts(container, 'axis-label').map((t) => t.textContent ?? '')
-    expect(labels).toContain('0')
-    const max = Math.max(...bubbles(container).map((b) => num(b, 'cy')))
-    // The bottom of the plot is zero: the lowest bubble (12) is above it.
-    expect(max).toBeLessThan(HEIGHT)
-    const nums = labels.map((l) => Number(l.replace(/,/g, ''))).filter(Number.isFinite)
-    expect(Math.max(...nums)).toBeGreaterThanOrEqual(88000)
-    expect(axisText(container, 'left').length).toBeGreaterThan(0)
+    const { container } = renderScatter({ ...plain, target: undefined })
+    const x = ticks(container, 'x')
+    const y = ticks(container, 'y')
+    expect(x[0]).toBe(0)
+    expect(x.at(-1)).toBeGreaterThanOrEqual(88000)
+    expect(y[0]).toBe(0)
+    expect(y.at(-1)).toBeGreaterThanOrEqual(52)
   })
 
   it('reaches a target above every point in the default y domain', () => {
-    const lowTarget = renderScatter({ yDomain: undefined, target: 32 })
-    const lowMax = Math.max(
-      ...parts(lowTarget.container, 'axis-label')
-        .map((t) => Number((t.textContent ?? '').replace(/[^\d.]/g, '')))
-        .filter(Number.isFinite),
-    )
-    lowTarget.unmount()
-    expect(lowMax).toBeGreaterThanOrEqual(52)
-    const { container } = renderScatter({
-      yDomain: undefined,
-      yFormat: 'number',
-      xFormat: 'number',
-      target: 80,
-    })
-    const yTicks = parts(container, 'axis-label').map((t) =>
-      Number((t.textContent ?? '').replace(/,/g, '')),
-    )
-    expect(Math.max(...yTicks.filter((v) => v < 1000))).toBeGreaterThanOrEqual(80)
+    const below = renderScatter({ ...plain, target: 32 })
+    expect(ticks(below.container, 'y').at(-1)).toBeLessThan(80)
+    below.unmount()
+    const { container } = renderScatter({ ...plain, target: 80 })
+    expect(ticks(container, 'y').at(-1)).toBeGreaterThanOrEqual(80)
     expect(parts(container, 'target')).toHaveLength(1)
   })
 })

@@ -423,8 +423,9 @@
   stroke-width: 2;
 }
 
-/* A bubble is its tone at 22 % over the surface (inline fill) with a 1.5px outline in the tone. */
+/* A bubble is its tone at 22 % over the surface with a 1.5px outline in the tone. */
 [data-ch-part="bubble"] {
+  fill: color-mix(in srgb, var(--_ch-swatch-color) 22%, transparent);
   stroke: var(--_ch-swatch-color);
   stroke-width: 1.5px;
 }

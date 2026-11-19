@@ -538,7 +538,7 @@ describe('theme.css', () => {
 
   it('styles bubbles like dots: outline, entry animation, no pointer events, forced colors', () => {
     expect(css).toMatch(
-      /\[data-ch-part="bubble"\] \{\s*stroke: var\(--_ch-swatch-color\);\s*stroke-width: 1\.5px;/,
+      /\[data-ch-part="bubble"\] \{\s*fill: color-mix\(in srgb, var\(--_ch-swatch-color\) 22%, transparent\);\s*stroke: var\(--_ch-swatch-color\);\s*stroke-width: 1\.5px;/,
     )
     expect(css).toMatch(
       /\[data-ch-animate="true"\] \[data-ch-part="dot"\],\s*\[data-ch-animate="true"\] \[data-ch-part="bubble"\] \{/,
