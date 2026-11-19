@@ -1,0 +1,287 @@
+{
+  "versionId": "fixture-scatter-chart-v1",
+  "version": 1,
+  "locale": "en",
+  "publishedAt": "2026-11-19T00:00:00.000Z",
+  "codeInjection": {},
+  "layout": {
+    "key": "default",
+    "header": null,
+    "footer": null
+  },
+  "pageId": "fixture-scatter-chart",
+  "title": "ScatterChart",
+  "slug": "scatter-chart",
+  "seo": {
+    "metaTitle": "ScatterChart · tally-charts",
+    "metaDescription": "Two measures against each other, with an optional third as bubble size, a target line, keyboard navigation and a hidden data table."
+  },
+  "componentTree": [
+    {
+      "id": "n1",
+      "type": "prose",
+      "props": {
+        "markdown": "Two measures against each other, with an optional third as size. `ScatterChart` draws one point per row on two value axes, `x` and `y`: a dot, or with `size` a bubble whose area follows the value. It handles the scales, the tooltip, the keyboard and the screen reader."
+      }
+    },
+    {
+      "id": "n2",
+      "type": "heading",
+      "props": {
+        "text": "When to use it",
+        "level": "2",
+        "anchor": "when-to-use"
+      }
+    },
+    {
+      "id": "n3",
+      "type": "prose",
+      "props": {
+        "markdown": "Use it to ask whether two measures move together, and which rows break the pattern: margin against job size, hours against estimate, price against rating. Add `size` for a third measure, such as crew hours, and a `target` line on y to see which rows fall short. Both axes are linear and numeric. For a value per category use [`BarChart`](/docs/bar-chart), for values along an ordered x use [`LineChart`](/docs/line-chart), and for the spread of one measure per row use [`StripPlot`](/docs/strip-plot). It has no trend line, no log scale or time axis, no zoom or brush, and no size legend."
+      }
+    },
+    {
+      "id": "n4",
+      "type": "heading",
+      "props": {
+        "text": "Import",
+        "level": "2",
+        "anchor": "install"
+      }
+    },
+    {
+      "id": "n5",
+      "type": "code-block",
+      "props": {
+        "code": "npm i tally-charts",
+        "lang": "bash"
+      }
+    },
+    {
+      "id": "n6",
+      "type": "code-block",
+      "props": {
+        "code": "import { ScatterChart } from 'tally-charts'\nimport 'tally-charts/theme.css'",
+        "lang": "tsx",
+        "filename": "app/jobs.tsx"
+      }
+    },
+    {
+      "id": "n7",
+      "type": "heading",
+      "props": {
+        "text": "Examples",
+        "level": "2",
+        "anchor": "examples"
+      }
+    },
+    {
+      "id": "n8",
+      "type": "prose",
+      "props": {
+        "markdown": "`x` and `y` say which numeric field each axis reads. Without `size` every point is a dot of `radius` (default 5 px). `label` names the row in the tooltip, the announcement and the data table, and `xLabel` and `yLabel` name the measures. Props stay serializable here (field names, a preset format and a constant tone), so the chart renders in a server component."
+      }
+    },
+    {
+      "id": "n9",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "scatter-chart/crew-days",
+        "defaultView": "preview",
+        "height": 292
+      }
+    },
+    {
+      "id": "n10",
+      "type": "heading",
+      "props": {
+        "text": "Bubbles",
+        "level": "2",
+        "anchor": "bubbles"
+      }
+    },
+    {
+      "id": "n11",
+      "type": "prose",
+      "props": {
+        "markdown": "With `size` the area of each point follows the value: the row with the largest `size` in the data gets `maxRadius` (default 18 px), also when an explicit domain leaves that row out, so bubble sizes do not change when a domain narrows; the others scale with the square root of their size, but none is drawn smaller than 3 px. A size of zero is drawn at that minimum too. Larger bubbles are drawn first, so a small bubble stays visible on top of a large one; equal sizes keep the data order. `sizeLabel` and `sizeFormat` name and format the value in the tooltip, the announcement and the data table. The size is never drawn as text."
+      }
+    },
+    {
+      "id": "n12",
+      "type": "prose",
+      "props": {
+        "markdown": "`tone` is per item: a tone, or a function of the row (default `accent`). Passing a function makes the example a client component, as does a format function. The example below colours the jobs under the margin target with `loss`, and writes the y and size formats as functions."
+      }
+    },
+    {
+      "id": "n13",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "scatter-chart/job-size-margin",
+        "defaultView": "preview",
+        "height": 292
+      }
+    },
+    {
+      "id": "n14",
+      "type": "heading",
+      "props": {
+        "text": "Target",
+        "level": "2",
+        "anchor": "target"
+      }
+    },
+    {
+      "id": "n15",
+      "type": "prose",
+      "props": {
+        "markdown": "`target` draws a horizontal line on y: a number, or `{ value, label }`. The label sits outside the plot, to the right of it, and the right margin grows to fit it (a `margin.right` you pass overrides that). A bare number draws the line without a label. The default y domain reaches the target, so a target above every point still fits. With an explicit `yDomain` that does not contain the target, there is no line and no label."
+      }
+    },
+    {
+      "id": "n16",
+      "type": "heading",
+      "props": {
+        "text": "Axis names",
+        "level": "2",
+        "anchor": "axis-names"
+      }
+    },
+    {
+      "id": "n17",
+      "type": "prose",
+      "props": {
+        "markdown": "When `xLabel` or `yLabel` is set, the name is also drawn on the chart: the x name under the right end of the x axis, the y name above the y axis, and the plot margin grows to make room. Without them nothing is drawn, and the tooltip, the announcement and the data table use the field name in sentence case (`estimate` becomes “Estimate”), or “X”, “Y” and “Size” when the accessor is a function. `xAxis={'none'}` or `yAxis={'none'}` hides an axis together with its name."
+      }
+    },
+    {
+      "id": "n18",
+      "type": "heading",
+      "props": {
+        "text": "Domains",
+        "level": "2",
+        "anchor": "domains"
+      }
+    },
+    {
+      "id": "n19",
+      "type": "prose",
+      "props": {
+        "markdown": "By default each domain is the range of the drawn values including zero, rounded to nice ticks; the y domain also includes the target. `xDomain` and `yDomain` fix them. A row outside an explicit domain is not drawn and gives no warning, but it keeps its row in the data table. `xAxis` and `yAxis` take a tick spec (a count, a list of values, `'all'`, `'ends'`) or `'none'`, and `grid={false}` removes the horizontal grid lines."
+      }
+    },
+    {
+      "id": "n20",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "scatter-chart/fixed-domains",
+        "defaultView": "preview",
+        "height": 292
+      }
+    },
+    {
+      "id": "n21",
+      "type": "heading",
+      "props": {
+        "text": "Legend",
+        "level": "2",
+        "anchor": "legend"
+      }
+    },
+    {
+      "id": "n22",
+      "type": "prose",
+      "props": {
+        "markdown": "The chart has no legend of its own. Compose `Legend` with the same tones, as with `LineChart`. Tone is the only carrier of the grouping in the picture, so keep the grouping in the data as well: the tooltip and the data table show the numbers behind it."
+      }
+    },
+    {
+      "id": "n23",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "scatter-chart/with-legend",
+        "defaultView": "preview",
+        "height": 313
+      }
+    },
+    {
+      "id": "n24",
+      "type": "heading",
+      "props": {
+        "text": "Rows that are not drawn",
+        "level": "2",
+        "anchor": "skipped"
+      }
+    },
+    {
+      "id": "n25",
+      "type": "prose",
+      "props": {
+        "markdown": "A row is skipped, with a warning in development, when `x` or `y` is not a number, or when `size` is set and the size is missing, not a number or negative. A skipped row is not a point: it has no bubble, no tooltip and no stop for the keyboard. It does keep its row in the data table, with the table's usual placeholder in the cell of a missing value. A chart whose `data` is an empty array shows the “No data” message; if every row is skipped, the plot is drawn with no points."
+      }
+    },
+    {
+      "id": "n26",
+      "type": "heading",
+      "props": {
+        "text": "Props",
+        "level": "2",
+        "anchor": "props"
+      }
+    },
+    {
+      "id": "n27",
+      "type": "props-table",
+      "props": {
+        "symbol": "ScatterChart"
+      }
+    },
+    {
+      "id": "n28",
+      "type": "heading",
+      "props": {
+        "text": "Points and the tooltip",
+        "level": "2",
+        "anchor": "points"
+      }
+    },
+    {
+      "id": "n29",
+      "type": "prose",
+      "props": {
+        "markdown": "Each drawn row is one point, and its id is the `id` accessor or the data index. In `onSelect`, `onActiveChange` and a `tooltip` function, `point.datum` is your row. The pointer activates the point whose centre is nearest, within 24 px, or within the dot `radius` (the bubble `maxRadius` with `size`) plus 6 px when that is larger, so a small bubble drawn over a large one is picked when the pointer is nearer to its centre. The default tooltip sits above the bubble and shows the name, then the x measure, the y measure with a swatch in the point's tone, and the size when there is one. The active bubble is drawn solid, with a surface-coloured outline and a ring around it."
+      }
+    },
+    {
+      "id": "n30",
+      "type": "heading",
+      "props": {
+        "text": "Keyboard and screen readers",
+        "level": "2",
+        "anchor": "keyboard"
+      }
+    },
+    {
+      "id": "n31",
+      "type": "prose",
+      "props": {
+        "markdown": "The chart is a single tab stop. The arrow keys move from one point to the next and back left to right on screen, then bottom to top, then data order, whatever the order of the rows. `Home` and `End` jump to the first and last, `Enter` or `Space` selects the active point when the chart has `onSelect`, and `Esc` clears it. A chart with no drawn point has no tab stop."
+      }
+    },
+    {
+      "id": "n32",
+      "type": "prose",
+      "props": {
+        "markdown": "Screen readers get the title and description, then an announcement for each point the keyboard moves to, such as “1 of 16, Alder Court, Estimate $8K, Margin 44%, Hours 40 h”: the position, the name, then each measure with its name and formatted value. A visually hidden data table follows the chart, with one row per data row and a column for the name (when there is a `label`), x, y and size. `dataTable` takes `false` to remove it, or `{ caption, columns }` to set the caption and rename the headers; the default headers can also be translated with the `headerName`, `headerX`, `headerY` and `headerSize` keys of [`ChartsProvider` messages](/docs/hooks-and-providers): `headerX`, `headerY` and `headerSize` are the fallback names when the accessor is a function and no label prop is set (a string field gives its name in sentence case), and `headerName` names the name column."
+      }
+    },
+    {
+      "id": "n33",
+      "type": "prose",
+      "props": {
+        "markdown": "The full model is in the [accessibility guide](https://github.com/mwadon/tally-charts/blob/main/docs/a11y.md)."
+      }
+    }
+  ]
+}

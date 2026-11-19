@@ -304,6 +304,8 @@
 [data-ch-part="cursor-dot"],
 [data-ch-part="dot"],
 [data-ch-part="dot-ring"],
+[data-ch-part="bubble-ring"],
+[data-ch-part="bubble"],
 [data-ch-part="median"],
 [data-ch-part="line"],
 [data-ch-part="line-dot"],
@@ -417,9 +419,21 @@
   }
 }
 
-[data-ch-part="dot-ring"] {
+[data-ch-part="dot-ring"],
+[data-ch-part="bubble-ring"] {
   fill: none;
   stroke-width: 2;
+}
+
+[data-ch-part="bubble-ring"] {
+  stroke: var(--_ch-swatch-color);
+}
+
+/* A bubble is its tone at 22 % over the surface with a 1.5px outline in the tone. */
+[data-ch-part="bubble"] {
+  fill: color-mix(in srgb, var(--_ch-swatch-color) 22%, transparent);
+  stroke: var(--_ch-swatch-color);
+  stroke-width: 1.5px;
 }
 
 /* Medians use the inked tone mix of tinted text: visible over their own dots, ≥ 4.5:1 labels. */
@@ -444,7 +458,8 @@
   cursor: pointer;
 }
 
-[data-ch-animate="true"] [data-ch-part="dot"] {
+[data-ch-animate="true"] [data-ch-part="dot"],
+[data-ch-animate="true"] [data-ch-part="bubble"] {
   transform-box: fill-box;
   transform-origin: center;
   animation: ch-rise var(--ch-duration) var(--ch-ease) both;
@@ -540,6 +555,7 @@
 
 /* ---------- Labels and reference marks ---------- */
 [data-ch-part="axis-label"],
+[data-ch-part="axis-title"],
 [data-ch-part="target-label"],
 [data-ch-part="forecast-label"],
 [data-ch-part="end-label"] {
@@ -785,9 +801,19 @@
 [data-ch-part="region"][data-ch-fill="hatch"],
 [data-ch-part="bar"][data-ch-tone="accent-soft"],
 [data-ch-part="dot"][data-ch-tone="accent-soft"]:not([data-ch-soft]),
+[data-ch-part="bubble"][data-ch-tone="accent-soft"],
 [data-ch-part="cursor-dot"][data-ch-tone="accent-soft"] {
   stroke: color-mix(in srgb, var(--_ch-swatch-color) var(--ch-tone-text-mix), var(--ch-ink));
   stroke-width: 1px;
+}
+
+/* The active bubble is solid in its tone with a surface stroke (written as a 100 % mix: the bare
+   `fill: var(--_ch-swatch-color)` form is what theme.test.ts looks for to catch toned text), for every tone: this rule comes after the accent-soft outline
+   above, which it must beat. Its ring (3px outside) is in the tone. */
+[data-ch-part="bubble"][data-ch-active="true"] {
+  fill: color-mix(in srgb, var(--_ch-swatch-color) 100%, transparent);
+  stroke: var(--ch-surface);
+  stroke-width: 2px;
 }
 
 [data-ch-fill="hatch"]:is(
@@ -1658,6 +1684,7 @@
   .ch-svg
     :is(
       [data-ch-part="axis-label"],
+      [data-ch-part="axis-title"],
       [data-ch-part="target-label"],
       [data-ch-part="forecast-label"],
       [data-ch-part="end-label"],
@@ -1810,6 +1837,21 @@
     fill: none;
     stroke: GrayText;
     stroke-opacity: 1;
+  }
+
+  /* Bubbles keep their outline in the tone's system colour (the base rule, and the inked outline
+     of accent-soft, which stays on purpose); the tinted fill gives way to the page. */
+  [data-ch-part="bubble"] {
+    fill: Canvas;
+  }
+
+  [data-ch-part="bubble"][data-ch-active="true"] {
+    fill: Highlight;
+    stroke: Canvas;
+  }
+
+  [data-ch-part="bubble-ring"] {
+    stroke: Highlight;
   }
 
   [data-ch-part="runway-dot"] {

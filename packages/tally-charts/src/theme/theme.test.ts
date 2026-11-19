@@ -528,11 +528,62 @@ describe('theme.css', () => {
     expect(rule?.[0]).toContain(
       '[data-ch-part="dot"][data-ch-tone="accent-soft"]:not([data-ch-soft])',
     )
+    expect(rule?.[0]).toContain('[data-ch-part="bubble"][data-ch-tone="accent-soft"]')
     expect(rule?.[1]).toContain(outline)
     expect(rule?.[1]).toContain('stroke-width: 1px')
     expect(css).toMatch(
       /\[data-ch-part="legend-swatch"\]\[data-ch-tone="accent-soft"\]:not\(\[data-ch-shape="line"\]\) \{\s*box-shadow: inset 0 0 0 1px\s+color-mix/,
     )
+  })
+
+  it('styles bubbles like dots: outline, entry animation, no pointer events, forced colors', () => {
+    expect(css).toMatch(
+      /\[data-ch-part="bubble"\] \{\s*fill: color-mix\(in srgb, var\(--_ch-swatch-color\) 22%, transparent\);\s*stroke: var\(--_ch-swatch-color\);\s*stroke-width: 1\.5px;/,
+    )
+    expect(css).toMatch(
+      /\[data-ch-animate="true"\] \[data-ch-part="dot"\],\s*\[data-ch-animate="true"\] \[data-ch-part="bubble"\] \{/,
+    )
+    expect(css).toMatch(
+      /\[data-ch-part="bubble"\],\s*\[data-ch-part="median"\],[^{]*\{\s*pointer-events: none;/,
+    )
+    expect(css).toMatch(
+      /\[data-ch-part="axis-title"\],\s*\[data-ch-part="target-label"\],[^{]*\{\s*fill: var\(--ch-ink-muted\)/,
+    )
+    const forced = css.slice(css.indexOf('@media (forced-colors: active)'))
+    expect(forced).toMatch(/\[data-ch-part="bubble"\] \{\s*fill: Canvas;\s*\}/)
+    // The forced rule adds no stroke of its own: the outline is the base rule's.
+    expect(forced).not.toMatch(/\[data-ch-part="bubble"\] \{[^}]*stroke:/)
+    expect(forced).toContain('[data-ch-part="axis-title"]')
+  })
+
+  it('lets the active bubble stroke beat the accent-soft outline of the same specificity', () => {
+    const active = '[data-ch-part="bubble"][data-ch-active="true"] {'
+    const soft = css.indexOf('[data-ch-part="bubble"][data-ch-tone="accent-soft"],')
+    const at = css.indexOf(active)
+    expect(soft).toBeGreaterThan(-1)
+    expect(at).toBeGreaterThan(-1)
+    // Same specificity (two attribute selectors), so the later rule wins.
+    expect(at).toBeGreaterThan(soft)
+    // And the soft rule is a real competitor: it sets the same property.
+    expect(css.slice(soft, css.indexOf('}', soft))).toContain('stroke-width: 1px')
+  })
+
+  it('styles the active bubble solid with a surface stroke, and its ring, with forced-colors twins', () => {
+    expect(css).toMatch(
+      /\[data-ch-part="bubble"\]\[data-ch-active="true"\] \{\s*fill: color-mix\(in srgb, var\(--_ch-swatch-color\) 100%, transparent\);\s*stroke: var\(--ch-surface\);\s*stroke-width: 2px;/,
+    )
+    expect(css).toMatch(
+      /\[data-ch-part="dot-ring"\],\s*\[data-ch-part="bubble-ring"\] \{\s*fill: none;\s*stroke-width: 2;/,
+    )
+    expect(css).toMatch(/\[data-ch-part="bubble-ring"\] \{\s*stroke: var\(--_ch-swatch-color\);/)
+    expect(css).toMatch(
+      /\[data-ch-part="bubble-ring"\],\s*\[data-ch-part="bubble"\],\s*\[data-ch-part="median"\],[^{]*\{\s*pointer-events: none;/,
+    )
+    const forced = css.slice(css.indexOf('@media (forced-colors: active)'))
+    expect(forced).toMatch(
+      /\[data-ch-part="bubble"\]\[data-ch-active="true"\] \{\s*fill: Highlight;\s*stroke: Canvas;/,
+    )
+    expect(forced).toMatch(/\[data-ch-part="bubble-ring"\] \{\s*stroke: Highlight;/)
   })
 
   it.each(TONE_MATRIX)(

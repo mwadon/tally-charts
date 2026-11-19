@@ -75,7 +75,7 @@
       "id": "n7",
       "type": "chart-index",
       "props": {
-        "heading": "Fourteen charts, one grammar",
+        "heading": "Fifteen charts, one grammar",
         "lede": "Pick the chart by the question it answers. Each page has live examples and a props table.",
         "items": [
           {
@@ -131,6 +131,12 @@
             "text": "Distributions, row by row",
             "href": "/docs/strip-plot",
             "thumb": "strip-plot"
+          },
+          {
+            "label": "ScatterChart",
+            "text": "Two measures, and a third as size",
+            "href": "/docs/scatter-chart",
+            "thumb": "scatter"
           },
           {
             "label": "WaffleColumns",

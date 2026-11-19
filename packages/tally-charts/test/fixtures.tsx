@@ -17,6 +17,7 @@ import {
   RankedBars,
   RunwayChart,
   runwayForecast,
+  ScatterChart,
   ShareBar,
   StackedAreaChart,
   StackedBarChart,
@@ -441,6 +442,48 @@ export function CrewHours() {
       format={(v) => `${v} h`}
       forecastFrom="W10"
       forecastLabel="today"
+    />
+  )
+}
+
+const jobMargins = (
+  [
+    ['Alder Court', 8000, 44, 40],
+    ['Birch Lane', 12000, 38, 58],
+    ['Cedar Row', 15000, 52, 40],
+    ['Dune House', 22000, 41, 103],
+    ['Elm Terrace', 26000, 35, 79],
+    ['Fern Hill', 34000, 46, 103],
+    ['Grove Flats', 38000, 33, 160],
+    ['Hazel Yard', 48000, 39, 160],
+    ['Ivy Works', 60000, 36, 231],
+    ['Juniper Mill', 88000, 34, 520],
+    ['Kestrel Barn', 18000, 29, 79],
+    ['Larch Depot', 30000, 24, 130],
+    ['Maple Arcade', 44000, 18, 231],
+    ['North Quay', 55000, 27, 271],
+    ['Orchard Mews', 74000, 30, 361],
+    ['Harbor Lofts', 68000, 12, 410],
+  ] as const
+).map(([name, estimate, margin, hours]) => ({ name, estimate, margin, hours }))
+
+export function JobMargins() {
+  return (
+    <ScatterChart
+      title="Job size against margin"
+      data={jobMargins}
+      x="estimate"
+      y="margin"
+      size="hours"
+      label="name"
+      xLabel="Estimate"
+      yLabel="Margin"
+      sizeLabel="Hours"
+      xFormat="currency-compact"
+      yFormat={(v) => `${v}%`}
+      sizeFormat={(v) => `${v} h`}
+      tone={(j) => (j.margin < 32 ? 'loss' : 'accent')}
+      target={{ value: 32, label: 'target 32%' }}
     />
   )
 }

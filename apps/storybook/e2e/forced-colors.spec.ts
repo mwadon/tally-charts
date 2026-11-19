@@ -22,6 +22,59 @@ function systemColor(page: Page, name: string) {
   }, name)
 }
 
+/**
+ * Paint helpers for forced-colors tests: the Canvas colour, a resolver and the `isRealColor` check.
+ * The helper checks run here, so a helper that accepts everything fails every test using it.
+ */
+async function colorHelpers(page: Page) {
+  const canvas = await systemColor(page, 'Canvas')
+  // Computed colors serialize as rgb(), rgba() or color(srgb ...), so resolve them to RGBA
+  // numbers in the page (a 1x1 canvas parses every form) and compare those.
+  // Resolved twice with different seeds: a value the canvas ignores keeps the seed, so the
+  // two results differ and the value counts as unparseable (null), never as a colour.
+  const resolve = (value: string) =>
+    page.evaluate((v) => {
+      const ctx = document.createElement('canvas').getContext('2d', {
+        willReadFrequently: true,
+      }) as CanvasRenderingContext2D
+      const paint = (seed: string) => {
+        ctx.clearRect(0, 0, 1, 1)
+        ctx.fillStyle = seed
+        ctx.fillStyle = v
+        ctx.fillRect(0, 0, 1, 1)
+        return [...ctx.getImageData(0, 0, 1, 1).data]
+      }
+      const first = paint('#010203')
+      const second = paint('#fdfcfb')
+      return first.every((c, i) => c === second[i]) ? first : null
+    }, value)
+  const canvasRgba = await resolve(canvas)
+  if (!canvasRgba) throw new Error(`Canvas (${canvas}) did not resolve to a color`)
+  // Real: not 'none', at least 20% opaque, and after compositing over the Canvas color some
+  // channel differs from Canvas by more than 24.
+  const isRealColor = async (value: string) => {
+    if (value === 'none' || value.startsWith('url(')) return false
+    const rgba = await resolve(value)
+    if (!rgba) return false
+    const [r = 0, g = 0, b = 0, a = 0] = rgba
+    if (a < 0.2 * 255) return false
+    const over = [r, g, b].map((c, i) => (c * a + (canvasRgba[i] ?? 0) * (255 - a)) / 255)
+    return over.some((c, i) => Math.abs(c - (canvasRgba[i] ?? 0)) > 24)
+  }
+  // The helper can fail: Canvas itself in any serialization, fully transparent, none.
+  const [cr = 0, cg = 0, cb = 0] = canvasRgba
+  expect(await isRealColor(`color(srgb ${cr / 255} ${cg / 255} ${cb / 255})`)).toBe(false)
+  expect(await isRealColor(canvas)).toBe(false)
+  expect(await isRealColor('color(srgb 0 0 0 / 0)')).toBe(false)
+  expect(await isRealColor('rgb(0 0 0 / 0)')).toBe(false)
+  expect(await isRealColor('none')).toBe(false)
+  expect(await isRealColor('url(#nope)')).toBe(false)
+  expect(await isRealColor('notacolor')).toBe(false)
+  expect(await resolve('notacolor')).toBeNull()
+  expect(await isRealColor('rgb(255 0 0)')).toBe(true)
+  return { canvas, resolve, isRealColor }
+}
+
 const MARKS = [
   ['primitives-legend--default', 'legend-swatch'],
   ['reference-gross-margin--light', 'meter-fill'],
@@ -163,51 +216,7 @@ for (const colorScheme of ['light', 'dark'] as const) {
       page,
     }) => {
       await openForced(page, 'charts-stackedareachart--light', colorScheme)
-      const canvas = await systemColor(page, 'Canvas')
-      // Computed colors serialize as rgb(), rgba() or color(srgb ...), so resolve them to RGBA
-      // numbers in the page (a 1x1 canvas parses every form) and compare those.
-      // Resolved twice with different seeds: a value the canvas ignores keeps the seed, so the
-      // two results differ and the value counts as unparseable (null), never as a colour.
-      const resolve = (value: string) =>
-        page.evaluate((v) => {
-          const ctx = document.createElement('canvas').getContext('2d', {
-            willReadFrequently: true,
-          }) as CanvasRenderingContext2D
-          const paint = (seed: string) => {
-            ctx.clearRect(0, 0, 1, 1)
-            ctx.fillStyle = seed
-            ctx.fillStyle = v
-            ctx.fillRect(0, 0, 1, 1)
-            return [...ctx.getImageData(0, 0, 1, 1).data]
-          }
-          const first = paint('#010203')
-          const second = paint('#fdfcfb')
-          return first.every((c, i) => c === second[i]) ? first : null
-        }, value)
-      const canvasRgba = await resolve(canvas)
-      if (!canvasRgba) throw new Error(`Canvas (${canvas}) did not resolve to a color`)
-      // Real: not 'none', at least 20% opaque, and after compositing over the Canvas color some
-      // channel differs from Canvas by more than 24.
-      const isRealColor = async (value: string) => {
-        if (value === 'none' || value.startsWith('url(')) return false
-        const rgba = await resolve(value)
-        if (!rgba) return false
-        const [r = 0, g = 0, b = 0, a = 0] = rgba
-        if (a < 0.2 * 255) return false
-        const over = [r, g, b].map((c, i) => (c * a + (canvasRgba[i] ?? 0) * (255 - a)) / 255)
-        return over.some((c, i) => Math.abs(c - (canvasRgba[i] ?? 0)) > 24)
-      }
-      // The helper can fail: Canvas itself in any serialization, fully transparent, none.
-      const [cr = 0, cg = 0, cb = 0] = canvasRgba
-      expect(await isRealColor(`color(srgb ${cr / 255} ${cg / 255} ${cb / 255})`)).toBe(false)
-      expect(await isRealColor(canvas)).toBe(false)
-      expect(await isRealColor('color(srgb 0 0 0 / 0)')).toBe(false)
-      expect(await isRealColor('rgb(0 0 0 / 0)')).toBe(false)
-      expect(await isRealColor('none')).toBe(false)
-      expect(await isRealColor('url(#nope)')).toBe(false)
-      expect(await isRealColor('notacolor')).toBe(false)
-      expect(await resolve('notacolor')).toBeNull()
-      expect(await isRealColor('rgb(255 0 0)')).toBe(true)
+      const { canvas, isRealColor } = await colorHelpers(page)
       const layers = await page
         .locator('#storybook-root path[data-ch-part="area-layer"]')
         .evaluateAll((els) =>
@@ -281,6 +290,79 @@ for (const colorScheme of ['light', 'dark'] as const) {
         expect(fills.length).toBeGreaterThan(0)
         for (const fill of fills) expect(await isRealColor(fill)).toBe(true)
       }
+    })
+
+    test(`scatter bubbles, target, rings and labels stay visible (${colorScheme})`, async ({
+      page,
+    }) => {
+      await openForced(page, 'charts-scatterchart--light', colorScheme)
+      const { canvas, resolve, isRealColor } = await colorHelpers(page)
+      const root = '#storybook-root'
+      const bubbles = await page.locator(`${root} [data-ch-part="bubble"]`).evaluateAll((els) =>
+        els.map((el) => {
+          const style = getComputedStyle(el)
+          return { stroke: style.stroke, width: Number.parseFloat(style.strokeWidth) }
+        }),
+      )
+      expect(bubbles).toHaveLength(16)
+      // The tinted fill gives way to the page, so the outline alone must carry every bubble.
+      for (const bubble of bubbles) {
+        expect(await isRealColor(bubble.stroke)).toBe(true)
+        expect(bubble.width).toBeGreaterThanOrEqual(1)
+      }
+      const target = await page.locator(`${root} [data-ch-part="target"]`).evaluate((el) => ({
+        stroke: getComputedStyle(el).stroke,
+        width: Number.parseFloat(getComputedStyle(el).strokeWidth),
+        box: el.getBoundingClientRect().width,
+      }))
+      expect(await isRealColor(target.stroke)).toBe(true)
+      expect(target.width).toBeGreaterThanOrEqual(1)
+      expect(target.box).toBeGreaterThan(100)
+      for (const part of ['target-label', 'axis-title']) {
+        const fills = await page
+          .locator(`${root} [data-ch-part="${part}"]`)
+          .evaluateAll((els) => els.map((el) => getComputedStyle(el).fill))
+        expect(fills.length).toBeGreaterThan(0)
+        for (const fill of fills) expect(await isRealColor(fill)).toBe(true)
+      }
+      // Walking with the keyboard activates a bubble: solid Highlight with a Canvas stroke, and a
+      // Highlight ring around it, for an accent bubble and for a loss one (the stylesheet owns the
+      // fill, so the tone's own colour never leaks in). System colours are compared as resolved
+      // RGBA, not as strings.
+      const highlight = await resolve(await systemColor(page, 'Highlight'))
+      const canvasRgba = await resolve(canvas)
+      await page.keyboard.press('Tab')
+      await expect(page.locator(`${root} [role="application"]`)).toBeFocused()
+      const sameColor = async (value: string, expected: number[] | null) => {
+        expect(expected).not.toBeNull()
+        expect(await resolve(value)).toEqual(expected)
+      }
+      const checkActive = async (tone: string) => {
+        const active = page.locator(`${root} [data-ch-part="bubble"][data-ch-active="true"]`)
+        await expect(active).toHaveCount(1)
+        await expect(active).toHaveAttribute('data-ch-tone', tone)
+        const paint = await active.evaluate((el) => ({
+          fill: getComputedStyle(el).fill,
+          stroke: getComputedStyle(el).stroke,
+          width: Number.parseFloat(getComputedStyle(el).strokeWidth),
+        }))
+        expect(await isRealColor(paint.fill)).toBe(true)
+        await sameColor(paint.fill, highlight)
+        await sameColor(paint.stroke, canvasRgba)
+        expect(paint.width).toBeGreaterThanOrEqual(1.5)
+        const ring = await page.locator(`${root} [data-ch-part="bubble-ring"]`).evaluate((el) => ({
+          stroke: getComputedStyle(el).stroke,
+          width: Number.parseFloat(getComputedStyle(el).strokeWidth),
+        }))
+        expect(await isRealColor(ring.stroke)).toBe(true)
+        await sameColor(ring.stroke, highlight)
+        expect(ring.width).toBeGreaterThanOrEqual(1.5)
+      }
+      await checkActive('accent')
+      // End is the largest estimate (accent); one step left is a job under target.
+      await page.keyboard.press('End')
+      await page.keyboard.press('ArrowLeft')
+      await checkActive('loss')
     })
 
     test('heatmap levels differ by border width and keep a focus ring', async ({ page }) => {

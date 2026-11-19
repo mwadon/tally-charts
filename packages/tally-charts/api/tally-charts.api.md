@@ -293,9 +293,12 @@ export interface ChartMessages {
     headerRow: string;
     headerRunsOut: string;
     headerRunwayDetail: string;
+    headerSize: string;
     headerStatus: string;
     headerTotal: string;
     headerValue: string;
+    headerX: string;
+    headerY: string;
     heatmapName: string;
     keyboardHint: string;
     keyboardHintSelect: string;
@@ -1150,6 +1153,41 @@ export interface RunwayRow {
 
 // @public (undocumented)
 export type ScaleSpec<D> = LinearScaleSpec<D> | BandScaleSpec<D> | PointScaleSpec<D> | TimeScaleSpec<D>;
+
+// @public (undocumented)
+export function ScatterChart<D>(input: ScatterChartProps<D>): JSX.Element;
+
+// @public (undocumented)
+export type ScatterChartProps<D> = ChartName & Omit<ChartPassThroughProps<D>, 'aspectRatio'> & {
+    data: readonly D[];
+    x: Accessor<D, number>;
+    y: Accessor<D, number>;
+    size?: Accessor<D, number>;
+    id?: Accessor<D, Id>;
+    label?: Accessor<D, string>;
+    tone?: PerItem<D, Tone>;
+    xLabel?: string;
+    yLabel?: string;
+    sizeLabel?: string;
+    xFormat?: FormatSpec;
+    yFormat?: FormatSpec;
+    sizeFormat?: FormatSpec;
+    xDomain?: readonly [number, number];
+    yDomain?: readonly [number, number];
+    radius?: number;
+    maxRadius?: number;
+    target?: number | {
+        value: number;
+        label?: string;
+    };
+    xAxis?: TickSpec | 'none';
+    xAxisFormat?: AxisFormat;
+    yAxis?: TickSpec | 'none';
+    yAxisFormat?: AxisFormat;
+    grid?: boolean;
+    dataTable?: boolean | DataTableOptions;
+    tooltip?: ChartTooltip<D>;
+};
 
 // @public
 export type SeqLevel = 1 | 2 | 3 | 4 | 5;

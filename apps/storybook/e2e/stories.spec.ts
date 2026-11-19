@@ -194,6 +194,20 @@ test('the stacked area chart walks the weeks and announces the stack with its to
   await expect(page.locator('[data-ch-part="tooltip"]')).toContainText('Total')
 })
 
+test('the scatter chart walks the jobs by estimate and announces every measure', async ({
+  page,
+}) => {
+  await open(page, 'charts-scatterchart--light')
+  const chart = page.getByRole('figure', { name: 'Margin by job size' })
+  await page.keyboard.press('Tab')
+  await expect(chart.getByRole('application')).toBeFocused()
+  const live = chart.locator('[aria-live]')
+  await expect(live).toHaveText('1 of 16, Alder Court, Estimate $8K, Margin 44%, Hours 40 h')
+  await page.keyboard.press('ArrowRight')
+  await expect(live).toHaveText('2 of 16, Birch Lane, Estimate $12K, Margin 38%, Hours 58 h')
+  await expect(page.locator('[data-ch-part="tooltip"]')).toContainText('Birch Lane')
+})
+
 test('hovering near a strip dot shows its tooltip', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 600 })
   await open(page, 'reference-dallas-installs--light')

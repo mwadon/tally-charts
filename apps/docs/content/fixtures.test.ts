@@ -70,7 +70,7 @@ test('navigation.json is valid and its slugs are unique', async () => {
   expect(new Set(all).size).toBe(all.length)
 })
 
-test('the available pages of the navigation are 28, in navigation order', async () => {
+test('the available pages of the navigation are 29, in navigation order', async () => {
   const { groups } = await source.getNavigation()
   const available = groups.flatMap((g) => g.items).filter((i) => i.available)
   expect(available.map((i) => i.slug)).toEqual([
@@ -92,6 +92,7 @@ test('the available pages of the navigation are 28, in navigation order', async 
     'bridge-chart',
     'dot-histogram',
     'strip-plot',
+    'scatter-chart',
     'waffle-columns',
     'line-chart',
     'stacked-area-chart',
@@ -134,6 +135,7 @@ test('the navigation has every slug of F15 except home', async () => {
     'bridge-chart',
     'dot-histogram',
     'strip-plot',
+    'scatter-chart',
     'waffle-columns',
     'line-chart',
     'stacked-area-chart',
@@ -144,7 +146,7 @@ test('the navigation has every slug of F15 except home', async () => {
     'stability',
     'migration-1-0',
   ]
-  expect(f15).toHaveLength(28)
+  expect(f15).toHaveLength(29)
   expect(all).toEqual(expect.arrayContaining(f15))
 })
 
