@@ -43,6 +43,14 @@ export default [
     gzip: true,
   },
   {
+    name: 'ScatterChart',
+    path: 'dist/index.js',
+    import: '{ ScatterChart }',
+    ignore: ['react', 'react-dom'],
+    limit: '15 KB',
+    gzip: true,
+  },
+  {
     name: 'ComparisonBars',
     path: 'dist/index.js',
     import: '{ ComparisonBars }',

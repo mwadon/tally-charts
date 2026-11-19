@@ -4869,7 +4869,7 @@
             {
               "kind": "PropertySignature",
               "canonicalReference": "tally-charts!ChartMessages#headerName:member",
-              "docComment": "/**\n * A RunwayChart data-table column header.\n */\n",
+              "docComment": "/**\n * A RunwayChart or ScatterChart data-table column header.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -5138,6 +5138,33 @@
             },
             {
               "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!ChartMessages#headerSize:member",
+              "docComment": "/**\n * As `headerX`, for `size`.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "headerSize: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "headerSize",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
               "canonicalReference": "tally-charts!ChartMessages#headerStatus:member",
               "docComment": "/**\n * A RunwayChart data-table column header.\n */\n",
               "excerptTokens": [
@@ -5212,6 +5239,60 @@
               "isOptional": false,
               "releaseTag": "Public",
               "name": "headerValue",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!ChartMessages#headerX:member",
+              "docComment": "/**\n * The name of a ScatterChart's x measure when it has no `xLabel` and no field name.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "headerX: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "headerX",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!ChartMessages#headerY:member",
+              "docComment": "/**\n * As `headerX`, for y.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "headerY: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "headerY",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2
@@ -16808,6 +16889,295 @@
           "typeTokenRange": {
             "startIndex": 1,
             "endIndex": 9
+          }
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "tally-charts!ScatterChart:function(1)",
+          "docComment": "",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function ScatterChart<D>(input: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ScatterChartProps",
+              "canonicalReference": "tally-charts!ScatterChartProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<D>"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!React.JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "returnTypeTokenRange": {
+            "startIndex": 4,
+            "endIndex": 6
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "{ data, x, y, size, id, label, tone, xLabel, yLabel, xFormat, yFormat, xDomain, yDomain, radius, maxRadius, target, xAxis, xAxisFormat, yAxis, yAxisFormat, grid, margin, height, children, onSelect, onActiveChange, sizeLabel, sizeFormat, dataTable, tooltip, ...chart }",
+              "parameterTypeTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              },
+              "isOptional": false
+            },
+            {
+              "parameterName": "input",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "isOptional": false
+            }
+          ],
+          "typeParameters": [
+            {
+              "typeParameterName": "D",
+              "constraintTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              },
+              "defaultTypeTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              }
+            }
+          ],
+          "name": "ScatterChart"
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "tally-charts!ScatterChartProps:type",
+          "docComment": "",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "type ScatterChartProps<D> = "
+            },
+            {
+              "kind": "Reference",
+              "text": "ChartName",
+              "canonicalReference": "tally-charts!ChartName:type"
+            },
+            {
+              "kind": "Content",
+              "text": " & "
+            },
+            {
+              "kind": "Reference",
+              "text": "Omit",
+              "canonicalReference": "!Omit:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "ChartPassThroughProps",
+              "canonicalReference": "tally-charts!ChartPassThroughProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<D>, 'aspectRatio'> & {\n  data: readonly D[];\n  x: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Accessor",
+              "canonicalReference": "tally-charts!Accessor:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<D, number>;\n  y: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Accessor",
+              "canonicalReference": "tally-charts!Accessor:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<D, number>;\n  size?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Accessor",
+              "canonicalReference": "tally-charts!Accessor:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<D, number>;\n  id?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Accessor",
+              "canonicalReference": "tally-charts!Accessor:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<D, "
+            },
+            {
+              "kind": "Reference",
+              "text": "Id",
+              "canonicalReference": "tally-charts!Id:type"
+            },
+            {
+              "kind": "Content",
+              "text": ">;\n  label?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Accessor",
+              "canonicalReference": "tally-charts!Accessor:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<D, string>;\n  tone?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "PerItem",
+              "canonicalReference": "tally-charts!PerItem:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<D, "
+            },
+            {
+              "kind": "Reference",
+              "text": "Tone",
+              "canonicalReference": "tally-charts!Tone:type"
+            },
+            {
+              "kind": "Content",
+              "text": ">;\n  xLabel?: string;\n  yLabel?: string;\n  sizeLabel?: string;\n  xFormat?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "FormatSpec",
+              "canonicalReference": "tally-charts!FormatSpec:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n  yFormat?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "FormatSpec",
+              "canonicalReference": "tally-charts!FormatSpec:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n  sizeFormat?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "FormatSpec",
+              "canonicalReference": "tally-charts!FormatSpec:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n  xDomain?: readonly [number, number];\n  yDomain?: readonly [number, number];\n  radius?: number;\n  maxRadius?: number;\n  target?: number | {\n    value: number;\n    label?: string;\n  };\n  xAxis?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TickSpec",
+              "canonicalReference": "tally-charts!TickSpec:type"
+            },
+            {
+              "kind": "Content",
+              "text": " | 'none';\n  xAxisFormat?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "AxisFormat",
+              "canonicalReference": "tally-charts!AxisFormat:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n  yAxis?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TickSpec",
+              "canonicalReference": "tally-charts!TickSpec:type"
+            },
+            {
+              "kind": "Content",
+              "text": " | 'none';\n  yAxisFormat?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "AxisFormat",
+              "canonicalReference": "tally-charts!AxisFormat:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n  grid?: boolean;\n  dataTable?: boolean | "
+            },
+            {
+              "kind": "Reference",
+              "text": "DataTableOptions",
+              "canonicalReference": "tally-charts!DataTableOptions:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n  tooltip?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ChartTooltip",
+              "canonicalReference": "tally-charts!ChartTooltip:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<D>;\n}"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "ScatterChartProps",
+          "typeParameters": [
+            {
+              "typeParameterName": "D",
+              "constraintTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              },
+              "defaultTypeTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              }
+            }
+          ],
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 41
           }
         },
         {

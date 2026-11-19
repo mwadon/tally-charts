@@ -17,6 +17,7 @@ import {
   RankedBars,
   RunwayChart,
   runwayForecast,
+  ScatterChart,
   ShareBar,
   StackedAreaChart,
   StackedBarChart,
@@ -30,7 +31,6 @@ import {
   WaterfallChart,
   ZoneMeter,
 } from '../src'
-import { ScatterChart } from '../src/react/charts/ScatterChart'
 
 export const weeks = [
   { week: 'Jul 6', margin: 37.5 },
