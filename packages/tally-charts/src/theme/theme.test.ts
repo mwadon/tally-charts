@@ -528,11 +528,32 @@ describe('theme.css', () => {
     expect(rule?.[0]).toContain(
       '[data-ch-part="dot"][data-ch-tone="accent-soft"]:not([data-ch-soft])',
     )
+    expect(rule?.[0]).toContain('[data-ch-part="bubble"][data-ch-tone="accent-soft"]')
     expect(rule?.[1]).toContain(outline)
     expect(rule?.[1]).toContain('stroke-width: 1px')
     expect(css).toMatch(
       /\[data-ch-part="legend-swatch"\]\[data-ch-tone="accent-soft"\]:not\(\[data-ch-shape="line"\]\) \{\s*box-shadow: inset 0 0 0 1px\s+color-mix/,
     )
+  })
+
+  it('styles bubbles like dots: outline, entry animation, no pointer events, forced colors', () => {
+    expect(css).toMatch(
+      /\[data-ch-part="bubble"\] \{\s*stroke: var\(--_ch-swatch-color\);\s*stroke-width: 1\.5px;/,
+    )
+    expect(css).toMatch(
+      /\[data-ch-animate="true"\] \[data-ch-part="dot"\],\s*\[data-ch-animate="true"\] \[data-ch-part="bubble"\] \{/,
+    )
+    expect(css).toMatch(
+      /\[data-ch-part="bubble"\],\s*\[data-ch-part="median"\],[^{]*\{\s*pointer-events: none;/,
+    )
+    expect(css).toMatch(
+      /\[data-ch-part="axis-title"\],\s*\[data-ch-part="target-label"\],[^{]*\{\s*fill: var\(--ch-ink-muted\)/,
+    )
+    const forced = css.slice(css.indexOf('@media (forced-colors: active)'))
+    expect(forced).toMatch(
+      /\[data-ch-part="bubble"\] \{\s*fill: Canvas;\s*stroke: var\(--_ch-swatch-color\);/,
+    )
+    expect(forced).toContain('[data-ch-part="axis-title"]')
   })
 
   it.each(TONE_MATRIX)(

@@ -304,6 +304,7 @@
 [data-ch-part="cursor-dot"],
 [data-ch-part="dot"],
 [data-ch-part="dot-ring"],
+[data-ch-part="bubble"],
 [data-ch-part="median"],
 [data-ch-part="line"],
 [data-ch-part="line-dot"],
@@ -422,6 +423,12 @@
   stroke-width: 2;
 }
 
+/* A bubble is its tone at 22 % over the surface (inline fill) with a 1.5px outline in the tone. */
+[data-ch-part="bubble"] {
+  stroke: var(--_ch-swatch-color);
+  stroke-width: 1.5px;
+}
+
 /* Medians use the inked tone mix of tinted text: visible over their own dots, ≥ 4.5:1 labels. */
 [data-ch-part="median"] {
   stroke: color-mix(in srgb, var(--_ch-swatch-color) var(--ch-tone-text-mix), var(--ch-ink));
@@ -444,7 +451,8 @@
   cursor: pointer;
 }
 
-[data-ch-animate="true"] [data-ch-part="dot"] {
+[data-ch-animate="true"] [data-ch-part="dot"],
+[data-ch-animate="true"] [data-ch-part="bubble"] {
   transform-box: fill-box;
   transform-origin: center;
   animation: ch-rise var(--ch-duration) var(--ch-ease) both;
@@ -540,6 +548,7 @@
 
 /* ---------- Labels and reference marks ---------- */
 [data-ch-part="axis-label"],
+[data-ch-part="axis-title"],
 [data-ch-part="target-label"],
 [data-ch-part="forecast-label"],
 [data-ch-part="end-label"] {
@@ -785,6 +794,7 @@
 [data-ch-part="region"][data-ch-fill="hatch"],
 [data-ch-part="bar"][data-ch-tone="accent-soft"],
 [data-ch-part="dot"][data-ch-tone="accent-soft"]:not([data-ch-soft]),
+[data-ch-part="bubble"][data-ch-tone="accent-soft"],
 [data-ch-part="cursor-dot"][data-ch-tone="accent-soft"] {
   stroke: color-mix(in srgb, var(--_ch-swatch-color) var(--ch-tone-text-mix), var(--ch-ink));
   stroke-width: 1px;
@@ -1658,6 +1668,7 @@
   .ch-svg
     :is(
       [data-ch-part="axis-label"],
+      [data-ch-part="axis-title"],
       [data-ch-part="target-label"],
       [data-ch-part="forecast-label"],
       [data-ch-part="end-label"],
@@ -1810,6 +1821,12 @@
     fill: none;
     stroke: GrayText;
     stroke-opacity: 1;
+  }
+
+  /* Bubbles keep their outline in the tone's system colour; the tinted fill gives way to the page. */
+  [data-ch-part="bubble"] {
+    fill: Canvas;
+    stroke: var(--_ch-swatch-color);
   }
 
   [data-ch-part="runway-dot"] {
