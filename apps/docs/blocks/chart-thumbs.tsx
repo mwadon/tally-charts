@@ -16,6 +16,7 @@ export const thumbNames = [
   'bridge-chart',
   'dot-histogram',
   'strip-plot',
+  'scatter',
   'waffle-columns',
   'line-chart',
   'stacked-area',
@@ -142,6 +143,17 @@ const THUMBS: Record<ThumbName, ReactNode> = {
         4.5,
       )}
       {dots('ct-loss', [[18, 46]], 4.5)}
+    </>
+  ),
+  scatter: (
+    <>
+      <path className="ct-rule" d="M8 10h104M8 28h104M8 46h104" />
+      <path className="ct-mark ct-dashed" d="M8 32h104" />
+      <circle className="ct-accent ct-half" cx="30" cy="24" r="9" />
+      <circle className="ct-accent ct-half" cx="64" cy="16" r="5" />
+      <circle className="ct-accent ct-half" cx="92" cy="22" r="12" />
+      <circle className="ct-loss" cx="50" cy="40" r="6" />
+      <circle className="ct-loss" cx="80" cy="42" r="3.5" />
     </>
   ),
   'waffle-columns': (

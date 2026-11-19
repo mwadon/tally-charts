@@ -86,6 +86,10 @@
           "slug": "strip-plot"
         },
         {
+          "label": "ScatterChart",
+          "slug": "scatter-chart"
+        },
+        {
           "label": "WaffleColumns",
           "slug": "waffle-columns"
         },
