@@ -2791,3 +2791,20 @@ Gałąź `scatter-chart`. Spec: `docs/superpowers/specs/2026-11-19-tally-charts-
 - Odziedziczony TSDoc `height` mówi „Default 240”, a `ScatterChart` (jak `LineChart` i `StackedAreaChart`) ma domyślnie 280.
 - Wydanie 1.4.0 nie zostało zrobione (changeset jest).
 - `pnpm --filter docs seed` (nowa strona i kafelek w glokki).
+
+## FunnelChart 1.5 (2026-11-19)
+
+Gałąź `funnel-chart`. Spec: `docs/superpowers/specs/2026-11-19-tally-charts-1.5-funnel-chart-design.md`. Wydanie 1.5.0 (minor, tylko dodatki, changeset `.changeset/funnel-chart.md`).
+
+- Komponent `FunnelChart`: jedna wstęga zwężająca się od kroku do kroku (grubość proporcjonalna do wartości, płaski odcinek 20 % kolumny przy każdym kroku, potem krzywa jako samo przejście, minimum 2 px), nagłówek kroku z wartością, nazwą i odsetkiem kontynuacji (`<1%` jak w `ShareBar`), najsłabszy odsetek pogrubiony w kolorze tekstu loss przy `highlight="weakest"` i co najmniej trzech krokach (wstęga się nie zmienia). `y` albo `series` (warstwy w kolejności serii, domyślne tony z kolejności biblioteki), `orientation` `'auto'` (pionowo, gdy krok ma < 96 px albo wartość lub odsetek nie mieści się w kolumnie; nazwy są ucinane z `<title>`), `labelWidth` 128 dla kolumny etykiet w pionie, 64 px na krok. Aktywny krok to tylko prowadnica 1,5 px w kolorze ink: nagłówki i etykiety nigdy nie są przygaszane, `dimInactive` nie działa na ten wykres. Nowe klucze `ChartMessages`: `headerStep`, `headerContinued`, `ofPreviousStep`, `ofFirstStep`.
+- Rozmiar: wpis `FunnelChart` w `pnpm size` 11.48 kB, limit 15 KB; `LineChart` 13.89 kB z 14 KB (bez zmian).
+- Testy biblioteki 1664, testy docs 896, e2e docs 550 na darwin i 550 na linux (docker, tryb porównania), e2e Storybook 566 na darwin i linux (z Task 5, po nim bez zmian w Storybooku).
+- Docs: strona `/docs/funnel-chart` (fiksturka, nawigacja po BridgeChart) z czterema przykładami w `examples/funnel-chart/` (`lead-to-paid`, `by-source` z `Legend`, `vertical`, `currency`; wszystkie rscSafe), miniatura `funnel` i kafelek w `chart-index`, nagłówek „Sixteen charts, one grammar”, nowe klucze w tabeli komunikatów na `/docs/hooks-and-providers`. Karty poziome przy 1280 px i pionowe przy 375 px: `height` bloku 312 / 333 / 560 / 312 i wpisy `NARROW_CHART_HEIGHTS` 336 / 385 / – / 336 (zmierzone na darwin). Stron w nawigacji 30, `API coverage: 58/58`, `check:content` 0 błędów w 31 stronach. Wiersz FunnelChart i uwaga (ton nie jest jedynym nośnikiem najsłabszego kroku, aktywny krok tylko prowadnicą) w `docs/a11y.md`. Baseline'y `/` odświeżone na darwin i linux (baseline'y `/docs/line-chart` bez zmian).
+
+**Otwarte kwestie:**
+- Kafelków `chart-index` jest 17 (16 wykresów i Small pieces): przy 4 kolumnach (od 1100 px) ostatni wiersz ma sam kafelek Small pieces.
+- Przy oknie od 764 px, gdy karta docs jest jeszcze za wąska na poziomy lejek, placeholder rezerwuje wysokość szeroką i karta zmienia wysokość po zamontowaniu (e2e mierzy tylko 375 i 1280).
+- Aktywny krok oznacza tylko prowadnica 1,5 px (i tooltip); może być za cichy.
+- `margin.left` w pionie zastępuje margines kolumny etykiet, a etykiety dalej zaczynają się w `-labelWidth`; docs kierują do `labelWidth`.
+- Wydanie 1.5.0 nie zostało zrobione (changeset jest).
+- `pnpm --filter docs seed` (nowa strona i kafelek w glokki).

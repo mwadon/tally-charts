@@ -6,7 +6,7 @@ import { ChartIndexView } from './home-views'
 import { parseBlockProps } from './registry'
 
 const props: ChartIndexProps = {
-  heading: 'Fifteen charts, one grammar',
+  heading: 'Sixteen charts, one grammar',
   lede: 'Pick the chart by the question.',
   items: thumbNames.map((thumb) => ({
     label: `Chart ${thumb}`,

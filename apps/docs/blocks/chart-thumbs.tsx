@@ -14,6 +14,7 @@ export const thumbNames = [
   'ranked-bars',
   'waterfall-chart',
   'bridge-chart',
+  'funnel',
   'dot-histogram',
   'strip-plot',
   'scatter',
@@ -116,6 +117,38 @@ const THUMBS: Record<ThumbName, ReactNode> = {
       <rect className="ct-loss" x="38" y="6" width="22" height="16" />
       <rect className="ct-loss" x="66" y="22" width="22" height="12" />
       <rect className="ct-accent" x="94" y="34" width="20" height="16" />
+    </>
+  ),
+  funnel: (
+    <>
+      <path className="ct-rule" d="M28.8 2v52M49.6 2v52M70.4 2v52M91.2 2v52" />
+      {cells(
+        'ct-accent',
+        [
+          [8, 2],
+          [30.8, 2],
+          [51.6, 2],
+          [72.4, 2],
+          [93.2, 2],
+        ],
+        11,
+        3,
+      )}
+      {cells(
+        'ct-track',
+        [
+          [30.8, 8],
+          [51.6, 8],
+          [93.2, 8],
+        ],
+        8,
+        2.5,
+      )}
+      {cells('ct-loss', [[72.4, 8]], 8, 2.5)}
+      <path
+        className="ct-accent"
+        d="M8 16h4.2c8.3 0 8.3 6.65 16.6 6.65h4.2c8.3 0 8.3 4.2 16.6 4.2h4.2c8.3 0 8.3 3.6 16.6 3.6h4.2c8.3 0 8.3 0.55 16.6 0.55H112v8H91.2c-8.3 0-8.3 0.55-16.6 0.55h-4.2c-8.3 0-8.3 3.6-16.6 3.6h-4.2c-8.3 0-8.3 4.2-16.6 4.2h-4.2c-8.3 0-8.3 6.65-16.6 6.65H8z"
+      />
     </>
   ),
   'dot-histogram': (

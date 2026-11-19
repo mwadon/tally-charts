@@ -78,6 +78,10 @@
           "slug": "bridge-chart"
         },
         {
+          "label": "FunnelChart",
+          "slug": "funnel-chart"
+        },
+        {
           "label": "DotHistogram",
           "slug": "dot-histogram"
         },
