@@ -4760,6 +4760,33 @@
             },
             {
               "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!ChartMessages#headerContinued:member",
+              "docComment": "/**\n * The continue-rate column of a FunnelChart data table.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "headerContinued: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "headerContinued",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
               "canonicalReference": "tally-charts!ChartMessages#headerDate:member",
               "docComment": "/**\n * A data-table column header.\n */\n",
               "excerptTokens": [
@@ -5192,6 +5219,33 @@
             },
             {
               "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!ChartMessages#headerStep:member",
+              "docComment": "/**\n * The step column of a FunnelChart data table. A header taken from a string accessor keeps the field name.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "headerStep: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "headerStep",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
               "canonicalReference": "tally-charts!ChartMessages#headerTotal:member",
               "docComment": "/**\n * A data-table column header.\n */\n",
               "excerptTokens": [
@@ -5617,6 +5671,60 @@
               "isOptional": false,
               "releaseTag": "Public",
               "name": "now",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!ChartMessages#ofFirstStep:member",
+              "docComment": "/**\n * After a FunnelChart step's share of the first step in the tooltip, as in \"24% of first step\".\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "ofFirstStep: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "ofFirstStep",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!ChartMessages#ofPreviousStep:member",
+              "docComment": "/**\n * After a FunnelChart step's continue rate in the tooltip and announcements, as in \"65% of previous step\".\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "ofPreviousStep: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "ofPreviousStep",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2
@@ -10024,6 +10132,367 @@
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2
+              }
+            }
+          ],
+          "extendsTokenRanges": []
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "tally-charts!FunnelChart:function(1)",
+          "docComment": "",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function FunnelChart<D>(input: "
+            },
+            {
+              "kind": "Reference",
+              "text": "FunnelChartProps",
+              "canonicalReference": "tally-charts!FunnelChartProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<D>"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!React.JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "returnTypeTokenRange": {
+            "startIndex": 4,
+            "endIndex": 6
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "{ data, x, y, id, tone, format, orientation, highlight, labelWidth, dataTable, tooltip, margin, height, children, onSelect, onActiveChange, series: seriesProp, ...chart }",
+              "parameterTypeTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              },
+              "isOptional": false
+            },
+            {
+              "parameterName": "input",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "isOptional": false
+            }
+          ],
+          "typeParameters": [
+            {
+              "typeParameterName": "D",
+              "constraintTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              },
+              "defaultTypeTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              }
+            }
+          ],
+          "name": "FunnelChart"
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "tally-charts!FunnelChartProps:type",
+          "docComment": "",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "type FunnelChartProps<D> = "
+            },
+            {
+              "kind": "Reference",
+              "text": "ChartName",
+              "canonicalReference": "tally-charts!ChartName:type"
+            },
+            {
+              "kind": "Content",
+              "text": " & "
+            },
+            {
+              "kind": "Reference",
+              "text": "Omit",
+              "canonicalReference": "!Omit:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "ChartPassThroughProps",
+              "canonicalReference": "tally-charts!ChartPassThroughProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<D>, 'aspectRatio' | 'dimInactive'> & {\n  data: readonly D[];\n  x: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Accessor",
+              "canonicalReference": "tally-charts!Accessor:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<D, string>;\n  id?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Accessor",
+              "canonicalReference": "tally-charts!Accessor:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<D, "
+            },
+            {
+              "kind": "Reference",
+              "text": "Id",
+              "canonicalReference": "tally-charts!Id:type"
+            },
+            {
+              "kind": "Content",
+              "text": ">;\n  format?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "FormatSpec",
+              "canonicalReference": "tally-charts!FormatSpec:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n  orientation?: 'auto' | 'horizontal' | 'vertical';\n  highlight?: 'weakest' | 'none';\n  labelWidth?: number;\n  dataTable?: boolean | "
+            },
+            {
+              "kind": "Reference",
+              "text": "DataTableOptions",
+              "canonicalReference": "tally-charts!DataTableOptions:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n  tooltip?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ChartTooltip",
+              "canonicalReference": "tally-charts!ChartTooltip:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<D>;\n} & ({\n  y: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Accessor",
+              "canonicalReference": "tally-charts!Accessor:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<D, number>;\n  tone?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Tone",
+              "canonicalReference": "tally-charts!Tone:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n  series?: undefined;\n} | {\n  series: readonly "
+            },
+            {
+              "kind": "Reference",
+              "text": "FunnelSeries",
+              "canonicalReference": "tally-charts!FunnelSeries:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "<D>[];\n  y?: undefined;\n  tone?: undefined;\n})"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "FunnelChartProps",
+          "typeParameters": [
+            {
+              "typeParameterName": "D",
+              "constraintTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              },
+              "defaultTypeTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              }
+            }
+          ],
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 25
+          }
+        },
+        {
+          "kind": "Interface",
+          "canonicalReference": "tally-charts!FunnelSeries:interface",
+          "docComment": "",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "interface FunnelSeries<D> "
+            }
+          ],
+          "releaseTag": "Public",
+          "typeParameters": [
+            {
+              "typeParameterName": "D",
+              "constraintTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              },
+              "defaultTypeTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              }
+            }
+          ],
+          "name": "FunnelSeries",
+          "preserveMemberOrder": false,
+          "members": [
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!FunnelSeries#id:member",
+              "docComment": "/**\n * Stable key of the series; unique within the chart.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "id: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "id",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!FunnelSeries#label:member",
+              "docComment": "/**\n * Name for the tooltip, announcements and the data table header.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "label: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "label",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!FunnelSeries#tone:member",
+              "docComment": "/**\n * Default: the next tone of the default order, as in `StackedBarChart`.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "tone?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Tone",
+                  "canonicalReference": "tally-charts!Tone:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": true,
+              "releaseTag": "Public",
+              "name": "tone",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!FunnelSeries#value:member",
+              "docComment": "/**\n * Value field of the series.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "value: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Accessor",
+                  "canonicalReference": "tally-charts!Accessor:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<D, number>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "value",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
               }
             }
           ],

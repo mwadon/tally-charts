@@ -51,6 +51,14 @@ export default [
     gzip: true,
   },
   {
+    name: 'FunnelChart',
+    path: 'dist/index.js',
+    import: '{ FunnelChart }',
+    ignore: ['react', 'react-dom'],
+    limit: '15 KB',
+    gzip: true,
+  },
+  {
     name: 'ComparisonBars',
     path: 'dist/index.js',
     import: '{ ComparisonBars }',

@@ -75,7 +75,7 @@
       "id": "n7",
       "type": "chart-index",
       "props": {
-        "heading": "Fifteen charts, one grammar",
+        "heading": "Sixteen charts, one grammar",
         "lede": "Pick the chart by the question it answers. Each page has live examples and a props table.",
         "items": [
           {
@@ -119,6 +119,12 @@
             "text": "How one total became another",
             "href": "/docs/bridge-chart",
             "thumb": "bridge-chart"
+          },
+          {
+            "label": "FunnelChart",
+            "text": "How many make it through each step",
+            "href": "/docs/funnel-chart",
+            "thumb": "funnel"
           },
           {
             "label": "DotHistogram",

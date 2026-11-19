@@ -304,9 +304,55 @@ describe('theme.css', () => {
       /\[data-ch-part="target"\],\s*\[data-ch-part="forecast-rule"\] \{\s*stroke: var\(--ch-ink\);[^}]*stroke-dasharray: 3 3;/,
     )
     expect(themed).toMatch(
-      /\[data-ch-part="target-label"\],\s*\[data-ch-part="forecast-label"\],\s*\[data-ch-part="end-label"\] \{\s*fill: var\(--ch-ink-muted\);/,
+      /\[data-ch-part="target-label"\],\s*\[data-ch-part="forecast-label"\],\s*\[data-ch-part="end-label"\],\s*\[data-ch-part="funnel-name"\] \{\s*fill: var\(--ch-ink-muted\);/,
     )
     expect(forced).toMatch(/\[data-ch-part="forecast-label"\],[\s\S]*?\) \{\s*fill: GrayText;/)
+  })
+
+  it('styles the funnel ribbon, guides and headers from the shared rules and tokens', () => {
+    const quietParts = css.match(/\[data-ch-part="bar"\],[\s\S]*?\{([^}]*)\}/)?.[0] ?? ''
+    for (const part of ['funnel-area', 'funnel-guide', 'funnel-guide-inner']) {
+      expect(quietParts).toContain(`[data-ch-part="${part}"]`)
+    }
+    expect(themed).toMatch(
+      /\[data-ch-animate="true"\] \[data-ch-part="area"\],\s*\[data-ch-animate="true"\] \[data-ch-part="funnel-area"\] \{\s*animation: ch-fade/,
+    )
+    expect(themed).toMatch(
+      /\[data-ch-part="funnel-area"\]\[data-ch-series\] \{\s*stroke: var\(--ch-surface\);\s*stroke-width: 1px;\s*stroke-linejoin: round;/,
+    )
+    expect(themed).toMatch(
+      /\[data-ch-part="grid-line"\],\s*\[data-ch-part="funnel-guide"\] \{\s*stroke: var\(--ch-grid\);\s*stroke-width: 1;/,
+    )
+    expect(themed).toMatch(
+      /\[data-ch-part="funnel-guide-inner"\] \{\s*stroke: var\(--ch-surface\);\s*stroke-opacity: 0\.45;/,
+    )
+    expect(themed).toMatch(
+      /\[data-ch-part="funnel-value"\] \{\s*fill: var\(--ch-ink\);\s*font-size: 18px;\s*font-weight: 600;/,
+    )
+    expect(themed).toMatch(
+      /\[data-ch-orientation="vertical"\] \[data-ch-part="funnel-name"\] \{\s*fill: var\(--ch-ink\);\s*font-size: 13px;/,
+    )
+    expect(themed).toMatch(
+      /\[data-ch-part="funnel-rate"\]\[data-ch-weakest="true"\] \{\s*fill: color-mix\(in srgb, var\(--ch-loss\) var\(--ch-tone-text-mix\), var\(--ch-ink\)\);\s*font-weight: 600;/,
+    )
+    // A horizontal step name stays muted in forced colors, like the axis labels it joins.
+    expect(forced).toMatch(
+      /\[data-ch-orientation="horizontal"\] \[data-ch-part="funnel-name"\]\s*\) \{\s*fill: GrayText;/,
+    )
+  })
+
+  it('inks the active funnel guide, Highlight in forced colors, and points at selectable steps', () => {
+    expect(themed).toMatch(
+      /\[data-ch-part="funnel-guide"\]\[data-ch-active="true"\] \{\s*stroke: var\(--ch-ink\);\s*stroke-width: 1\.5;/,
+    )
+    expect(forced).toMatch(
+      /\[data-ch-part="funnel-guide"\]\[data-ch-active="true"\] \{\s*stroke: Highlight;/,
+    )
+    expect(themed).toMatch(
+      /\[data-ch-part="bar-hit"\]\[data-ch-selectable="true"\],\s*\[data-ch-part="funnel-hit"\]\[data-ch-selectable="true"\] \{\s*cursor: pointer;/,
+    )
+    // The other steps dim through the shared rule.
+    expect(themed).toMatch(/\[data-ch-dimmed="true"\] \{\s*opacity: var\(--ch-dim-opacity\);/)
   })
 
   it('styles stacked area end labels and the cursor like the labels and dots they join', () => {

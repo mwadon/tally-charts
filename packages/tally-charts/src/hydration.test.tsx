@@ -4,7 +4,15 @@ import { act, version } from 'react'
 import { hydrateRoot } from 'react-dom/client'
 import { renderToString } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
-import { CrewHours, CrewQuarters, JobMargins, LastTwelveWeeks, MonthlyCost } from '../test/fixtures'
+import {
+  CrewHours,
+  CrewQuarters,
+  JobMargins,
+  LastTwelveWeeks,
+  LeadFunnel,
+  LeadFunnelBySource,
+  MonthlyCost,
+} from '../test/fixtures'
 import { thresholds } from './core/thresholds'
 import { ShareBar } from './react/ui/ShareBar'
 import { ZoneMeter } from './react/ui/ZoneMeter'
@@ -131,6 +139,65 @@ describe('hydration', () => {
       root?.unmount()
     })
     container.remove()
+    errors.mockRestore()
+  })
+
+  it.each([
+    ['one stream', LeadFunnel, 1],
+    ['series', LeadFunnelBySource, 4],
+  ] as const)(
+    'hydrates FunnelChart (%s) server markup without mismatches',
+    async (_, Example, areas) => {
+      const html = renderToString(<Example />)
+      const errors = vi.spyOn(console, 'error').mockImplementation(() => {})
+      const container = document.createElement('div')
+      container.innerHTML = html
+      expect(container.querySelectorAll('[data-ch-part="funnel-area"]')).toHaveLength(areas)
+      document.body.appendChild(container)
+      const onRecoverableError = vi.fn()
+      let root: ReturnType<typeof hydrateRoot> | undefined
+      await act(async () => {
+        root = hydrateRoot(container, <Example />, { onRecoverableError })
+      })
+      expect(onRecoverableError).not.toHaveBeenCalled()
+      expect(errors).not.toHaveBeenCalled()
+      expect(container.querySelectorAll('[data-ch-part="funnel-area"]')).toHaveLength(areas)
+      await act(async () => {
+        root?.unmount()
+      })
+      container.remove()
+      errors.mockRestore()
+    },
+  )
+
+  // Rendered horizontal at 640 px on the server; the 320 px container switches it to vertical
+  // after hydration, not during it.
+  it('hydrates a FunnelChart rendered wide into a narrow container, then turns vertical', async () => {
+    const html = renderToString(<LeadFunnel initialWidth={640} />)
+    const errors = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const rect = vi
+      .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+      .mockReturnValue({ width: 320 } as DOMRect)
+    const container = document.createElement('div')
+    container.innerHTML = html
+    const orientation = () =>
+      container.querySelector('[data-ch-orientation]')?.getAttribute('data-ch-orientation')
+    expect(orientation()).toBe('horizontal')
+    document.body.appendChild(container)
+    const onRecoverableError = vi.fn()
+    let root: ReturnType<typeof hydrateRoot> | undefined
+    await act(async () => {
+      root = hydrateRoot(container, <LeadFunnel initialWidth={640} />, { onRecoverableError })
+    })
+    expect(onRecoverableError).not.toHaveBeenCalled()
+    expect(errors).not.toHaveBeenCalled()
+    expect(orientation()).toBe('vertical')
+    expect(container.querySelector('svg')?.getAttribute('width')).toBe('320')
+    await act(async () => {
+      root?.unmount()
+    })
+    container.remove()
+    rect.mockRestore()
     errors.mockRestore()
   })
 

@@ -286,7 +286,8 @@
   pointer-events: none;
 }
 
-[data-ch-part="bar-hit"][data-ch-selectable="true"] {
+[data-ch-part="bar-hit"][data-ch-selectable="true"],
+[data-ch-part="funnel-hit"][data-ch-selectable="true"] {
   cursor: pointer;
 }
 
@@ -299,6 +300,9 @@
 [data-ch-part="area-layer"],
 [data-ch-part="area-edge"],
 [data-ch-part="area-separator"],
+[data-ch-part="funnel-area"],
+[data-ch-part="funnel-guide"],
+[data-ch-part="funnel-guide-inner"],
 [data-ch-part="forecast-rule"],
 [data-ch-part="cursor"],
 [data-ch-part="cursor-dot"],
@@ -409,7 +413,8 @@
   opacity: var(--ch-dim-opacity);
 }
 
-[data-ch-animate="true"] [data-ch-part="area"] {
+[data-ch-animate="true"] [data-ch-part="area"],
+[data-ch-animate="true"] [data-ch-part="funnel-area"] {
   animation: ch-fade var(--ch-duration) var(--ch-ease) both;
 }
 
@@ -512,7 +517,8 @@
   animation: ch-fade var(--ch-duration) var(--ch-ease) both;
 }
 
-[data-ch-part="grid-line"] {
+[data-ch-part="grid-line"],
+[data-ch-part="funnel-guide"] {
   stroke: var(--ch-grid);
   stroke-width: 1;
 }
@@ -558,7 +564,8 @@
 [data-ch-part="axis-title"],
 [data-ch-part="target-label"],
 [data-ch-part="forecast-label"],
-[data-ch-part="end-label"] {
+[data-ch-part="end-label"],
+[data-ch-part="funnel-name"] {
   fill: var(--ch-ink-muted);
   font-size: 12px;
 }
@@ -636,6 +643,54 @@
 
 [data-ch-part="column-note"] {
   font-size: 13px;
+}
+
+/* ---------- Funnel ---------- */
+/* The ribbon paints its tone inline, like area layers; layers of a split ribbon are kept apart
+   by a surface-coloured stroke. A guide is in the grid colour, faded surface over the ribbon. */
+[data-ch-part="funnel-area"][data-ch-series] {
+  stroke: var(--ch-surface);
+  stroke-width: 1px;
+  stroke-linejoin: round;
+}
+
+[data-ch-part="funnel-guide-inner"] {
+  stroke: var(--ch-surface);
+  stroke-opacity: 0.45;
+  stroke-width: 1;
+}
+
+/* The active step's guide, drawn over the ribbon. */
+[data-ch-part="funnel-guide"][data-ch-active="true"] {
+  stroke: var(--ch-ink);
+  stroke-width: 1.5;
+}
+
+/* Header above a horizontal funnel; a vertical one sets value and name in its label column. */
+[data-ch-part="funnel-value"] {
+  fill: var(--ch-ink);
+  font-size: 18px;
+  font-weight: 600;
+}
+
+[data-ch-part="funnel-rate"] {
+  fill: var(--ch-ink);
+  font-size: 12px;
+}
+
+[data-ch-orientation="vertical"] [data-ch-part="funnel-value"] {
+  font-size: 13px;
+}
+
+[data-ch-orientation="vertical"] [data-ch-part="funnel-name"] {
+  fill: var(--ch-ink);
+  font-size: 13px;
+}
+
+/* The weakest continue rate: loss mixed with ink, as toned text is. */
+[data-ch-part="funnel-rate"][data-ch-weakest="true"] {
+  fill: color-mix(in srgb, var(--ch-loss) var(--ch-tone-text-mix), var(--ch-ink));
+  font-weight: 600;
 }
 
 /* ---------- Tooltip pill ---------- */
@@ -1689,7 +1744,8 @@
       [data-ch-part="forecast-label"],
       [data-ch-part="end-label"],
       [data-ch-part="row-sublabel"],
-      [data-ch-part="group-label"]
+      [data-ch-part="group-label"],
+      [data-ch-orientation="horizontal"] [data-ch-part="funnel-name"]
     ) {
     fill: GrayText;
   }
@@ -1851,6 +1907,10 @@
   }
 
   [data-ch-part="bubble-ring"] {
+    stroke: Highlight;
+  }
+
+  [data-ch-part="funnel-guide"][data-ch-active="true"] {
     stroke: Highlight;
   }
 

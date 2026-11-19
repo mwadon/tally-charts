@@ -7,6 +7,7 @@ import { BarChart } from './charts/BarChart'
 import { BridgeChart } from './charts/BridgeChart'
 import { ComparisonBars } from './charts/ComparisonBars'
 import { DotHistogram } from './charts/DotHistogram'
+import { FunnelChart } from './charts/FunnelChart'
 import { Heatmap } from './charts/Heatmap'
 import { LineChart } from './charts/LineChart'
 import { RankedBars } from './charts/RankedBars'
@@ -347,6 +348,7 @@ describe('table headers', () => {
     )
     take(<ScatterChart<Row> data={data} x={by.v} y={by.w} size={by.v} label={by.a} {...common} />)
     take(<WaffleColumns<Row> data={data} x={by.a} y={by.v} group={by.g} {...common} />)
+    take(<FunnelChart<Row> data={data} x={by.a} y={by.v} {...common} />)
     take(
       <BridgeChart
         start={{ label: 'Plan', value: 10 }}
@@ -505,5 +507,16 @@ describe('other translated text', () => {
     fireEvent.keyDown(figure, { key: 'ArrowRight' })
     expect(w.container.querySelector('[aria-live]')?.textContent).toContain('Leak: −3 (razem 7)')
     expect(w.container.querySelector('[data-ch-part="tooltip"]')?.textContent).toContain('razem')
+  })
+})
+
+describe('FunnelChart messages', () => {
+  it('have English defaults', () => {
+    expect(DEFAULT_MESSAGES).toMatchObject({
+      headerStep: 'Step',
+      headerContinued: 'Continued',
+      ofPreviousStep: 'of previous step',
+      ofFirstStep: 'of first step',
+    })
   })
 })

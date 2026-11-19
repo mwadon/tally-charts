@@ -1,0 +1,299 @@
+{
+  "versionId": "fixture-funnel-chart-v1",
+  "version": 1,
+  "locale": "en",
+  "publishedAt": "2026-11-19T00:00:00.000Z",
+  "codeInjection": {},
+  "layout": {
+    "key": "default",
+    "header": null,
+    "footer": null
+  },
+  "pageId": "fixture-funnel-chart",
+  "title": "FunnelChart",
+  "slug": "funnel-chart",
+  "seo": {
+    "metaTitle": "FunnelChart · tally-charts",
+    "metaDescription": "How many items make it through each step of a process: a ribbon that narrows from step to step, with continue rates, the weakest step marked, series, keyboard navigation and a hidden data table."
+  },
+  "componentTree": [
+    {
+      "id": "n1",
+      "type": "prose",
+      "props": {
+        "markdown": "How many items make it through each step of a process. `FunnelChart` draws one ribbon that narrows from step to step, with the value, the step name and the share that continued above every step, and marks the step that loses the most. It handles the layout, the tooltip, the keyboard and the screen reader."
+      }
+    },
+    {
+      "id": "n2",
+      "type": "heading",
+      "props": {
+        "text": "When to use it",
+        "level": "2",
+        "anchor": "when-to-use"
+      }
+    },
+    {
+      "id": "n3",
+      "type": "prose",
+      "props": {
+        "markdown": "Use it for the steps of one process, in order: leads to paid jobs, applications to first days, visits to orders. The reader sees the whole funnel as one shape, reads the count at every step and spots the weakest step. Split the ribbon with `series` to show what each step is made of, such as the source of every lead. For values that are not steps of one process use [`BarChart`](/docs/bar-chart), and for how one total became another through gains and losses use [`WaterfallChart`](/docs/waterfall-chart) or [`BridgeChart`](/docs/bridge-chart). It has no legend of its own (compose `Legend`), no target, no second measure, no percent of the first step in the header (the tooltip has it), no custom percent format, and no right-to-left or bottom-to-top funnel."
+      }
+    },
+    {
+      "id": "n4",
+      "type": "heading",
+      "props": {
+        "text": "Import",
+        "level": "2",
+        "anchor": "install"
+      }
+    },
+    {
+      "id": "n5",
+      "type": "code-block",
+      "props": {
+        "code": "npm i tally-charts",
+        "lang": "bash"
+      }
+    },
+    {
+      "id": "n6",
+      "type": "code-block",
+      "props": {
+        "code": "import { FunnelChart } from 'tally-charts'\nimport 'tally-charts/theme.css'",
+        "lang": "tsx",
+        "filename": "app/pipeline.tsx"
+      }
+    },
+    {
+      "id": "n7",
+      "type": "heading",
+      "props": {
+        "text": "Examples",
+        "level": "2",
+        "anchor": "examples"
+      }
+    },
+    {
+      "id": "n8",
+      "type": "prose",
+      "props": {
+        "markdown": "`data` has one row per step, in funnel order. `x` names the step and `y` reads its value. Props stay serializable here (field names only), so the chart renders in a server component."
+      }
+    },
+    {
+      "id": "n9",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "funnel-chart/lead-to-paid",
+        "defaultView": "preview",
+        "height": 312
+      }
+    },
+    {
+      "id": "n10",
+      "type": "heading",
+      "props": {
+        "text": "Reading the funnel",
+        "level": "2",
+        "anchor": "reading"
+      }
+    },
+    {
+      "id": "n11",
+      "type": "prose",
+      "props": {
+        "markdown": "The thickness of the ribbon at a step line is proportional to the step value, and the largest step fills the plot. After each step line the ribbon stays flat for a fifth of the column: that is where the value is measured. It then curves to the next thickness; the curve is only a transition and says nothing about values between two steps. A positive step is never drawn thinner than 2 px, and a step of 0 draws no ribbon at its line. A step larger than the one before it simply draws wider; nothing marks it."
+      }
+    },
+    {
+      "id": "n12",
+      "type": "prose",
+      "props": {
+        "markdown": "Above the ribbon each step has a header: the value, the step name and, from the second step, the continue rate. The continue rate is the step value divided by the value of the previous drawn step, as a whole percent; a rate above 0 that rounds to 0 reads “<1%”, and after a step of 0 there is no rate. `format` (default `'number'`) formats the values, never the percents."
+      }
+    },
+    {
+      "id": "n13",
+      "type": "prose",
+      "props": {
+        "markdown": "With `highlight` at its default, `'weakest'`, and at least three drawn steps, the lowest continue rate is set in bold in the loss text colour (on a tie, the first one). Only that rate changes colour: the ribbon keeps its tone. `highlight=\"none\"` turns the mark off. The colour is not the only carrier: the weakest step is also the lowest percent in the header, the tooltip and the data table, so say which step it is in the title or the description when it matters."
+      }
+    },
+    {
+      "id": "n14",
+      "type": "heading",
+      "props": {
+        "text": "Series",
+        "level": "2",
+        "anchor": "series"
+      }
+    },
+    {
+      "id": "n15",
+      "type": "prose",
+      "props": {
+        "markdown": "Pass `series` instead of `y` to split the ribbon into layers, one per series, stacked in series order: the first on top in a horizontal funnel and on the left in a vertical one, with a thin surface-coloured line between them. A step's value is the sum of its series values, and the header, the rates and the weakest step use that total. Each entry has an `id`, a `label` for the tooltip, the announcement and the data table, a `value` field or function, and an optional `tone`. Without `tone` the series take the library's default order (accent, accent-soft, warn, neutral, gain); the example below sets its tones explicitly. An accent-soft layer on the outside of the ribbon gets an inked edge on that side."
+      }
+    },
+    {
+      "id": "n16",
+      "type": "prose",
+      "props": {
+        "markdown": "Keep `series` stable: define the array outside the component, or use field names as `value`, as here. An inline array whose `value` is an inline function builds the points again on every render, as it does in the other series charts. The chart has no legend of its own: compose `Legend` with the same tones."
+      }
+    },
+    {
+      "id": "n17",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "funnel-chart/by-source",
+        "defaultView": "preview",
+        "height": 333
+      }
+    },
+    {
+      "id": "n18",
+      "type": "heading",
+      "props": {
+        "text": "Orientation",
+        "level": "2",
+        "anchor": "orientation"
+      }
+    },
+    {
+      "id": "n19",
+      "type": "prose",
+      "props": {
+        "markdown": "`orientation` defaults to `'auto'`: the steps run left to right while each gets at least 96 px of the plot width (the chart width minus the horizontal funnel's left and right margins, which are 0 by default) and every header value and rate fits its column with 12 px to spare (by the library's estimate of text width; it does not measure text). Otherwise the funnel turns vertical, steps top to bottom. Step names never cause the switch: a name wider than its column is cut, with the full text in a `<title>`, the tooltip and the data table. The server render and the first client render use `initialWidth` (default 640), so the chart may switch once it has measured its width. `'horizontal'` and `'vertical'` never switch; in a forced horizontal funnel a value or rate wider than its column runs into the next one."
+      }
+    },
+    {
+      "id": "n20",
+      "type": "prose",
+      "props": {
+        "markdown": "A horizontal funnel is 280 px tall by default. A vertical one gives each step 64 px, so its default height is the number of steps × 64 plus the top and bottom margins (8 px each by default, so steps × 64 + 16); an explicit `height` is divided evenly between the steps instead. Its labels sit in a column left of the ribbon: the step name, then the value and the continue rate on one line. The column is `labelWidth` px wide (default 128), and a name wider than the column is cut, with the full text in a `<title>`. A `margin.left` adds room left of the column; the labels keep their place."
+      }
+    },
+    {
+      "id": "n21",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "funnel-chart/vertical",
+        "defaultView": "preview",
+        "height": 560
+      }
+    },
+    {
+      "id": "n22",
+      "type": "heading",
+      "props": {
+        "text": "Formatting",
+        "level": "2",
+        "anchor": "formatting"
+      }
+    },
+    {
+      "id": "n23",
+      "type": "prose",
+      "props": {
+        "markdown": "`format` takes a preset name, an options object or a function, as everywhere in the library; it formats the step values, the series values and the data table cells. A preset name keeps the props serializable. `tone` (default `accent`) colours a single stream."
+      }
+    },
+    {
+      "id": "n24",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "funnel-chart/currency",
+        "defaultView": "preview",
+        "height": 312
+      }
+    },
+    {
+      "id": "n25",
+      "type": "heading",
+      "props": {
+        "text": "Rows that are not drawn",
+        "level": "2",
+        "anchor": "skipped"
+      }
+    },
+    {
+      "id": "n26",
+      "type": "prose",
+      "props": {
+        "markdown": "A row is skipped, with a warning in development, when its value is missing, not a number or negative; with `series`, when any of its series values is. A skipped row is not a step: it has no header, no point and no stop for the keyboard, and the next step's continue rate is taken against the previous drawn step. It keeps its row in the data table, with no continue rate. A step of 0 is drawn: it has a header, and the ribbon has no thickness at its line. Passing both `y` and `series`, or neither, or an empty `series` list, warns in development and shows the “No data” message, as does data with no row that can be drawn."
+      }
+    },
+    {
+      "id": "n27",
+      "type": "heading",
+      "props": {
+        "text": "Props",
+        "level": "2",
+        "anchor": "props"
+      }
+    },
+    {
+      "id": "n28",
+      "type": "props-table",
+      "props": {
+        "symbol": "FunnelChart"
+      }
+    },
+    {
+      "id": "n29",
+      "type": "heading",
+      "props": {
+        "text": "Points and the tooltip",
+        "level": "2",
+        "anchor": "points"
+      }
+    },
+    {
+      "id": "n30",
+      "type": "prose",
+      "props": {
+        "markdown": "Each drawn step is one point, in data order, also with `series` (a series is not a point of its own). Its id is the `id` accessor or the data index. In `onSelect`, `onActiveChange` and a `tooltip` function, `point.datum` is your row. The pointer activates the step whose column (horizontal) or row (vertical, label column included) is under it. The default tooltip shows the step name and its value, and from the second step the continue rate (“65% of previous step”) and the share of the first step (“43% of first step”); with series, one more segment per series with its value and a swatch in its tone."
+      }
+    },
+    {
+      "id": "n31",
+      "type": "prose",
+      "props": {
+        "markdown": "The active step's guide is drawn in ink, 1.5 px wide, across the whole chart, over the header or label column and the ribbon; the first step has a guide only while it is active. Nothing else changes: the ribbon keeps its colour, and the headers and labels are never dimmed, so this chart has no `dimInactive` prop."
+      }
+    },
+    {
+      "id": "n32",
+      "type": "heading",
+      "props": {
+        "text": "Keyboard and screen readers",
+        "level": "2",
+        "anchor": "keyboard"
+      }
+    },
+    {
+      "id": "n33",
+      "type": "prose",
+      "props": {
+        "markdown": "The chart is a single tab stop. The arrow keys move between the steps in data order: Right and Down to the next step, Left and Up to the previous one, so in a vertical funnel Up and Down follow the screen. `Home` and `End` jump to the first and last step, `Enter` or `Space` selects the active step when the chart has `onSelect`, and `Esc` clears it. A chart with no drawn step has no tab stop."
+      }
+    },
+    {
+      "id": "n34",
+      "type": "prose",
+      "props": {
+        "markdown": "Screen readers get the title and description, then an announcement for each step the keyboard moves to, such as “2 of 5, Site visits, 806, 65% of previous step”: the position among the drawn steps, the name, the value and the continue rate. The first step has no rate (“1 of 5, Leads, 1,240”), and with series each series follows with its value (“…, Referral 250, Website 160, Ads 80, Other 42”). A visually hidden data table follows the chart, with one row per data row in data order, skipped rows included: the step name, the value (with series, a column per series and a total) and the continue rate. `dataTable` takes `false` to remove it, or `{ caption, columns }` to set the caption and rename the headers. The default headers and words can also be translated with the `headerStep` (used when `x` is a function; a string field gives its name in sentence case), `headerValue`, `headerTotal`, `headerContinued`, `ofPreviousStep` and `ofFirstStep` keys of [`ChartsProvider` messages](/docs/hooks-and-providers)."
+      }
+    },
+    {
+      "id": "n35",
+      "type": "prose",
+      "props": {
+        "markdown": "The full model is in the [accessibility guide](https://github.com/mwadon/tally-charts/blob/main/docs/a11y.md)."
+      }
+    }
+  ]
+}

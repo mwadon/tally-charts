@@ -11,6 +11,8 @@ import {
   JobMargins,
   JobsHistogram,
   LastTwelveWeeks,
+  LeadFunnel,
+  LeadFunnelBySource,
   LeakHeatmap,
   LeakWaffle,
   MarginOutlook,
@@ -184,6 +186,19 @@ describe('server rendering', () => {
     expect(html).not.toContain('NaN')
     expect(html.match(/data-ch-part="bubble"/g)).toHaveLength(16)
     expect(html).toContain('data-ch-part="data-table"')
+  })
+
+  it('renders the FunnelChart without a DOM, deterministically', () => {
+    const html = renderToString(<LeadFunnel />)
+    expect(html).toBe(renderToString(<LeadFunnel />))
+    expect(html).not.toContain('NaN')
+    expect(html.match(/data-ch-part="funnel-area"/g)).toHaveLength(1)
+    expect(html.match(/data-ch-part="funnel-hit"/g)).toHaveLength(5)
+    expect(html).toContain('data-ch-part="data-table"')
+    const split = renderToString(<LeadFunnelBySource />)
+    expect(split).toBe(renderToString(<LeadFunnelBySource />))
+    expect(split).not.toContain('NaN')
+    expect(split.match(/data-ch-part="funnel-area"/g)).toHaveLength(4)
   })
 
   it('renders the runway without a DOM, with its strips drawn at the initial width', () => {

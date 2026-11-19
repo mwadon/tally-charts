@@ -46,6 +46,11 @@ export const SHARE_TONES: readonly Tone[] = ['accent', 'accent-soft', 'warn', 'n
 
 const warn = /* @__PURE__ */ createWarner()
 
+/** "46%" for a whole percent, or "<1%" when it rounds to 0 but `value` is above 0. */
+export function percentText(percent: number, value: number): string {
+  return percent === 0 && value > 0 ? '<1%' : `${percent}%`
+}
+
 /** Whole percents that add up to round(sum of shares), by the largest remainder method. */
 function largestRemainder(shares: readonly number[]): number[] {
   const floors = shares.map(Math.floor)
@@ -123,7 +128,7 @@ export function shareLayout(
       ...(s.color ? { color: s.color } : {}),
       share: shares[i] ?? 0,
       percent,
-      percentText: percent === 0 && value > 0 ? '<1%' : `${percent}%`,
+      percentText: percentText(percent, value),
     }
   })
   return { parts, total: whole, empty: segments.length > 0 && valid === 0 }

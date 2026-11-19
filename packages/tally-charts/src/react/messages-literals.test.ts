@@ -20,6 +20,8 @@ const KEY_NAMES = /^(Arrow(Up|Down|Left|Right)|Home|End|Page(Up|Down)|Enter|Esca
 // A lowercase token with no spaces is a part name, an id or id suffix (`-title`), a custom property
 // (`--_ch-x`), a tone or another enum value, not text.
 const TOKEN = /^[\0_-]*[a-z0-9][a-z0-9:_-]*$/
+// One SVG path command letter (`M`, `L`, `Z`, …), as path builders write them, never words.
+const PATH_COMMAND = /^[MLHVCSQTAZ]$/
 // CSS values such as `color-mix(in srgb, …)`, `var(--ch-loss)` and `translateX(-3%)`.
 const CSS_FUNCTION = /^[A-Za-z-]+\(.*\)$/s
 // aria-* attributes that hold a token, a number or an id reference, never words. The rest
@@ -124,6 +126,7 @@ function findLiterals(fileName: string, source: string): string[] {
       const allowed =
         inWarning(node) ||
         KEY_NAMES.test(trimmed) ||
+        PATH_COMMAND.test(trimmed) ||
         TOKEN.test(text) ||
         CSS_FUNCTION.test(text) ||
         isMarkName(node)
