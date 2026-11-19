@@ -64,7 +64,7 @@ interface FunnelSeries<D> {
 }
 
 type FunnelChartProps<D> = ChartName &
-  Omit<ChartPassThroughProps<D>, 'aspectRatio'> & {
+  Omit<ChartPassThroughProps<D>, 'aspectRatio' | 'dimInactive'> & {
     /** One row per step, in funnel order. */
     data: readonly D[]
     /** Step name. */
@@ -80,7 +80,10 @@ type FunnelChartProps<D> = ChartName &
     orientation?: 'auto' | 'horizontal' | 'vertical'
     /** Default 'weakest': the lowest continue rate is drawn in the loss tone. */
     highlight?: 'weakest' | 'none'
-    /** Width in px of the label column of a vertical funnel. Default 128. */
+    /**
+     * Width in px of the label column of a vertical funnel. Default 128. A vertical `margin.left`
+     * adds room left of this column.
+     */
     labelWidth?: number
     dataTable?: boolean | DataTableOptions
     tooltip?: ChartTooltip<D>
@@ -103,7 +106,7 @@ Author's calls in the API:
   example sets tones explicitly.
 - `x` / `y` keep their names in both orientations, as in `BarChart`.
 
-Not in the API: a built-in legend (compose `<Legend>`), a target, a second measure, percent of
+Not in the API: `dimInactive` (nothing on this chart dims, see Active step), a built-in legend (compose `<Legend>`), a target, a second measure, percent of
 the first step drawn in the header (it is in the tooltip), custom percent formatting, a
 right-to-left or bottom-to-top funnel, the rectangle-and-hatch look of the old artboard.
 
@@ -133,7 +136,9 @@ ribbon across the funnel.
   name (13 px, ink), then on one line the value (13 px, weight 600) and the continue rate
   (12 px). The label column is `labelWidth` wide (default 128, as the fixed label columns of
   `RankedBars` and `StripPlot`; the library does not measure text). A name wider than the
-  column is cut with `truncateLabel` and carries the full text in a `<title>`.
+  column is cut with `truncateLabel` and carries the full text in a `<title>`. A user
+  `margin.left` adds room left of the column (left margin = `labelWidth` + `margin.left`); the
+  labels stay at `-labelWidth`, and guides and hit rects run from the figure's left edge.
 - Guides are horizontal, at every step line except the first, across labels and ribbon.
 - Each step takes 64 px; the default height is the sum plus margins (automatic height, as the
   horizontal `BarChart`). An explicit `height` divides the space evenly instead.
@@ -191,8 +196,8 @@ caller's choice when forcing the orientation.
 
 The guide of the active step is drawn in ink at 1.5 px, over the ribbon too (the first step
 gets a guide while it is active). Nothing else changes: the ribbon never does, and headers
-and labels are never dimmed, whatever `dimInactive` says (dimmed text would fall under the
-4.5:1 contrast the library keeps for all text; no other chart dims text).
+and labels are never dimmed (dimmed text would fall under the 4.5:1 contrast the library keeps
+for all text; no other chart dims text). So `dimInactive` is not part of FunnelChart's API.
 
 ## 4. Interaction and accessibility
 
@@ -233,7 +238,7 @@ names to the file's conventions.
   thickness, zero, a growing step), both orientations and the auto switch at the threshold,
   series stacking and tones, percents (rounding, "<1%", previous zero), weakest step (tie, two
   steps, `highlight="none"`), skipped rows and warnings, points, tooltip, announcement,
-  keyboard in both orientations, active state and dimming, data table in both modes, SSR and
+  keyboard in both orientations, active state (nothing dims), data table in both modes, SSR and
   hydration (server render before the `console.error` spy), a 60 px wide chart and a single
   step.
 - Storybook stories (`light` and `dark`: artboard A; `series`: artboard C with a `Legend`;
@@ -280,5 +285,5 @@ Author's calls (not yet confirmed by the owner): the series entry shape and defa
 tones (§2), the 96 px switch threshold and 64 px per vertical step (§3),
 the fixed `labelWidth` column (a new prop), `'auto'` also
 switching on header text that does not fit, the 2 px minimum on the whole ribbon, the active
-state being the guide alone (`dimInactive` has no effect on this chart), the three-step rule for the highlight, skipping invalid rows, the active
+state being the guide alone (`dimInactive` is not part of FunnelChart's API), the three-step rule for the highlight, skipping invalid rows, the active
 state, one point per step in series mode, the message keys, version 1.5.0 with this chart alone.

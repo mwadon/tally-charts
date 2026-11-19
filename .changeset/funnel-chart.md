@@ -22,8 +22,11 @@ the default table headers and the tooltip texts. A row is skipped, with a develo
 when its value (or any series value) is missing, not a number or negative; skipped rows are not
 points, but they keep a row in the data table. Each drawn step is a `ChartPoint` whose id is the
 `id` accessor or the data index; there is a tooltip with the rate and the share of the first
-step, keyboard navigation along the funnel and a hidden data table. Stylable parts: `funnel`,
-`funnel-area`, `funnel-guide`, `funnel-step`, `funnel-value`, `funnel-name`, `funnel-rate`.
+step, keyboard navigation along the funnel and a hidden data table. The active step is shown by
+its guide alone and nothing dims, so `FunnelChart` has no `dimInactive` prop. A vertical
+`margin.left` adds room left of the label column. Stylable parts: `funnel`, `funnel-area`,
+`area-edge`, `funnel-guides`, `funnel-guide`, `funnel-guide-inner`, `funnel-step`, `funnel-value`,
+`funnel-name`, `funnel-rate`.
 
 ```tsx
 <FunnelChart

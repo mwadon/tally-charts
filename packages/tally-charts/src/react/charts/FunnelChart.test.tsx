@@ -299,6 +299,36 @@ describe('FunnelChart, vertical', () => {
     expect(parts(container, 'funnel-area')[0]?.getAttribute('d')).toBe(paths[0])
   })
 
+  it('adds margin.left to the label column, which keeps its place left of the ribbon', () => {
+    const { container } = renderChart({ orientation: 'vertical', margin: { left: 16 } })
+    expect(parts(container, 'funnel-name').map((n) => num(n, 'x'))).toEqual(Array(5).fill(-128))
+    const xs = [...container.querySelectorAll('text')].map((t) => num(t, 'x'))
+    expect(Math.min(...xs)).toBe(-128)
+    // The plot starts 144 px in: the label column and the extra 16 px.
+    const plot = container.querySelector('svg > g') as Element
+    expect(plot.getAttribute('transform')).toBe('translate(144,8)')
+    const { paths } = funnelGeometry({
+      values: counts.map((c) => [c]),
+      length: 320,
+      thickness: 584 - 144,
+      vertical: true,
+    })
+    expect(parts(container, 'funnel-area')[0]?.getAttribute('d')).toBe(paths[0])
+    // Guides and hit rects still run from the figure's left edge, the extra margin included.
+    expect(num(parts(container, 'funnel-guide')[0] as Element, 'x1')).toBe(-144)
+    hits(container).forEach((r) => {
+      expect(num(r, 'x')).toBe(-144)
+      expect(num(r, 'width')).toBe(584)
+    })
+  })
+
+  it('takes margin.left as is in horizontal', () => {
+    const { container } = renderChart({ margin: { left: 16 } })
+    const plot = container.querySelector('svg > g') as Element
+    expect(plot.getAttribute('transform')).toBe('translate(16,70)')
+    expect(num(parts(container, 'funnel-name')[0] as Element, 'x')).toBe(0)
+  })
+
   it('divides an explicit height evenly between the steps', () => {
     const { container } = renderChart({ orientation: 'vertical', height: 400 })
     expect(svgHeight(container)).toBe(400)
@@ -442,6 +472,11 @@ describe('FunnelChart props', () => {
     render(<FunnelChart title="Both" data={steps} x="step" y="count" series={bySource} />)
     // @ts-expect-error: `tone` belongs to the one-stream form
     render(<FunnelChart title="Tone" data={steps} x="step" series={bySource} tone="gain" />)
+  })
+
+  it('has no `dimInactive`: nothing on this chart dims', () => {
+    // @ts-expect-error: `dimInactive` is not a FunnelChart prop
+    render(<FunnelChart title="Dim" data={steps} x="step" y="count" dimInactive />)
   })
 })
 
@@ -656,7 +691,7 @@ describe('FunnelChart pointer and tooltip', () => {
 
   it('shows the step, its value and both rates on hover', () => {
     const { container } = renderChart()
-    fireEvent.pointerMove(hits(container)[3] as Element)
+    fireEvent.pointerEnter(hits(container)[3] as Element)
     const tip = tooltipOf(container)
     expect(tip).toHaveTextContent('Quotes accepted')
     expect(tip).toHaveTextContent('298')
@@ -666,7 +701,7 @@ describe('FunnelChart pointer and tooltip', () => {
 
   it('adds one segment per series to the tooltip', () => {
     const { container } = renderChart({ series: bySource })
-    fireEvent.pointerMove(hits(container)[3] as Element)
+    fireEvent.pointerEnter(hits(container)[3] as Element)
     const tip = tooltipOf(container)
     expect(tip).toHaveTextContent('Quotes accepted')
     expect(tip).toHaveTextContent('Referral')
@@ -676,7 +711,7 @@ describe('FunnelChart pointer and tooltip', () => {
 
   it('shows no rates for the first step', () => {
     const { container } = renderChart()
-    fireEvent.pointerMove(hits(container)[0] as Element)
+    fireEvent.pointerEnter(hits(container)[0] as Element)
     const tip = tooltipOf(container)
     expect(tip).toHaveTextContent('Leads')
     expect(tip).not.toHaveTextContent('of previous step')
@@ -685,7 +720,7 @@ describe('FunnelChart pointer and tooltip', () => {
 
   it('draws no tooltip when tooltip is false, and passes the user row to a function tooltip', () => {
     const off = renderChart({ tooltip: false })
-    fireEvent.pointerMove(hits(off.container)[3] as Element)
+    fireEvent.pointerEnter(hits(off.container)[3] as Element)
     expect(tooltipOf(off.container)).toBeNull()
     off.unmount()
     const seen: unknown[] = []
@@ -695,9 +730,31 @@ describe('FunnelChart pointer and tooltip', () => {
         return <span>custom</span>
       },
     })
-    fireEvent.pointerMove(hits(custom.container)[3] as Element)
+    fireEvent.pointerEnter(hits(custom.container)[3] as Element)
     expect(tooltipOf(custom.container)).toHaveTextContent('custom')
     expect(seen).toContain(steps[3])
+  })
+
+  it('activates the tapped step on touch, and keeps it when the tap ends', () => {
+    const { container } = renderChart({ orientation: 'vertical' })
+    const step = hits(container)[2] as Element
+    // A touch tap sends pointerover/enter and pointerdown, but no pointermove.
+    fireEvent.pointerEnter(step, { pointerType: 'touch' })
+    fireEvent.pointerDown(step, { pointerType: 'touch' })
+    fireEvent.pointerLeave(container.querySelector('figure') as Element, { pointerType: 'touch' })
+    expect(tooltipOf(container)).toHaveTextContent('43% of first step')
+    expect(num(activeGuides(container)[0] as Element, 'y1')).toBe(128)
+  })
+
+  it('moves the active step with the mouse and clears it when the mouse leaves', () => {
+    const { container } = renderChart()
+    fireEvent.pointerEnter(hits(container)[1] as Element, { pointerType: 'mouse' })
+    expect(tooltipOf(container)).toHaveTextContent('Site visits')
+    fireEvent.pointerEnter(hits(container)[4] as Element, { pointerType: 'mouse' })
+    expect(tooltipOf(container)).toHaveTextContent('Jobs paid')
+    fireEvent.pointerLeave(container.querySelector('figure') as Element, { pointerType: 'mouse' })
+    expect(tooltipOf(container)).toBeNull()
+    expect(activeGuides(container)).toHaveLength(0)
   })
 
   it('selects on click with the row id and the user row', () => {
@@ -733,9 +790,9 @@ describe('FunnelChart active step', () => {
     expect(dimmed(container)).toEqual([false, false, false, false, false])
   })
 
-  it.each([true, false])('dims no step with dimInactive={%s}', (dimInactive) => {
-    const { container } = renderChart({ activeId: 3, dimInactive })
-    expect(dimmed(container)).toEqual([false, false, false, false, false])
+  it.each([0, 3, 4])('never dims a step while step %i is active', (activeId) => {
+    const { container } = renderChart({ activeId })
+    expect(container.querySelectorAll('[data-ch-dimmed]')).toHaveLength(0)
     const active = activeGuides(container)
     expect(active).toHaveLength(1)
     expect(active[0]?.getAttribute('data-ch-active')).toBe('true')

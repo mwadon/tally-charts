@@ -10246,7 +10246,7 @@
             },
             {
               "kind": "Content",
-              "text": "<D>, 'aspectRatio'> & {\n  data: readonly D[];\n  x: "
+              "text": "<D>, 'aspectRatio' | 'dimInactive'> & {\n  data: readonly D[];\n  x: "
             },
             {
               "kind": "Reference",

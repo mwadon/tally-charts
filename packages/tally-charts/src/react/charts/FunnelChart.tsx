@@ -49,7 +49,7 @@ export interface FunnelSeries<D> {
 }
 
 export type FunnelChartProps<D> = ChartName &
-  Omit<ChartPassThroughProps<D>, 'aspectRatio'> & {
+  Omit<ChartPassThroughProps<D>, 'aspectRatio' | 'dimInactive'> & {
     /** One row per step, in funnel order. */
     data: readonly D[]
     /** Step name. */
@@ -65,7 +65,10 @@ export type FunnelChartProps<D> = ChartName &
     orientation?: 'auto' | 'horizontal' | 'vertical'
     /** Default 'weakest': the lowest continue rate is drawn in the loss tone. */
     highlight?: 'weakest' | 'none'
-    /** Width in px of the label column of a vertical funnel. Default 128. */
+    /**
+     * Width in px of the label column of a vertical funnel. Default 128. A vertical `margin.left`
+     * adds room left of this column.
+     */
     labelWidth?: number
     /**
      * Hidden data table for screen readers: `true`, `false`, or `{ caption, columns }` to set its
@@ -110,11 +113,14 @@ interface FunnelRow<D> {
 interface FunnelStep<D> extends FunnelRow<D> {
   /** The row it was drawn from: the datum of its point. */
   row: FunnelRow<D>
-  /** Value ÷ the previous drawn step's value; null for the first step and after a zero. */
+  /** Value ÷ the previous drawn step's value; null for the first step and after a zero step. */
   rate: number | null
   valueText: string
   rateText: string
-  /** Value ÷ the first drawn step's value, as text; empty for the first step and after a zero. */
+  /**
+   * Value ÷ the first drawn step's value, as text; empty for the first step, or for every step
+   * when the first step's value is 0.
+   */
   shareText: string
   /** One formatted value per layer. */
   layerTexts: string[]
@@ -240,8 +246,8 @@ function FunnelMarks<D>(props: {
   const points = stable.current
   useRegisterPoints(points)
 
-  // The active step: its guide is inked over the ribbon. Headers and labels never dim, so their
-  // text keeps its contrast whatever `dimInactive` says.
+  // The active step: its guide is inked over the ribbon. Nothing dims, so headers and labels keep
+  // their contrast.
   const active = ctx.activeId === null ? -1 : steps.findIndex((s) => s.rowId === ctx.activeId)
   // A guide (or a segment of one) along the funnel's cross axis at `along`, from `a` to `b`.
   const guide = (along: number, a: number, b: number) =>
@@ -378,7 +384,7 @@ function FunnelMarks<D>(props: {
               y={round2(hit.y)}
               width={round2(Math.max(0, hit.width))}
               height={round2(Math.max(0, hit.height))}
-              onPointerMove={() => ctx.setActive(step.rowId, 'pointer')}
+              onPointerEnter={() => ctx.setActive(step.rowId, 'pointer')}
               onClick={() => {
                 if (point) ctx.select(point)
               }}
@@ -486,12 +492,13 @@ export function FunnelChart<D>({
   const tones = useMemo(() => (series ? seriesTones(series) : [tone]), [series, tone])
 
   const horizontalMargin: Margin = { ...HORIZONTAL_MARGIN, ...margin }
+  // The label column is always there: a user `margin.left` adds room left of it.
   const verticalMargin: Margin = {
     top: VERTICAL_PAD,
     right: 0,
     bottom: VERTICAL_PAD,
-    left: labelWidth,
     ...margin,
+    left: labelWidth + (margin?.left ?? 0),
   }
   const orientationAt = (width: number): Orientation => {
     if (orientation !== 'auto') return orientation
@@ -543,6 +550,8 @@ export function FunnelChart<D>({
     <FittedChart<FunnelRow<D>>
       {...chart}
       {...userCallbacks(onSelect, onActiveChange)}
+      // Not a FunnelChart prop: nothing on this chart dims, children included.
+      dimInactive={false}
       data={steps.length > 0 ? rows : []}
       dataTable={withTableOptions(table, dataTable)}
       // The funnel lays itself out from the plot size; fixed domains keep the scales quiet.

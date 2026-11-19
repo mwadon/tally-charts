@@ -36,3 +36,13 @@ test('a touch tap on a line chart activates the nearest point', async ({ page })
   await expect(page.locator(tooltip)).not.toHaveText(late ?? '')
   await expect(page.locator('[data-ch-root] [aria-live]')).toHaveText('')
 })
+
+test('a touch tap on a funnel step activates that step', async ({ page }) => {
+  await open(page, 'charts-funnelchart--vertical')
+  const box = await page.locator('[data-ch-part="funnel-hit"]').nth(2).boundingBox()
+  if (!box) throw new Error('no funnel step to tap')
+  await page.touchscreen.tap(box.x + box.width / 2, box.y + box.height / 2)
+  await expect(page.locator(tooltip)).toContainText('of first step')
+  await expect(page.locator('[data-ch-part="funnel-guide"][data-ch-active="true"]')).toHaveCount(1)
+  await expect(page.locator('[data-ch-root] [aria-live]')).toHaveText('')
+})

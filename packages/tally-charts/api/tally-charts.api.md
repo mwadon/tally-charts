@@ -655,7 +655,7 @@ export interface Formatters {
 export function FunnelChart<D>(input: FunnelChartProps<D>): JSX.Element;
 
 // @public (undocumented)
-export type FunnelChartProps<D> = ChartName & Omit<ChartPassThroughProps<D>, 'aspectRatio'> & {
+export type FunnelChartProps<D> = ChartName & Omit<ChartPassThroughProps<D>, 'aspectRatio' | 'dimInactive'> & {
     data: readonly D[];
     x: Accessor<D, string>;
     id?: Accessor<D, Id>;
