@@ -276,7 +276,7 @@ function Marks<D>({
               cx={sx(b.row.x)}
               cy={sy(b.row.y)}
               r={b.r}
-              style={toneVar(b.tone)}
+              style={on ? { ...toneVar(b.tone), fill: `var(--ch-${b.tone})` } : toneVar(b.tone)}
             />
           )
         })}

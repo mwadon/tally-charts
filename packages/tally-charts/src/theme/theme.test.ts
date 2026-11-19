@@ -556,9 +556,21 @@ describe('theme.css', () => {
     expect(forced).toContain('[data-ch-part="axis-title"]')
   })
 
+  it('lets the active bubble stroke beat the accent-soft outline of the same specificity', () => {
+    const active = '[data-ch-part="bubble"][data-ch-active="true"] {'
+    const soft = css.indexOf('[data-ch-part="bubble"][data-ch-tone="accent-soft"],')
+    const at = css.indexOf(active)
+    expect(soft).toBeGreaterThan(-1)
+    expect(at).toBeGreaterThan(-1)
+    // Same specificity (two attribute selectors), so the later rule wins.
+    expect(at).toBeGreaterThan(soft)
+    // And the soft rule is a real competitor: it sets the same property.
+    expect(css.slice(soft, css.indexOf('}', soft))).toContain('stroke-width: 1px')
+  })
+
   it('styles the active bubble solid with a surface stroke, and its ring, with forced-colors twins', () => {
     expect(css).toMatch(
-      /\[data-ch-part="bubble"\]\[data-ch-active="true"\] \{\s*fill: var\(--_ch-tone-paint, var\(--_ch-swatch-color\)\);\s*stroke: var\(--ch-surface\);\s*stroke-width: 2px;/,
+      /\[data-ch-part="bubble"\]\[data-ch-active="true"\] \{\s*stroke: var\(--ch-surface\);\s*stroke-width: 2px;/,
     )
     expect(css).toMatch(
       /\[data-ch-part="dot-ring"\],\s*\[data-ch-part="bubble-ring"\] \{\s*fill: none;\s*stroke-width: 2;/,

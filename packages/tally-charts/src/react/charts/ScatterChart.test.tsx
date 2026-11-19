@@ -621,15 +621,32 @@ describe('<ScatterChart> overlap and order', () => {
   })
 
   it('keeps the keyboard order by x, then y, whatever the data order', () => {
+    const strip = (t: string | null | undefined) => t?.replace(/^\d+ of 16, /, '')
+    const all = Array(16).fill('ArrowRight') as string[]
     const a = renderScatter()
-    const forward = keys(a.container, 'ArrowRight', 'ArrowRight', 'ArrowRight')
+    const forward = keys(a.container, ...all).map(strip)
     a.unmount()
-    const b = renderScatter({ data: [...jobs].reverse() })
-    expect(
-      keys(b.container, 'ArrowRight', 'ArrowRight', 'ArrowRight').map((t) =>
-        t?.replace(/^\d+ of 16, /, ''),
-      ),
-    ).toEqual(forward.map((t) => t?.replace(/^\d+ of 16, /, '')))
+    // A fixed, non-trivial permutation of the 16 rows.
+    const order = [5, 12, 0, 9, 14, 3, 7, 1, 15, 10, 4, 13, 2, 8, 11, 6]
+    const b = renderScatter({ data: order.map((i) => jobs[i] as Job) })
+    expect(keys(b.container, ...all).map(strip)).toEqual(forward)
+    expect(forward[0]).toContain('Alder Court')
+    expect(forward[15]).toContain('Juniper Mill')
+  })
+
+  it('keeps data order for two rows with identical x and y', () => {
+    const twin = (name: string, hours: number) => ({ name, estimate: 20000, margin: 30, hours })
+    for (const names of [
+      ['First', 'Second'],
+      ['Second', 'First'],
+    ]) {
+      const data = names.map((n) => twin(n, 40))
+      const { container, unmount } = renderScatter({ data })
+      expect(keys(container, 'ArrowRight', 'ArrowRight').map((t) => t?.split(', ')[1])).toEqual(
+        names,
+      )
+      unmount()
+    }
   })
 
   it('orders equal x by y', () => {
@@ -684,6 +701,25 @@ describe('<ScatterChart> stable registration', () => {
     rerender(render1())
     rerender(render1())
     expect(registered.at(-1)).toBe(first)
+  })
+
+  it('does not loop when every accessor is an inline function', () => {
+    const base = props()
+    const view = () => (
+      <ScatterChart<Job>
+        {...base}
+        x={(j) => Number(j.estimate)}
+        y={(j) => Number(j.margin)}
+        size={(j) => Number(j.hours)}
+        label={(j) => j.name}
+      />
+    )
+    const { rerender } = render(view())
+    const afterMount = registered.length
+    // A render loop would register on every pass without end; React stops it with an error.
+    for (let i = 0; i < 4; i++) rerender(view())
+    expect(registered.length - afterMount).toBeLessThanOrEqual(4 * 2)
+    expect(registered.at(-1)).toHaveLength(16)
   })
 
   it('registers new points when a value changes', () => {

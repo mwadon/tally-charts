@@ -425,13 +425,6 @@
   stroke-width: 2;
 }
 
-/* The active bubble is solid, with a surface stroke; its ring (3px outside) is in the tone. */
-[data-ch-part="bubble"][data-ch-active="true"] {
-  fill: var(--_ch-tone-paint, var(--_ch-swatch-color));
-  stroke: var(--ch-surface);
-  stroke-width: 2px;
-}
-
 [data-ch-part="bubble-ring"] {
   stroke: var(--_ch-swatch-color);
 }
@@ -812,6 +805,14 @@
 [data-ch-part="cursor-dot"][data-ch-tone="accent-soft"] {
   stroke: color-mix(in srgb, var(--_ch-swatch-color) var(--ch-tone-text-mix), var(--ch-ink));
   stroke-width: 1px;
+}
+
+/* The active bubble is solid (its fill is set inline, like a dot's) with a surface stroke, for
+   every tone: this rule comes after the accent-soft outline above, which it must beat. Its ring
+   (3px outside) is in the tone. */
+[data-ch-part="bubble"][data-ch-active="true"] {
+  stroke: var(--ch-surface);
+  stroke-width: 2px;
 }
 
 [data-ch-fill="hatch"]:is(
