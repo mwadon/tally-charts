@@ -7,6 +7,7 @@ import {
   Delta,
   DotCount,
   DotHistogram,
+  FunnelChart,
   fmt,
   GroupedBarChart,
   Heatmap,
@@ -31,8 +32,6 @@ import {
   WaterfallChart,
   ZoneMeter,
 } from '../src'
-// Until FunnelChart is exported from the package entry.
-import { FunnelChart } from '../src/react/charts/FunnelChart'
 
 export const weeks = [
   { week: 'Jul 6', margin: 37.5 },

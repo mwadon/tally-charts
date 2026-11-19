@@ -279,6 +279,7 @@ export interface ChartMessages {
     headerCategory: string;
     headerChange: string;
     headerColumn: string;
+    headerContinued: string;
     headerDate: string;
     headerDifference: string;
     headerGroup: string;
@@ -295,6 +296,7 @@ export interface ChartMessages {
     headerRunwayDetail: string;
     headerSize: string;
     headerStatus: string;
+    headerStep: string;
     headerTotal: string;
     headerValue: string;
     headerX: string;
@@ -311,6 +313,8 @@ export interface ChartMessages {
     noData: string;
     noValue: string;
     now: string;
+    ofFirstStep: string;
+    ofPreviousStep: string;
     onPlan: string;
     peak: string;
     planActual: string;
@@ -645,6 +649,38 @@ export interface Formatters {
     percent: Formatter;
     // (undocumented)
     pts: Formatter;
+}
+
+// @public (undocumented)
+export function FunnelChart<D>(input: FunnelChartProps<D>): JSX.Element;
+
+// @public (undocumented)
+export type FunnelChartProps<D> = ChartName & Omit<ChartPassThroughProps<D>, 'aspectRatio'> & {
+    data: readonly D[];
+    x: Accessor<D, string>;
+    id?: Accessor<D, Id>;
+    format?: FormatSpec;
+    orientation?: 'auto' | 'horizontal' | 'vertical';
+    highlight?: 'weakest' | 'none';
+    labelWidth?: number;
+    dataTable?: boolean | DataTableOptions;
+    tooltip?: ChartTooltip<D>;
+} & ({
+    y: Accessor<D, number>;
+    tone?: Tone;
+    series?: undefined;
+} | {
+    series: readonly FunnelSeries<D>[];
+    y?: undefined;
+    tone?: undefined;
+});
+
+// @public (undocumented)
+export interface FunnelSeries<D> {
+    id: string;
+    label: string;
+    tone?: Tone;
+    value: Accessor<D, number>;
 }
 
 // @public
