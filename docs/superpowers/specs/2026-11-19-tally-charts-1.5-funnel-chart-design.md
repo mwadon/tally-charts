@@ -141,13 +141,14 @@ ribbon across the funnel.
 ### Orientation
 
 `'auto'` draws vertical when the plot length available per step is under 96 px, or when any
-header text (value, name or rate, by the library's width estimate in `core/text.ts`, scaled to
-the font size) is wider than its column less 12 px; otherwise horizontal (author's call). The
+value or rate in the header (by the library's width estimate in `core/text.ts`, scaled to the
+font size) is wider than its column less 12 px; otherwise horizontal (author's call). Step
+names do not trigger the switch: a name wider than its column is cut. The
 server render and the first client render use `initialWidth`, so they agree; the chart may
-switch after it is measured. `'horizontal'` and `'vertical'` never switch. In a forced
-horizontal chart a step name wider than its column is cut with `truncateLabel` (full text in a
-`<title>`, the tooltip and the table); values and rates are never cut and may run into the next
-column, which is the caller's choice when forcing the orientation.
+switch after it is measured. `'horizontal'` and `'vertical'` never switch. A horizontal step name wider than its column less 12 px is cut with
+`truncateLabel` (full text in a `<title>`, the tooltip and the table). Values and rates are
+never cut; in a forced horizontal chart they may run into the next column, which is the
+caller's choice when forcing the orientation.
 
 ### Ribbon
 
