@@ -166,14 +166,14 @@
       "id": "n19",
       "type": "prose",
       "props": {
-        "markdown": "`orientation` defaults to `'auto'`: the steps run left to right while each gets at least 96 px of the chart width and every header value and rate fits its column with 12 px to spare (by the library's estimate of text width; it does not measure text). Otherwise the funnel turns vertical, steps top to bottom. Step names never cause the switch: a name wider than its column is cut, with the full text in a `<title>`, the tooltip and the data table. The server render and the first client render use `initialWidth` (default 640), so the chart may switch once it has measured its width. `'horizontal'` and `'vertical'` never switch; in a forced horizontal funnel a value or rate wider than its column runs into the next one."
+        "markdown": "`orientation` defaults to `'auto'`: the steps run left to right while each gets at least 96 px of the plot width (the chart width minus the horizontal funnel's left and right margins, which are 0 by default) and every header value and rate fits its column with 12 px to spare (by the library's estimate of text width; it does not measure text). Otherwise the funnel turns vertical, steps top to bottom. Step names never cause the switch: a name wider than its column is cut, with the full text in a `<title>`, the tooltip and the data table. The server render and the first client render use `initialWidth` (default 640), so the chart may switch once it has measured its width. `'horizontal'` and `'vertical'` never switch; in a forced horizontal funnel a value or rate wider than its column runs into the next one."
       }
     },
     {
       "id": "n20",
       "type": "prose",
       "props": {
-        "markdown": "A horizontal funnel is 280 px tall by default. A vertical one gives each step 64 px, so its default height is the number of steps × 64 + 16; an explicit `height` is divided evenly between the steps instead. Its labels sit in a column left of the ribbon: the step name, then the value and the continue rate on one line. The column is `labelWidth` px wide (default 128), and a name wider than the column is cut, with the full text in a `<title>`. Widen the column with `labelWidth`, not with `margin.left`: a `margin.left` replaces the room the column takes, while the labels still start `labelWidth` px left of the ribbon."
+        "markdown": "A horizontal funnel is 280 px tall by default. A vertical one gives each step 64 px, so its default height is the number of steps × 64 plus the top and bottom margins (8 px each by default, so steps × 64 + 16); an explicit `height` is divided evenly between the steps instead. Its labels sit in a column left of the ribbon: the step name, then the value and the continue rate on one line. The column is `labelWidth` px wide (default 128), and a name wider than the column is cut, with the full text in a `<title>`. Widen the column with `labelWidth`, not with `margin.left`: a `margin.left` replaces the room the column takes, while the labels still start `labelWidth` px left of the ribbon."
       }
     },
     {

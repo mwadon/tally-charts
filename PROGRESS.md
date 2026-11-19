@@ -2802,8 +2802,9 @@ Gałąź `funnel-chart`. Spec: `docs/superpowers/specs/2026-11-19-tally-charts-1
 - Docs: strona `/docs/funnel-chart` (fiksturka, nawigacja po BridgeChart) z czterema przykładami w `examples/funnel-chart/` (`lead-to-paid`, `by-source` z `Legend`, `vertical`, `currency`; wszystkie rscSafe), miniatura `funnel` i kafelek w `chart-index`, nagłówek „Sixteen charts, one grammar”, nowe klucze w tabeli komunikatów na `/docs/hooks-and-providers`. Karty poziome przy 1280 px i pionowe przy 375 px: `height` bloku 312 / 333 / 560 / 312 i wpisy `NARROW_CHART_HEIGHTS` 336 / 385 / – / 336 (zmierzone na darwin). Stron w nawigacji 30, `API coverage: 58/58`, `check:content` 0 błędów w 31 stronach. Wiersz FunnelChart i uwaga (ton nie jest jedynym nośnikiem najsłabszego kroku, aktywny krok tylko prowadnicą) w `docs/a11y.md`. Baseline'y `/` odświeżone na darwin i linux (baseline'y `/docs/line-chart` bez zmian).
 
 **Otwarte kwestie:**
-- Kafelków `chart-index` jest 17 (16 wykresów i Small pieces): przy 4 kolumnach (od 1100 px) ostatni wiersz ma sam kafelek Small pieces.
-- Przy oknie od 764 px, gdy karta docs jest jeszcze za wąska na poziomy lejek, placeholder rezerwuje wysokość szeroką i karta zmienia wysokość po zamontowaniu (e2e mierzy tylko 375 i 1280).
+- Kafelków `chart-index` jest 17 (16 wykresów i Small pieces), więc przy 4 kolumnach (od 1100 px) ostatni wiersz ma jeden kafelek (decyzja projektowa).
+- Zaakceptowane, do decyzji maintainera: przy oknie ok. 546–763 px karty lejka na `/docs/funnel-chart` maleją po zamontowaniu o ok. 56–84 px (`currency` 419 → 363, `by-source` 468 → 384; wykres ≥ 480 px jest już poziomy, a placeholder poniżej 764 px ma wąską, pionową wysokość; przy 500–545 px `by-source` maleje o 28 px przez legendę w jednym wierszu). Poprawka wymaga progu placeholdera per przykład; e2e mierzy tylko 375 i 1280.
+- Pierwsza (eager) karta `/docs/funnel-chart` jest renderowana na serwerze przy `initialWidth` 640 (poziomo) i przy 375 px po zmierzeniu przechodzi w pion (zmiana wysokości po hydracji).
 - Aktywny krok oznacza tylko prowadnica 1,5 px (i tooltip); może być za cichy.
 - `margin.left` w pionie zastępuje margines kolumny etykiet, a etykiety dalej zaczynają się w `-labelWidth`; docs kierują do `labelWidth`.
 - Wydanie 1.5.0 nie zostało zrobione (changeset jest).
