@@ -7,7 +7,8 @@ export interface FunnelGeometry {
   paths: (string | null)[]
 }
 
-const FLAT_RUN = 0.2
+/** Share of a column the ribbon stays flat after its step line. */
+export const FLAT_RUN = 0.2
 const MIN_THICKNESS = 2
 
 const round = (value: number): number => Math.round(value * 100) / 100

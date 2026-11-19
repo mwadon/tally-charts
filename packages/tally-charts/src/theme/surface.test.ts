@@ -104,6 +104,7 @@ const PARTS = [
   'funnel-guide',
   'funnel-guide-inner',
   'funnel-guides',
+  'funnel-hit',
   'funnel-name',
   'funnel-rate',
   'funnel-step',

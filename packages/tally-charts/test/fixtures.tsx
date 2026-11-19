@@ -31,6 +31,8 @@ import {
   WaterfallChart,
   ZoneMeter,
 } from '../src'
+// Until FunnelChart is exported from the package entry.
+import { FunnelChart } from '../src/react/charts/FunnelChart'
 
 export const weeks = [
   { week: 'Jul 6', margin: 37.5 },
@@ -484,6 +486,42 @@ export function JobMargins() {
       sizeFormat={(v) => `${v} h`}
       tone={(j) => (j.margin < 32 ? 'loss' : 'accent')}
       target={{ value: 32, label: 'target 32%' }}
+    />
+  )
+}
+
+export const leadSteps = [
+  { step: 'Leads', count: 1240, referral: 420, website: 380, ads: 300, other: 140 },
+  { step: 'Site visits', count: 806, referral: 330, website: 250, ads: 150, other: 76 },
+  { step: 'Quotes sent', count: 532, referral: 250, website: 160, ads: 80, other: 42 },
+  { step: 'Quotes accepted', count: 298, referral: 170, website: 80, ads: 30, other: 18 },
+  { step: 'Jobs paid', count: 262, referral: 155, website: 68, ads: 24, other: 15 },
+]
+
+export function LeadFunnel({ initialWidth }: { initialWidth?: number } = {}) {
+  return (
+    <FunnelChart
+      title="From lead to paid job"
+      data={leadSteps}
+      x="step"
+      y="count"
+      initialWidth={initialWidth}
+    />
+  )
+}
+
+export function LeadFunnelBySource() {
+  return (
+    <FunnelChart
+      title="From lead to paid job, by source"
+      data={leadSteps}
+      x="step"
+      series={[
+        { id: 'referral', label: 'Referral', value: 'referral' },
+        { id: 'website', label: 'Website', value: 'website' },
+        { id: 'ads', label: 'Ads', value: 'ads' },
+        { id: 'other', label: 'Other', value: 'other', tone: 'neutral' },
+      ]}
     />
   )
 }

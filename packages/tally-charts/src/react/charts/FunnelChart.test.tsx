@@ -1,7 +1,22 @@
-import { render } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
+import { ChartsProvider } from '../ChartsProvider'
+import type { ChartPoint } from '../types'
 import { FunnelChart, type FunnelChartProps, type FunnelSeries } from './FunnelChart'
 import { funnelGeometry } from './funnel-geometry'
+
+// Records every points array a mark registers, so a test can see whether a re-render with the
+// same props registers a new array. The real hook still runs.
+const registered = vi.hoisted(() => [] as (readonly ChartPoint[])[])
+vi.mock('../useRegisterPoints', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../useRegisterPoints')>()
+  return {
+    useRegisterPoints: (points: readonly ChartPoint[]) => {
+      if (points.length > 0) registered.push(points)
+      actual.useRegisterPoints(points)
+    },
+  }
+})
 
 type Step = {
   step: string
@@ -450,6 +465,8 @@ describe('FunnelChart edge cases', () => {
     'stays sane at 60 px wide (%s)',
     (orientation) => {
       const { container } = renderChart({ width: 60, orientation })
+      // The hit rects are drawn, so the sweep covers them too.
+      expect(parts(container, 'funnel-hit')).toHaveLength(5)
       for (const { name, value } of attributes(container)) {
         expect(value).not.toContain('NaN')
         expect(value).not.toContain('Infinity')
@@ -457,6 +474,19 @@ describe('FunnelChart edge cases', () => {
       }
     },
   )
+
+  // A plot under 2 px thick: the ribbon's minimum thickness puts its edges outside the plot.
+  it.each([
+    ['horizontal', { height: 81 }],
+    ['vertical', { width: 129 }],
+  ] as const)('keeps hit rects sane on a plot under 2 px thick (%s)', (orientation, size) => {
+    const { container } = renderChart({ orientation, ...size })
+    expect(parts(container, 'funnel-hit')).toHaveLength(5)
+    for (const { name, value } of attributes(container)) {
+      expect(value).not.toContain('NaN')
+      if (name === 'width' || name === 'height') expect(Number(value)).toBeGreaterThanOrEqual(0)
+    }
+  })
 
   it('is vertical at 60 px under auto', () => {
     const { container } = renderChart({ width: 60, orientation: 'auto' })
@@ -508,5 +538,309 @@ describe('FunnelChart edge cases', () => {
     quiet()
     const { container } = renderChart({ data: stepsOf([null, -1]) })
     expect(container.querySelector('[data-ch-part="empty"]')).not.toBeNull()
+  })
+})
+
+const live = (root: Element) => root.querySelector('[aria-live]')?.textContent
+const chartEl = () => screen.getByRole('application', { name: 'From lead to paid job' })
+const press = (root: Element, ...keys: string[]) =>
+  keys.map((key) => {
+    fireEvent.keyDown(chartEl(), { key })
+    return live(root)
+  })
+const hits = (root: Element) => parts(root, 'funnel-hit')
+const tooltipOf = (root: Element) => root.querySelector('[data-ch-part="tooltip"]')
+const activeGuides = (root: Element) =>
+  parts(root, 'funnel-guide').filter((g) => g.getAttribute('data-ch-active') === 'true')
+const dimmed = (root: Element) =>
+  parts(root, 'funnel-step').map((g) => g.getAttribute('data-ch-dimmed') === 'true')
+const headers = () =>
+  within(screen.getByRole('table'))
+    .getAllByRole('columnheader')
+    .map((th) => th.textContent)
+const tableRows = () => within(screen.getByRole('table')).getAllByRole('row').slice(1)
+const rowText = (row: Element) => ({
+  name: within(row as HTMLElement).getByRole('rowheader').textContent,
+  cells: within(row as HTMLElement)
+    .getAllByRole('cell')
+    .map((c) => c.textContent),
+})
+
+describe('FunnelChart keyboard and announcements', () => {
+  it('announces each step: position, name, value and continue rate', () => {
+    const { container } = renderChart()
+    fireEvent.focus(chartEl())
+    expect(live(container)).toBe('1 of 5, Leads, 1,240')
+    expect(press(container, 'ArrowRight', 'End')).toEqual([
+      '2 of 5, Site visits, 806, 65% of previous step',
+      '5 of 5, Jobs paid, 262, 88% of previous step',
+    ])
+  })
+
+  it('moves down and up the steps of a vertical funnel', () => {
+    const { container } = renderChart({ orientation: 'vertical' })
+    fireEvent.focus(chartEl())
+    expect(press(container, 'ArrowDown', 'ArrowDown', 'ArrowUp')).toEqual([
+      '2 of 5, Site visits, 806, 65% of previous step',
+      '3 of 5, Quotes sent, 532, 66% of previous step',
+      '2 of 5, Site visits, 806, 65% of previous step',
+    ])
+  })
+
+  it('reads the series values after the rate', () => {
+    const { container } = renderChart({ series: bySource })
+    fireEvent.focus(chartEl())
+    expect(press(container, 'ArrowRight', 'ArrowRight')[1]).toBe(
+      '3 of 5, Quotes sent, 532, 66% of previous step, Referral 250, Website 160, Ads 80, Other 42',
+    )
+  })
+
+  it('takes "of previous step" and "of first step" from ChartsProvider messages', () => {
+    const { container } = render(
+      <ChartsProvider
+        messages={{ ofPreviousStep: 'z poprzedniego kroku', ofFirstStep: 'z pierwszego kroku' }}
+      >
+        <FunnelChart<Step>
+          data={steps}
+          x="step"
+          y={(d) => Number(d.count)}
+          width={584}
+          orientation="horizontal"
+          title="From lead to paid job"
+          animate={false}
+        />
+      </ChartsProvider>,
+    )
+    fireEvent.focus(chartEl())
+    expect(press(container, 'ArrowRight')[0]).toBe(
+      '2 of 5, Site visits, 806, 65% z poprzedniego kroku',
+    )
+    expect(tooltipOf(container)).toHaveTextContent('65% z pierwszego kroku')
+    expect(container.textContent).not.toContain('of previous step')
+  })
+
+  it('counts drawn steps only: a skipped row has no point', () => {
+    quiet()
+    const { container } = renderChart({ data: stepsOf([1000, null, 800]) })
+    fireEvent.focus(chartEl())
+    expect(live(container)).toBe('1 of 2, Step 1, 1,000')
+    expect(press(container, 'ArrowRight')).toEqual(['2 of 2, Step 3, 800, 80% of previous step'])
+    expect(hits(container)).toHaveLength(2)
+  })
+})
+
+describe('FunnelChart pointer and tooltip', () => {
+  it('covers each column of a horizontal funnel with a hit rect', () => {
+    const { container } = renderChart()
+    const rects = hits(container)
+    expect(rects).toHaveLength(5)
+    rects.forEach((r, i) => {
+      expect(num(r, 'x')).toBeCloseTo(116.8 * i, 2)
+      expect(num(r, 'width')).toBeCloseTo(116.8, 2)
+      expect(num(r, 'y')).toBe(-70)
+      expect(num(r, 'height')).toBe(280)
+    })
+  })
+
+  it('covers each row of a vertical funnel, label column included', () => {
+    const { container } = renderChart({ orientation: 'vertical' })
+    const rects = hits(container)
+    expect(rects).toHaveLength(5)
+    rects.forEach((r, i) => {
+      expect(num(r, 'x')).toBe(-128)
+      expect(num(r, 'width')).toBe(584)
+      expect(num(r, 'y')).toBe(64 * i)
+      expect(num(r, 'height')).toBe(64)
+    })
+  })
+
+  it('shows the step, its value and both rates on hover', () => {
+    const { container } = renderChart()
+    fireEvent.pointerMove(hits(container)[3] as Element)
+    const tip = tooltipOf(container)
+    expect(tip).toHaveTextContent('Quotes accepted')
+    expect(tip).toHaveTextContent('298')
+    expect(tip).toHaveTextContent('56% of previous step')
+    expect(tip).toHaveTextContent('24% of first step')
+  })
+
+  it('adds one segment per series to the tooltip', () => {
+    const { container } = renderChart({ series: bySource })
+    fireEvent.pointerMove(hits(container)[3] as Element)
+    const tip = tooltipOf(container)
+    expect(tip).toHaveTextContent('Quotes accepted')
+    expect(tip).toHaveTextContent('Referral')
+    expect(tip).toHaveTextContent('170')
+    expect(tip).toHaveTextContent('Other')
+  })
+
+  it('shows no rates for the first step', () => {
+    const { container } = renderChart()
+    fireEvent.pointerMove(hits(container)[0] as Element)
+    const tip = tooltipOf(container)
+    expect(tip).toHaveTextContent('Leads')
+    expect(tip).not.toHaveTextContent('of previous step')
+    expect(tip).not.toHaveTextContent('of first step')
+  })
+
+  it('draws no tooltip when tooltip is false, and passes the user row to a function tooltip', () => {
+    const off = renderChart({ tooltip: false })
+    fireEvent.pointerMove(hits(off.container)[3] as Element)
+    expect(tooltipOf(off.container)).toBeNull()
+    off.unmount()
+    const seen: unknown[] = []
+    const custom = renderChart({
+      tooltip: (point: ChartPoint<Step>) => {
+        seen.push(point.datum)
+        return <span>custom</span>
+      },
+    })
+    fireEvent.pointerMove(hits(custom.container)[3] as Element)
+    expect(tooltipOf(custom.container)).toHaveTextContent('custom')
+    expect(seen).toContain(steps[3])
+  })
+
+  it('selects on click with the row id and the user row', () => {
+    const onSelect = vi.fn()
+    const { container, unmount } = renderChart({ onSelect })
+    fireEvent.click(hits(container)[3] as Element)
+    expect(onSelect).toHaveBeenCalledTimes(1)
+    const [id, point] = onSelect.mock.calls[0] as [unknown, ChartPoint<Step>]
+    expect(id).toBe(3)
+    expect(point.datum).toBe(steps[3])
+    unmount()
+    const byId = vi.fn()
+    const named = renderChart({ onSelect: byId, id: 'step' })
+    fireEvent.click(hits(named.container)[0] as Element)
+    expect(byId.mock.calls[0]?.[0]).toBe('Leads')
+  })
+})
+
+describe('FunnelChart active step', () => {
+  it('inks the active guide over the ribbon and dims the other steps', () => {
+    const { container } = renderChart({ activeId: 3 })
+    const active = activeGuides(container)
+    expect(active).toHaveLength(1)
+    expect(num(active[0] as Element, 'x1')).toBeCloseTo(116.8 * 3, 2)
+    // Drawn after the ribbon, so it sits over it.
+    const area = parts(container, 'funnel-area')[0] as Element
+    expect(area.compareDocumentPosition(active[0] as Element)).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING,
+    )
+    expect(parts(container, 'funnel-guide')).toHaveLength(4)
+    expect(dimmed(container)).toEqual([true, true, true, false, true])
+  })
+
+  it('dims nothing with dimInactive={false}', () => {
+    const { container } = renderChart({ activeId: 3, dimInactive: false })
+    expect(dimmed(container)).toEqual([false, false, false, false, false])
+    expect(activeGuides(container)).toHaveLength(1)
+  })
+
+  it('gives the first step a guide only while it is active', () => {
+    const { container } = renderChart({ activeId: 0 })
+    const guides = parts(container, 'funnel-guide')
+    expect(guides).toHaveLength(5)
+    const active = activeGuides(container)
+    expect(active).toHaveLength(1)
+    expect(num(active[0] as Element, 'x1')).toBe(0)
+  })
+
+  it('never changes the ribbon', () => {
+    const d = (props: Props) =>
+      parts(renderChart(props).container, 'funnel-area').map((a) => a.getAttribute('d'))
+    expect(d({ activeId: 3 })).toEqual(d({}))
+  })
+
+  it('dims nothing and inks no guide without an active step', () => {
+    const { container } = renderChart()
+    expect(activeGuides(container)).toHaveLength(0)
+    expect(dimmed(container)).toEqual([false, false, false, false, false])
+  })
+})
+
+describe('FunnelChart points registration', () => {
+  it('registers the same points array again when re-rendered with the same props', () => {
+    const view = () => (
+      <FunnelChart<Step>
+        data={steps}
+        x="step"
+        series={bySource.map((s) => ({ ...s }))}
+        format={(v: number) => v.toLocaleString('en-US')}
+        width={584}
+        orientation="horizontal"
+        title="From lead to paid job"
+        animate={false}
+      />
+    )
+    const { rerender } = render(view())
+    const first = registered.at(-1)
+    expect(first).toHaveLength(5)
+    rerender(view())
+    rerender(view())
+    expect(registered.at(-1)).toBe(first)
+  })
+
+  it('registers new points when a value changes', () => {
+    const { rerender } = render(
+      <FunnelChart<Step> data={steps} x="step" y="count" width={584} title="F" animate={false} />,
+    )
+    const first = registered.at(-1)
+    rerender(
+      <FunnelChart<Step>
+        data={steps.map((s, i) => (i === 1 ? { ...s, count: 800 } : s))}
+        x="step"
+        y="count"
+        width={584}
+        title="F"
+        animate={false}
+      />,
+    )
+    expect(registered.at(-1)).not.toBe(first)
+  })
+})
+
+describe('FunnelChart data table', () => {
+  it('lists every row in data order: step, value and continue rate', () => {
+    renderChart()
+    expect(headers()).toEqual(['Step', 'Value', 'Continued'])
+    const rows = tableRows()
+    expect(rows.map((r) => rowText(r).name)).toEqual(steps.map((s) => s.step))
+    expect(rowText(rows[3] as Element)).toEqual({ name: 'Quotes accepted', cells: ['298', '56%'] })
+    // The first step has no rate: an empty cell.
+    expect(rowText(rows[0] as Element).cells).toEqual(['1,240', '—no value'])
+  })
+
+  it('has one column per series and a total with series', () => {
+    renderChart({ series: bySource })
+    expect(headers()).toEqual(['Step', 'Referral', 'Website', 'Ads', 'Other', 'Total', 'Continued'])
+    expect(rowText(tableRows()[3] as Element).cells).toEqual([
+      '170',
+      '80',
+      '30',
+      '18',
+      '298',
+      '56%',
+    ])
+  })
+
+  it('keeps a skipped row, with its name and empty cells', () => {
+    quiet()
+    renderChart({ data: stepsOf([1000, null, 800]) })
+    const rows = tableRows()
+    expect(rows).toHaveLength(3)
+    expect(rowText(rows[1] as Element)).toEqual({
+      name: 'Step 2',
+      cells: ['—no value', '—no value'],
+    })
+    expect(rowText(rows[2] as Element).cells).toEqual(['800', '80%'])
+  })
+
+  it('renames columns with dataTable.columns, and drops the table with dataTable={false}', () => {
+    const { unmount } = renderChart({ dataTable: { columns: { Value: 'Count' } } })
+    expect(headers()).toEqual(['Step', 'Count', 'Continued'])
+    unmount()
+    renderChart({ dataTable: false })
+    expect(screen.queryByRole('table')).toBeNull()
   })
 })

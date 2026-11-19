@@ -341,6 +341,20 @@ describe('theme.css', () => {
     )
   })
 
+  it('inks the active funnel guide, Highlight in forced colors, and points at selectable steps', () => {
+    expect(themed).toMatch(
+      /\[data-ch-part="funnel-guide"\]\[data-ch-active="true"\] \{\s*stroke: var\(--ch-ink\);\s*stroke-width: 1\.5;/,
+    )
+    expect(forced).toMatch(
+      /\[data-ch-part="funnel-guide"\]\[data-ch-active="true"\] \{\s*stroke: Highlight;/,
+    )
+    expect(themed).toMatch(
+      /\[data-ch-part="bar-hit"\]\[data-ch-selectable="true"\],\s*\[data-ch-part="funnel-hit"\]\[data-ch-selectable="true"\] \{\s*cursor: pointer;/,
+    )
+    // The other steps dim through the shared rule.
+    expect(themed).toMatch(/\[data-ch-dimmed="true"\] \{\s*opacity: var\(--ch-dim-opacity\);/)
+  })
+
   it('styles stacked area end labels and the cursor like the labels and dots they join', () => {
     // The series name reads as an axis label, the value as a value label.
     expect(forced).toMatch(/\[data-ch-part="end-label"\],[\s\S]*?\) \{\s*fill: GrayText;/)

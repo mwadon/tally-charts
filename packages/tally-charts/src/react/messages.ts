@@ -59,6 +59,14 @@ export interface ChartMessages {
   headerY: string
   /** As `headerX`, for `size`. */
   headerSize: string
+  /** The step column of a FunnelChart data table. A header taken from a string accessor keeps the field name. */
+  headerStep: string
+  /** The continue-rate column of a FunnelChart data table. */
+  headerContinued: string
+  /** After a FunnelChart step's continue rate in the tooltip and announcements, as in "65% of previous step". */
+  ofPreviousStep: string
+  /** After a FunnelChart step's share of the first step in the tooltip, as in "24% of first step". */
+  ofFirstStep: string
   /** The data-table column of a RunwayChart row's `sublabel`. */
   headerRunwayDetail: string
   /** A RunwayChart data-table column header. */
@@ -160,6 +168,10 @@ export const HEADER_NAME = 'Name'
 export const HEADER_X = 'X'
 export const HEADER_Y = 'Y'
 export const HEADER_SIZE = 'Size'
+export const HEADER_STEP = 'Step'
+export const HEADER_CONTINUED = 'Continued'
+export const OF_PREVIOUS_STEP = 'of previous step'
+export const OF_FIRST_STEP = 'of first step'
 export const HEADER_RUNWAY_DETAIL = 'Detail'
 export const HEADER_RUNS_OUT = 'Runs out'
 export const HEADER_RESETS = 'Resets'
@@ -228,6 +240,10 @@ export const DEFAULT_MESSAGES: Readonly<ChartMessages> = {
   headerX: HEADER_X,
   headerY: HEADER_Y,
   headerSize: HEADER_SIZE,
+  headerStep: HEADER_STEP,
+  headerContinued: HEADER_CONTINUED,
+  ofPreviousStep: OF_PREVIOUS_STEP,
+  ofFirstStep: OF_FIRST_STEP,
   headerRunwayDetail: HEADER_RUNWAY_DETAIL,
   headerRunsOut: HEADER_RUNS_OUT,
   headerResets: HEADER_RESETS,

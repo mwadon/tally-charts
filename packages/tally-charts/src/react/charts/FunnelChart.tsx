@@ -1,4 +1,4 @@
-import { type CSSProperties, useMemo } from 'react'
+import { type CSSProperties, useMemo, useRef } from 'react'
 import { resolveAccessor, resolveIds } from '../../core/accessor'
 import type { FormatSpec } from '../../core/format'
 import { round2 } from '../../core/path'
@@ -7,18 +7,34 @@ import type { Accessor, Id, Tone } from '../../core/types'
 import { createWarner, DEV } from '../../core/warn'
 import { paintFor } from '../../theme/patterns'
 import { type ChartName, FittedChart } from '../Chart'
-import { useFormat } from '../ChartsProvider'
+import { useFormat, useMessages } from '../ChartsProvider'
 import { type Margin, useChartContext } from '../context'
+import type { DataTableColumn, DataTableSpec } from '../DataTable'
+import { samePoints } from '../interaction'
+import {
+  HEADER_CONTINUED,
+  HEADER_STEP,
+  HEADER_TOTAL,
+  HEADER_VALUE,
+  OF_FIRST_STEP,
+  OF_PREVIOUS_STEP,
+} from '../messages'
+import { Tooltip } from '../overlays/Tooltip'
+import type { ChartPoint, TooltipSegment } from '../types'
 import { percentText } from '../ui/share'
 import { toneVar } from '../ui/util'
+import { useRegisterPoints } from '../useRegisterPoints'
 import { seriesTones, warnSeries } from './bar-series'
-import { funnelGeometry } from './funnel-geometry'
+import { FLAT_RUN, funnelGeometry } from './funnel-geometry'
 import {
   type ChartPassThroughProps,
   type ChartTooltip,
   type DataTableOptions,
+  headerOf,
   toNumber,
+  tooltipContent,
   userCallbacks,
+  withTableOptions,
 } from './shared'
 
 export interface FunnelSeries<D> {
@@ -92,11 +108,36 @@ interface FunnelRow<D> {
 
 /** A drawn step with its header text. */
 interface FunnelStep<D> extends FunnelRow<D> {
+  /** The row it was drawn from: the datum of its point. */
+  row: FunnelRow<D>
   /** Value ÷ the previous drawn step's value; null for the first step and after a zero. */
   rate: number | null
   valueText: string
   rateText: string
+  /** Value ÷ the first drawn step's value, as text; empty for the first step and after a zero. */
+  shareText: string
+  /** One formatted value per layer. */
+  layerTexts: string[]
   weakest: boolean
+}
+
+/** Same series entries, so an inline `series` array keeps the rows (and the points) it built. */
+function sameSeries<D>(
+  a: readonly FunnelSeries<D>[] | undefined,
+  b: readonly FunnelSeries<D>[] | undefined,
+): boolean {
+  if (a === b) return true
+  if (!a || !b || a.length !== b.length) return false
+  return a.every((s, i) => {
+    const t = b[i]
+    return (
+      t !== undefined &&
+      s.id === t.id &&
+      s.label === t.label &&
+      s.value === t.value &&
+      s.tone === t.tone
+    )
+  })
 }
 
 type Orientation = 'horizontal' | 'vertical'
@@ -140,12 +181,13 @@ function edgesOf(d: string): { near: string; far: string } {
 function FunnelMarks<D>(props: {
   steps: readonly FunnelStep<D>[]
   tones: readonly Tone[]
-  seriesIds: readonly string[] | undefined
+  series: readonly FunnelSeries<D>[] | undefined
   orientationAt: (width: number) => Orientation
   labelWidth: number
 }) {
   const ctx = useChartContext('FunnelChart')
-  const { steps, tones, seriesIds, labelWidth } = props
+  const messages = useMessages()
+  const { steps, tones, series, labelWidth } = props
   const vertical = props.orientationAt(ctx.width) === 'vertical'
   const length = vertical ? ctx.innerHeight : ctx.innerWidth
   const thickness = vertical ? ctx.innerWidth : ctx.innerHeight
@@ -154,11 +196,65 @@ function FunnelMarks<D>(props: {
     [steps, length, thickness, vertical],
   )
   const column = steps.length > 0 ? length / steps.length : 0
+  const ofPrevious = messages.ofPreviousStep ?? OF_PREVIOUS_STEP
+  const ofFirst = messages.ofFirstStep ?? OF_FIRST_STEP
+
+  // One point per drawn step, at the ribbon's near edge in the middle of the flat run.
+  const built = useMemo(
+    (): ChartPoint[] =>
+      steps.map((step, i) => {
+        const along = round2((geometry.lines[i] ?? 0) + (column * FLAT_RUN) / 2)
+        const across = round2(geometry.extents[i]?.[0] ?? 0)
+        const rate = step.rateText ? `${step.rateText} ${ofPrevious}` : ''
+        const share = step.shareText ? `${step.shareText} ${ofFirst}` : ''
+        const layers: TooltipSegment[] = (series ?? []).map((s, k) => ({
+          label: s.label,
+          value: step.layerTexts[k] ?? '',
+          tone: tones[k],
+        }))
+        const label = [
+          step.name,
+          step.valueText,
+          rate,
+          ...(series ?? []).map((s, k) => `${s.label} ${step.layerTexts[k] ?? ''}`),
+        ]
+        const segments: TooltipSegment[] = [{ value: step.name }, { value: step.valueText }]
+        if (rate) segments.push({ value: rate })
+        if (share) segments.push({ value: share })
+        return {
+          id: step.rowId,
+          index: step.index,
+          datum: step.row,
+          x: vertical ? across : along,
+          y: vertical ? along : across,
+          label: label.filter(Boolean).join(', '),
+          segments: [...segments, ...layers],
+        }
+      }),
+    [steps, geometry, column, vertical, series, tones, ofPrevious, ofFirst],
+  )
+  // The format is often an inline function, so `built` is a new array on every render even when
+  // nothing it holds changed; keep the previous array while the content is the same.
+  const stable = useRef<ChartPoint[]>([])
+  if (!samePoints(stable.current, built)) stable.current = built
+  const points = stable.current
+  useRegisterPoints(points)
+
+  // The active step: its guide is inked over the ribbon, the other steps dim.
+  const active = ctx.activeId === null ? -1 : steps.findIndex((s) => s.rowId === ctx.activeId)
+  const dimming = ctx.dimInactive && active >= 0
   // A guide (or a segment of one) along the funnel's cross axis at `along`, from `a` to `b`.
   const guide = (along: number, a: number, b: number) =>
     vertical
       ? { x1: round2(a), x2: round2(b), y1: round2(along), y2: round2(along) }
       : { x1: round2(along), x2: round2(along), y1: round2(a), y2: round2(b) }
+  // A whole guide: from the figure edge (the label column's, in vertical) to the plot's far side.
+  const fullGuide = (along: number) =>
+    guide(
+      along,
+      vertical ? -ctx.margin.left : -ctx.margin.top,
+      vertical ? ctx.innerWidth : ctx.innerHeight,
+    )
 
   // An accent-soft layer on the outside of the ribbon gets an inked edge on that side.
   const last = tones.length - 1
@@ -177,18 +273,12 @@ function FunnelMarks<D>(props: {
   return (
     <g data-ch-part="funnel" data-ch-orientation={vertical ? 'vertical' : 'horizontal'}>
       <g data-ch-part="funnel-guides">
-        {geometry.lines.slice(1).map((along, i) => (
-          <line
+        {geometry.lines.map((along, i) =>
+          i === 0 || i === active ? null : (
             // biome-ignore lint/suspicious/noArrayIndexKey: one guide per step line, in order
-            key={i}
-            data-ch-part="funnel-guide"
-            {...guide(
-              along,
-              vertical ? -ctx.margin.left : -ctx.margin.top,
-              vertical ? ctx.innerWidth : ctx.innerHeight,
-            )}
-          />
-        ))}
+            <line key={i} data-ch-part="funnel-guide" {...fullGuide(along)} />
+          ),
+        )}
       </g>
       {geometry.paths.map((d, k) =>
         d ? (
@@ -197,7 +287,7 @@ function FunnelMarks<D>(props: {
             key={k}
             data-ch-part="funnel-area"
             data-ch-tone={tones[k]}
-            data-ch-series={seriesIds?.[k]}
+            data-ch-series={series?.[k]?.id}
             d={d}
             style={
               {
@@ -218,13 +308,21 @@ function FunnelMarks<D>(props: {
           style={toneVar(edge.tone)}
         />
       ))}
-      {geometry.lines.slice(1).map((along, i) => {
-        const [a, b] = geometry.extents[i + 1] as [number, number]
-        return a === b ? null : (
+      {geometry.lines.map((along, i) => {
+        const [a, b] = geometry.extents[i] as [number, number]
+        // The active guide covers its segment over the ribbon.
+        return i === 0 || i === active || a === b ? null : (
           // biome-ignore lint/suspicious/noArrayIndexKey: one segment per step line, in order
           <line key={i} data-ch-part="funnel-guide-inner" {...guide(along, a, b)} />
         )
       })}
+      {active >= 0 ? (
+        <line
+          data-ch-part="funnel-guide"
+          data-ch-active="true"
+          {...fullGuide(geometry.lines[active] ?? 0)}
+        />
+      ) : null}
       {steps.map((step, i) => {
         const line = geometry.lines[i] ?? 0
         const name = truncateLabel(step.name, nameMax, nameCharWidth)
@@ -241,7 +339,11 @@ function FunnelMarks<D>(props: {
           </text>
         ) : null
         return (
-          <g key={step.index} data-ch-part="funnel-step">
+          <g
+            key={step.index}
+            data-ch-part="funnel-step"
+            data-ch-dimmed={dimming && i !== active ? 'true' : undefined}
+          >
             {name !== step.name ? <title>{step.name}</title> : null}
             <text
               data-ch-part="funnel-value"
@@ -261,6 +363,33 @@ function FunnelMarks<D>(props: {
           </g>
         )
       })}
+      <g>
+        {steps.map((step, i) => {
+          const line = geometry.lines[i] ?? 0
+          // The step's column (horizontal) or row with its labels (vertical), over the whole figure.
+          const hit = vertical
+            ? { x: -ctx.margin.left, y: line, width: ctx.width, height: column }
+            : { x: line, y: -ctx.margin.top, width: column, height: ctx.height }
+          const point = points[i]
+          return (
+            // biome-ignore lint/a11y/noStaticElementInteractions: pointer-only hit area; keyboard selection lives on the focusable figure
+            <rect
+              key={step.index}
+              data-ch-part="funnel-hit"
+              data-ch-selectable={ctx.selectable ? 'true' : undefined}
+              fill="transparent"
+              x={round2(hit.x)}
+              y={round2(hit.y)}
+              width={round2(Math.max(0, hit.width))}
+              height={round2(Math.max(0, hit.height))}
+              onPointerMove={() => ctx.setActive(step.rowId, 'pointer')}
+              onClick={() => {
+                if (point) ctx.select(point)
+              }}
+            />
+          )
+        })}
+      </g>
     </g>
   )
 }
@@ -269,23 +398,28 @@ export function FunnelChart<D>({
   data,
   x,
   y,
-  series,
   id,
   tone = 'accent',
   format,
   orientation = 'auto',
   highlight = 'weakest',
   labelWidth = 128,
-  dataTable: _dataTable = true,
-  tooltip: _tooltip = true,
+  dataTable = true,
+  tooltip = true,
   margin,
   height,
   children,
   onSelect,
   onActiveChange,
+  series: seriesProp,
   ...chart
 }: FunnelChartProps<D>) {
   const { create } = useFormat()
+  const messages = useMessages()
+  // An inline `series` array with the same entries keeps the rows, tones and points it built.
+  const stableSeries = useRef(seriesProp)
+  if (!sameSeries(stableSeries.current, seriesProp)) stableSeries.current = seriesProp
+  const series = stableSeries.current
   const warn = useMemo(() => createWarner(), [])
   const fmt = useMemo(() => create(format), [create, format])
   // Both or neither is a mistake: nothing is drawn.
@@ -326,6 +460,7 @@ export function FunnelChart<D>({
 
   const steps = useMemo((): FunnelStep<D>[] => {
     const drawn = rows.filter((r) => r.valid)
+    const first = drawn[0]?.total ?? 0
     const rates = drawn.map((r, i) => {
       const previous = drawn[i - 1]?.total
       return previous === undefined || previous === 0 ? null : r.total / previous
@@ -338,11 +473,15 @@ export function FunnelChart<D>({
     }
     return drawn.map((r, i) => {
       const rate = rates[i] ?? null
+      const share = i === 0 || first === 0 ? null : r.total / first
       return {
         ...r,
+        row: r,
         rate,
         valueText: fmt(r.total),
         rateText: rate === null ? '' : percentText(Math.round(rate * 100), rate),
+        shareText: share === null ? '' : percentText(Math.round(share * 100), share),
+        layerTexts: r.values.map((v) => fmt(v)),
         weakest: i === weakest,
       }
     })
@@ -378,11 +517,38 @@ export function FunnelChart<D>({
     return { margin: m, height: height ?? steps.length * VERTICAL_STEP + m.top + m.bottom }
   }
 
+  let table: DataTableSpec<FunnelRow<D>> | undefined
+  if (dataTable) {
+    const rateAt = new Map(steps.map((s) => [s.index, s.rateText]))
+    const cell = (value: number | undefined) =>
+      value !== undefined && Number.isFinite(value) ? fmt(value) : ''
+    const values: DataTableColumn<FunnelRow<D>>[] = series
+      ? [
+          ...series.map((s, k) => ({
+            header: s.label,
+            value: (r: FunnelRow<D>) => cell(r.values[k]),
+          })),
+          { header: messages.headerTotal ?? HEADER_TOTAL, value: (r) => cell(r.total) },
+        ]
+      : [{ header: messages.headerValue ?? HEADER_VALUE, value: (r) => cell(r.values[0]) }]
+    table = {
+      columns: [
+        { header: headerOf(x, messages.headerStep ?? HEADER_STEP), value: (r) => r.name },
+        ...values,
+        {
+          header: messages.headerContinued ?? HEADER_CONTINUED,
+          value: (r) => rateAt.get(r.index) ?? '',
+        },
+      ],
+    }
+  }
+
   return (
     <FittedChart<FunnelRow<D>>
       {...chart}
       {...userCallbacks(onSelect, onActiveChange)}
       data={steps.length > 0 ? rows : []}
+      dataTable={withTableOptions(table, dataTable)}
       // The funnel lays itself out from the plot size; fixed domains keep the scales quiet.
       x={UNIT_SCALE}
       y={UNIT_SCALE}
@@ -391,10 +557,11 @@ export function FunnelChart<D>({
       <FunnelMarks<D>
         steps={steps}
         tones={tones}
-        seriesIds={series?.map((s) => s.id)}
+        series={series}
         orientationAt={orientationAt}
         labelWidth={labelWidth}
       />
+      {tooltip ? <Tooltip content={tooltipContent(tooltip)} /> : null}
       {children}
     </FittedChart>
   )

@@ -286,7 +286,8 @@
   pointer-events: none;
 }
 
-[data-ch-part="bar-hit"][data-ch-selectable="true"] {
+[data-ch-part="bar-hit"][data-ch-selectable="true"],
+[data-ch-part="funnel-hit"][data-ch-selectable="true"] {
   cursor: pointer;
 }
 
@@ -657,6 +658,12 @@
   stroke: var(--ch-surface);
   stroke-opacity: 0.45;
   stroke-width: 1;
+}
+
+/* The active step's guide, drawn over the ribbon. */
+[data-ch-part="funnel-guide"][data-ch-active="true"] {
+  stroke: var(--ch-ink);
+  stroke-width: 1.5;
 }
 
 /* Header above a horizontal funnel; a vertical one sets value and name in its label column. */
@@ -1900,6 +1907,10 @@
   }
 
   [data-ch-part="bubble-ring"] {
+    stroke: Highlight;
+  }
+
+  [data-ch-part="funnel-guide"][data-ch-active="true"] {
     stroke: Highlight;
   }
 
