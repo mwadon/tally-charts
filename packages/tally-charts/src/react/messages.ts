@@ -51,8 +51,14 @@ export interface ChartMessages {
   headerRange: string
   /** The row name of a Heatmap that has no label. */
   headerRow: string
-  /** A RunwayChart data-table column header. */
+  /** A RunwayChart or ScatterChart data-table column header. */
   headerName: string
+  /** The name of a ScatterChart's x measure when it has no `xLabel` and no field name. */
+  headerX: string
+  /** As `headerX`, for y. */
+  headerY: string
+  /** As `headerX`, for `size`. */
+  headerSize: string
   /** The data-table column of a RunwayChart row's `sublabel`. */
   headerRunwayDetail: string
   /** A RunwayChart data-table column header. */
@@ -151,6 +157,9 @@ export const HEADER_DIFFERENCE = 'Difference'
 export const HEADER_RANGE = 'Range'
 export const HEADER_ROW = 'Row'
 export const HEADER_NAME = 'Name'
+export const HEADER_X = 'X'
+export const HEADER_Y = 'Y'
+export const HEADER_SIZE = 'Size'
 export const HEADER_RUNWAY_DETAIL = 'Detail'
 export const HEADER_RUNS_OUT = 'Runs out'
 export const HEADER_RESETS = 'Resets'
@@ -216,6 +225,9 @@ export const DEFAULT_MESSAGES: Readonly<ChartMessages> = {
   headerRange: HEADER_RANGE,
   headerRow: HEADER_ROW,
   headerName: HEADER_NAME,
+  headerX: HEADER_X,
+  headerY: HEADER_Y,
+  headerSize: HEADER_SIZE,
   headerRunwayDetail: HEADER_RUNWAY_DETAIL,
   headerRunsOut: HEADER_RUNS_OUT,
   headerResets: HEADER_RESETS,

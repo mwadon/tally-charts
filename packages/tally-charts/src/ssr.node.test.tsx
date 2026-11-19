@@ -8,6 +8,7 @@ import {
   DrillColumn,
   EstimateVsActual,
   InstallsStrip,
+  JobMargins,
   JobsHistogram,
   LastTwelveWeeks,
   LeakHeatmap,
@@ -174,6 +175,14 @@ describe('server rendering', () => {
     expect(html.match(/data-ch-part="area-layer"[^>]*data-ch-fill="hatch"/g)).toHaveLength(3)
     expect(html.match(/data-ch-part="end-label"/g)).toHaveLength(3)
     expect(html).toContain('data-ch-part="forecast-rule"')
+    expect(html).toContain('data-ch-part="data-table"')
+  })
+
+  it('renders the ScatterChart without a DOM, deterministically', () => {
+    const html = renderToString(<JobMargins />)
+    expect(html).toBe(renderToString(<JobMargins />))
+    expect(html).not.toContain('NaN')
+    expect(html.match(/data-ch-part="bubble"/g)).toHaveLength(16)
     expect(html).toContain('data-ch-part="data-table"')
   })
 

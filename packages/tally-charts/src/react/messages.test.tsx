@@ -11,6 +11,7 @@ import { Heatmap } from './charts/Heatmap'
 import { LineChart } from './charts/LineChart'
 import { RankedBars } from './charts/RankedBars'
 import { RunwayChart } from './charts/RunwayChart'
+import { ScatterChart } from './charts/ScatterChart'
 import { StripPlot } from './charts/StripPlot'
 import { WaffleColumns } from './charts/WaffleColumns'
 import { WaterfallChart } from './charts/WaterfallChart'
@@ -344,6 +345,7 @@ describe('table headers', () => {
         {...common}
       />,
     )
+    take(<ScatterChart<Row> data={data} x={by.v} y={by.w} size={by.v} label={by.a} {...common} />)
     take(<WaffleColumns<Row> data={data} x={by.a} y={by.v} group={by.g} {...common} />)
     take(
       <BridgeChart

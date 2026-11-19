@@ -556,6 +556,24 @@ describe('theme.css', () => {
     expect(forced).toContain('[data-ch-part="axis-title"]')
   })
 
+  it('styles the active bubble solid with a surface stroke, and its ring, with forced-colors twins', () => {
+    expect(css).toMatch(
+      /\[data-ch-part="bubble"\]\[data-ch-active="true"\] \{\s*fill: var\(--_ch-tone-paint, var\(--_ch-swatch-color\)\);\s*stroke: var\(--ch-surface\);\s*stroke-width: 2px;/,
+    )
+    expect(css).toMatch(
+      /\[data-ch-part="dot-ring"\],\s*\[data-ch-part="bubble-ring"\] \{\s*fill: none;\s*stroke-width: 2;/,
+    )
+    expect(css).toMatch(/\[data-ch-part="bubble-ring"\] \{\s*stroke: var\(--_ch-swatch-color\);/)
+    expect(css).toMatch(
+      /\[data-ch-part="bubble-ring"\],\s*\[data-ch-part="bubble"\],\s*\[data-ch-part="median"\],[^{]*\{\s*pointer-events: none;/,
+    )
+    const forced = css.slice(css.indexOf('@media (forced-colors: active)'))
+    expect(forced).toMatch(
+      /\[data-ch-part="bubble"\]\[data-ch-active="true"\] \{\s*fill: Highlight;\s*stroke: Canvas;/,
+    )
+    expect(forced).toMatch(/\[data-ch-part="bubble-ring"\] \{\s*stroke: Highlight;/)
+  })
+
   it.each(TONE_MATRIX)(
     'keeps $tone text at 4.5:1 on the surface and the tooltip in the $theme theme',
     ({ theme, tone }) => {

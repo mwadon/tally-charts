@@ -304,6 +304,7 @@
 [data-ch-part="cursor-dot"],
 [data-ch-part="dot"],
 [data-ch-part="dot-ring"],
+[data-ch-part="bubble-ring"],
 [data-ch-part="bubble"],
 [data-ch-part="median"],
 [data-ch-part="line"],
@@ -418,9 +419,21 @@
   }
 }
 
-[data-ch-part="dot-ring"] {
+[data-ch-part="dot-ring"],
+[data-ch-part="bubble-ring"] {
   fill: none;
   stroke-width: 2;
+}
+
+/* The active bubble is solid, with a surface stroke; its ring (3px outside) is in the tone. */
+[data-ch-part="bubble"][data-ch-active="true"] {
+  fill: var(--_ch-tone-paint, var(--_ch-swatch-color));
+  stroke: var(--ch-surface);
+  stroke-width: 2px;
+}
+
+[data-ch-part="bubble-ring"] {
+  stroke: var(--_ch-swatch-color);
 }
 
 /* A bubble is its tone at 22 % over the surface with a 1.5px outline in the tone. */
@@ -1828,6 +1841,15 @@
   [data-ch-part="bubble"] {
     fill: Canvas;
     stroke: var(--_ch-swatch-color);
+  }
+
+  [data-ch-part="bubble"][data-ch-active="true"] {
+    fill: Highlight;
+    stroke: Canvas;
+  }
+
+  [data-ch-part="bubble-ring"] {
+    stroke: Highlight;
   }
 
   [data-ch-part="runway-dot"] {

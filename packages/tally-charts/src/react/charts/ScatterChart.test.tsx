@@ -1,6 +1,20 @@
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
+import { ChartsProvider } from '../ChartsProvider'
+import type { ChartPoint } from '../types'
 import { ScatterChart, type ScatterChartProps } from './ScatterChart'
+
+// Records every points array the chart registers; the real hook still runs.
+const registered = vi.hoisted(() => [] as (readonly ChartPoint[])[])
+vi.mock('../useRegisterPoints', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../useRegisterPoints')>()
+  return {
+    useRegisterPoints: (points: readonly ChartPoint[]) => {
+      if (points.length > 0) registered.push(points)
+      actual.useRegisterPoints(points)
+    },
+  }
+})
 
 interface Job {
   name: string
@@ -393,5 +407,323 @@ describe('<ScatterChart> edge cases', () => {
   it('accepts the props of the points without breaking', () => {
     const { container } = renderScatter({ id: 'name', tooltip: false, dataTable: false })
     expect(bubbles(container)).toHaveLength(16)
+  })
+})
+
+const live = (root: HTMLElement) => root.querySelector('[aria-live]')?.textContent
+const chartEl = () => screen.getByRole('application', { name: 'Job size against margin' })
+const keys = (root: HTMLElement, ...names: string[]) => {
+  const out: (string | null | undefined)[] = []
+  for (const key of names) {
+    fireEvent.keyDown(chartEl(), { key })
+    out.push(live(root))
+  }
+  return out
+}
+const layer = (root: HTMLElement) => root.querySelector('[data-ch-part="pointer-layer"]') as Element
+const harborOf = (root: HTMLElement) =>
+  bubbles(root).find((b) => Math.abs(num(b, 'r') - 18 * Math.sqrt(410 / 520)) < 0.01) as Element
+const tooltipOf = (root: HTMLElement) => root.querySelector('[data-ch-part="tooltip"]')
+const tableHeaders = () =>
+  within(screen.getByRole('table'))
+    .getAllByRole('columnheader')
+    .map((h) => h.textContent)
+const tableRows = () => within(screen.getByRole('table')).getAllByRole('row')
+
+describe('<ScatterChart> points and announcements', () => {
+  it('walks the points by x with the arrow keys, Home and End', () => {
+    const { container } = renderScatter()
+    expect(keys(container, 'ArrowRight', 'ArrowRight', 'ArrowRight', 'ArrowRight')).toEqual([
+      '1 of 16, Alder Court, Estimate $8K, Margin 44%, Hours 40 h',
+      '2 of 16, Birch Lane, Estimate $12K, Margin 38%, Hours 58 h',
+      '3 of 16, Cedar Row, Estimate $15K, Margin 52%, Hours 40 h',
+      '4 of 16, Kestrel Barn, Estimate $18K, Margin 29%, Hours 79 h',
+    ])
+    expect(keys(container, 'End')[0]).toContain('Juniper Mill')
+  })
+
+  it('leaves out the name and the size when there are none', () => {
+    const { container } = renderScatter({ label: undefined, size: undefined })
+    expect(keys(container, 'ArrowRight')).toEqual(['1 of 16, Estimate $8K, Margin 44%'])
+  })
+
+  it('names measures from function accessors X and Y, and from messages', () => {
+    const fn = renderScatter({
+      x: (j) => Number(j.estimate),
+      y: (j) => Number(j.margin),
+      size: undefined,
+      label: undefined,
+      xLabel: undefined,
+      yLabel: undefined,
+    })
+    expect(keys(fn.container, 'ArrowRight')).toEqual(['1 of 16, X $8K, Y 44%'])
+    fn.unmount()
+    const custom = render(
+      <ChartsProvider messages={{ headerX: 'Oś X' }}>
+        <ScatterChart<Job>
+          {...props({
+            x: (j) => Number(j.estimate),
+            size: undefined,
+            label: undefined,
+            xLabel: undefined,
+          })}
+        />
+      </ChartsProvider>,
+    )
+    expect(keys(custom.container, 'ArrowRight')).toEqual(['1 of 16, Oś X $8K, Margin 44%'])
+  })
+
+  it('names a measure from a string accessor in sentence case', () => {
+    const { container } = renderScatter({
+      xLabel: undefined,
+      yLabel: undefined,
+      size: undefined,
+      label: undefined,
+      xFormat: 'number',
+    })
+    expect(keys(container, 'ArrowRight')).toEqual(['1 of 16, Estimate 8,000, Margin 44%'])
+  })
+
+  it('gives each point the centre as its hit position, with the top as its anchor', () => {
+    renderScatter()
+    const points = registered.at(-1) as readonly ChartPoint[]
+    expect(points).toHaveLength(16)
+    const harbor = points.find((p) => p.id === 15) as ChartPoint
+    const r = 18 * Math.sqrt(410 / 520)
+    expect(harbor.y).toBeCloseTo((harbor.hitY as number) - r, 5)
+    expect(harbor.x).toBe(harbor.hitX)
+  })
+})
+
+describe('<ScatterChart> pointer, tooltip and selection', () => {
+  it('shows the name and every measure on hover, and nothing with tooltip false', () => {
+    const { container } = renderScatter()
+    const harbor = harborOf(container)
+    fireEvent.pointerMove(layer(container), {
+      clientX: num(harbor, 'cx'),
+      clientY: num(harbor, 'cy'),
+    })
+    const tip = tooltipOf(container)
+    for (const text of ['Harbor Lofts', 'Estimate', '$68K', 'Margin', '12%', 'Hours', '410 h'])
+      expect(tip).toHaveTextContent(text)
+    const off = renderScatter({ tooltip: false })
+    const h2 = harborOf(off.container)
+    fireEvent.pointerMove(layer(off.container), { clientX: num(h2, 'cx'), clientY: num(h2, 'cy') })
+    expect(tooltipOf(off.container)).toBeNull()
+  })
+
+  it('gives a function tooltip the user row', () => {
+    const seen = vi.fn()
+    const { container } = renderScatter({
+      tooltip: (p) => {
+        seen(p.datum)
+        return 'custom'
+      },
+    })
+    const harbor = harborOf(container)
+    fireEvent.pointerMove(layer(container), {
+      clientX: num(harbor, 'cx'),
+      clientY: num(harbor, 'cy'),
+    })
+    expect(seen).toHaveBeenCalledWith(jobs[15])
+    expect(tooltipOf(container)).toHaveTextContent('custom')
+  })
+
+  it('selects with the row id and the user row, or the name with id="name"', () => {
+    const onSelect = vi.fn()
+    const { container, unmount } = renderScatter({ onSelect })
+    const harbor = harborOf(container)
+    const at = { clientX: num(harbor, 'cx'), clientY: num(harbor, 'cy') }
+    fireEvent.pointerMove(layer(container), at)
+    fireEvent.click(layer(container), at)
+    expect(onSelect).toHaveBeenCalledTimes(1)
+    const [id, point] = onSelect.mock.calls[0] as [unknown, { datum: unknown }]
+    expect(id).toBe(15)
+    expect(point.datum).toEqual(jobs[15])
+    unmount()
+    const named = vi.fn()
+    const again = renderScatter({ onSelect: named, id: 'name' as never })
+    const h = harborOf(again.container)
+    const to = { clientX: num(h, 'cx'), clientY: num(h, 'cy') }
+    fireEvent.pointerMove(layer(again.container), to)
+    fireEvent.click(layer(again.container), to)
+    expect(named.mock.calls[0]?.[0]).toBe('Harbor Lofts')
+  })
+})
+
+describe('<ScatterChart> active state', () => {
+  it('marks the active bubble, rings it, and dims the rest', () => {
+    const { container } = renderScatter({ activeId: 15 })
+    const all = bubbles(container)
+    const active = all.filter((b) => b.getAttribute('data-ch-active') === 'true')
+    expect(active).toHaveLength(1)
+    const harbor = harborOf(container)
+    expect(active[0]).toBe(harbor)
+    const rings = parts(container, 'bubble-ring')
+    expect(rings).toHaveLength(1)
+    expect(num(rings[0] as Element, 'cx')).toBe(num(harbor, 'cx'))
+    expect(num(rings[0] as Element, 'cy')).toBe(num(harbor, 'cy'))
+    expect(num(rings[0] as Element, 'r')).toBeCloseTo(num(harbor, 'r') + 3, 5)
+    expect(rings[0]).toHaveAttribute('data-ch-tone', 'loss')
+    expect(all.filter((b) => b.getAttribute('data-ch-dimmed') === 'true')).toHaveLength(15)
+    // The ring is the last thing in the bubble group.
+    expect(rings[0]?.previousElementSibling?.getAttribute('data-ch-part')).toBe('bubble')
+  })
+
+  it('dims nothing with dimInactive false, and draws no ring without an active point', () => {
+    const keep = renderScatter({ activeId: 15, dimInactive: false })
+    expect(bubbles(keep.container).some((b) => b.hasAttribute('data-ch-dimmed'))).toBe(false)
+    keep.unmount()
+    const none = renderScatter()
+    expect(parts(none.container, 'bubble-ring')).toHaveLength(0)
+    expect(bubbles(none.container).some((b) => b.hasAttribute('data-ch-active'))).toBe(false)
+  })
+})
+
+describe('<ScatterChart> overlap and order', () => {
+  const stacked = [
+    { name: 'Big', estimate: 50000, margin: 30, hours: 500 },
+    { name: 'Small', estimate: 50000, margin: 30, hours: 20 },
+  ]
+
+  it('draws the small bubble after the large one, whatever the data order', () => {
+    for (const data of [stacked, [...stacked].reverse()]) {
+      const { container, unmount } = renderScatter({ data })
+      const radii = bubbles(container).map((b) => num(b, 'r'))
+      expect(radii[0]).toBeGreaterThan(radii[1] as number)
+      unmount()
+    }
+  })
+
+  it('activates one of two bubbles at the same position', () => {
+    const { container } = renderScatter({ data: stacked })
+    const at = {
+      clientX: num(bubbles(container)[0] as Element, 'cx'),
+      clientY: num(bubbles(container)[0] as Element, 'cy'),
+    }
+    expect(() => fireEvent.pointerMove(layer(container), at)).not.toThrow()
+    expect(container.querySelectorAll('[data-ch-active="true"]')).toHaveLength(1)
+  })
+
+  it('picks the small bubble when the pointer is nearer its centre', () => {
+    const data = [
+      { name: 'Big', estimate: 50000, margin: 30, hours: 500 },
+      { name: 'Small', estimate: 52000, margin: 30, hours: 20 },
+    ]
+    const { container } = renderScatter({ data })
+    const [big, small] = bubbles(container) as [Element, Element]
+    const sx = num(small, 'cx')
+    // 2px from the small centre: inside the large disc, nearer the small centre.
+    fireEvent.pointerMove(layer(container), { clientX: sx + 2, clientY: num(small, 'cy') })
+    expect(small).toHaveAttribute('data-ch-active', 'true')
+    expect(big).not.toHaveAttribute('data-ch-active')
+    expect(num(big, 'r')).toBeGreaterThan(Math.abs(sx + 2 - num(big, 'cx')))
+  })
+
+  it('keeps the keyboard order by x, then y, whatever the data order', () => {
+    const a = renderScatter()
+    const forward = keys(a.container, 'ArrowRight', 'ArrowRight', 'ArrowRight')
+    a.unmount()
+    const b = renderScatter({ data: [...jobs].reverse() })
+    expect(
+      keys(b.container, 'ArrowRight', 'ArrowRight', 'ArrowRight').map((t) =>
+        t?.replace(/^\d+ of 16, /, ''),
+      ),
+    ).toEqual(forward.map((t) => t?.replace(/^\d+ of 16, /, '')))
+  })
+
+  it('orders equal x by y', () => {
+    const data = [
+      { name: 'High', estimate: 20000, margin: 50, hours: 40 },
+      { name: 'Low', estimate: 20000, margin: 10, hours: 40 },
+    ]
+    const { container } = renderScatter({ data })
+    expect(keys(container, 'ArrowRight', 'ArrowRight').map((t) => t?.split(', ')[1])).toEqual([
+      'Low',
+      'High',
+    ])
+  })
+})
+
+describe('<ScatterChart> skipped rows', () => {
+  it('gives skipped rows no point but a table row with empty cells', () => {
+    const warn = quiet()
+    const data = [
+      ...jobs.slice(0, 2),
+      { name: 'Bad x', estimate: null, margin: 40, hours: 10 },
+      { name: 'Bad size', estimate: 30000, margin: 40, hours: undefined },
+    ]
+    const { container } = renderScatter({ data })
+    expect(bubbles(container)).toHaveLength(2)
+    expect(keys(container, 'ArrowRight')[0]).toMatch(/^1 of 2, /)
+    const rows = tableRows()
+    expect(rows).toHaveLength(5)
+    expect(within(rows[3] as HTMLElement).getByRole('rowheader')).toHaveTextContent('Bad x')
+    const badX = within(rows[3] as HTMLElement).getAllByRole('cell')
+    expect(badX.map((c) => c.textContent)).toEqual(['—no value', '40%', '10 h'])
+    const badSize = within(rows[4] as HTMLElement).getAllByRole('cell')
+    expect(badSize.map((c) => c.textContent)).toEqual(['$30K', '40%', '—no value'])
+    warn.mockRestore()
+  })
+})
+
+describe('<ScatterChart> stable registration', () => {
+  it('registers the same points array again with inline functions', () => {
+    const base = props()
+    const render1 = () => (
+      <ScatterChart<Job>
+        {...base}
+        tone={(j) => (Number(j.margin) < 32 ? 'loss' : 'accent')}
+        yFormat={(v) => `${v}%`}
+        sizeFormat={(v) => `${v} h`}
+      />
+    )
+    const { rerender } = render(render1())
+    const first = registered.at(-1)
+    expect(first).toHaveLength(16)
+    rerender(render1())
+    rerender(render1())
+    expect(registered.at(-1)).toBe(first)
+  })
+
+  it('registers new points when a value changes', () => {
+    const { rerender } = render(<ScatterChart<Job> {...props()} />)
+    const first = registered.at(-1)
+    rerender(<ScatterChart<Job> {...props({ yFormat: (v) => `${v} pts` })} />)
+    expect(registered.at(-1)).not.toBe(first)
+  })
+})
+
+describe('<ScatterChart> data table', () => {
+  it('lists every row in data order under the measure names', () => {
+    renderScatter()
+    expect(tableHeaders()).toEqual(['Name', 'Estimate', 'Margin', 'Hours'])
+    const rows = tableRows()
+    expect(rows).toHaveLength(17)
+    const cells = (i: number) =>
+      within(rows[i] as HTMLElement)
+        .getAllByRole('cell')
+        .map((c) => c.textContent)
+    expect(cells(16)).toEqual(['$68K', '12%', '410 h'])
+    expect(within(rows[16] as HTMLElement).getByRole('rowheader')).toHaveTextContent('Harbor Lofts')
+    expect(
+      within(rows[1] as HTMLElement).getByRole('rowheader', { name: 'Alder Court' }),
+    ).toBeDefined()
+  })
+
+  it('drops the size and the name columns with their props', () => {
+    const noSize = renderScatter({ size: undefined })
+    expect(tableHeaders()).toEqual(['Name', 'Estimate', 'Margin'])
+    noSize.unmount()
+    renderScatter({ size: undefined, label: undefined })
+    expect(tableHeaders()).toEqual(['Estimate', 'Margin'])
+  })
+
+  it('renames headers, and goes away with dataTable false', () => {
+    const renamed = renderScatter({ dataTable: { columns: { Hours: 'Booked hours' } } })
+    expect(tableHeaders()).toContain('Booked hours')
+    renamed.unmount()
+    renderScatter({ dataTable: false })
+    expect(screen.queryByRole('table')).toBeNull()
   })
 })

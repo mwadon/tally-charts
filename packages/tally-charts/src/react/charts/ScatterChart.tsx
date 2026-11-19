@@ -1,23 +1,34 @@
-import { useMemo } from 'react'
+import { useMemo, useRef } from 'react'
 import { resolveAccessor, resolveIds, resolvePerItem } from '../../core/accessor'
-import type { FormatSpec } from '../../core/format'
+import type { FormatSpec, Formatter } from '../../core/format'
 import { niceDomain } from '../../core/linear'
 import { inferLinearDomain } from '../../core/scale'
 import { estimateWidth, type Tick, type TickSpec } from '../../core/ticks'
 import type { Accessor, Id, PerItem, Tone } from '../../core/types'
 import { createWarner, DEV } from '../../core/warn'
 import { Chart, type ChartName } from '../Chart'
+import { useFormat, useMessages } from '../ChartsProvider'
 import { type Margin, useChartContext } from '../context'
+import type { DataTableSpec } from '../DataTable'
+import { samePoints } from '../interaction'
 import { Axis, type AxisFormat } from '../marks/Axis'
 import { Grid } from '../marks/Grid'
+import { NearestPointer } from '../marks/NearestPointer'
 import { Target } from '../marks/Target'
+import { HEADER_NAME, HEADER_SIZE, HEADER_X, HEADER_Y } from '../messages'
+import { Tooltip } from '../overlays/Tooltip'
+import type { ChartPoint, TooltipSegment } from '../types'
 import { toneVar } from '../ui/util'
+import { useRegisterPoints } from '../useRegisterPoints'
 import {
   type ChartPassThroughProps,
   type ChartTooltip,
   type DataTableOptions,
+  headerOf,
   toNumber,
+  tooltipContent,
   userCallbacks,
+  withTableOptions,
 } from './shared'
 
 export type ScatterChartProps<D> = ChartName &
@@ -161,6 +172,8 @@ function Marks<D>({
   yLabel,
   showXTitle,
   showYTitle,
+  names,
+  fmts,
 }: {
   source: readonly D[]
   rows: readonly ScatterRow<D>[]
@@ -176,15 +189,65 @@ function Marks<D>({
   yLabel: string | undefined
   showXTitle: boolean
   showYTitle: boolean
+  names: { x: string; y: string; size: string; hasName: boolean }
+  fmts: { x: Formatter; y: Formatter; size: Formatter }
 }) {
   const ctx = useChartContext('ScatterChart')
   const items = useMemo(
     () => drawnBubbles(source, rows, hasSize, tone, radius, maxRadius, xDomain, yDomain),
     [source, rows, hasSize, tone, radius, maxRadius, xDomain, yDomain],
   )
-  if (ctx.x.kind !== 'linear' || ctx.y.kind !== 'linear') return null
-  const sx = ctx.x.scale
-  const sy = ctx.y.scale
+  const sx = ctx.x.kind === 'linear' ? ctx.x.scale : undefined
+  const sy = ctx.y.kind === 'linear' ? ctx.y.scale : undefined
+  const built = useMemo((): ChartPoint[] => {
+    if (!sx || !sy) return []
+    const placed = items.map((b) => ({ b, cx: sx(b.row.x), cy: sy(b.row.y) }))
+    // Keyboard order: x, then y, then data order (the sort is stable and `items` is by radius).
+    placed.sort(
+      (p, q) => p.b.row.x - q.b.row.x || p.b.row.y - q.b.row.y || p.b.row.index - q.b.row.index,
+    )
+    return placed.map(({ b, cx, cy }, index): ChartPoint => {
+      const { row } = b
+      const xText = fmts.x(row.x)
+      const yText = fmts.y(row.y)
+      const sizeText = hasSize ? fmts.size(row.size) : undefined
+      const name = names.hasName ? row.name : ''
+      const label = [
+        name,
+        `${names.x} ${xText}`,
+        `${names.y} ${yText}`,
+        sizeText === undefined ? '' : `${names.size} ${sizeText}`,
+      ]
+        .filter(Boolean)
+        .join(', ')
+      const segments: TooltipSegment[] = []
+      if (name) segments.push({ value: name })
+      segments.push(
+        { label: names.x, value: xText },
+        { label: names.y, value: yText, tone: b.tone },
+      )
+      if (sizeText !== undefined) segments.push({ label: names.size, value: sizeText })
+      return {
+        id: row.rowId,
+        index,
+        datum: row,
+        x: cx,
+        y: cy - b.r,
+        hitX: cx,
+        hitY: cy,
+        label,
+        segments,
+      }
+    })
+  }, [items, sx, sy, hasSize, names, fmts])
+  // `tone` and the formats are often inline functions, so `built` is a new array on every render
+  // even when nothing it holds changed; keep the previous array while the content is the same.
+  const stable = useRef<ChartPoint[]>([])
+  if (!samePoints(stable.current, built)) stable.current = built
+  useRegisterPoints(stable.current)
+  if (!sx || !sy) return null
+  const dimming = ctx.dimInactive && ctx.activeId !== null
+  const active = items.find((b) => b.row.rowId === ctx.activeId)
 
   const targetY = target !== undefined && inDomain(target, yDomain) ? sy(target) : undefined
   return (
@@ -201,17 +264,32 @@ function Marks<D>({
         </text>
       ) : null}
       <g data-ch-part="bubbles">
-        {items.map((b) => (
+        {items.map((b) => {
+          const on = active === b
+          return (
+            <circle
+              key={b.row.index}
+              data-ch-part="bubble"
+              data-ch-tone={b.tone}
+              data-ch-active={on ? 'true' : undefined}
+              data-ch-dimmed={dimming && !on ? 'true' : undefined}
+              cx={sx(b.row.x)}
+              cy={sy(b.row.y)}
+              r={b.r}
+              style={toneVar(b.tone)}
+            />
+          )
+        })}
+        {active ? (
           <circle
-            key={b.row.index}
-            data-ch-part="bubble"
-            data-ch-tone={b.tone}
-            cx={sx(b.row.x)}
-            cy={sy(b.row.y)}
-            r={b.r}
-            style={toneVar(b.tone)}
+            data-ch-part="bubble-ring"
+            data-ch-tone={active.tone}
+            cx={sx(active.row.x)}
+            cy={sy(active.row.y)}
+            r={active.r + 3}
+            style={toneVar(active.tone)}
           />
-        ))}
+        ) : null}
       </g>
       {showYTitle && yLabel ? (
         <text data-ch-part="axis-title" x={-ctx.margin.left} y={-Y_TITLE_RISE} textAnchor="start">
@@ -228,6 +306,7 @@ function Marks<D>({
           {xLabel}
         </text>
       ) : null}
+      <NearestPointer radius={Math.max(24, (hasSize ? maxRadius : radius) + 6)} />
     </>
   )
 }
@@ -259,13 +338,14 @@ export function ScatterChart<D>({
   children,
   onSelect,
   onActiveChange,
-  // Task 2: the points, the tooltip and the data table.
-  sizeLabel: _sizeLabel,
-  sizeFormat: _sizeFormat,
-  dataTable: _dataTable,
-  tooltip: _tooltip,
+  sizeLabel,
+  sizeFormat,
+  dataTable = true,
+  tooltip = true,
   ...chart
 }: ScatterChartProps<D>) {
+  const { create } = useFormat()
+  const messages = useMessages()
   const warn = useMemo(() => createWarner(), [])
   const hasSize = size !== undefined
   const { rows, valid, badValue, badSize } = useMemo(() => {
@@ -348,6 +428,39 @@ export function ScatterChart<D>({
     ...margin,
   }
 
+  const xFmtr = useMemo(() => create(xFormat), [create, xFormat])
+  const yFmtr = useMemo(() => create(yFormat), [create, yFormat])
+  const sizeFmtr = useMemo(() => create(sizeFormat), [create, sizeFormat])
+  const xName = xLabel ?? headerOf(x, messages.headerX ?? HEADER_X)
+  const yName = yLabel ?? headerOf(y, messages.headerY ?? HEADER_Y)
+  const sizeName = sizeLabel ?? headerOf(size, messages.headerSize ?? HEADER_SIZE)
+  const hasName = label !== undefined
+  const names = useMemo(
+    () => ({ x: xName, y: yName, size: sizeName, hasName }),
+    [xName, yName, sizeName, hasName],
+  )
+  const fmts = useMemo(() => ({ x: xFmtr, y: yFmtr, size: sizeFmtr }), [xFmtr, yFmtr, sizeFmtr])
+  const text = (fmt: Formatter, v: number) => (Number.isFinite(v) ? fmt(v) : '')
+  const table: DataTableSpec<ScatterRow<D>> | undefined = dataTable
+    ? {
+        columns: [
+          ...(hasName
+            ? [
+                {
+                  header: headerOf(label, messages.headerName ?? HEADER_NAME),
+                  value: (r: ScatterRow<D>) => r.name,
+                },
+              ]
+            : []),
+          { header: xName, value: (r) => text(xFmtr, r.x) },
+          { header: yName, value: (r) => text(yFmtr, r.y) },
+          ...(hasSize
+            ? [{ header: sizeName, value: (r: ScatterRow<D>) => text(sizeFmtr, r.size) }]
+            : []),
+        ],
+      }
+    : undefined
+
   const xSpec = useMemo(() => ({ domain: xDom }), [xDom])
   const ySpec = useMemo(() => ({ domain: yDom }), [yDom])
   const xFmt: AxisFormat | undefined = xAxisFormat ?? xFormat
@@ -362,6 +475,7 @@ export function ScatterChart<D>({
       y={ySpec}
       margin={m}
       height={height}
+      dataTable={withTableOptions(table, dataTable)}
     >
       {grid ? <Grid ticks={yAxis === 'none' ? 'all' : yAxis} /> : null}
       <Marks<D>
@@ -379,9 +493,12 @@ export function ScatterChart<D>({
         yLabel={yLabel}
         showXTitle={showXTitle}
         showYTitle={showYTitle}
+        names={names}
+        fmts={fmts}
       />
       {yAxis === 'none' ? null : <Axis side="left" ticks={yAxis} format={yFmt} />}
       {xAxis === 'none' ? null : <Axis side="bottom" ticks={xAxis} format={xFmt} />}
+      {tooltip ? <Tooltip content={tooltipContent(tooltip)} /> : null}
       {children}
     </Chart>
   )

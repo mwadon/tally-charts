@@ -71,6 +71,7 @@ const PARTS = [
   'bar-track',
   'bars',
   'bubble',
+  'bubble-ring',
   'bubbles',
   'callout',
   'callout-stem',

@@ -4,7 +4,7 @@ import { act, version } from 'react'
 import { hydrateRoot } from 'react-dom/client'
 import { renderToString } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
-import { CrewHours, CrewQuarters, LastTwelveWeeks, MonthlyCost } from '../test/fixtures'
+import { CrewHours, CrewQuarters, JobMargins, LastTwelveWeeks, MonthlyCost } from '../test/fixtures'
 import { thresholds } from './core/thresholds'
 import { ShareBar } from './react/ui/ShareBar'
 import { ZoneMeter } from './react/ui/ZoneMeter'
@@ -105,6 +105,28 @@ describe('hydration', () => {
     expect(onRecoverableError).not.toHaveBeenCalled()
     expect(errors).not.toHaveBeenCalled()
     expect(container.querySelectorAll('[data-ch-part="area-layer"]')).toHaveLength(6)
+    await act(async () => {
+      root?.unmount()
+    })
+    container.remove()
+    errors.mockRestore()
+  })
+
+  it('hydrates ScatterChart server markup without mismatches', async () => {
+    const html = renderToString(<JobMargins />)
+    const errors = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const container = document.createElement('div')
+    container.innerHTML = html
+    expect(container.querySelectorAll('[data-ch-part="bubble"]')).toHaveLength(16)
+    document.body.appendChild(container)
+    const onRecoverableError = vi.fn()
+    let root: ReturnType<typeof hydrateRoot> | undefined
+    await act(async () => {
+      root = hydrateRoot(container, <JobMargins />, { onRecoverableError })
+    })
+    expect(onRecoverableError).not.toHaveBeenCalled()
+    expect(errors).not.toHaveBeenCalled()
+    expect(container.querySelectorAll('[data-ch-part="bubble"]')).toHaveLength(16)
     await act(async () => {
       root?.unmount()
     })

@@ -117,15 +117,15 @@ Decisions:
 - Tooltip: `{tooltip ? <Tooltip content={tooltipContent(tooltip)} /> : null}`; `children` render last.
 
 - [ ] **Step 1: Write failing tests** (data: jobs):
-  - points: keyboard focus then ArrowRight walks Alder Court (8000), Birch Lane (12000), Cedar Row (15000), Kestrel Barn (18000); End lands on Juniper Mill; exact live-region text for the first: "1 of 16, Alder Court, Estimate $8k, Margin 44%, Hours 40 h" (follow the position prefix form the other charts' tests assert, and assert the exact string)
-  - without `label` and `size`: "1 of 16, Estimate $8k, Margin 44%"; with function accessors and no `xLabel`/`yLabel`: "X $8k, Y 44%"; `messages={{ headerX: 'Oś X' }}` through `ChartsProvider` replaces the fallback; a string accessor `x="estimate"` without `xLabel` reads "Estimate"
-  - hovering at Harbor Lofts' centre shows a tooltip with "Harbor Lofts", "Estimate", "$68k", "Margin", "12%", "Hours", "410 h"; `tooltip={false}` renders none; a function tooltip receives the user's row as `point.datum`
+  - points: keyboard focus then ArrowRight walks Alder Court (8000), Birch Lane (12000), Cedar Row (15000), Kestrel Barn (18000); End lands on Juniper Mill; exact live-region text for the first: "1 of 16, Alder Court, Estimate $8K, Margin 44%, Hours 40 h" (follow the position prefix form the other charts' tests assert, and assert the exact string)
+  - without `label` and `size`: "1 of 16, Estimate $8K, Margin 44%"; with function accessors and no `xLabel`/`yLabel`: "X $8K, Y 44%"; `messages={{ headerX: 'Oś X' }}` through `ChartsProvider` replaces the fallback; a string accessor `x="estimate"` without `xLabel` reads "Estimate"
+  - hovering at Harbor Lofts' centre shows a tooltip with "Harbor Lofts", "Estimate", "$68K", "Margin", "12%", "Hours", "410 h"; `tooltip={false}` renders none; a function tooltip receives the user's row as `point.datum`
   - `onSelect` on click receives the row id and `datum` equal to the user's Harbor Lofts row; `id="name"` makes the id "Harbor Lofts"
   - active state: with `activeId` set to Harbor Lofts' id, that circle has `data-ch-active`, one `bubble-ring` at its centre with r + 3, the other 15 are dimmed; `dimInactive={false}` dims none; no ring without an active point
   - Review Focus 3: two rows at the same x and y with hours 500 and 20: the small circle comes after the large one in the DOM; a pointer at that position activates one of them without error; a pointer 2 px from a small bubble's centre that lies inside a large bubble's disc but farther from its centre activates the small one; shuffled data gives the same keyboard order
   - Review Focus 1 (points): the skipped rows have no point (position total counts drawn rows only) but have table rows, with empty cells for the missing values
   - Review Focus 6: registers the same points array again when re-rendered with the same props and inline `tone` / format functions (model: the test of that name in `StackedBarChart.test.tsx`)
-  - data table: headers `Name`, `Estimate`, `Margin`, `Hours`; 16 rows in data order; Harbor Lofts row "$68k", "12%", "410 h"; without `size` three columns; without `label` no name column; `dataTable={{ columns: { Hours: 'Booked hours' } }}` renames; `dataTable={false}` removes it
+  - data table: headers `Name`, `Estimate`, `Margin`, `Hours`; 16 rows in data order; Harbor Lofts row "$68K", "12%", "410 h"; without `size` three columns; without `label` no name column; `dataTable={{ columns: { Hours: 'Booked hours' } }}` renames; `dataTable={false}` removes it
   - SSR (`ssr.node.test.tsx`): `JobMargins` renders 16 `bubble` circles without a DOM; hydration: no recoverable error, no `console.error`, 16 bubbles before and after
 - [ ] **Step 2:** run the files → FAIL.
 - [ ] **Step 3:** Implement.

@@ -142,9 +142,9 @@ labels drawn in the plot, clustering or jitter, brushing and zoom.
   it, Home / End jump to the ends.
 - Pointer: the nearest point centre within `max(24, maxRadius + 6)` px (or `radius + 6` without
   `size`).
-- Default tooltip: the item name, then each measure with its name: "Harbor Lofts · Estimate $68k
+- Default tooltip: the item name, then each measure with its name: "Harbor Lofts · Estimate $68K
   · Margin 12% · Hours 410 h"; the y value carries the point's tone.
-- Announcement: "3 of 16, Harbor Lofts, Estimate $68k, Margin 12%, Hours 410 h". Without `label`
+- Announcement: "3 of 16, Harbor Lofts, Estimate $68K, Margin 12%, Hours 410 h". Without `label`
   the name is left out; without `size` the last part is.
 - Data table: one row per data row, in data order (skipped rows included, with empty cells for
   missing values): the name (when `label` is set), x, y and, with `size`, the size.
