@@ -10,8 +10,9 @@ thickness, so the flat run is where the measured value is and the curve is only 
 `x` (step name) and `y` (step value) for one stream, or `series` (`{ id, label, value, tone? }`)
 to split each step into layers stacked across the ribbon; a step's value is then the sum of its
 series values. `tone` colours a single stream. Each step after the first shows its continue rate,
-the share of the previous step, and the step with the lowest rate is drawn in the loss tone
-(`highlight="weakest"`, the default, with at least three steps; `highlight="none"` turns it off).
+the share of the previous step, and the lowest continue rate is shown in the loss colour and bold
+(`highlight="weakest"`, the default, with at least three steps; `highlight="none"` turns it off); the
+ribbon does not change colour.
 `orientation` is `'auto'` by default: steps run left to right, and the chart turns vertical (steps
 top to bottom, with a label column `labelWidth` px wide, default 128) when a step gets less than
 96 px of length or a header value or rate would not fit its column. Step names that do not fit are
