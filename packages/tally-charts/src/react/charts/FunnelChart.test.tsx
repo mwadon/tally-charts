@@ -317,13 +317,24 @@ describe('FunnelChart orientation="auto"', () => {
     expect(orientationOf(container)).toBe('vertical')
   })
 
+  // Values are 18px: 11 characters estimate at 106.6 px, over the 104.8 px a 584 px column
+  // leaves; 10 characters at 96.9 px fit.
   it('is vertical when a header value is wider than its column', () => {
+    const { container } = renderChart({
+      orientation: 'auto',
+      format: (v: number) => `$${(v * 10000).toLocaleString('en-US')}`,
+    })
+    expect(texts(container, 'funnel-value')[0]).toBe('$12,400,000')
+    expect(orientationOf(container)).toBe('vertical')
+  })
+
+  it('stays horizontal when every header value fits its column', () => {
     const { container } = renderChart({
       orientation: 'auto',
       format: (v: number) => `$${(v * 1000).toLocaleString('en-US')}`,
     })
     expect(texts(container, 'funnel-value')[0]).toBe('$1,240,000')
-    expect(orientationOf(container)).toBe('vertical')
+    expect(orientationOf(container)).toBe('horizontal')
   })
 
   it('stays horizontal for a long step name, which is cut instead', () => {

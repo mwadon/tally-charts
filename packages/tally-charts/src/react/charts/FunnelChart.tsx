@@ -119,20 +119,17 @@ const NAME_LINE = 14
 const VALUE_LINE = 32
 /** Gap between the value and the rate on a vertical value line, in px. */
 const RATE_GAP = 8
-/** Font sizes in px. `CHAR_WIDTH` is a glyph of 13–15px text. */
+/** Font sizes in px. `CHAR_WIDTH` is a glyph of 13–15px text, taken at 13px and scaled. */
 const CHAR_SIZE = 13
 const VALUE_SIZE = 18
 const VERTICAL_VALUE_SIZE = 13
 const RATE_SIZE = 12
 const NAME_SIZE = 12
 const VERTICAL_NAME_SIZE = 13
-/**
- * Values and rates are measured on the safe side, as if `CHAR_WIDTH` were a 12px glyph: they are
- * never cut, the values are semibold, and too wide a guess only turns the funnel vertical.
- */
-const SAFE_SIZE = 12
 
-const textWidth = (text: string, size: number) => (text.length * CHAR_WIDTH * size) / SAFE_SIZE
+/** Estimated glyph width of `size` px text. */
+const charWidth = (size: number) => (CHAR_WIDTH * size) / CHAR_SIZE
+const textWidth = (text: string, size: number) => text.length * charWidth(size)
 
 /** The near and far edges of a layer path, which funnelGeometry writes as `M near… L far… Z`. */
 function edgesOf(d: string): { near: string; far: string } {
@@ -175,7 +172,7 @@ function FunnelMarks<D>(props: {
   })
 
   const nameMax = vertical ? labelWidth - COLUMN_GAP : column - COLUMN_GAP
-  const nameCharWidth = (CHAR_WIDTH * (vertical ? VERTICAL_NAME_SIZE : NAME_SIZE)) / CHAR_SIZE
+  const nameCharWidth = charWidth(vertical ? VERTICAL_NAME_SIZE : NAME_SIZE)
 
   return (
     <g data-ch-part="funnel" data-ch-orientation={vertical ? 'vertical' : 'horizontal'}>
