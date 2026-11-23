@@ -10,6 +10,7 @@ import {
   DotHistogram,
   FunnelChart,
   fmt,
+  GanttChart,
   GroupedBarChart,
   Heatmap,
   InlineBar,
@@ -33,8 +34,6 @@ import {
   WaterfallChart,
   ZoneMeter,
 } from '../src'
-// Not exported from the package yet.
-import { GanttChart } from '../src/react/charts/GanttChart'
 
 export const weeks = [
   { week: 'Jul 6', margin: 37.5 },

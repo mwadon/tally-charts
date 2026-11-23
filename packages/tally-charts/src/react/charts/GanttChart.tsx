@@ -240,8 +240,8 @@ const KEY_SWATCH_HEIGHT = 10
 const KEY_TEXT_GAP = 6
 const KEY_ITEM_GAP = 20
 const KEY_DIAMOND = 9
-/** `CHAR_WIDTH` is a glyph of 13 px text; value labels and the now label are 12 px. */
-const SMALL_CHAR = (CHAR_WIDTH * 12) / 13
+/** `CHAR_WIDTH` (7) is a glyph of 13 px text; value labels and the now label are 12 px: 7 * 12 / 13, written as a literal so the module stays tree-shakable. */
+const SMALL_CHAR = 6.461538461538462
 
 const textWidth = (text: string) => text.length * CHAR_WIDTH
 const smallWidth = (text: string) => text.length * SMALL_CHAR

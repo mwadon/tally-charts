@@ -83,7 +83,7 @@ export interface ChartMessages {
   headerResets: string
   /** A RunwayChart data-table column header. */
   headerProjectedAtReset: string
-  /** A RunwayChart data-table column header. */
+  /** A RunwayChart or GanttChart data-table column header. */
   headerStatus: string
   /** Default status of a RunwayChart row whose source is disconnected. */
   statusDisconnected: string

@@ -732,6 +732,31 @@ export interface FunnelSeries<D> {
     value: Accessor<D, number>;
 }
 
+// @public (undocumented)
+export function GanttChart<D>(input: GanttChartProps<D>): JSX.Element;
+
+// @public (undocumented)
+export type GanttChartProps<D> = ChartName & Omit<ChartPassThroughProps<D>, 'aspectRatio' | 'height' | 'margin'> & {
+    data: readonly D[];
+    x: Accessor<D, string>;
+    start: Accessor<D, TimeInput>;
+    end?: Accessor<D, TimeInput | null | undefined>;
+    id?: Accessor<D, Id>;
+    group?: Accessor<D, string | null | undefined>;
+    baselineStart?: Accessor<D, TimeInput | null | undefined>;
+    baselineEnd?: Accessor<D, TimeInput | null | undefined>;
+    progress?: Accessor<D, number | null | undefined>;
+    now?: TimeInput;
+    domain?: readonly [TimeInput, TimeInput];
+    zone?: TimeZone;
+    tone?: Tone;
+    labelPosition?: 'auto' | 'left' | 'top';
+    valueLabels?: boolean;
+    legend?: boolean;
+    dataTable?: boolean | DataTableOptions;
+    tooltip?: ChartTooltip<D>;
+};
+
 // @public
 export function Grid(input: GridProps): JSX.Element | null;
 
