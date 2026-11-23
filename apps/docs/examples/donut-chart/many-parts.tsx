@@ -30,7 +30,7 @@ export default function ManyParts() {
       y="hours"
       centerLabel="hours"
       title={meta.title}
-      description="October. Electrical and plumbing are half of all hours; five small trades are grouped as Other."
+      description="October. Electrical and plumbing are about half of all hours; five small trades are grouped as Other."
     />
   )
 }

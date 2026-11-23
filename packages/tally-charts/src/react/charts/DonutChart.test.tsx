@@ -193,6 +193,30 @@ describe('DonutChart list', () => {
   })
 })
 
+describe('DonutChart cut name tooltip', () => {
+  it('also puts the full name in a <title> in the hit rect that covers the name', () => {
+    const long = 'Commercial refrigeration maintenance pla'
+    const { container } = renderChart({
+      data: [{ line: long, revenue: 773000 }, ...lines.slice(1)],
+    })
+    const withTitle = hits(container).filter((h) => h.querySelector(':scope > title'))
+    expect(withTitle).toHaveLength(1)
+    expect(withTitle[0]?.querySelector('title')?.textContent).toBe(long)
+  })
+})
+
+describe('DonutChart diameter', () => {
+  it.each([Number.NaN, Number.POSITIVE_INFINITY, Number.NEGATIVE_INFINITY, 0, -5])(
+    'falls back to 232 for %s',
+    (diameter) => {
+      const { container } = renderChart({ diameter })
+      for (const { value } of attributes(container)) expect(value).not.toMatch(/NaN|Infinity/)
+      expect(svgHeight(container)).toBe(232)
+      expect(ringAt(container)).toEqual([116, 116])
+    },
+  )
+})
+
 describe('DonutChart centre', () => {
   it('draws the default total at 20 px: "1,840,000" is wider than the 112 px hole at 28 px', () => {
     const { container } = renderChart()
@@ -1017,6 +1041,21 @@ describe('DonutChart data table', () => {
     expect(rowText(rows[4] as Element)).toEqual({ name: 'Maintenance', cells: ['62,000', '3%'] })
     const shares = rows.map((r) => Number.parseInt(rowText(r).cells[1] ?? '', 10))
     expect(shares.reduce((a, b) => a + b, 0)).toBe(100)
+  })
+
+  it('shows a slice its list percent, not the share among all rows', () => {
+    // Slice shares 31.35, 26.3, 21.25, 11.2 and Other 9.9: the two spare points go to Other (.9)
+    // and the first part (.35), which reads 32%. Over all rows, Other's parts 3.45 and 3.45 have
+    // larger remainders and win both points, so the first part would read 31%.
+    const data = [3135, 2630, 2125, 1120, 345, 345, 300].map((revenue, i) => ({
+      line: `Part ${i + 1}`,
+      revenue,
+    }))
+    const { container } = renderChart({ data })
+    const list = texts(container, 'donut-percent')
+    expect(list[0]).toBe('32%')
+    const cells = tableRows().map((r) => rowText(r).cells[1])
+    expect(cells.slice(0, 4)).toEqual(list.slice(0, 4))
   })
 
   it('falls back to "Part" for a function accessor', () => {

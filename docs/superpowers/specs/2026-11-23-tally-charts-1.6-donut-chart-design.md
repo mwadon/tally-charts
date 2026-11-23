@@ -46,7 +46,7 @@ type DonutChartProps<D> = ChartName &
     y: Accessor<D, number>
     /** Part id. Default: the data index. */
     id?: Accessor<D, Id>
-    /** Default 'accent'. The base tone of the slices; a fifth slice and the "Other" slice are neutral. */
+    /** Default 'accent'. The tone of the slices (the first is its strongest step); a fifth slice and the "Other" slice are neutral. */
     tone?: Tone
     /** Default 'number'. Formats part values and the total. */
     format?: FormatSpec
@@ -107,7 +107,7 @@ formatting, per-slice tones.
 
 ### Colour
 
-- One tone in steps: slice 1 is the base tone, the following slices are lighter steps of it,
+- One tone in steps: slice 1 is the strongest step of the tone and the following slices fade toward the surface colour,
   using the library's sequential ramp for that tone (`--ch-seq-5`, `-4`, `-3`, `-2` under
   `data-ch-seq-tone`; the ramp is already checked for contrast between neighbouring levels in
   both themes). No new tokens.

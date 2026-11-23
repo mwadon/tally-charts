@@ -39,8 +39,8 @@ export type DonutChartProps<D> = ChartName &
     /** Part id. Default: the data index. */
     id?: Accessor<D, Id>
     /**
-     * Default 'accent'. The base tone of the slices; a fifth slice and the "Other" slice are
-     * neutral.
+     * Default 'accent'. The tone of the slices: the first is its strongest step and the next ones
+     * fade toward the surface colour; a fifth slice and the "Other" slice are neutral.
      */
     tone?: Tone
     /** Default 'number'. Formats part values and the total. */
@@ -404,7 +404,10 @@ function DonutMarks<D>(props: {
                   width={round2(rowEnd)}
                   height={ROW}
                   {...pointer(slice, i)}
-                />
+                >
+                  {/* The hit rect covers the name, so a cut name's native tooltip lives here too. */}
+                  {name !== slice.name ? <title>{slice.name}</title> : null}
+                </rect>
               </g>
             )
           })}
@@ -440,6 +443,8 @@ export function DonutChart<D>({
   const messages = useMessages()
   const warn = useMemo(() => createWarner(), [])
   const fmt = useMemo(() => create(format), [create, format])
+  // Not a finite number above 0: the default.
+  const ring = Number.isFinite(diameter) && diameter > 0 ? diameter : 232
   const limit = clampSlices(maxSlices)
   if (DEV && limit !== maxSlices) {
     warn(
@@ -516,11 +521,11 @@ export function DonutChart<D>({
 
   const layoutAt = (width: number): DonutLayout => {
     const w = Math.max(0, width)
-    const box = Math.max(0, Math.min(diameter, w))
+    const box = Math.max(0, Math.min(ring, w))
     const position: Position = !legend
       ? 'none'
       : legendPosition === 'auto'
-        ? w >= diameter + LIST_GAP + LIST_MIN
+        ? w >= ring + LIST_GAP + LIST_MIN
           ? 'right'
           : 'bottom'
         : legendPosition
@@ -554,7 +559,8 @@ export function DonutChart<D>({
   const layoutFor = (width: number) => ({ margin: MARGIN, height: layoutAt(width).height })
 
   // One table row per data row, in data order; skipped rows keep their name with empty cells.
-  // Shares are of all valid rows, by the largest remainder, so they add up to 100.
+  // Shares are of all valid rows, by the largest remainder, so they add up to 100. A row that is
+  // a slice of its own shows its slice's percent, as the list, tooltip and announcement do.
   let table: DataTableSpec<DonutRow<D>> | undefined
   if (dataTable) {
     const valid = rows.filter((r) => r.valid)
@@ -562,6 +568,7 @@ export function DonutChart<D>({
     const shareAt = new Map(
       valid.map((r, i) => [r.index, percentText(percents[i] ?? 0, r.value)] as const),
     )
+    for (const s of slices) if (s.row) shareAt.set(s.row.index, s.percentText)
     table = {
       columns: [
         { header: headerOf(x, messages.headerPart ?? HEADER_PART), value: (r) => r.name },

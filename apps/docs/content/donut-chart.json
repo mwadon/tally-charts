@@ -110,7 +110,7 @@
       "id": "n12",
       "type": "prose",
       "props": {
-        "markdown": "`maxSlices` (default 5, from 2 to 5) caps the number of slices. With more parts than that, the largest `maxSlices − 1` parts keep a slice each and the rest are summed into one last slice named “Other”. With `sort=\"none\"` the summed parts are still the smallest ones: the kept parts stay in data order and “Other” comes last. A `maxSlices` outside 2–5 or not a whole number is floored and clamped, with a warning in development. The parts inside “Other” keep their own rows in the data table."
+        "markdown": "`maxSlices` (default 5, from 2 to 5) caps the number of slices. With more parts than that, the largest `maxSlices − 1` parts keep a slice each and the rest are summed into one last slice named “Other”. With `sort=\"none\"` the summed parts are still the smallest ones: the kept parts stay in data order and “Other” comes last. A `maxSlices` outside 2–5 or not a whole number is floored and clamped, with a warning in development; a value that is not finite falls back to 5. The parts inside “Other” keep their own rows in the data table."
       }
     },
     {
@@ -134,7 +134,7 @@
       "id": "n15",
       "type": "prose",
       "props": {
-        "markdown": "The slices use one tone in steps: the first slice is the base `tone` (default `accent`), and the second, third and fourth are lighter steps of the same tone, from the library's sequential ramp for that tone. A fifth slice and the “Other” slice are neutral grey. With four parts or fewer and no “Other”, every slice is a step of the tone. There is no colour per slice: the order of the slices carries the rest, and the list repeats them in ring order, so the colour is never the only way to tell the parts apart."
+        "markdown": "The slices use one tone in steps: the first slice is the strongest step of the `tone` (default `accent`), and the following slices fade toward the surface colour, in steps of the library's sequential ramp for that tone. A fifth slice and the “Other” slice are neutral grey. With four parts or fewer and no “Other”, every slice is a step of the tone. With `tone=\"neutral\"` the third step and the neutral last slice have the same colour, so the list order tells them apart. There is no colour per slice: the order of the slices carries the rest, and the list repeats them in ring order, so the colour is never the only way to tell the parts apart."
       }
     },
     {
