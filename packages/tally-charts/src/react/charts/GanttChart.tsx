@@ -859,7 +859,9 @@ export function GanttChart<D>({
     })
     const { top, plotX, plotWidth } = columns
     const count = Math.max(2, Math.round(plotWidth / 100))
-    const range = given ?? niceTimeDomain(inferTimeDomain(times), zone, count)
+    // Niced with at least five ticks: with the two or three of a narrow plot, a schedule of a few
+    // weeks would be rounded out to whole months. The ticks keep `count`.
+    const range = given ?? niceTimeDomain(inferTimeDomain(times), zone, Math.max(count, 5))
     const scale = timeScale(range, [0, plotWidth], zone)
     const { entries, height: rowsHeight } = ganttRows(groups, top)
     const marks = items.map((item) => ganttMark(item, scale, plotWidth))

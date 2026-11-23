@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { DAY } from '../../core/time'
+import { DAY, timeScale } from '../../core/time'
 import { doneShare, type GanttItem, ganttColumns, ganttMark, ganttRows } from './gantt-geometry'
 
 const day = (month: number, date: number): number => Date.UTC(2026, month - 1, date)
@@ -54,6 +54,42 @@ describe('ganttMark', () => {
       baseline: { x: 10, width: 20 },
       segments: [{ x: 10, width: 20, over: false, fill: 'solid' }],
     })
+  })
+
+  it('draws a finished task as one segment when the done point lands a float step past the end', () => {
+    // Mar 1 – Apr 19 over 479 px: x0 + 1 × (x1 − x0) is 29.326530612244902, x1 29.3265306122449.
+    const real = timeScale([mar(1), day(4, 19)], [0, 479], 'utc')
+    const x0 = real(mar(2))
+    const x1 = real(mar(4))
+    expect(x0 + 1 * (x1 - x0)).toBeGreaterThan(x1)
+    const mark = ganttMark(
+      task({ start: mar(2), end: mar(4), baselineStart: mar(2), baselineEnd: mar(4) }),
+      real,
+      479,
+    )
+    expect(mark.segments).toEqual([{ x: mark.x, width: mark.width, over: false, fill: 'solid' }])
+  })
+
+  it('never draws a segment of width 0 with a real time scale', () => {
+    // The remodel's Site protection (no overrun) and Demolition (a day over), done, at every width.
+    for (let width = 300; width <= 900; width++) {
+      const real = timeScale([mar(1), day(4, 19)], [0, width], 'utc')
+      const site = ganttMark(
+        task({ start: mar(2), end: mar(4), baselineStart: mar(2), baselineEnd: mar(4) }),
+        real,
+        width,
+      )
+      const demolition = ganttMark(
+        task({ start: mar(4), end: mar(9), baselineStart: mar(4), baselineEnd: mar(8) }),
+        real,
+        width,
+      )
+      expect(site.segments.map((s) => s.over)).toEqual([false])
+      expect(demolition.segments.map((s) => s.over)).toEqual([false, true])
+      for (const s of [...site.segments, ...demolition.segments]) {
+        expect(s.width).toBeGreaterThan(0)
+      }
+    }
   })
 
   it('marks the overrun at the end of a finished task', () => {

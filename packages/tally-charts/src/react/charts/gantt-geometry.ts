@@ -131,19 +131,22 @@ export function ganttMark(
     }
   }
 
-  const doneX = x0 + item.done * (x1 - x0)
+  // The split points stay on the bar: a float step past either end would leave a sliver.
+  const onBar = (v: number): number => Math.min(x1, Math.max(x0, v))
+  const doneX = onBar(x0 + item.done * (x1 - x0))
   const overPx = overMs > 0 ? scale(start + overMs) - x0 : 0
-  const overX = overMs > 0 && Number.isFinite(overPx) ? x1 - overPx : x1
+  const overX = onBar(overMs > 0 && Number.isFinite(overPx) ? x1 - overPx : x1)
   const points = [x0, doneX, overX, x1].map(clip).sort((a, b) => a - b)
   const segments: GanttSegment[] = []
   for (let i = 0; i < points.length - 1; i++) {
     const from = points[i]!
     const to = points[i + 1]!
-    if (to - from <= 0) continue
+    const width = round2(to - from)
+    if (width <= 0) continue
     const mid = (from + to) / 2
     segments.push({
       x: round2(from),
-      width: round2(to - from),
+      width,
       over: overMs > 0 && mid >= clip(overX),
       fill: mid <= clip(doneX) ? 'solid' : 'hatch',
     })

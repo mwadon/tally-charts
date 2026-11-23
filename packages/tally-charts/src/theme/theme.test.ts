@@ -463,6 +463,29 @@ describe('theme.css', () => {
     )
   })
 
+  it('gives gantt value labels, and names and headings on top, the surface halo, Canvas in forced colors', () => {
+    // The now line and the grid run behind these texts; the runway reset label's halo keeps them
+    // out of the glyphs.
+    const halo = [
+      '[data-ch-part="gantt-value"]',
+      '[data-ch-labels="top"] [data-ch-part="gantt-name"]',
+      '[data-ch-labels="top"] [data-ch-part="gantt-heading"] text',
+      '[data-ch-part="runway-reset-label"]',
+    ]
+    // The selector list of the rule with these declarations that holds the runway reset label.
+    const selectors = (block: string, declarations: string) =>
+      [...block.matchAll(new RegExp(`([^{};/]+)\\{\\s*${declarations}`, 'g'))]
+        .map((m) => (m[1] ?? '').split(',').map((s) => s.trim()))
+        .find((list) => list.includes('[data-ch-part="runway-reset-label"]'))
+    expect(
+      selectors(
+        themed,
+        'paint-order: stroke;\\s*stroke: var\\(--ch-surface\\);\\s*stroke-width: 3px;\\s*stroke-linejoin: round;',
+      ),
+    ).toEqual(halo)
+    expect(selectors(forced, 'stroke: Canvas;')).toEqual(halo)
+  })
+
   it('marks the active gantt row: the name at 600, Highlight in forced colors', () => {
     expect(themed).toMatch(
       /\[data-ch-part="gantt-row"\]\[data-ch-active="true"\] \[data-ch-part="gantt-name"\] \{\s*font-weight: 600;/,

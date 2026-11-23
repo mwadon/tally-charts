@@ -1768,7 +1768,12 @@
   fill: var(--ch-ink);
 }
 
-/* A surface halo keeps the dashed empty-cell outlines out of the glyphs. */
+/* A surface halo keeps the lines behind a text out of its glyphs: the dashed empty-cell outlines
+   of the runway, the gantt grid and now line behind value labels, and, with names on top, behind
+   names and headings. */
+[data-ch-part="gantt-value"],
+[data-ch-labels="top"] [data-ch-part="gantt-name"],
+[data-ch-labels="top"] [data-ch-part="gantt-heading"] text,
 [data-ch-part="runway-reset-label"] {
   paint-order: stroke;
   stroke: var(--ch-surface);
@@ -2109,6 +2114,9 @@
     fill: CanvasText;
   }
 
+  [data-ch-part="gantt-value"],
+  [data-ch-labels="top"] [data-ch-part="gantt-name"],
+  [data-ch-labels="top"] [data-ch-part="gantt-heading"] text,
   [data-ch-part="runway-reset-label"] {
     stroke: Canvas;
   }

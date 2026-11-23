@@ -163,7 +163,8 @@ function expected(
   )
   const range: [number, number] = domain
     ? [time(domain[0]), time(domain[1])]
-    : niceTimeDomain(inferTimeDomain(times), 'utc', count)
+    : // Niced with at least five ticks, so a narrow chart is not rounded out to whole months.
+      niceTimeDomain(inferTimeDomain(times), 'utc', Math.max(count, 5))
   const scale = timeScale(range, [0, cols.plotWidth], 'utc')
   return { ...cols, count, scale }
 }
@@ -266,6 +267,28 @@ describe('GanttChart bars', () => {
     expect(summary('Demolition')).toEqual(['solid:accent', 'solid:loss'])
     expect(summary('Drywall and paint')).toEqual(['solid:accent', 'hatch:accent'])
     expect(summary('Cabinets')).toEqual(['hatch:accent'])
+  })
+
+  it('draws no segment of width 0: one per finished task, two with an overrun', () => {
+    // With value labels at 720 px (and without them at 360 px) a done point a float step off the
+    // bar's end once left a 0 px sliver after Site protection or Demolition.
+    for (const props of [{ valueLabels: true }, { width: 360 }]) {
+      const { container, unmount } = renderChart(props)
+      for (const s of parts(container, 'gantt-segment')) expect(num(s, 'width')).toBeGreaterThan(0)
+      const finished = ['Site protection', 'Haul-away', 'Framing changes', 'Electrical rough-in']
+      for (const name of finished) {
+        expect(segmentsOf(rowByName(container, name)).map((s) => `${s.fill}:${s.tone}`)).toEqual([
+          'solid:accent',
+        ])
+      }
+      for (const name of ['Demolition', 'Plumbing rough-in']) {
+        expect(segmentsOf(rowByName(container, name)).map((s) => `${s.fill}:${s.tone}`)).toEqual([
+          'solid:accent',
+          'solid:loss',
+        ])
+      }
+      unmount()
+    }
   })
 
   it('paints segments with the tone or its hatch pattern', () => {
@@ -448,6 +471,27 @@ describe('GanttChart time axis', () => {
     expect(scale.domain()).toEqual([time(domain[0]), time(domain[1])])
     const bar = one(rowByName(container, 'Site protection'), 'gantt-segment')
     expect(num(bar, 'x')).toBeCloseTo(plotX + scale(time('2026-03-02')), 1)
+  })
+
+  it('rounds a narrow chart out to at least five ticks, not to whole months', () => {
+    // At 360 px with value labels the plot (287 px) has three ticks; niced with three, Mar 2 –
+    // Apr 17 became Mar 1 – May 1, a fifth of the plot empty.
+    const { container } = renderChart({ width: 360, valueLabels: true })
+    const { plotX, plotWidth, count, scale } = expected(remodel, { width: 360, valueWidth: WIDEST })
+    expect(count).toBeLessThan(5)
+    const [, end] = scale.domain()
+    expect(end).toBeGreaterThanOrEqual(time('2026-04-17'))
+    expect(end).toBeLessThan(time('2026-04-27'))
+    // The DOM agrees: Site protection starts where this scale puts Mar 2, and Fixtures and
+    // appliances (to Apr 16) ends past 90% of the plot.
+    const site = one(rowByName(container, 'Site protection'), 'gantt-segment')
+    expect(num(site, 'x')).toBeCloseTo(plotX + scale(time('2026-03-02')), 1)
+    const last = parts(rowByName(container, 'Fixtures and appliances'), 'gantt-segment').at(-1)
+    const right = num(last, 'x') + num(last, 'width') - plotX
+    expect(right).toBeCloseTo(scale(time('2026-04-16')), 1)
+    expect(right).toBeGreaterThan(plotWidth * 0.9)
+    // The ticks keep the count of the width.
+    expect(parts(container, 'gantt-grid')).toHaveLength(scale.ticks(count).length)
   })
 
   it('draws fewer than 20 ticks for a schedule from 2024 to 2027', () => {
@@ -927,6 +971,25 @@ describe('GanttChart now line', () => {
     expect(num(label, 'y')).toBeLessThanOrEqual(TICK_ROW + layout.height + NOW_ROW)
     const without = renderChart({ now: undefined })
     expect(svgHeight(container)).toBe(svgHeight(without.container) + NOW_ROW)
+  })
+
+  it('paints the now line and the grid before the texts that wear the surface halo', () => {
+    const before = (a: Element, b: Element) =>
+      Boolean(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING)
+    for (const [props, part] of [
+      [{ valueLabels: true }, 'gantt-value'],
+      [{ valueLabels: true, width: 360 }, 'gantt-value'],
+      [{ width: 360 }, 'gantt-name'],
+      [{ width: 360 }, 'gantt-heading'],
+    ] as const) {
+      const { container, unmount } = renderChart(props)
+      const first = one(container, part) as Element
+      expect(first).not.toBeNull()
+      const lines = [one(container, 'gantt-now'), ...parts(container, 'gantt-grid')]
+      expect(lines.length).toBeGreaterThan(1)
+      for (const line of lines) expect(before(line as Element, first)).toBe(true)
+      unmount()
+    }
   })
 
   it('draws neither line nor label for a `now` outside the domain, and keeps the height', () => {
