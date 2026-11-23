@@ -46,6 +46,7 @@ const NARROW_CHART_HEIGHTS: Readonly<Record<string, number>> = {
   'formatting/formatters': 469,
   'thresholds/heatmap-legend': 479,
   'comparison-bars/revenue-by-region': 442,
+  'donut-chart/many-parts': 440,
   'dot-histogram/invoice-days-overdue': 269,
   'funnel-chart/lead-to-paid': 336,
   'funnel-chart/by-source': 385,

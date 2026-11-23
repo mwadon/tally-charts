@@ -431,6 +431,77 @@ for (const colorScheme of ['light', 'dark'] as const) {
       })
     }
 
+    test(`donut slices, the active slice and the list stay visible (${colorScheme})`, async ({
+      page,
+    }) => {
+      await openForced(page, 'charts-donutchart--light', colorScheme)
+      const { resolve, isRealColor, canvas } = await colorHelpers(page)
+      const root = '#storybook-root'
+      const canvasRgba = await resolve(canvas)
+      const paints = (part: string) =>
+        page.locator(`${root} [data-ch-part="${part}"]`).evaluateAll((els) =>
+          els.map((el) => {
+            // The painted opacity: the element's and every ancestor's.
+            let opacity = 1
+            for (let node: Element | null = el; node; node = node.parentElement) {
+              opacity *= Number.parseFloat(getComputedStyle(node).opacity)
+            }
+            return { fill: getComputedStyle(el).fill, opacity }
+          }),
+        )
+      // Every slice and swatch is filled with the tone's system colour, never the page.
+      for (const part of ['donut-slice', 'donut-swatch']) {
+        const fills = await paints(part)
+        expect(fills).toHaveLength(5)
+        for (const { fill, opacity } of fills) {
+          expect(await isRealColor(fill)).toBe(true)
+          expect(await resolve(fill)).not.toEqual(canvasRgba)
+          expect(opacity).toBe(1)
+        }
+      }
+      // The list and the centre are painted in real colours.
+      for (const [part, count] of [
+        ['donut-name', 5],
+        ['donut-value', 5],
+        ['donut-percent', 5],
+        ['donut-total', 1],
+        ['donut-center-label', 1],
+      ] as const) {
+        const fills = await paints(part)
+        expect(fills).toHaveLength(count)
+        for (const { fill, opacity } of fills) {
+          expect(await isRealColor(fill)).toBe(true)
+          expect(opacity).toBe(1)
+        }
+      }
+      // With a slice active, the others (and their swatches) are dimmed and the active one is not:
+      // the slices share a system colour, so the opacity is what tells the active one apart.
+      await page.keyboard.press('Tab')
+      await expect(page.locator(`${root} [role="application"]`)).toBeFocused()
+      await page.keyboard.press('ArrowRight')
+      await expect(
+        page.locator(`${root} [data-ch-part="donut-row"][data-ch-active="true"]`),
+      ).toContainText('Service plans')
+      for (const part of ['donut-slice', 'donut-swatch']) {
+        const fills = await paints(part)
+        expect(fills).toHaveLength(5)
+        const [first, active, ...rest] = fills
+        expect(active?.opacity).toBe(1)
+        expect(await isRealColor(active?.fill ?? 'none')).toBe(true)
+        for (const other of [first, ...rest]) {
+          expect(other?.opacity).toBeLessThan(0.75)
+          expect(await isRealColor(other?.fill ?? 'none')).toBe(true)
+        }
+      }
+      // Text is never dimmed.
+      for (const part of ['donut-name', 'donut-value', 'donut-percent']) {
+        for (const { fill, opacity } of await paints(part)) {
+          expect(await isRealColor(fill)).toBe(true)
+          expect(opacity).toBe(1)
+        }
+      }
+    })
+
     test('heatmap levels differ by border width and keep a focus ring', async ({ page }) => {
       await openForced(page, 'reference-where-it-leaks--light', colorScheme)
       const borders = await page

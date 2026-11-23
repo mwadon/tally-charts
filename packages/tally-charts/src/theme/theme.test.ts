@@ -46,7 +46,7 @@ const THEMES = {
   dark: declarations(/\n\[data-ch-theme="dark"\]/),
 }
 const SEQ = declarations(
-  /\[data-ch-root\],\s*\[data-ch-part="legend"\],\s*\[data-ch-part="heatmap"\],\s*\[data-ch-part="runway"\]/,
+  /\[data-ch-root\],\s*\[data-ch-part="legend"\],\s*\[data-ch-part="heatmap"\],\s*\[data-ch-part="runway"\],\s*\[data-ch-part="donut"\]/,
 )
 const LEVELS = [1, 2, 3, 4, 5] as const
 
@@ -304,7 +304,7 @@ describe('theme.css', () => {
       /\[data-ch-part="target"\],\s*\[data-ch-part="forecast-rule"\] \{\s*stroke: var\(--ch-ink\);[^}]*stroke-dasharray: 3 3;/,
     )
     expect(themed).toMatch(
-      /\[data-ch-part="target-label"\],\s*\[data-ch-part="forecast-label"\],\s*\[data-ch-part="end-label"\],\s*\[data-ch-part="funnel-name"\] \{\s*fill: var\(--ch-ink-muted\);/,
+      /\[data-ch-part="target-label"\],\s*\[data-ch-part="forecast-label"\],\s*\[data-ch-part="end-label"\],\s*\[data-ch-part="funnel-name"\],\s*\[data-ch-part="donut-center-label"\] \{\s*fill: var\(--ch-ink-muted\);/,
     )
     expect(forced).toMatch(/\[data-ch-part="forecast-label"\],[\s\S]*?\) \{\s*fill: GrayText;/)
   })
@@ -315,13 +315,13 @@ describe('theme.css', () => {
       expect(quietParts).toContain(`[data-ch-part="${part}"]`)
     }
     expect(themed).toMatch(
-      /\[data-ch-animate="true"\] \[data-ch-part="area"\],\s*\[data-ch-animate="true"\] \[data-ch-part="funnel-area"\] \{\s*animation: ch-fade/,
+      /\[data-ch-animate="true"\] \[data-ch-part="area"\],\s*\[data-ch-animate="true"\] \[data-ch-part="funnel-area"\],\s*\[data-ch-animate="true"\] \[data-ch-part="donut-slice"\] \{\s*animation: ch-fade/,
     )
     expect(themed).toMatch(
       /\[data-ch-part="funnel-area"\]\[data-ch-series\] \{\s*stroke: var\(--ch-surface\);\s*stroke-width: 1px;\s*stroke-linejoin: round;/,
     )
     expect(themed).toMatch(
-      /\[data-ch-part="grid-line"\],\s*\[data-ch-part="funnel-guide"\] \{\s*stroke: var\(--ch-grid\);\s*stroke-width: 1;/,
+      /\[data-ch-part="grid-line"\],\s*\[data-ch-part="funnel-guide"\],\s*\[data-ch-part="donut-rule"\] \{\s*stroke: var\(--ch-grid\);\s*stroke-width: 1;/,
     )
     expect(themed).toMatch(
       /\[data-ch-part="funnel-guide-inner"\] \{\s*stroke: var\(--ch-surface\);\s*stroke-opacity: 0\.45;/,
@@ -337,8 +337,58 @@ describe('theme.css', () => {
     )
     // A horizontal step name stays muted in forced colors, like the axis labels it joins.
     expect(forced).toMatch(
-      /\[data-ch-orientation="horizontal"\] \[data-ch-part="funnel-name"\]\s*\) \{\s*fill: GrayText;/,
+      /\[data-ch-orientation="horizontal"\] \[data-ch-part="funnel-name"\],[\s\S]*?\) \{\s*fill: GrayText;/,
     )
+  })
+
+  it('fills donut slices and swatches from the ramp of their tone, the neutral level from the neutral ramp', () => {
+    // The donut group resolves the levels, so data-ch-seq-tone on it picks the tone's ramp.
+    expect(css).toMatch(/\[data-ch-part="runway"\],\s*\[data-ch-part="donut"\] \{\s*--ch-seq-1:/)
+    for (const level of [5, 4, 3, 2]) {
+      expect(themed).toContain(
+        `:is([data-ch-part="donut-slice"], [data-ch-part="donut-swatch"])[data-ch-level="${level}"] {\n  fill: var(--ch-seq-${level});`,
+      )
+    }
+    expect(themed).toContain(
+      ':is([data-ch-part="donut-slice"], [data-ch-part="donut-swatch"])[data-ch-level="neutral"] {\n  fill: color-mix(in srgb, var(--ch-neutral) var(--_ch-seq-neutral-3), var(--ch-surface));',
+    )
+    // Forced colors: one system colour, the tone's, as bars; as specific as the level rules.
+    expect(forced).toMatch(
+      /:is\(\[data-ch-part="donut-slice"\], \[data-ch-part="donut-swatch"\]\)\[data-ch-level\] \{\s*fill: var\(--_ch-tone-paint\);/,
+    )
+  })
+
+  it('styles the donut centre and list text from the shared rules and tokens', () => {
+    expect(themed).toMatch(
+      /\[data-ch-part="donut-total"\] \{\s*fill: var\(--ch-ink\);\s*font-size: 28px;\s*font-weight: 600;/,
+    )
+    expect(themed).toMatch(
+      /\[data-ch-part="donut-total"\]\[data-ch-size="small"\] \{\s*font-size: 20px;/,
+    )
+    expect(themed).toMatch(
+      /\[data-ch-part="donut-name"\],\s*\[data-ch-part="donut-percent"\] \{\s*fill: var\(--ch-ink\);\s*font-size: 13px;/,
+    )
+    expect(themed).toMatch(/\[data-ch-part="donut-percent"\] \{\s*font-weight: 600;/)
+    expect(themed).toMatch(
+      /\[data-ch-part="row-sublabel"\],\s*\[data-ch-part="donut-value"\] \{\s*fill: var\(--ch-ink-muted\);\s*font-size: 13px;/,
+    )
+    expect(forced).toMatch(
+      /\[data-ch-part="donut-center-label"\],\s*\[data-ch-part="donut-value"\]\s*\) \{\s*fill: GrayText;/,
+    )
+  })
+
+  it('marks the active donut slice by dimming the others and the active row name at 600', () => {
+    // Bold name of the active list row; text never dims.
+    expect(themed).toMatch(
+      /\[data-ch-part="donut-row"\]\[data-ch-active="true"\] \[data-ch-part="donut-name"\] \{\s*font-weight: 600;/,
+    )
+    expect(themed).toMatch(
+      /\[data-ch-part="donut-slice"\]\[data-ch-selectable="true"\],\s*\[data-ch-part="donut-hit"\]\[data-ch-selectable="true"\] \{\s*cursor: pointer;/,
+    )
+    // Forced colors, as bars: every slice is the tone's system colour, and the dimmed opacity
+    // (which forced colors keep) is what sets the active slice apart; nothing resets it.
+    expect(forced).not.toMatch(/data-ch-dimmed/)
+    expect(forced).not.toMatch(/donut-(slice|swatch)[^{]*\{[^}]*opacity/)
   })
 
   it('inks the active funnel guide, Highlight in forced colors, and points at selectable steps', () => {

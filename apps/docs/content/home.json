@@ -75,7 +75,7 @@
       "id": "n7",
       "type": "chart-index",
       "props": {
-        "heading": "Sixteen charts, one grammar",
+        "heading": "Seventeen charts, one grammar",
         "lede": "Pick the chart by the question it answers. Each page has live examples and a props table.",
         "items": [
           {
@@ -125,6 +125,12 @@
             "text": "How many make it through each step",
             "href": "/docs/funnel-chart",
             "thumb": "funnel"
+          },
+          {
+            "label": "DonutChart",
+            "text": "How one total splits into a few parts",
+            "href": "/docs/donut-chart",
+            "thumb": "donut"
           },
           {
             "label": "DotHistogram",

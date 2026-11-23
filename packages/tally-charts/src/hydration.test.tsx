@@ -12,6 +12,7 @@ import {
   LeadFunnel,
   LeadFunnelBySource,
   MonthlyCost,
+  RevenueByLine,
 } from '../test/fixtures'
 import { thresholds } from './core/thresholds'
 import { ShareBar } from './react/ui/ShareBar'
@@ -192,6 +193,58 @@ describe('hydration', () => {
     expect(onRecoverableError).not.toHaveBeenCalled()
     expect(errors).not.toHaveBeenCalled()
     expect(orientation()).toBe('vertical')
+    expect(container.querySelector('svg')?.getAttribute('width')).toBe('320')
+    await act(async () => {
+      root?.unmount()
+    })
+    container.remove()
+    rect.mockRestore()
+    errors.mockRestore()
+  })
+
+  it('hydrates DonutChart server markup without mismatches', async () => {
+    const html = renderToString(<RevenueByLine />)
+    const errors = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const container = document.createElement('div')
+    container.innerHTML = html
+    expect(container.querySelectorAll('[data-ch-part="donut-slice"]')).toHaveLength(5)
+    document.body.appendChild(container)
+    const onRecoverableError = vi.fn()
+    let root: ReturnType<typeof hydrateRoot> | undefined
+    await act(async () => {
+      root = hydrateRoot(container, <RevenueByLine />, { onRecoverableError })
+    })
+    expect(onRecoverableError).not.toHaveBeenCalled()
+    expect(errors).not.toHaveBeenCalled()
+    expect(container.querySelectorAll('[data-ch-part="donut-slice"]')).toHaveLength(5)
+    await act(async () => {
+      root?.unmount()
+    })
+    container.remove()
+    errors.mockRestore()
+  })
+
+  // Rendered with the list on the right at 640 px on the server; the 320 px container moves it
+  // under the ring after hydration, not during it.
+  it('hydrates a DonutChart rendered wide into a narrow container, then moves the list under the ring', async () => {
+    const html = renderToString(<RevenueByLine initialWidth={640} />)
+    const errors = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const rect = vi
+      .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+      .mockReturnValue({ width: 320 } as DOMRect)
+    const container = document.createElement('div')
+    container.innerHTML = html
+    const layout = () => container.querySelector('[data-ch-layout]')?.getAttribute('data-ch-layout')
+    expect(layout()).toBe('right')
+    document.body.appendChild(container)
+    const onRecoverableError = vi.fn()
+    let root: ReturnType<typeof hydrateRoot> | undefined
+    await act(async () => {
+      root = hydrateRoot(container, <RevenueByLine initialWidth={640} />, { onRecoverableError })
+    })
+    expect(onRecoverableError).not.toHaveBeenCalled()
+    expect(errors).not.toHaveBeenCalled()
+    expect(layout()).toBe('bottom')
     expect(container.querySelector('svg')?.getAttribute('width')).toBe('320')
     await act(async () => {
       root?.unmount()
