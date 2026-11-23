@@ -227,6 +227,76 @@ test('the funnel chart walks its steps and announces the continue rate', async (
   expect(x).toBeGreaterThan(100)
 })
 
+test('the donut chart walks its slices and announces the share of the total', async ({ page }) => {
+  await open(page, 'charts-donutchart--light')
+  const chart = page.getByRole('figure', { name: 'Revenue by service line' })
+  await expect(chart.locator('[data-ch-layout="right"]')).toHaveCount(1)
+  await page.keyboard.press('Tab')
+  await expect(chart.getByRole('application')).toBeFocused()
+  const live = chart.locator('[aria-live]')
+  const slices = chart.locator('[data-ch-part="donut-slice"]')
+  const activeRow = chart.locator('[data-ch-part="donut-row"][data-ch-active="true"]')
+  await expect(live).toHaveText('1 of 5, Installs, $773K, 42% of total')
+  await expect(slices).toHaveCount(5)
+  await expect(chart.locator('[data-ch-part="donut-slice"][data-ch-dimmed="true"]')).toHaveCount(4)
+  await expect(slices.nth(0)).not.toHaveAttribute('data-ch-dimmed', 'true')
+  await expect(activeRow).toContainText('Installs')
+  await page.keyboard.press('ArrowRight')
+  await expect(live).toHaveText('2 of 5, Service plans, $442K, 24% of total')
+  await expect(page.locator('[data-ch-part="tooltip"]')).toContainText('Service plans')
+  await expect(page.locator('[data-ch-part="tooltip"]')).toContainText('24% of total')
+  await expect(activeRow).toContainText('Service plans')
+  await page.keyboard.press('ArrowDown')
+  await expect(live).toHaveText('3 of 5, Repairs, $294K, 16% of total')
+  await page.keyboard.press('End')
+  await expect(live).toHaveText('5 of 5, Other, $147K, 8% of total')
+  await expect(slices.nth(4)).not.toHaveAttribute('data-ch-dimmed', 'true')
+  await page.keyboard.press('ArrowLeft')
+  await expect(live).toHaveText('4 of 5, Inspections, $184K, 10% of total')
+  await page.keyboard.press('Home')
+  await expect(live).toHaveText('1 of 5, Installs, $773K, 42% of total')
+})
+
+test('hovering a donut slice or its list row activates it; the hole clears it', async ({
+  page,
+}) => {
+  await open(page, 'charts-donutchart--light')
+  const tooltip = page.locator('[data-ch-part="tooltip"]')
+  const dimmed = page.locator('[data-ch-part="donut-slice"][data-ch-dimmed="true"]')
+  const slices = page.locator('[data-ch-part="donut-slice"]')
+  const ring = await page.locator('[data-ch-part="donut-ring"]').boundingBox()
+  if (!ring) throw new Error('no ring')
+  const cx = ring.x + ring.width / 2
+  const cy = ring.y + ring.height / 2
+  // Mid-ring, at an angle from 12 o'clock clockwise.
+  const at = (degrees: number) => {
+    const r = (ring.width / 2) * 0.82
+    const a = (degrees * Math.PI) / 180
+    return [cx + r * Math.sin(a), cy - r * Math.cos(a)] as const
+  }
+  // Repairs runs from 66% to 82% of the ring: 9 o'clock is inside it.
+  await page.mouse.move(...at(266))
+  await expect(tooltip).toContainText('Repairs')
+  await expect(dimmed).toHaveCount(4)
+  await expect(slices.nth(2)).not.toHaveAttribute('data-ch-dimmed', 'true')
+  // Into the hole: the hover ends.
+  await page.mouse.move(cx, cy)
+  await expect(tooltip).toHaveCount(0)
+  await expect(dimmed).toHaveCount(0)
+  // A list row activates its slice.
+  await page.locator('[data-ch-part="donut-hit"]').nth(3).hover()
+  await expect(tooltip).toContainText('Inspections')
+  await expect(dimmed).toHaveCount(4)
+  await expect(slices.nth(3)).not.toHaveAttribute('data-ch-dimmed', 'true')
+  await expect(page.locator('[data-ch-part="donut-row"][data-ch-active="true"]')).toContainText(
+    'Inspections',
+  )
+  // From the row into the hole clears it too.
+  await page.mouse.move(cx, cy)
+  await expect(tooltip).toHaveCount(0)
+  await expect(dimmed).toHaveCount(0)
+})
+
 test('hovering near a strip dot shows its tooltip', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 600 })
   await open(page, 'reference-dallas-installs--light')

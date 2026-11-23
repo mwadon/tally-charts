@@ -46,3 +46,19 @@ test('a touch tap on a funnel step activates that step', async ({ page }) => {
   await expect(page.locator('[data-ch-part="funnel-guide"][data-ch-active="true"]')).toHaveCount(1)
   await expect(page.locator('[data-ch-root] [aria-live]')).toHaveText('')
 })
+
+test('a touch tap on a donut slice activates that slice', async ({ page }) => {
+  await open(page, 'charts-donutchart--light')
+  const ring = await page.locator('[data-ch-part="donut-ring"]').boundingBox()
+  if (!ring) throw new Error('no ring to tap')
+  // Mid-ring at 9 o'clock: inside Repairs, which runs from 66% to 82% of the ring.
+  const r = (ring.width / 2) * 0.82
+  await page.touchscreen.tap(ring.x + ring.width / 2 - r, ring.y + ring.height / 2)
+  await expect(page.locator(tooltip)).toContainText('Repairs')
+  await expect(page.locator('[data-ch-part="donut-slice"][data-ch-dimmed="true"]')).toHaveCount(4)
+  await expect(page.locator('[data-ch-part="donut-slice"]').nth(2)).not.toHaveAttribute(
+    'data-ch-dimmed',
+    'true',
+  )
+  await expect(page.locator('[data-ch-root] [aria-live]')).toHaveText('')
+})
