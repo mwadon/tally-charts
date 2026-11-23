@@ -103,7 +103,7 @@ export type GanttChartProps<D> = ChartName &
     progress?: Accessor<D, number | null | undefined>
     /** The "today" line, and what splits done from planned. Never read from the clock. */
     now?: TimeInput
-    /** The time axis. Default: from the data, rounded out to tick boundaries. */
+    /** The time axis. Default: from the data, rounded out to whole calendar steps. */
     domain?: readonly [TimeInput, TimeInput]
     /** Default 'utc', which renders the same on the server and the client. */
     zone?: TimeZone

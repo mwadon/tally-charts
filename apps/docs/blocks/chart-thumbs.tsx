@@ -16,6 +16,7 @@ export const thumbNames = [
   'bridge-chart',
   'funnel',
   'donut',
+  'gantt',
   'dot-histogram',
   'strip-plot',
   'scatter',
@@ -186,6 +187,17 @@ const THUMBS: Record<ThumbName, ReactNode> = {
         4,
       )}
       <path className="ct-rule" d="M72 18.5h40M72 30.5h40M72 42.5h40" />
+    </>
+  ),
+  gantt: (
+    <>
+      <path className="ct-mark" d="M86 2v52" />
+      <rect className="ct-accent" x="8" y="6" width="30" height="8" />
+      <rect className="ct-accent" x="28" y="18" width="30" height="8" />
+      <rect className="ct-accent" x="48" y="30" width="24" height="8" />
+      <rect className="ct-loss" x="72" y="30" width="8" height="8" />
+      <rect className="ct-hatch" x="92.5" y="42.5" width="19" height="7" />
+      <path className="ct-hatch" d="M92 44l2-2M92 50l8-8M98 50l8-8M104 50l8-8M110 50l2-2" />
     </>
   ),
   'dot-histogram': (

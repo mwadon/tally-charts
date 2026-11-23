@@ -28,7 +28,7 @@ export const chartIndexBlock = defineBlock({
   icon: 'layout-grid',
   description: 'A tile per chart type: a small drawing, the name, one sentence and a link.',
   defaultProps: {
-    heading: 'Seventeen charts, one grammar',
+    heading: 'Eighteen charts, one grammar',
     items: [
       {
         label: 'BarChart',

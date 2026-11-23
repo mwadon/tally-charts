@@ -1,0 +1,372 @@
+{
+  "versionId": "fixture-gantt-chart-v1",
+  "version": 1,
+  "locale": "en",
+  "publishedAt": "2026-11-23T00:00:00.000Z",
+  "codeInjection": {},
+  "layout": {
+    "key": "default",
+    "header": null,
+    "footer": null
+  },
+  "pageId": "fixture-gantt-chart",
+  "title": "GanttChart",
+  "slug": "gantt-chart",
+  "seo": {
+    "metaTitle": "GanttChart · tally-charts",
+    "metaDescription": "A schedule against its plan: tasks and milestones on a time axis, done and planned, baselines and overruns, a today line, keyboard navigation and a hidden data table."
+  },
+  "componentTree": [
+    {
+      "id": "n1",
+      "type": "prose",
+      "props": {
+        "markdown": "A schedule against its plan. `GanttChart` draws one row per task or milestone on a time axis: a bar from the start to the end of each task, solid for what is done and hatched for what is planned, the baseline under it, the part that ran past the plan in the loss tone, and a today line. It handles the layout, the tooltip, the keyboard and the screen reader."
+      }
+    },
+    {
+      "id": "n2",
+      "type": "heading",
+      "props": {
+        "text": "When to use it",
+        "level": "2",
+        "anchor": "when-to-use"
+      }
+    },
+    {
+      "id": "n3",
+      "type": "prose",
+      "props": {
+        "markdown": "Use it for the tasks of one project or plan on a calendar: what runs when, what is done, what is late and by how much. The reader sees the order and overlap of the tasks, today, and which bars went past their plan. For how much of a budget or quota is used before a reset, use [`RunwayChart`](/docs/runway-chart); for durations compared with each other without dates, use [`RankedBars`](/docs/ranked-bars). It has no dependency arrows, no dragging or editing, no collapsing groups, no horizontal scrolling or zoom, no working-day calendars or weekend shading, no week-start option, no hour-level labels (it draws any instants, but writes durations in days), no several bars in one row, no tone or colour per task, no status field, no sorting, no row height or `height` prop and no custom label content."
+      }
+    },
+    {
+      "id": "n4",
+      "type": "heading",
+      "props": {
+        "text": "Import",
+        "level": "2",
+        "anchor": "install"
+      }
+    },
+    {
+      "id": "n5",
+      "type": "code-block",
+      "props": {
+        "code": "npm i tally-charts",
+        "lang": "bash"
+      }
+    },
+    {
+      "id": "n6",
+      "type": "code-block",
+      "props": {
+        "code": "import { GanttChart } from 'tally-charts'\nimport 'tally-charts/theme.css'",
+        "lang": "tsx",
+        "filename": "app/schedule.tsx"
+      }
+    },
+    {
+      "id": "n7",
+      "type": "heading",
+      "props": {
+        "text": "Examples",
+        "level": "2",
+        "anchor": "examples"
+      }
+    },
+    {
+      "id": "n8",
+      "type": "prose",
+      "props": {
+        "markdown": "`data` has one row per task or milestone. `x` names the row, `start` and `end` read its dates, `group` its phase, `baselineStart` and `baselineEnd` its plan, and `now` says what day it is. Props stay serializable here (field names and literal dates), so the chart renders in a server component."
+      }
+    },
+    {
+      "id": "n9",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "gantt-chart/schedule-vs-baseline",
+        "defaultView": "preview"
+      }
+    },
+    {
+      "id": "n10",
+      "type": "heading",
+      "props": {
+        "text": "Rows",
+        "level": "2",
+        "anchor": "rows"
+      }
+    },
+    {
+      "id": "n11",
+      "type": "prose",
+      "props": {
+        "markdown": "A row is drawn when its `start` is a valid date. With an `end` after the start it is a task, a bar from `start` to `end`; without an `end` (`null` or missing), or with an `end` equal to its `start`, it is a milestone, a diamond at its date. Dates are anything the library's time scale reads: a `Date`, epoch milliseconds or an ISO string. `end` is an exact instant, not a day: the bar stops there. A date-only string is UTC midnight, so a task that should cover the whole of March 6 needs an `end` of `'2026-03-07'`. A bar is never narrower than 2 px."
+      }
+    },
+    {
+      "id": "n12",
+      "type": "prose",
+      "props": {
+        "markdown": "Rows are drawn in data order. With `group`, the rows of one group are drawn together under a heading, even when they are not next to each other in the data: groups come in the order of their first row, and each group's rows keep their data order. Rows without a group (`null`, missing or an empty string) come first, without a heading. A heading is a row of its own, the group name with a hairline across the plot; it is not a point."
+      }
+    },
+    {
+      "id": "n13",
+      "type": "heading",
+      "props": {
+        "text": "Done and planned",
+        "level": "2",
+        "anchor": "done-and-planned"
+      }
+    },
+    {
+      "id": "n14",
+      "type": "prose",
+      "props": {
+        "markdown": "`now` splits what is done from what is planned: a task that ends at or before `now` is solid, a task that starts at or after it is hatched, and a running task is solid up to `now` and hatched after it. A milestone is reached when its date is at or before `now`: a filled diamond; an upcoming one is an empty diamond. The chart never reads the clock, so pass `now` yourself (a server render and its hydration then agree). Without `now` every task is solid and every milestone reached."
+      }
+    },
+    {
+      "id": "n15",
+      "type": "prose",
+      "props": {
+        "markdown": "`progress` reads the done share of a row, from 0 to 1, and wins over `now` for that row: the bar is solid for that share of its length and hatched for the rest, and a milestone with a `progress` of 1 is reached. A row whose `progress` is `null` or missing falls back to `now`. A number outside 0 to 1 is clamped, and a value that is not a finite number is ignored, with a warning in development. Here every row has a `progress` and there is no `now`, so there is no today line."
+      }
+    },
+    {
+      "id": "n16",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "gantt-chart/progress",
+        "defaultView": "preview"
+      }
+    },
+    {
+      "id": "n17",
+      "type": "heading",
+      "props": {
+        "text": "Baseline and overrun",
+        "level": "2",
+        "anchor": "baseline"
+      }
+    },
+    {
+      "id": "n18",
+      "type": "prose",
+      "props": {
+        "markdown": "`baselineStart` and `baselineEnd` read the plan. A task's baseline is a thin neutral line under its bar, from the planned start to the planned end; a milestone reads only `baselineStart` and draws a small hollow diamond under its own (a `baselineEnd` on a milestone is ignored). A task's baseline needs both dates, the start before the end: one that is half missing, reversed or invalid is not drawn, with a warning in development. A baseline wholly outside the time axis is not drawn either."
+      }
+    },
+    {
+      "id": "n19",
+      "type": "prose",
+      "props": {
+        "markdown": "The overrun of a task is its length minus its baseline's length. The last part of the bar, as long as the overrun, is drawn in the loss tone, solid or hatched like the rest of the bar; a task that ran over and is not finished has a hatched overrun. A task that only started late, and took no longer than planned, has no overrun, and a baseline longer than the task gives none either. A milestone has no overrun: its slip is its date minus its planned date."
+      }
+    },
+    {
+      "id": "n20",
+      "type": "heading",
+      "props": {
+        "text": "Value labels",
+        "level": "2",
+        "anchor": "value-labels"
+      }
+    },
+    {
+      "id": "n21",
+      "type": "prose",
+      "props": {
+        "markdown": "Each row gets a value label after its bar where it fits (`valueLabels`, default true): the length of a task in whole days (“5d”, or “<1d” under half a day), or the done share of a running task (“50%”, a whole percent from 1 to 99), followed by the overrun (“+2d”) in the loss tone. A milestone's label is its date, followed by its slip against its baseline: “+3d” late in the loss tone, “−2d” early in the muted text. An overrun or a slip is shown only when it rounds to at least one whole day. Day counts are written by the locale of the [`ChartsProvider`](/docs/hooks-and-providers) (`Intl` unit formatting), so they need no plural forms; under `locale=\"pl-PL\"` the tooltip reads “7 dni”."
+      }
+    },
+    {
+      "id": "n22",
+      "type": "prose",
+      "props": {
+        "markdown": "A label sits 8 px after the end of its bar (14 px after a milestone's centre). When that would cross the chart's right edge it goes before the bar's start, right-aligned, and when there is no room there either (the plot's left edge or the row's baseline is in the way) the row has no label; the value is still in the tooltip, the announcement and the data table. The labels have a halo in the surface colour, so the today line and the grid do not strike through them. Dates drop the year when the time axis (the explicit `domain`, or else the data's own dates) lies within one year, as on this page (“Mar 23”); otherwise they carry it."
+      }
+    },
+    {
+      "id": "n23",
+      "type": "heading",
+      "props": {
+        "text": "Today line and key",
+        "level": "2",
+        "anchor": "today-and-key"
+      }
+    },
+    {
+      "id": "n24",
+      "type": "prose",
+      "props": {
+        "markdown": "When `now` is inside the time axis, a 1 px ink line marks it from the first row to under the last, with “Today · Mar 27” under the rows, centred on the line and kept inside the plot. When `now` is outside the axis, the line is not drawn, but `now` still decides what is solid and what is hatched. `now` does not widen the time axis."
+      }
+    },
+    {
+      "id": "n25",
+      "type": "prose",
+      "props": {
+        "markdown": "The key above the plot (`legend`, default true) lists the kinds of mark the chart draws, in this order: done, planned, overrun, baseline and milestone. It is drawn only when at least two kinds occur, and wraps to more lines in a narrow chart. This schedule has only `x`, `start` and `end`: every task is solid and there is no key."
+      }
+    },
+    {
+      "id": "n26",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "gantt-chart/plain-schedule",
+        "defaultView": "preview"
+      }
+    },
+    {
+      "id": "n27",
+      "type": "heading",
+      "props": {
+        "text": "Time axis",
+        "level": "2",
+        "anchor": "time-axis"
+      }
+    },
+    {
+      "id": "n28",
+      "type": "prose",
+      "props": {
+        "markdown": "Without `domain`, the time axis covers every drawn start, end and baseline date and is rounded out to whole calendar steps (days, weeks, months or years) of an interval picked for at least five ticks. The ticks follow the width of the plot: the chart asks for about one per 100 px (at least two) and draws the calendar boundaries of the interval that fits, labelled with the library's automatic date labels in the locale and thinned when their labels would overlap. So in a narrow chart the axis can end between two drawn ticks, and a schedule of a few weeks can get a single month tick. A tick whose label would cross the chart's right edge keeps its grid line and loses its label. Week ticks fall on Sundays. See [time scales](/docs/time-scales)."
+      }
+    },
+    {
+      "id": "n29",
+      "type": "prose",
+      "props": {
+        "markdown": "`domain` sets the axis as two dates, start before end; one that is not is ignored, with a warning in development. Bars are clipped at its edges, and a row wholly outside it keeps its name but has no bar and no value label. `zone` is `'utc'` (default, the same on the server and the client) or `'local'`; ticks, labels and dates follow it, and a day count is rounded to whole days, so a task across a daylight saving change still reads whole days. A year of work, as here, gets quarter ticks in a card of this width; a plot of about 750 px or more gets month ticks."
+      }
+    },
+    {
+      "id": "n30",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "gantt-chart/year-plan",
+        "defaultView": "preview",
+        "height": 592
+      }
+    },
+    {
+      "id": "n31",
+      "type": "heading",
+      "props": {
+        "text": "Layout",
+        "level": "2",
+        "anchor": "layout"
+      }
+    },
+    {
+      "id": "n32",
+      "type": "prose",
+      "props": {
+        "markdown": "With `labelPosition` at its default, `'auto'`, names sit left of the bars when the chart is at least 480 px wide, and above them in a narrower chart; the cards on this page switch at a phone width. `'left'` and `'top'` never switch. The name column is as wide as the widest name or group name (by the library's estimate of text width; it does not measure text) plus 12 px, from 96 to 220 px and at most 40% of the width. A name too long for it is cut with an ellipsis, with the full text in a `<title>`, the tooltip and the data table. Names above the bars have the same surface halo as the value labels. With value labels, a gutter right of the plot is as wide as the widest label plus 8 px, at most 96 px and a quarter of the width. `tone` sets the tone of the bars (default `accent`); an overrun is always `loss`."
+      }
+    },
+    {
+      "id": "n33",
+      "type": "prose",
+      "props": {
+        "markdown": "There is no `height` prop: a row is 32 px with names on the left and 52 px with names above the bars, a heading 32 px, plus the tick row, the key and the today label. The server render and the first client render use `initialWidth` (default 640), so the chart may move the names once it has measured its width."
+      }
+    },
+    {
+      "id": "n34",
+      "type": "heading",
+      "props": {
+        "text": "Rows that are not drawn",
+        "level": "2",
+        "anchor": "skipped"
+      }
+    },
+    {
+      "id": "n35",
+      "type": "prose",
+      "props": {
+        "markdown": "A row with a missing or invalid `start`, an invalid `end`, or an `end` before its `start` is skipped, with a warning in development: it has no bar, no point and no stop for the keyboard, and it does not widen the time axis. It keeps its name, with empty cells, in the data table. When no row can be drawn, the chart shows the “No data” message."
+      }
+    },
+    {
+      "id": "n36",
+      "type": "heading",
+      "props": {
+        "text": "Props",
+        "level": "2",
+        "anchor": "props"
+      }
+    },
+    {
+      "id": "n37",
+      "type": "props-table",
+      "props": {
+        "symbol": "GanttChart"
+      }
+    },
+    {
+      "id": "n38",
+      "type": "heading",
+      "props": {
+        "text": "Points and the tooltip",
+        "level": "2",
+        "anchor": "points"
+      }
+    },
+    {
+      "id": "n39",
+      "type": "prose",
+      "props": {
+        "markdown": "Each drawn row is one point, in drawn order (groups together, ungrouped rows first). Its id is the `id` accessor or the data index. In `onSelect`, `onActiveChange` and a `tooltip` function, `point.datum` is your row. The pointer activates the row under it, anywhere along the row: the name, the bar and the value label. With `dimInactive` (default true) the other rows' bars, baselines and diamonds dim while a row is active, and the active row's name turns bold. Text never dims."
+      }
+    },
+    {
+      "id": "n40",
+      "type": "prose",
+      "props": {
+        "markdown": "The default tooltip shows a task's name, its dates (“Mar 14 – Mar 21”), its length (“7 days”), the done share of a running task (“50% done”), its overrun (“2 days over baseline”) and its baseline's dates (“baseline Mar 13 – Mar 18”); for a milestone, its name, its date and its slip (“3 days late” or “2 days early”)."
+      }
+    },
+    {
+      "id": "n41",
+      "type": "heading",
+      "props": {
+        "text": "Keyboard and screen readers",
+        "level": "2",
+        "anchor": "keyboard"
+      }
+    },
+    {
+      "id": "n42",
+      "type": "prose",
+      "props": {
+        "markdown": "The chart is a single tab stop. The arrow keys move between the rows in drawn order: Down and Right to the next row, Up and Left to the previous one. `Home` and `End` jump to the first and last row, `Enter` or `Space` selects the active row when the chart has `onSelect`, and `Esc` clears it. Headings are not stops. A chart with no drawn row has no tab stop."
+      }
+    },
+    {
+      "id": "n43",
+      "type": "prose",
+      "props": {
+        "markdown": "Screen readers get the title and description, then an announcement for each row the keyboard moves to, such as “2 of 13, Demolition, Mar 4 – Mar 9, 5 days, done, 1 day over baseline” or “8 of 13, Drywall and paint, Mar 23 – Mar 31, 8 days, in progress, 50%”, and for a milestone “7 of 13, Rough inspection, milestone, Mar 23, reached, 3 days late”. Solid and hatched, the overrun's colour and the filled diamond are never the only signal: the status, the percent and the “+Nd” label say the same. A visually hidden data table follows the chart, with one row per data row in data order, skipped rows included: the name, the group, the start and end, the baseline start and end (when the chart has a baseline), the progress of a task and the status. The table writes dates with the year."
+      }
+    },
+    {
+      "id": "n44",
+      "type": "prose",
+      "props": {
+        "markdown": "`dataTable` takes `false` to remove the table, or `{ caption, columns }` to set the caption and rename the headers. A header taken from a string field keeps the field name in sentence case. The words have English fallbacks and can be translated with the `today`, `keyDone`, `keyPlanned`, `keyOverrun`, `keyBaseline`, `keyMilestone`, `statusDone`, `statusInProgress`, `statusPlanned`, `milestone`, `statusReached`, `statusUpcoming`, `percentDone`, `overBaseline`, `late`, `early`, `baselineRange`, `headerStart`, `headerEnd`, `headerBaselineStart`, `headerBaselineEnd`, `headerProgress`, `headerStatus`, `headerName` and `headerGroup` keys of [`ChartsProvider` messages](/docs/hooks-and-providers)."
+      }
+    },
+    {
+      "id": "n45",
+      "type": "prose",
+      "props": {
+        "markdown": "The full model is in the [accessibility guide](https://github.com/mwadon/tally-charts/blob/main/docs/a11y.md)."
+      }
+    }
+  ]
+}

@@ -75,7 +75,7 @@
       "id": "n7",
       "type": "chart-index",
       "props": {
-        "heading": "Seventeen charts, one grammar",
+        "heading": "Eighteen charts, one grammar",
         "lede": "Pick the chart by the question it answers. Each page has live examples and a props table.",
         "items": [
           {
@@ -131,6 +131,12 @@
             "text": "How one total splits into a few parts",
             "href": "/docs/donut-chart",
             "thumb": "donut"
+          },
+          {
+            "label": "GanttChart",
+            "text": "A schedule against its plan",
+            "href": "/docs/gantt-chart",
+            "thumb": "gantt"
           },
           {
             "label": "DotHistogram",
