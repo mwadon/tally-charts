@@ -332,9 +332,10 @@ describe('ganttRows', () => {
 })
 
 describe('ganttColumns', () => {
-  const base = { width: 720, nameWidth: 161, valueWidth: 70, position: 'auto' } as const
+  // The widest value label (70 px) after a bar, with its 8 px gap.
+  const base = { width: 720, nameWidth: 161, valueWidth: 78, position: 'auto' } as const
 
-  it('puts names on the left from 480 px, with a label column and a gutter', () => {
+  it('puts names on the left from 480 px, with a label column and a gutter of the widest label and its gap', () => {
     expect(ganttColumns(base)).toEqual({ top: false, plotX: 173, plotWidth: 720 - 173 - 78 })
   })
 

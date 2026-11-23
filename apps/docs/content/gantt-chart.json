@@ -187,7 +187,7 @@
       "id": "n22",
       "type": "prose",
       "props": {
-        "markdown": "A label sits 8 px after the end of its bar (14 px after a milestone's centre). When that would cross the chart's right edge it goes before the bar's start, right-aligned, and when there is no room there either (the plot's left edge or the row's baseline is in the way) the row has no label; the value is still in the tooltip, the announcement and the data table. The labels have a halo in the surface colour, so the today line and the grid do not strike through them. Dates drop the year when the time axis (the explicit `domain`, or else the data's own dates) lies within one year, as on this page (“Mar 23”); otherwise they carry it."
+        "markdown": "A label sits 8 px after the end of its bar (14 px after a milestone's centre; an early milestone's label starts 14 px after the centre of its baseline diamond when that diamond is in the way). When that would cross the chart's right edge it goes before the bar's start, right-aligned, and when there is no room there either (the plot's left edge or the row's baseline is in the way) the row has no label; the value is still in the tooltip, the announcement and the data table. The labels have a halo in the surface colour, so the today line and the grid do not strike through them. Dates drop the year when the time axis (the explicit `domain`, or else the data's own dates) lies within one year, as on this page (“Mar 23”); otherwise they carry it."
       }
     },
     {
@@ -203,7 +203,7 @@
       "id": "n24",
       "type": "prose",
       "props": {
-        "markdown": "When `now` is inside the time axis, a 1 px ink line marks it from the first row to under the last, with “Today · Mar 27” under the rows, centred on the line and kept inside the plot. When `now` is outside the axis, the line is not drawn, but `now` still decides what is solid and what is hatched. `now` does not widen the time axis."
+        "markdown": "When `now` is inside the time axis, a 1 px ink line marks it from the first row to under the last, with “Today · Mar 27” under the rows (the `today` message, with the date in its `{date}` placeholder), centred on the line and kept inside the plot. When `now` is outside the axis, the line is not drawn, but `now` still decides what is solid and what is hatched. `now` does not widen the time axis."
       }
     },
     {
@@ -234,7 +234,7 @@
       "id": "n28",
       "type": "prose",
       "props": {
-        "markdown": "Without `domain`, the time axis covers every drawn start, end and baseline date and is rounded out to whole calendar steps (days, weeks, months or years) of an interval picked for at least five ticks. The ticks follow the width of the plot: the chart asks for about one per 100 px (at least two) and draws the calendar boundaries of the interval that fits, labelled with the library's automatic date labels in the locale and thinned when their labels would overlap. So in a narrow chart the axis can end between two drawn ticks, and a schedule of a few weeks can get a single month tick. A tick whose label would cross the chart's right edge keeps its grid line and loses its label. Week ticks fall on Sundays. See [time scales](/docs/time-scales)."
+        "markdown": "Without `domain`, the time axis covers every drawn start, end and baseline date and is rounded out to whole calendar steps (days, weeks, months or years) of an interval picked for at least five ticks. The ticks follow the width of the plot: the chart asks for about one per 100 px (at least five, the count the axis was rounded out with) and draws the calendar boundaries of the interval that fits, each with a grid line, labelled with the library's automatic date labels in the locale. A tick whose label would cross the chart's right edge keeps its grid line and loses its label, and when the other labels would overlap, some of them are dropped too, so a narrow chart labels fewer ticks than it draws; a schedule of a few weeks still gets several week ticks. Week ticks fall on Sundays. See [time scales](/docs/time-scales)."
       }
     },
     {
@@ -266,7 +266,7 @@
       "id": "n32",
       "type": "prose",
       "props": {
-        "markdown": "With `labelPosition` at its default, `'auto'`, names sit left of the bars when the chart is at least 480 px wide, and above them in a narrower chart; the cards on this page switch at a phone width. `'left'` and `'top'` never switch. The name column is as wide as the widest name or group name (by the library's estimate of text width; it does not measure text) plus 12 px, from 96 to 220 px and at most 40% of the width. A name too long for it is cut with an ellipsis, with the full text in a `<title>`, the tooltip and the data table. Names above the bars have the same surface halo as the value labels. With value labels, a gutter right of the plot is as wide as the widest label plus 8 px, at most 96 px and a quarter of the width. `tone` sets the tone of the bars (default `accent`); an overrun is always `loss`."
+        "markdown": "With `labelPosition` at its default, `'auto'`, names sit left of the bars when the chart is at least 480 px wide, and above them in a narrower chart; the cards on this page switch at a phone width. `'left'` and `'top'` never switch. The name column is as wide as the widest name or group name (by the library's estimate of text width; it does not measure text) plus 12 px, from 96 to 220 px and at most 40% of the width. A name too long for it is cut with an ellipsis, with the full text in a `<title>` on the row (shown on hover), the tooltip and the data table. Names above the bars have the same surface halo as the value labels. With value labels, a gutter right of the plot is as wide as the widest label plus its gap (8 px after a bar, 14 px after a milestone), at most 96 px and a quarter of the width. `tone` sets the tone of the bars (default `accent`); an overrun is always `loss`."
       }
     },
     {
@@ -358,7 +358,7 @@
       "id": "n44",
       "type": "prose",
       "props": {
-        "markdown": "`dataTable` takes `false` to remove the table, or `{ caption, columns }` to set the caption and rename the headers. A header taken from a string field keeps the field name in sentence case. The words have English fallbacks and can be translated with the `today`, `keyDone`, `keyPlanned`, `keyOverrun`, `keyBaseline`, `keyMilestone`, `statusDone`, `statusInProgress`, `statusPlanned`, `milestone`, `statusReached`, `statusUpcoming`, `percentDone`, `overBaseline`, `late`, `early`, `baselineRange`, `headerStart`, `headerEnd`, `headerBaselineStart`, `headerBaselineEnd`, `headerProgress`, `headerStatus`, `headerName` and `headerGroup` keys of [`ChartsProvider` messages](/docs/hooks-and-providers)."
+        "markdown": "`dataTable` takes `false` to remove the table, or `{ caption, columns }` to set the caption and rename the headers. A header taken from a string field keeps the field name in sentence case. The words have English fallbacks and can be translated with the `today`, `legendDone`, `legendPlanned`, `legendOverrun`, `legendBaseline`, `legendMilestone`, `statusDone`, `statusInProgress`, `statusPlanned`, `milestone`, `statusReached`, `statusUpcoming`, `percentDone`, `overBaseline`, `late`, `early`, `baselineRange`, `headerStart`, `headerEnd`, `headerBaselineStart`, `headerBaselineEnd`, `headerProgress`, `headerStatus`, `headerName` and `headerGroup` keys of [`ChartsProvider` messages](/docs/hooks-and-providers)."
       }
     },
     {

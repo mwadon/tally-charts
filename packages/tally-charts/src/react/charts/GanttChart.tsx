@@ -3,7 +3,13 @@ import { resolveAccessor, resolveIds } from '../../core/accessor'
 import { autoTickLabels, createDateFormatter } from '../../core/date'
 import { round2 } from '../../core/path'
 import { CHAR_WIDTH, truncateLabel } from '../../core/text'
-import { estimateWidth, fitTimeTicks } from '../../core/ticks'
+import {
+  estimateWidth,
+  fitTimeTicks,
+  type Tick,
+  type TimeLabels,
+  withLabels,
+} from '../../core/ticks'
 import {
   inferTimeDomain,
   niceTimeDomain,
@@ -24,6 +30,7 @@ import { samePoints } from '../interaction'
 import {
   BASELINE_RANGE,
   EARLY,
+  formatMessage,
   HEADER_BASELINE_END,
   HEADER_BASELINE_START,
   HEADER_END,
@@ -32,12 +39,12 @@ import {
   HEADER_PROGRESS,
   HEADER_START,
   HEADER_STATUS,
-  KEY_BASELINE,
-  KEY_DONE,
-  KEY_MILESTONE,
-  KEY_OVERRUN,
-  KEY_PLANNED,
   LATE,
+  LEGEND_BASELINE,
+  LEGEND_DONE,
+  LEGEND_MILESTONE,
+  LEGEND_OVERRUN,
+  LEGEND_PLANNED,
   MILESTONE,
   OVER_BASELINE,
   PERCENT_DONE,
@@ -181,7 +188,7 @@ interface GanttLayout {
   top: boolean
   plotX: number
   plotWidth: number
-  /** About one tick per 100 px of plot, at least 2. */
+  /** About one tick per 100 px of plot, at least 5: the domain is niced with it and the ticks drawn with it. */
   count: number
   scale: TimeScale
   entries: GanttEntry[]
@@ -248,8 +255,9 @@ const smallWidth = (text: string) => text.length * SMALL_CHAR
 const valueWidth = (v: GanttValue) => smallWidth(v.over ? `${v.text} ${v.over}` : v.text)
 
 /**
- * After its mark; else, when that would cross the chart's right edge, right-aligned before the
- * mark's start; else (crossing the plot's left edge or the row's baseline marker) nowhere.
+ * After its mark (an early milestone's: after its baseline diamond, when that lies in the label's
+ * way); else, when that would cross the chart's right edge, right-aligned before the mark's start;
+ * else (crossing the plot's left edge or the row's baseline marker) nowhere.
  */
 function placeValue(
   mark: GanttMark,
@@ -259,14 +267,16 @@ function placeValue(
 ): GanttLabelPlace | null {
   if (!mark.visible) return null
   const gap = mark.milestone ? MILESTONE_VALUE_GAP : VALUE_GAP
-  const right = plotX + mark.x + mark.width + gap
+  const b = mark.baseline
+  // A milestone's baseline diamond reaches half its diagonal either side of its centre.
+  const reach = mark.milestone ? (MILESTONE_BASELINE * Math.SQRT2) / 2 : 0
+  const from =
+    mark.milestone && b && b.x > mark.x && b.x - reach < mark.x + gap + width ? b.x : mark.x
+  const right = plotX + from + mark.width + gap
   if (right + width <= chartWidth) return { x: right, side: 'right' }
   const end = plotX + mark.x - gap
   if (end - width < plotX) return null
-  const b = mark.baseline
   if (b) {
-    // A milestone's baseline diamond reaches half its diagonal either side of its centre.
-    const reach = mark.milestone ? (MILESTONE_BASELINE * Math.SQRT2) / 2 : 0
     const b0 = plotX + b.x - reach
     const b1 = plotX + b.x + b.width + reach
     if (end - width < b1 && end > b0) return null
@@ -311,18 +321,23 @@ function GanttMarks<D>(props: {
   const ticksAt = scale.ticks(layout.count)
   const [a, b] = ticksAt
   const step = a !== undefined && b !== undefined ? b - a : undefined
-  // Thinned and labelled as Axis does for a time axis. A label that would cross the chart's right
-  // edge goes; its grid line stays.
+  const label: TimeLabels = (list) => autoTickLabels(list, { locale, zone, step })
+  const inside = (t: Tick) => plotX + t.position + estimateWidth(t) <= ctx.width
+  // Labelled and thinned as Axis does for a time axis. A label that would cross the chart's right
+  // edge goes first, so the thinning keeps labels that are drawn; every tick keeps its grid line.
   const ticks = fitTimeTicks(
-    ticksAt.map((value) => ({
-      value,
-      position: scale(value) + TICK_GAP,
-      label: '',
-      anchor: 'start',
-    })),
-    (list) => autoTickLabels(list, { locale, zone, step }),
+    withLabels(
+      ticksAt.map((value) => ({
+        value,
+        position: scale(value) + TICK_GAP,
+        label: '',
+        anchor: 'start',
+      })),
+      label,
+    ).filter(inside),
+    label,
     estimateWidth,
-  ).filter((t) => plotX + t.position + estimateWidth(t) <= ctx.width)
+  ).filter(inside)
 
   const nameMax = top ? ctx.width : plotX - NAME_GAP
   // Top of the 32 px bar row inside a row.
@@ -542,7 +557,6 @@ function GanttMarks<D>(props: {
             transform={`translate(0,${y})`}
           >
             <text data-ch-part="gantt-name" x={0} y={top ? TOP_LINE : ROW_LINE}>
-              {name !== row.name ? <title>{row.name}</title> : null}
               {name}
             </text>
             {mark.milestone ? (
@@ -632,7 +646,7 @@ function GanttMarks<D>(props: {
               height={entry.height}
               {...pointer(row)}
             >
-              {/* The hit rect covers the name, so a cut name's native tooltip lives here too. */}
+              {/* The hit rect covers the name, so a cut name's native tooltip lives here. */}
               {name !== row.name ? <title>{row.name}</title> : null}
             </rect>
           </g>
@@ -840,14 +854,25 @@ export function GanttChart<D>({
   const texts = items.map((item, i) =>
     ganttTexts({ ...item, name: (drawn[i] as GanttRow<D>).name }, words, longDays, date),
   )
-  const widestValue = values ? Math.max(0, ...values.map(valueWidth)) : 0
-  const nowText = nowMs === undefined ? '' : `${messages.today ?? TODAY} · ${date(nowMs)}`
+  // The gutter's room: the widest label with its own gap after its mark.
+  const widestValue = values
+    ? Math.max(
+        0,
+        ...values.map(
+          (v, i) =>
+            valueWidth(v) +
+            ((items[i] as GanttValueRow).end === null ? MILESTONE_VALUE_GAP : VALUE_GAP),
+        ),
+      )
+    : 0
+  const nowText =
+    nowMs === undefined ? '' : formatMessage(messages.today ?? TODAY, { date: date(nowMs) })
   const keyWords: Record<GanttKind, string> = {
-    done: messages.keyDone ?? KEY_DONE,
-    planned: messages.keyPlanned ?? KEY_PLANNED,
-    overrun: messages.keyOverrun ?? KEY_OVERRUN,
-    baseline: messages.keyBaseline ?? KEY_BASELINE,
-    milestone: messages.keyMilestone ?? KEY_MILESTONE,
+    done: messages.legendDone ?? LEGEND_DONE,
+    planned: messages.legendPlanned ?? LEGEND_PLANNED,
+    overrun: messages.legendOverrun ?? LEGEND_OVERRUN,
+    baseline: messages.legendBaseline ?? LEGEND_BASELINE,
+    milestone: messages.legendMilestone ?? LEGEND_MILESTONE,
   }
 
   const layoutAt = (width: number): GanttLayout => {
@@ -858,10 +883,11 @@ export function GanttChart<D>({
       position: labelPosition,
     })
     const { top, plotX, plotWidth } = columns
-    const count = Math.max(2, Math.round(plotWidth / 100))
-    // Niced with at least five ticks: with the two or three of a narrow plot, a schedule of a few
-    // weeks would be rounded out to whole months. The ticks keep `count`.
-    const range = given ?? niceTimeDomain(inferTimeDomain(times), zone, Math.max(count, 5))
+    // At least five: with the two or three of a narrow plot, a schedule of a few weeks would be
+    // rounded out to whole months and get a single tick. The ticks are drawn with the same count,
+    // so the axis ends normally fall on grid lines; fitTimeTicks thins their labels.
+    const count = Math.max(5, Math.round(plotWidth / 100))
+    const range = given ?? niceTimeDomain(inferTimeDomain(times), zone, count)
     const scale = timeScale(range, [0, plotWidth], zone)
     const { entries, height: rowsHeight } = ganttRows(groups, top)
     const marks = items.map((item) => ganttMark(item, scale, plotWidth))

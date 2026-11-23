@@ -161,3 +161,44 @@ export const Months: Story = {
     </article>
   ),
 }
+
+// Three milestones against their plan: design sign-off on time, the inspection two days early
+// (its label starts after the baseline diamond to its right), opening day four days late on the
+// schedule's last day (the axis ends there; the label keeps its place in the gutter).
+const shop = [
+  ['Design sign-off', '09-04', null, '09-04', null],
+  ['Strip-out', '09-07', '09-11', '09-07', '09-11'],
+  ['Electrical', '09-14', '09-23', '09-14', '09-22'],
+  ['Inspection passed', '09-24', null, '09-26', null],
+  ['Fit-out', '09-24', '10-07', '09-25', '10-06'],
+  ['Opening day', '10-11', null, '10-07', null],
+].map(([step, from, to, plannedFrom, plannedTo]) => ({
+  step: step as string,
+  from: `2026-${from}`,
+  to: to ? `2026-${to}` : undefined,
+  plannedFrom: `2026-${plannedFrom}`,
+  plannedTo: plannedTo ? `2026-${plannedTo}` : undefined,
+}))
+
+export const Milestones: Story = {
+  parameters: { theme: 'light' },
+  render: () => (
+    <article className="card card-wide" style={ARTBOARD}>
+      <header className="card-header">
+        <h2 className="card-title">Shop fit-out</h2>
+        <span className="card-meta">Sep–Oct</span>
+      </header>
+      <GanttChart
+        data={shop}
+        x="step"
+        start="from"
+        end="to"
+        baselineStart="plannedFrom"
+        baselineEnd="plannedTo"
+        now="2026-09-25"
+        title="Shop fit-out"
+        description="Design sign-off was on time and the inspection two days early; opening day is four days late."
+      />
+    </article>
+  ),
+}

@@ -5624,33 +5624,6 @@
             },
             {
               "kind": "PropertySignature",
-              "canonicalReference": "tally-charts!ChartMessages#keyBaseline:member",
-              "docComment": "/**\n * GanttChart key: the line under a bar.\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "keyBaseline: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "string"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "keyBaseline",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              }
-            },
-            {
-              "kind": "PropertySignature",
               "canonicalReference": "tally-charts!ChartMessages#keyboardHint:member",
               "docComment": "/**\n * Read when a chart takes keyboard focus. An empty string removes the hint.\n */\n",
               "excerptTokens": [
@@ -5705,114 +5678,6 @@
             },
             {
               "kind": "PropertySignature",
-              "canonicalReference": "tally-charts!ChartMessages#keyDone:member",
-              "docComment": "/**\n * GanttChart key: the solid, done part of a bar.\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "keyDone: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "string"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "keyDone",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              }
-            },
-            {
-              "kind": "PropertySignature",
-              "canonicalReference": "tally-charts!ChartMessages#keyMilestone:member",
-              "docComment": "/**\n * GanttChart key: the diamond.\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "keyMilestone: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "string"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "keyMilestone",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              }
-            },
-            {
-              "kind": "PropertySignature",
-              "canonicalReference": "tally-charts!ChartMessages#keyOverrun:member",
-              "docComment": "/**\n * GanttChart key: the part of a bar past its baseline's length.\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "keyOverrun: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "string"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "keyOverrun",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              }
-            },
-            {
-              "kind": "PropertySignature",
-              "canonicalReference": "tally-charts!ChartMessages#keyPlanned:member",
-              "docComment": "/**\n * GanttChart key: the hatched, planned part of a bar.\n */\n",
-              "excerptTokens": [
-                {
-                  "kind": "Content",
-                  "text": "keyPlanned: "
-                },
-                {
-                  "kind": "Content",
-                  "text": "string"
-                },
-                {
-                  "kind": "Content",
-                  "text": ";"
-                }
-              ],
-              "isReadonly": false,
-              "isOptional": false,
-              "releaseTag": "Public",
-              "name": "keyPlanned",
-              "propertyTypeTokenRange": {
-                "startIndex": 1,
-                "endIndex": 2
-              }
-            },
-            {
-              "kind": "PropertySignature",
               "canonicalReference": "tally-charts!ChartMessages#late:member",
               "docComment": "/**\n * A GanttChart milestone after its baseline, as in \"3 days late\". Placeholder: `{duration}`.\n */\n",
               "excerptTokens": [
@@ -5833,6 +5698,60 @@
               "isOptional": false,
               "releaseTag": "Public",
               "name": "late",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!ChartMessages#legendBaseline:member",
+              "docComment": "/**\n * GanttChart legend: the line under a bar.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "legendBaseline: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "legendBaseline",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!ChartMessages#legendDone:member",
+              "docComment": "/**\n * GanttChart legend: the solid, done part of a bar.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "legendDone: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "legendDone",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2
@@ -5867,6 +5786,33 @@
             },
             {
               "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!ChartMessages#legendMilestone:member",
+              "docComment": "/**\n * GanttChart legend: the diamond.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "legendMilestone: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "legendMilestone",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
               "canonicalReference": "tally-charts!ChartMessages#legendNoForecast:member",
               "docComment": "/**\n * RunwayChart legend.\n */\n",
               "excerptTokens": [
@@ -5887,6 +5833,60 @@
               "isOptional": false,
               "releaseTag": "Public",
               "name": "legendNoForecast",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!ChartMessages#legendOverrun:member",
+              "docComment": "/**\n * GanttChart legend: the part of a bar past its baseline's length.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "legendOverrun: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "legendOverrun",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!ChartMessages#legendPlanned:member",
+              "docComment": "/**\n * GanttChart legend: the hatched, planned part of a bar.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "legendPlanned: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "legendPlanned",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2
@@ -6759,7 +6759,7 @@
             {
               "kind": "PropertySignature",
               "canonicalReference": "tally-charts!ChartMessages#today:member",
-              "docComment": "/**\n * The label of a GanttChart's now line, before the date, as in \"Today · Mar 27\".\n */\n",
+              "docComment": "/**\n * The label of a GanttChart's now line, as in \"Today · Mar 27\". Placeholder: `{date}`.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",

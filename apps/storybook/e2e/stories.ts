@@ -51,6 +51,7 @@ export const STORIES = [
   'charts-ganttchart--progress',
   'charts-ganttchart--months',
   'charts-ganttchart--narrow',
+  'charts-ganttchart--milestones',
   'reference-estimate-vs-actual--light',
   'reference-estimate-vs-actual--dark',
   'reference-result--light',

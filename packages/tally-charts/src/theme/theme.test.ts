@@ -436,6 +436,10 @@ describe('theme.css', () => {
     expect(themed).toMatch(
       /\[data-ch-part="gantt-now"\] \{\s*stroke: var\(--ch-ink\);\s*stroke-width: 1;/,
     )
+    // The grid and the now line snap to whole pixels: one crisp column each.
+    expect(themed).toMatch(
+      /\[data-ch-part="gantt-grid"\],\s*\[data-ch-part="gantt-now"\] \{\s*shape-rendering: crispEdges;\s*\}/,
+    )
     expect(themed).toMatch(
       /\[data-ch-part="gantt-now-label"\] \{\s*fill: var\(--ch-ink\);\s*font-size: 12px;\s*font-weight: 600;/,
     )

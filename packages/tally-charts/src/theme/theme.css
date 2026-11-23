@@ -808,6 +808,12 @@
   stroke-width: 1;
 }
 
+/* The grid and the now line snap to whole pixels: one crisp column each, not two grey ones. */
+[data-ch-part="gantt-grid"],
+[data-ch-part="gantt-now"] {
+  shape-rendering: crispEdges;
+}
+
 [data-ch-part="gantt-now-label"] {
   fill: var(--ch-ink);
   font-size: 12px;

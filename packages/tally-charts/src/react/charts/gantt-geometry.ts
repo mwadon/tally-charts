@@ -209,14 +209,17 @@ export function ganttColumns(input: {
   width: number
   /** Estimated width of the widest name or group name. */
   nameWidth: number
-  /** Estimated width of the widest value label; 0 without value labels. */
+  /**
+   * Room the widest value label takes after its mark: its estimated width plus its gap (8 px after
+   * a bar, 14 after a milestone's centre); 0 without value labels.
+   */
   valueWidth: number
   position: 'auto' | 'left' | 'top'
 }): { top: boolean; plotX: number; plotWidth: number } {
   const width = Math.max(0, input.width)
   const top = input.position === 'top' || (input.position === 'auto' && width < 480)
   const label = top ? 0 : Math.min(Math.min(220, Math.max(96, input.nameWidth + 12)), width * 0.4)
-  const gutter = input.valueWidth > 0 ? Math.min(input.valueWidth + 8, 96, width * 0.25) : 0
+  const gutter = input.valueWidth > 0 ? Math.min(input.valueWidth, 96, width * 0.25) : 0
   return {
     top,
     plotX: round2(label),

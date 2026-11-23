@@ -2,7 +2,7 @@ import { fireEvent, render, screen, within } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { autoTickLabels, createDateFormatter } from '../../core/date'
 import { CHAR_WIDTH } from '../../core/text'
-import { estimateWidth, type Tick, thinTicks } from '../../core/ticks'
+import { estimateWidth, fitTimeTicks, type Tick, withLabels } from '../../core/ticks'
 import {
   DAY,
   inferTimeDomain,
@@ -157,16 +157,34 @@ function expected(
     ...data.flatMap((d) => [d.name, d.phase ?? ''].map((t) => t.length * CHAR_WIDTH)),
   )
   const cols = ganttColumns({ width, nameWidth: widest, valueWidth, position })
-  const count = Math.max(2, Math.round(cols.plotWidth / 100))
+  // About one tick per 100 px, at least five: the domain is niced and the ticks drawn with it.
+  const count = Math.max(5, Math.round(cols.plotWidth / 100))
   const times = data.flatMap((d) =>
     [d.start, d.end, d.plannedStart, d.plannedEnd].filter((v) => v != null).map(time),
   )
   const range: [number, number] = domain
     ? [time(domain[0]), time(domain[1])]
-    : // Niced with at least five ticks, so a narrow chart is not rounded out to whole months.
-      niceTimeDomain(inferTimeDomain(times), 'utc', Math.max(count, 5))
+    : niceTimeDomain(inferTimeDomain(times), 'utc', count)
   const scale = timeScale(range, [0, cols.plotWidth], 'utc')
   return { ...cols, count, scale }
+}
+
+/**
+ * The tick labels the chart draws: autoTickLabels with the ticks' step, those that would cross the
+ * chart's right edge dropped, then fitted as Axis does.
+ */
+function fittedTicks(values: number[], scale: TimeScale, plotX: number, width: number): Tick[] {
+  const [a, b] = values
+  const step = a !== undefined && b !== undefined ? b - a : undefined
+  const label = (list: readonly number[]) => autoTickLabels(list, { zone: 'utc', step })
+  const inside = (t: Tick) => plotX + t.position + estimateWidth(t) <= width
+  const ticks: Tick[] = values.map((value) => ({
+    value,
+    position: scale(value) + 6,
+    label: '',
+    anchor: 'start',
+  }))
+  return fitTimeTicks(withLabels(ticks, label).filter(inside), label, estimateWidth).filter(inside)
 }
 
 /** What `ganttMark` draws for a remodel row with the chart's scale. */
@@ -437,16 +455,8 @@ describe('GanttChart time axis', () => {
     const { container } = renderChart()
     const { plotX, count, scale } = expected(remodel)
     const values = scale.ticks(count)
-    const labels = autoTickLabels(values, { zone: 'utc' })
-    const ticks: Tick[] = values.map((v, i) => ({
-      value: v,
-      position: scale(v) + 6,
-      label: labels[i] ?? '',
-      anchor: 'start',
-    }))
-    const kept = thinTicks(ticks, estimateWidth).filter(
-      (t) => plotX + t.position + estimateWidth(t) <= 720,
-    )
+    const kept = fittedTicks(values, scale, plotX, 720)
+    expect(kept.length).toBeGreaterThan(1)
     const drawn = parts(container, 'gantt-tick')
     expect(drawn.map((t) => t.textContent)).toEqual(kept.map((t) => t.label))
     drawn.forEach((t, i) => {
@@ -474,11 +484,12 @@ describe('GanttChart time axis', () => {
   })
 
   it('rounds a narrow chart out to at least five ticks, not to whole months', () => {
-    // At 360 px with value labels the plot (287 px) has three ticks; niced with three, Mar 2 –
-    // Apr 17 became Mar 1 – May 1, a fifth of the plot empty.
+    // At 360 px with value labels the plot (281 px) would have three ticks by its width; niced
+    // with three, Mar 2 – Apr 17 became Mar 1 – May 1, a fifth of the plot empty.
     const { container } = renderChart({ width: 360, valueLabels: true })
-    const { plotX, plotWidth, count, scale } = expected(remodel, { width: 360, valueWidth: WIDEST })
-    expect(count).toBeLessThan(5)
+    const { plotX, plotWidth, count, scale } = expected(remodel, { width: 360, valueWidth: GUTTER })
+    expect(Math.round(plotWidth / 100)).toBeLessThan(5)
+    expect(count).toBe(5)
     const [, end] = scale.domain()
     expect(end).toBeGreaterThanOrEqual(time('2026-04-17'))
     expect(end).toBeLessThan(time('2026-04-27'))
@@ -490,8 +501,47 @@ describe('GanttChart time axis', () => {
     const right = num(last, 'x') + num(last, 'width') - plotX
     expect(right).toBeCloseTo(scale(time('2026-04-16')), 1)
     expect(right).toBeGreaterThan(plotWidth * 0.9)
-    // The ticks keep the count of the width.
-    expect(parts(container, 'gantt-grid')).toHaveLength(scale.ticks(count).length)
+    // The ticks are drawn with the count the domain was niced with: one grid line each, the
+    // first and the last on the plot's edges.
+    const grid = parts(container, 'gantt-grid')
+    expect(grid).toHaveLength(scale.ticks(count).length)
+    expect(num(grid[0], 'x1')).toBeCloseTo(plotX, 1)
+    expect(num(grid.at(-1), 'x1')).toBeCloseTo(plotX + plotWidth, 1)
+  })
+
+  it('keeps several ticks for a schedule of a few weeks at any width', () => {
+    // Six tasks from May 4 to Jun 17, start and end only (the Plain story's deck build).
+    const deck: Task[] = [
+      ['Permits', '05-04', '05-15'],
+      ['Footings', '05-18', '05-21'],
+      ['Framing', '05-21', '05-29'],
+      ['Decking', '06-01', '06-06'],
+      ['Railings', '06-08', '06-12'],
+      ['Stain and seal', '06-15', '06-17'],
+    ].map(([name, start, end]) => ({
+      name: name as string,
+      phase: null,
+      start: `2026-${start}`,
+      end: `2026-${end}`,
+    }))
+    const plain = { ...BASE, group: undefined, baselineStart: undefined, baselineEnd: undefined }
+    for (const width of [280, 343, 480, 720]) {
+      for (const valueLabels of [true, false]) {
+        const { container, unmount } = renderChart({
+          ...plain,
+          now: undefined,
+          data: deck,
+          width,
+          valueLabels,
+        })
+        const grid = parts(container, 'gantt-grid')
+        expect(grid.length, `${width} px`).toBeGreaterThanOrEqual(3)
+        expect(parts(container, 'gantt-tick').length, `${width} px`).toBeGreaterThanOrEqual(2)
+        unmount()
+      }
+    }
+    const { container } = renderChart({ width: 343, valueLabels: true })
+    expect(parts(container, 'gantt-tick').length).toBeGreaterThanOrEqual(2)
   })
 
   it('draws fewer than 20 ticks for a schedule from 2024 to 2027', () => {
@@ -673,18 +723,21 @@ describe('GanttChart layout', () => {
     }
   })
 
-  it('cuts a 40-character name with an ellipsis and keeps it in a <title>', () => {
+  it('cuts a 40-character name with an ellipsis and keeps it in one <title>, on the hit rect', () => {
     const long = 'Remove and dispose of the old floor tiles'.slice(0, 40)
     const data = remodel.map((d, i) => (i === 0 ? { ...d, name: long } : d))
     const { container } = renderChart({ data })
-    const name = parts(container, 'gantt-name')[0]
-    const shown = [...(name?.childNodes ?? [])]
-      .filter((n) => n.nodeType === 3)
-      .map((n) => n.textContent)
-      .join('')
+    const row = parts(container, 'gantt-row')[0] as Element
+    const shown = one(row, 'gantt-name')?.textContent ?? ''
     expect(shown.endsWith('…')).toBe(true)
     expect(shown.length).toBeLessThan(40)
-    expect(name?.querySelector('title')?.textContent).toBe(long)
+    // The hit rect covers the name, so the native tooltip lives there, once.
+    const titles = [...row.querySelectorAll('title')]
+    expect(titles).toHaveLength(1)
+    expect(titles[0]?.parentElement?.getAttribute('data-ch-part')).toBe('gantt-hit')
+    expect(titles[0]?.textContent).toBe(long)
+    // A name that fits has none.
+    expect(parts(container, 'gantt-row')[1]?.querySelector('title')).toBeNull()
   })
 })
 
@@ -791,6 +844,8 @@ const LABELS: { text: string; over: string | null }[] = [
 const labelWidth = (l: { text: string; over: string | null }) =>
   (l.over ? `${l.text} ${l.over}` : l.text).length * CW12
 const WIDEST = Math.max(...LABELS.map(labelWidth))
+/** The gutter: the widest label plus its gap, 8 px after a bar and 14 after a milestone's centre. */
+const GUTTER = Math.max(...LABELS.map((l, i) => labelWidth(l) + (remodel[i]?.end ? 8 : 14)))
 
 describe('GanttChart value labels', () => {
   it('writes the duration, percent, overrun and milestone date of each row', () => {
@@ -808,8 +863,10 @@ describe('GanttChart value labels', () => {
   it('puts a label 8 px after its bar (14 px after a milestone centre), with the gutter for the widest', () => {
     const { container } = renderChart({ valueLabels: true })
     const plain = expected(remodel)
-    const { plotX, plotWidth, scale } = expected(remodel, { valueWidth: WIDEST })
-    expect(plotWidth).toBeCloseTo(plain.plotWidth - (WIDEST + 8), 1)
+    const { plotX, plotWidth, scale } = expected(remodel, { valueWidth: GUTTER })
+    // The widest labels are the milestones' ("Mar 23 +3d"), 14 px after their centres.
+    expect(GUTTER).toBeCloseTo(WIDEST + 14, 5)
+    expect(plotWidth).toBeCloseTo(plain.plotWidth - GUTTER, 1)
     for (const d of remodel) {
       const label = valueLabelOf(container, d.name)
       const mark = markOf(d, scale, plotWidth)
@@ -843,10 +900,10 @@ describe('GanttChart value labels', () => {
       width: 300,
       position: 'left',
       domain,
-      valueWidth: WIDEST,
+      valueWidth: GUTTER,
     })
     // The gutter is capped at 25% of the width.
-    expect(plotWidth).toBeCloseTo(300 - plotX - Math.min(WIDEST + 8, 75), 1)
+    expect(plotWidth).toBeCloseTo(300 - plotX - Math.min(GUTTER, 75), 1)
     const labels = parts(container, 'gantt-value')
     expect(labels.length).toBeGreaterThan(0)
     for (const label of labels) {
@@ -868,6 +925,66 @@ describe('GanttChart value labels', () => {
     for (const { name, value } of attributes(container)) {
       if (name === 'x') expect(Number(value)).toBeGreaterThanOrEqual(0)
     }
+  })
+
+  it('keeps the label of a milestone on the last day of the axis', () => {
+    // Handover on Apr 19, three days late: the niced axis ends on that Sunday, so the diamond sits
+    // on the plot's right edge and its label needs the gutter's 14 px gap.
+    const data = remodel.map((d) =>
+      d.name === 'Final walkthrough'
+        ? { ...d, name: 'Handover', start: '2026-04-19', plannedStart: '2026-04-16' }
+        : d,
+    )
+    for (const width of [720, 343]) {
+      const { container, unmount } = renderChart({ data, valueLabels: true, width })
+      const { plotX, plotWidth, scale } = expected(data, {
+        width,
+        valueWidth: GUTTER,
+      })
+      expect(scale.domain()[1]).toBe(time('2026-04-19'))
+      const [cx] = centreOf(one(rowAt(container, 12), 'gantt-milestone'))
+      expect(cx).toBeCloseTo(plotX + plotWidth, 1)
+      const label = one(rowAt(container, 12), 'gantt-value')
+      expect(labelOf(label), `${width} px`).toEqual({ text: 'Apr 19', over: '+3d' })
+      if (width === 720) {
+        expect(label?.getAttribute('data-ch-side')).toBe('right')
+        expect(num(label, 'x')).toBeCloseTo(cx + 14, 1)
+        expect(num(label, 'x') + 'Apr 19 +3d'.length * CW12).toBeLessThanOrEqual(720 + 0.01)
+      }
+      unmount()
+    }
+  })
+
+  it('starts an early milestone label after its baseline diamond', () => {
+    // Two and five days early: the baseline diamond lies right of the milestone, where its label
+    // would start; the label starts 14 px after the diamond's centre instead.
+    const data = remodel.map((d) =>
+      d.name === 'Rough inspection'
+        ? { ...d, plannedStart: '2026-03-25' }
+        : d.name === 'Final walkthrough'
+          ? { ...d, start: '2026-04-12', plannedStart: '2026-04-17' }
+          : d,
+    )
+    const { container } = renderChart({ data, valueLabels: true })
+    const half = (8 * Math.SQRT2) / 2
+    for (const [index, text] of [
+      [6, 'Mar 23 −2d'],
+      [12, 'Apr 12 −5d'],
+    ] as const) {
+      const row = rowAt(container, index)
+      const label = one(row, 'gantt-value')
+      expect(labelOf(label).text).toBe(text)
+      expect(label?.getAttribute('data-ch-side')).toBe('right')
+      const [bx] = centreOf(one(row, 'gantt-milestone-baseline'))
+      const [cx] = centreOf(one(row, 'gantt-milestone'))
+      expect(bx).toBeGreaterThan(cx)
+      expect(num(label, 'x')).toBeGreaterThanOrEqual(bx + half)
+      expect(num(label, 'x')).toBeCloseTo(bx + 14, 1)
+    }
+    // A late milestone's baseline is left of it: its label stays 14 px after the diamond.
+    const late = rowAt(renderChart({ valueLabels: true }).container, 12)
+    const [cx] = centreOf(one(late, 'gantt-milestone'))
+    expect(num(one(late, 'gantt-value'), 'x')).toBeCloseTo(cx + 14, 1)
   })
 
   it('drops a flipped label that would meet its row baseline marker', () => {
@@ -1003,9 +1120,12 @@ describe('GanttChart now line', () => {
     }
   })
 
-  it('takes "Today" from messages', () => {
-    const { container } = renderChart({}, { messages: { today: 'Dziś' } })
-    expect(one(container, 'gantt-now-label')?.textContent).toBe('Dziś · Mar 27')
+  it('fills the `today` message from messages, with the date in {date}', () => {
+    const { container } = renderChart({}, { messages: { today: '{date}: dziś' } })
+    expect(one(container, 'gantt-now-label')?.textContent).toBe('Mar 27: dziś')
+    // A message without {date} shows no date.
+    const bare = renderChart({}, { messages: { today: 'Dziś' } })
+    expect(one(bare.container, 'gantt-now-label')?.textContent).toBe('Dziś')
   })
 
   it('keeps the label inside the plot when `now` is next to the domain start', () => {
@@ -1110,7 +1230,7 @@ describe('GanttChart key', () => {
   })
 
   it('takes its words from messages', () => {
-    const { container } = renderChart({ legend: true }, { messages: { keyDone: 'Gotowe' } })
+    const { container } = renderChart({ legend: true }, { messages: { legendDone: 'Gotowe' } })
     expect(keyTexts(container)[0]).toBe('Gotowe')
   })
 })
