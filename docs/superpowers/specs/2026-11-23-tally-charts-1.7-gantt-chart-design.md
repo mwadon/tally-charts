@@ -369,3 +369,35 @@ formatting instead of plural message keys; tick labels with the year on the firs
 flipping and hiding; the early milestone in muted ink; `zone`, `tone`,
 `labelPosition`, `valueLabels`, `legend` and `domain` as props; the tooltip and announcement
 texts; the message keys; the warning names; version 1.7.0 with this chart alone.
+
+## 11. Changes made during implementation (2026-11-23)
+
+Where this section and §2–§4 differ, this section describes what shipped.
+
+- **Time axis.** The inferred domain is rounded out with a tick count of
+  `max(plot width / 100, 5)`, and the same count draws the ticks; `fitTimeTicks` thins the
+  labels and every tick keeps its grid line. With the plain "one tick per 100 px" rule a narrow
+  chart was rounded out to whole months and could show a single tick label.
+- **Gutter.** It is sized from each value label's width plus its own gap (8 px after a bar,
+  14 px after a milestone), still capped at 96 px and 25% of the width, so a milestone on the
+  last day of the axis keeps its label.
+- **Milestone labels.** A label starts after the further of the milestone and a baseline
+  diamond to its right, so an early milestone's label does not cover its baseline.
+- **Halo.** Value labels, and names and headings when names are above the bars, have a halo in
+  the surface colour, so the today line and the grid do not strike through text. The today line
+  and the grid are drawn with crisp edges.
+- **Year in dates.** Label, tooltip and announcement dates carry the year when the explicit
+  `domain`, or else the data's own extent, spans more than one year (the rounded-out domain
+  depends on the width, which depends on the labels).
+- **Messages.** The key's labels are `legendDone`, `legendPlanned`, `legendOverrun`,
+  `legendBaseline`, `legendMilestone` (the `legend*` family of the library), and `today` is a
+  template, "Today · {date}".
+- **Day counts under a day.** "<1d" is written for a task shorter than half a day; from half a
+  day up the count is rounded to whole days.
+- **Tick fitting** moved from `Axis.tsx` to `core/ticks.ts` (`fitTimeTicks`), shared by `Axis`
+  and `GanttChart`; `Axis` behaves as before.
+
+Known and left for later: an overrun shorter than a day paints a loss segment and a key item
+without a "+Nd" label; the key lists "Baseline" and "Milestone" for rows outside an explicit
+`domain`; the number of tick labels is not monotonic at the 480 px switch of the name position;
+the `months` story and the year-plan example show quarter ticks at card width.
