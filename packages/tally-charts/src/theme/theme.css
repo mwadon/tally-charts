@@ -519,6 +519,8 @@
   animation: ch-fade var(--ch-duration) var(--ch-ease) both;
 }
 
+[data-ch-part="gantt-grid"],
+[data-ch-part="gantt-heading-rule"],
 [data-ch-part="grid-line"],
 [data-ch-part="funnel-guide"],
 [data-ch-part="donut-rule"] {
@@ -563,6 +565,8 @@
 }
 
 /* ---------- Labels and reference marks ---------- */
+[data-ch-part="gantt-value"],
+[data-ch-part="gantt-tick"],
 [data-ch-part="axis-label"],
 [data-ch-part="axis-title"],
 [data-ch-part="target-label"],
@@ -732,12 +736,15 @@
   font-size: 20px;
 }
 
+[data-ch-part="gantt-name"],
+[data-ch-part="gantt-heading"] text,
 [data-ch-part="donut-name"],
 [data-ch-part="donut-percent"] {
   fill: var(--ch-ink);
   font-size: 13px;
 }
 
+[data-ch-part="gantt-heading"] text,
 [data-ch-part="donut-percent"] {
   font-weight: 600;
 }
@@ -752,6 +759,80 @@
 [data-ch-part="donut-slice"][data-ch-selectable="true"],
 [data-ch-part="donut-hit"][data-ch-selectable="true"] {
   cursor: pointer;
+}
+
+/* The active Gantt row: the other rows' bars, baselines and diamonds dim through the shared rule;
+   its name is bold. Text never dims. */
+[data-ch-part="gantt-row"][data-ch-active="true"] [data-ch-part="gantt-name"] {
+  font-weight: 600;
+}
+
+[data-ch-part="gantt-hit"][data-ch-selectable="true"] {
+  cursor: pointer;
+}
+
+/* ---------- Gantt ---------- */
+/* Bar segments paint their tone or its hatch inline, as bars do; names, headings, ticks, the grid
+   and the heading rules share the rules above. The baseline sits under the bar in neutral; a
+   milestone is an ink diamond, filled once reached, over its hollow neutral baseline diamond. */
+[data-ch-part="gantt-baseline"] {
+  fill: var(--ch-neutral);
+}
+
+[data-ch-part="gantt-milestone-baseline"] {
+  fill: none;
+  stroke: var(--ch-neutral);
+  stroke-width: 1.5;
+}
+
+[data-ch-part="gantt-milestone"] {
+  fill: var(--ch-surface);
+  stroke: var(--ch-ink);
+  stroke-width: 2;
+}
+
+[data-ch-part="gantt-milestone"][data-ch-reached="true"] {
+  fill: var(--ch-ink);
+}
+
+/* Value labels are muted 12 px text (with the ticks above); an overrun or a late slip is loss mixed
+   with ink at 600, as toned text is. */
+[data-ch-part="gantt-over"] {
+  fill: color-mix(in srgb, var(--ch-loss) var(--ch-tone-text-mix), var(--ch-ink));
+  font-weight: 600;
+}
+
+/* The now line: 1 px ink over the grid and under the bars; its label under the rows. */
+[data-ch-part="gantt-now"] {
+  stroke: var(--ch-ink);
+  stroke-width: 1;
+}
+
+/* The grid and the now line snap to whole pixels: one crisp column each, not two grey ones. */
+[data-ch-part="gantt-grid"],
+[data-ch-part="gantt-now"] {
+  shape-rendering: crispEdges;
+}
+
+[data-ch-part="gantt-now-label"] {
+  fill: var(--ch-ink);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Key swatches are drawn like the marks: bar parts paint inline (a hatched one gets the outline
+   below), the baseline is neutral and the milestone a reached diamond. */
+[data-ch-part="gantt-key-item"] text {
+  fill: var(--ch-ink-muted);
+  font-size: 13px;
+}
+
+[data-ch-part="gantt-key-item"][data-ch-kind="baseline"] rect {
+  fill: var(--ch-neutral);
+}
+
+[data-ch-part="gantt-key-item"][data-ch-kind="milestone"] rect {
+  fill: var(--ch-ink);
 }
 
 /* ---------- Tooltip pill ---------- */
@@ -915,6 +996,8 @@
    outline in the same inked tone, so their edge keeps 3:1 on the surface. */
 [data-ch-part="bar"][data-ch-fill="hatch"],
 [data-ch-part="region"][data-ch-fill="hatch"],
+[data-ch-part="gantt-segment"][data-ch-fill="hatch"],
+[data-ch-part="gantt-key-item"] [data-ch-fill="hatch"],
 [data-ch-part="bar"][data-ch-tone="accent-soft"],
 [data-ch-part="dot"][data-ch-tone="accent-soft"]:not([data-ch-soft]),
 [data-ch-part="bubble"][data-ch-tone="accent-soft"],
@@ -1691,7 +1774,12 @@
   fill: var(--ch-ink);
 }
 
-/* A surface halo keeps the dashed empty-cell outlines out of the glyphs. */
+/* A surface halo keeps the lines behind a text out of its glyphs: the dashed empty-cell outlines
+   of the runway, the gantt grid and now line behind value labels, and, with names on top, behind
+   names and headings. */
+[data-ch-part="gantt-value"],
+[data-ch-labels="top"] [data-ch-part="gantt-name"],
+[data-ch-labels="top"] [data-ch-part="gantt-heading"] text,
 [data-ch-part="runway-reset-label"] {
   paint-order: stroke;
   stroke: var(--ch-surface);
@@ -1806,6 +1894,9 @@
       [data-ch-part="end-label"],
       [data-ch-part="row-sublabel"],
       [data-ch-part="group-label"],
+      [data-ch-part="gantt-tick"],
+      [data-ch-part="gantt-value"],
+      [data-ch-part="gantt-key-item"] text,
       [data-ch-orientation="horizontal"] [data-ch-part="funnel-name"],
       [data-ch-part="donut-center-label"],
       [data-ch-part="donut-value"]
@@ -1982,6 +2073,44 @@
     fill: var(--_ch-tone-paint);
   }
 
+  /* Gantt bar parts follow their tone's system colour, as bars do; diamonds are CanvasText. */
+  [data-ch-part="gantt-milestone"] {
+    stroke: CanvasText;
+  }
+
+  [data-ch-part="gantt-milestone"][data-ch-reached="true"] {
+    fill: CanvasText;
+  }
+
+  [data-ch-part="gantt-key-item"][data-ch-kind="milestone"] rect {
+    fill: CanvasText;
+  }
+
+  [data-ch-part="gantt-now"] {
+    stroke: CanvasText;
+  }
+
+  /* The active row in Highlight: its bar parts paint their tone inline, so this overrides them
+     (the hatch stays a pattern and takes a Highlight outline); its diamond is outlined, and filled
+     once reached, in Highlight. */
+  [data-ch-part="gantt-row"][data-ch-active="true"] [data-ch-part="gantt-segment"] {
+    --_ch-swatch-color: Highlight !important;
+  }
+
+  [data-ch-part="gantt-row"][data-ch-active="true"]
+    [data-ch-part="gantt-segment"][data-ch-fill="solid"] {
+    fill: Highlight !important;
+  }
+
+  [data-ch-part="gantt-row"][data-ch-active="true"] [data-ch-part="gantt-milestone"] {
+    stroke: Highlight;
+  }
+
+  [data-ch-part="gantt-row"][data-ch-active="true"]
+    [data-ch-part="gantt-milestone"][data-ch-reached="true"] {
+    fill: Highlight;
+  }
+
   [data-ch-part="runway-dot"] {
     fill: Highlight;
     stroke: Canvas;
@@ -1991,6 +2120,9 @@
     fill: CanvasText;
   }
 
+  [data-ch-part="gantt-value"],
+  [data-ch-labels="top"] [data-ch-part="gantt-name"],
+  [data-ch-labels="top"] [data-ch-part="gantt-heading"] text,
   [data-ch-part="runway-reset-label"] {
     stroke: Canvas;
   }

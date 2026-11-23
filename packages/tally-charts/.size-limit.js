@@ -67,6 +67,14 @@ export default [
     gzip: true,
   },
   {
+    name: 'GanttChart',
+    path: 'dist/index.js',
+    import: '{ GanttChart }',
+    ignore: ['react', 'react-dom'],
+    limit: '15 KB',
+    gzip: true,
+  },
+  {
     name: 'ComparisonBars',
     path: 'dist/index.js',
     import: '{ ComparisonBars }',

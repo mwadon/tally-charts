@@ -18,6 +18,7 @@ import {
   MarginOutlook,
   MonthlyCost,
   ProfitBridge,
+  RemodelSchedule,
   RevenueByLine,
   SmallPieces,
   UnderTarget,
@@ -212,6 +213,19 @@ describe('server rendering', () => {
     expect(html).toContain('data-ch-layout="right"')
     expect(html).toContain('>$1.84M</text>')
     expect(html).toContain('total revenue')
+    expect(html).toContain('data-ch-part="data-table"')
+  })
+
+  it('renders the GanttChart without a DOM, deterministically, with its key and now line', () => {
+    const html = renderToString(<RemodelSchedule />)
+    expect(html).toBe(renderToString(<RemodelSchedule />))
+    expect(html).not.toContain('NaN')
+    expect(html.match(/data-ch-part="gantt-row"/g)).toHaveLength(13)
+    expect(html.match(/data-ch-part="gantt-hit"/g)).toHaveLength(13)
+    expect(html.match(/data-ch-part="gantt-key-item"/g)).toHaveLength(5)
+    expect(html).toContain('data-ch-part="gantt-now"')
+    expect(html).toContain('Today · Mar 27')
+    expect(html.match(/data-ch-part="gantt-value"/g)).toHaveLength(13)
     expect(html).toContain('data-ch-part="data-table"')
   })
 

@@ -9,6 +9,7 @@ import { ComparisonBars } from './charts/ComparisonBars'
 import { DonutChart } from './charts/DonutChart'
 import { DotHistogram } from './charts/DotHistogram'
 import { FunnelChart } from './charts/FunnelChart'
+import { GanttChart } from './charts/GanttChart'
 import { Heatmap } from './charts/Heatmap'
 import { LineChart } from './charts/LineChart'
 import { RankedBars } from './charts/RankedBars'
@@ -377,6 +378,17 @@ describe('table headers', () => {
     take(
       <Heatmap<Row> data={data} breaks={[1.5]} row={by.a} column={by.g} value={by.v} title="H" />,
     )
+    take(
+      <GanttChart<{ a: string; s: string; e: string }>
+        data={[{ a: 'x', s: '2026-03-02', e: '2026-03-04' }]}
+        x={(d) => d.a}
+        start={(d) => d.s}
+        end={(d) => d.e}
+        baselineStart={(d) => d.s}
+        baselineEnd={(d) => d.e}
+        {...common}
+      />,
+    )
     const missing = headerKeys.filter((k) => !seen.has(`«${k}»`))
     expect(missing).toEqual([])
   })
@@ -530,6 +542,36 @@ describe('DonutChart messages', () => {
       ofTotal: 'of total',
       headerPart: 'Part',
       headerShare: 'Share',
+    })
+  })
+})
+
+describe('GanttChart messages', () => {
+  it('have English defaults', () => {
+    expect(DEFAULT_MESSAGES).toMatchObject({
+      today: 'Today · {date}',
+      legendDone: 'Done',
+      legendPlanned: 'Planned',
+      legendOverrun: 'Overrun',
+      legendBaseline: 'Baseline',
+      legendMilestone: 'Milestone',
+      statusDone: 'done',
+      statusInProgress: 'in progress',
+      statusPlanned: 'planned',
+      milestone: 'milestone',
+      statusReached: 'reached',
+      statusUpcoming: 'upcoming',
+      percentDone: '{value} done',
+      overBaseline: '{duration} over baseline',
+      late: '{duration} late',
+      early: '{duration} early',
+      baselineRange: 'baseline {range}',
+      headerStart: 'Start',
+      headerEnd: 'End',
+      headerBaselineStart: 'Baseline start',
+      headerBaselineEnd: 'Baseline end',
+      headerProgress: 'Progress',
+      headerStatus: 'Status',
     })
   })
 })

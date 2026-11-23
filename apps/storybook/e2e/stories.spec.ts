@@ -297,6 +297,100 @@ test('hovering a donut slice or its list row activates it; the hole clears it', 
   await expect(dimmed).toHaveCount(0)
 })
 
+test('the gantt chart walks its rows in drawn order and announces dates, days and status', async ({
+  page,
+}) => {
+  await open(page, 'charts-ganttchart--light')
+  const chart = page.getByRole('figure', { name: 'Kitchen remodel' })
+  await expect(chart.locator('[data-ch-part="gantt"][data-ch-labels="left"]')).toHaveCount(1)
+  await page.keyboard.press('Tab')
+  await expect(chart.getByRole('application')).toBeFocused()
+  const live = chart.locator('[aria-live]')
+  const tooltip = page.locator('[data-ch-part="tooltip"]')
+  const activeRow = chart.locator('[data-ch-part="gantt-row"][data-ch-active="true"]')
+  // 11 task bars and 2 milestones; with one task active the other ten bars are dimmed.
+  const dimmedBars = chart.locator('[data-ch-part="gantt-bar"][data-ch-dimmed="true"]')
+  await expect(live).toHaveText('1 of 13, Site protection, Mar 2 – Mar 4, 2 days, done')
+  await expect(activeRow).toHaveCount(1)
+  await expect(activeRow).toContainText('Site protection')
+  await expect(chart.locator('[data-ch-part="gantt-bar"]')).toHaveCount(11)
+  await expect(dimmedBars).toHaveCount(10)
+  await page.keyboard.press('ArrowDown')
+  await expect(live).toHaveText(
+    '2 of 13, Demolition, Mar 4 – Mar 9, 5 days, done, 1 day over baseline',
+  )
+  await expect(tooltip).toContainText('Demolition')
+  await expect(tooltip).toContainText('1 day over baseline')
+  await expect(activeRow).toContainText('Demolition')
+  await page.keyboard.press('ArrowUp')
+  await expect(live).toHaveText('1 of 13, Site protection, Mar 2 – Mar 4, 2 days, done')
+  await page.keyboard.press('ArrowRight')
+  await expect(live).toHaveText(
+    '2 of 13, Demolition, Mar 4 – Mar 9, 5 days, done, 1 day over baseline',
+  )
+  await page.keyboard.press('ArrowLeft')
+  await expect(live).toHaveText('1 of 13, Site protection, Mar 2 – Mar 4, 2 days, done')
+  await page.keyboard.press('End')
+  await expect(live).toHaveText(
+    '13 of 13, Final walkthrough, milestone, Apr 17, upcoming, 3 days late',
+  )
+  await expect(activeRow).toContainText('Final walkthrough')
+  // A milestone is active: every task bar is dimmed.
+  await expect(dimmedBars).toHaveCount(11)
+  await page.keyboard.press('ArrowUp')
+  await expect(live).toHaveText(
+    '12 of 13, Fixtures and appliances, Apr 12 – Apr 16, 4 days, planned',
+  )
+  await page.keyboard.press('Home')
+  await expect(live).toHaveText('1 of 13, Site protection, Mar 2 – Mar 4, 2 days, done')
+  for (let i = 0; i < 4; i++) await page.keyboard.press('ArrowDown')
+  await expect(live).toHaveText(
+    '5 of 13, Plumbing rough-in, Mar 14 – Mar 21, 7 days, done, 2 days over baseline',
+  )
+  await page.keyboard.press('ArrowDown')
+  await page.keyboard.press('ArrowDown')
+  await expect(live).toHaveText(
+    '7 of 13, Rough inspection, milestone, Mar 23, reached, 3 days late',
+  )
+  await page.keyboard.press('ArrowDown')
+  await expect(live).toHaveText(
+    '8 of 13, Drywall and paint, Mar 23 – Mar 31, 8 days, in progress, 50%',
+  )
+  await expect(tooltip).toContainText('50% done')
+  await page.keyboard.press('Escape')
+  await expect(tooltip).toHaveCount(0)
+})
+
+test('hovering a gantt row name or its bar shows that row; off the chart the hover ends', async ({
+  page,
+}) => {
+  await open(page, 'charts-ganttchart--light')
+  const tooltip = page.locator('[data-ch-part="tooltip"]')
+  const row = page.locator('[data-ch-part="gantt-row"]').filter({ hasText: 'Plumbing rough-in' })
+  await expect(row).toHaveCount(1)
+  const centre = async (part: string) => {
+    const box = await row.locator(`[data-ch-part="${part}"]`).boundingBox()
+    if (!box) throw new Error(`no ${part}`)
+    return [box.x + box.width / 2, box.y + box.height / 2] as const
+  }
+  const name = await centre('gantt-name')
+  const bar = await centre('gantt-bar')
+  // The name and the bar are apart: names sit in the label column left of the plot.
+  expect(bar[0] - name[0]).toBeGreaterThan(100)
+  const activeRow = page.locator('[data-ch-part="gantt-row"][data-ch-active="true"]')
+  for (const at of [name, bar]) {
+    await page.mouse.move(...at)
+    await expect(tooltip).toContainText('Plumbing rough-in')
+    await expect(tooltip).toContainText('2 days over baseline')
+    await expect(activeRow).toContainText('Plumbing rough-in')
+    await expect(page.locator('[data-ch-part="gantt-bar"][data-ch-dimmed="true"]')).toHaveCount(10)
+    // Off the chart, into the page's margin: the hover ends.
+    await page.mouse.move(4, 4)
+    await expect(tooltip).toHaveCount(0)
+    await expect(activeRow).toHaveCount(0)
+  }
+})
+
 test('hovering near a strip dot shows its tooltip', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 600 })
   await open(page, 'reference-dallas-installs--light')

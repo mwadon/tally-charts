@@ -86,6 +86,10 @@
           "slug": "donut-chart"
         },
         {
+          "label": "GanttChart",
+          "slug": "gantt-chart"
+        },
+        {
           "label": "DotHistogram",
           "slug": "dot-histogram"
         },

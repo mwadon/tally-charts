@@ -267,6 +267,7 @@ export interface ChartContextValue {
 
 // @public
 export interface ChartMessages {
+    baselineRange: string;
     binAll: string;
     binOver: string;
     binRange: string;
@@ -275,19 +276,24 @@ export interface ChartMessages {
     deltaDown: string;
     deltaFlat: string;
     deltaUp: string;
+    early: string;
     headerActual: string;
+    headerBaselineEnd: string;
+    headerBaselineStart: string;
     headerCategory: string;
     headerChange: string;
     headerColumn: string;
     headerContinued: string;
     headerDate: string;
     headerDifference: string;
+    headerEnd: string;
     headerGroup: string;
     headerItem: string;
     headerName: string;
     headerPart: string;
     headerPeriod: string;
     headerPlan: string;
+    headerProgress: string;
     headerProjectedAtReset: string;
     headerRange: string;
     headerRankedDetails: string;
@@ -297,6 +303,7 @@ export interface ChartMessages {
     headerRunwayDetail: string;
     headerShare: string;
     headerSize: string;
+    headerStart: string;
     headerStatus: string;
     headerStep: string;
     headerTotal: string;
@@ -306,12 +313,19 @@ export interface ChartMessages {
     heatmapName: string;
     keyboardHint: string;
     keyboardHintSelect: string;
+    late: string;
+    legendBaseline: string;
+    legendDone: string;
     legendLocked: string;
+    legendMilestone: string;
     legendNoForecast: string;
+    legendOverrun: string;
+    legendPlanned: string;
     legendProjectedUse: string;
     legendReset: string;
     legendRunsOut: string;
     legendUnderShare: string;
+    milestone: string;
     noData: string;
     noValue: string;
     now: string;
@@ -320,18 +334,26 @@ export interface ChartMessages {
     ofTotal: string;
     onPlan: string;
     other: string;
+    overBaseline: string;
     peak: string;
+    percentDone: string;
     planActual: string;
     position: string;
     resetMark: string;
     runningTotalLabel: string;
     statusAtReset: string;
     statusDisconnected: string;
+    statusDone: string;
+    statusInProgress: string;
     statusNoForecast: string;
+    statusPlanned: string;
+    statusReached: string;
     statusResets: string;
     statusRunsOut: string;
+    statusUpcoming: string;
     target: string;
     targetLabel: string;
+    today: string;
     total: string;
     valueAbove: string;
     valueAgainst: string;
@@ -709,6 +731,31 @@ export interface FunnelSeries<D> {
     tone?: Tone;
     value: Accessor<D, number>;
 }
+
+// @public (undocumented)
+export function GanttChart<D>(input: GanttChartProps<D>): JSX.Element;
+
+// @public (undocumented)
+export type GanttChartProps<D> = ChartName & Omit<ChartPassThroughProps<D>, 'aspectRatio' | 'height' | 'margin'> & {
+    data: readonly D[];
+    x: Accessor<D, string>;
+    start: Accessor<D, TimeInput>;
+    end?: Accessor<D, TimeInput | null | undefined>;
+    id?: Accessor<D, Id>;
+    group?: Accessor<D, string | null | undefined>;
+    baselineStart?: Accessor<D, TimeInput | null | undefined>;
+    baselineEnd?: Accessor<D, TimeInput | null | undefined>;
+    progress?: Accessor<D, number | null | undefined>;
+    now?: TimeInput;
+    domain?: readonly [TimeInput, TimeInput];
+    zone?: TimeZone;
+    tone?: Tone;
+    labelPosition?: 'auto' | 'left' | 'top';
+    valueLabels?: boolean;
+    legend?: boolean;
+    dataTable?: boolean | DataTableOptions;
+    tooltip?: ChartTooltip<D>;
+};
 
 // @public
 export function Grid(input: GridProps): JSX.Element | null;

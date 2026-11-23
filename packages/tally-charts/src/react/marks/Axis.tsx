@@ -8,12 +8,16 @@ import type { FormatPreset, FormatPresetSpec, Formatter } from '../../core/forma
 import {
   categoryTicks,
   estimateWidth,
+  fitTimeTicks,
+  indexOfValue,
   linearTicks,
   type MeasureTick,
   type Tick,
   type TickAnchor,
   type TickSpec,
+  type TimeLabels,
   thinTicks,
+  withLabels,
 } from '../../core/ticks'
 import type { TimeScale } from '../../core/time'
 import type { Tone } from '../../core/types'
@@ -130,9 +134,6 @@ function valueFormatter(
   return ctx.format(whole ? { ...spec, digits: 0 } : spec)
 }
 
-/** Labels for a run of time tick values, in epoch ms. */
-type TimeLabels = (values: readonly number[]) => string[]
-
 /**
  * Labels for time tick values. 'auto' (the default) writes multi-scale labels; another date spec
  * formats every tick alike; a function gets each tick as a Date. 'ends' labels the domain ends
@@ -178,45 +179,6 @@ function timeTicks(scale: TimeScale, spec: TickSpec, anchorEnds: boolean): Tick[
         : 'middle'
     return { value, position, label: '', anchor }
   })
-}
-
-/** Index of the tick whose value is `highlight` (compared as strings); undefined when none. */
-function indexOfValue(
-  ticks: readonly Tick[],
-  highlight: string | number | undefined,
-): number | undefined {
-  const i = ticks.findIndex((t) => String(t.value) === String(highlight))
-  return highlight === undefined || i < 0 ? undefined : i
-}
-
-/** The ticks with labels for their (epoch ms) values. */
-function withLabels(ticks: readonly Tick[], label: TimeLabels): Tick[] {
-  const labels = label(ticks.map((tick) => tick.value as number))
-  return ticks.map((tick, i) => ({ ...tick, label: labels[i] ?? '' }))
-}
-
-/**
- * Time labels for the ticks thinning kept. Labels are written again, since a dropped tick may
- * have carried the year; a tick whose label repeats the one before it (a coarse format on fine
- * ticks) is dropped; and the new labels are thinned again until nothing changes, so they fit.
- */
-function fitTimeTicks(
-  ticks: readonly Tick[],
-  label: TimeLabels,
-  measure?: MeasureTick,
-  highlight?: string | number,
-): Tick[] {
-  let kept = withLabels(ticks, label)
-  for (let pass = 0; pass < 4; pass++) {
-    const distinct = kept.filter((tick, i) => i === 0 || tick.label !== kept[i - 1]?.label)
-    const keep = indexOfValue(distinct, highlight)
-    const next = withLabels(measure ? thinTicks(distinct, measure, { keep }) : distinct, label)
-    if (next.length === kept.length && next.every((tick, i) => tick.label === kept[i]?.label)) {
-      return next
-    }
-    kept = next
-  }
-  return kept
 }
 
 export function Axis({

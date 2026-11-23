@@ -502,6 +502,155 @@ for (const colorScheme of ['light', 'dark'] as const) {
       }
     })
 
+    test(`gantt bars, hatch, diamonds, labels and the active row stay visible (${colorScheme})`, async ({
+      page,
+    }) => {
+      await openForced(page, 'charts-ganttchart--light', colorScheme)
+      const { canvas, resolve, isRealColor } = await colorHelpers(page)
+      const root = '#storybook-root'
+      const canvasRgba = await resolve(canvas)
+      const highlight = await resolve(await systemColor(page, 'Highlight'))
+      expect(highlight).not.toBeNull()
+      const segments = () =>
+        page.locator(`${root} [data-ch-part="gantt-segment"]`).evaluateAll((els) =>
+          els.map((el) => {
+            const style = getComputedStyle(el)
+            const id = /^url\("?#([^")]+)"?\)$/.exec(style.fill)?.[1]
+            const line = id ? document.getElementById(id)?.querySelector('line') : null
+            const stripe = line ? getComputedStyle(line) : undefined
+            // The painted opacity: the element's and every ancestor's.
+            let opacity = 1
+            for (let node: Element | null = el; node; node = node.parentElement) {
+              opacity *= Number.parseFloat(getComputedStyle(node).opacity)
+            }
+            return {
+              row: el
+                .closest('[data-ch-part="gantt-row"]')
+                ?.querySelector('[data-ch-part="gantt-name"]')?.textContent,
+              kind: el.getAttribute('data-ch-fill'),
+              tone: el.getAttribute('data-ch-tone'),
+              width: el.getBoundingClientRect().width,
+              fill: style.fill,
+              stroke: style.stroke,
+              strokeWidth: Number.parseFloat(style.strokeWidth),
+              stripe: stripe?.stroke,
+              stripeWidth: stripe ? Number.parseFloat(stripe.strokeWidth) : 0,
+              opacity,
+            }
+          }),
+        )
+      // 11 tasks: nine solid parts (done, two of them the overrun tails) and five hatched ones
+      // (the rest of the running task and the four planned tasks).
+      const all = await segments()
+      // Every part paints something: no zero-width part next to a full one.
+      expect(all.filter((s) => !(s.width > 0)).map((s) => s.row)).toEqual([])
+      const solid = all.filter((s) => s.kind === 'solid')
+      const hatched = all.filter((s) => s.kind === 'hatch')
+      expect(solid).toHaveLength(9)
+      expect(hatched).toHaveLength(5)
+      expect(all.filter((s) => s.tone === 'loss').map((s) => s.row)).toEqual([
+        'Demolition',
+        'Plumbing rough-in',
+      ])
+      for (const s of solid) {
+        expect(await isRealColor(s.fill)).toBe(true)
+        expect(await resolve(s.fill)).not.toEqual(canvasRgba)
+        expect(s.opacity).toBe(1)
+      }
+      // A hatched part stays a pattern: a url() fill whose stripe is a real colour, and an outline.
+      for (const s of hatched) {
+        expect(s.fill).toMatch(/^url\(/)
+        expect(await isRealColor(s.stripe ?? 'none')).toBe(true)
+        expect(s.stripeWidth).toBeGreaterThan(0)
+        expect(await isRealColor(s.stroke)).toBe(true)
+        expect(s.strokeWidth).toBeGreaterThanOrEqual(1)
+      }
+      // Diamonds are CanvasText outlines; the reached one is filled, the upcoming one is not.
+      const diamonds = await page
+        .locator(`${root} [data-ch-part="gantt-milestone"]`)
+        .evaluateAll((els) =>
+          els.map((el) => {
+            const style = getComputedStyle(el)
+            return {
+              reached: el.getAttribute('data-ch-reached') === 'true',
+              fill: style.fill,
+              stroke: style.stroke,
+              width: Number.parseFloat(style.strokeWidth),
+            }
+          }),
+        )
+      expect(diamonds.map((d) => d.reached)).toEqual([true, false])
+      const canvasText = await resolve(await systemColor(page, 'CanvasText'))
+      for (const d of diamonds) {
+        expect(await isRealColor(d.stroke)).toBe(true)
+        expect(await resolve(d.stroke)).toEqual(canvasText)
+        expect(d.width).toBeGreaterThanOrEqual(2)
+      }
+      expect(await isRealColor(diamonds[0]?.fill ?? 'none')).toBe(true)
+      expect(await isRealColor(diamonds[1]?.fill ?? 'none')).toBe(false)
+      // Baselines, the now line, value labels, overrun tails and names are painted in real colours.
+      const fills = (part: string) =>
+        page.locator(`${root} [data-ch-part="${part}"]`).evaluateAll((els) =>
+          els.map((el) => ({
+            fill: getComputedStyle(el).fill,
+            stroke: getComputedStyle(el).stroke,
+          })),
+        )
+      for (const [part, count] of [
+        ['gantt-value', 13],
+        ['gantt-over', 4],
+        ['gantt-name', 13],
+        ['gantt-now-label', 1],
+        ['gantt-baseline', 11],
+      ] as const) {
+        const painted = await fills(part)
+        expect(painted).toHaveLength(count)
+        for (const { fill } of painted) expect(await isRealColor(fill)).toBe(true)
+      }
+      for (const part of ['gantt-now', 'gantt-milestone-baseline']) {
+        const painted = await fills(part)
+        expect(painted.length).toBeGreaterThan(0)
+        for (const { stroke } of painted) expect(await isRealColor(stroke)).toBe(true)
+      }
+      // The active row: walk to Plumbing rough-in. Its parts, the overrun tail included, are
+      // Highlight; Demolition's tail keeps its own colour, and every other bar is dimmed.
+      await page.keyboard.press('Tab')
+      await expect(page.locator(`${root} [role="application"]`)).toBeFocused()
+      for (let i = 0; i < 4; i++) await page.keyboard.press('ArrowDown')
+      await expect(
+        page.locator(`${root} [data-ch-part="gantt-row"][data-ch-active="true"]`),
+      ).toContainText('Plumbing rough-in')
+      const after = await segments()
+      const active = after.filter((s) => s.row === 'Plumbing rough-in')
+      const others = after.filter((s) => s.row !== 'Plumbing rough-in')
+      expect(active).toHaveLength(2)
+      for (const s of active) {
+        expect(await resolve(s.fill)).toEqual(highlight)
+        expect(s.opacity).toBe(1)
+      }
+      const otherTail = others.find((s) => s.tone === 'loss')
+      expect(otherTail?.row).toBe('Demolition')
+      expect(await isRealColor(otherTail?.fill ?? 'none')).toBe(true)
+      expect(await resolve(otherTail?.fill ?? 'none')).not.toEqual(highlight)
+      for (const s of others) expect(s.opacity).toBeLessThan(0.75)
+      // Text is never dimmed.
+      for (const part of ['gantt-name', 'gantt-value']) {
+        const opacities = await page
+          .locator(`${root} [data-ch-part="${part}"]`)
+          .evaluateAll((els) =>
+            els.map((el) => {
+              let opacity = 1
+              for (let node: Element | null = el; node; node = node.parentElement) {
+                opacity *= Number.parseFloat(getComputedStyle(node).opacity)
+              }
+              return opacity
+            }),
+          )
+        expect(opacities).toHaveLength(13)
+        for (const o of opacities) expect(o).toBe(1)
+      }
+    })
+
     test('heatmap levels differ by border width and keep a focus ring', async ({ page }) => {
       await openForced(page, 'reference-where-it-leaks--light', colorScheme)
       const borders = await page

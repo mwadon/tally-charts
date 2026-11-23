@@ -1283,6 +1283,13 @@ tbody th {
   fill: var(--ch-grid);
 }
 
+/* A planned amount, hatched: an outline and diagonal strokes in the accent. */
+.ct-hatch {
+  fill: none;
+  stroke: var(--ch-accent);
+  stroke-width: 1;
+}
+
 .ct-rule,
 .ct-stroke,
 .ct-mark {

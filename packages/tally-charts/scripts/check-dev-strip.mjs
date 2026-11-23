@@ -67,6 +67,11 @@ const phrases = [
   'DonutChart skipped a row',
   'DonutChart maxSlices must be',
   'DonutChart row id "other"',
+  'GanttChart ignored an invalid `now`',
+  'GanttChart ignored a domain that is not',
+  'GanttChart skipped a row with',
+  'GanttChart ignored a baseline that is',
+  'GanttChart progress must be a number',
 ]
 const leaks = phrases.filter((phrase) => code.includes(phrase))
 if (leaks.length > 0) {
