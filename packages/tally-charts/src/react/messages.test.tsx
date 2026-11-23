@@ -6,6 +6,7 @@ import { ChartsProvider } from './ChartsProvider'
 import { BarChart } from './charts/BarChart'
 import { BridgeChart } from './charts/BridgeChart'
 import { ComparisonBars } from './charts/ComparisonBars'
+import { DonutChart } from './charts/DonutChart'
 import { DotHistogram } from './charts/DotHistogram'
 import { FunnelChart } from './charts/FunnelChart'
 import { Heatmap } from './charts/Heatmap'
@@ -349,6 +350,7 @@ describe('table headers', () => {
     take(<ScatterChart<Row> data={data} x={by.v} y={by.w} size={by.v} label={by.a} {...common} />)
     take(<WaffleColumns<Row> data={data} x={by.a} y={by.v} group={by.g} {...common} />)
     take(<FunnelChart<Row> data={data} x={by.a} y={by.v} {...common} />)
+    take(<DonutChart<Row> data={data} x={by.a} y={by.v} {...common} />)
     take(
       <BridgeChart
         start={{ label: 'Plan', value: 10 }}
@@ -523,6 +525,11 @@ describe('FunnelChart messages', () => {
 
 describe('DonutChart messages', () => {
   it('have English defaults', () => {
-    expect(DEFAULT_MESSAGES).toMatchObject({ other: 'Other' })
+    expect(DEFAULT_MESSAGES).toMatchObject({
+      other: 'Other',
+      ofTotal: 'of total',
+      headerPart: 'Part',
+      headerShare: 'Share',
+    })
   })
 })

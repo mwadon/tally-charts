@@ -69,6 +69,12 @@ export interface ChartMessages {
   ofFirstStep: string
   /** The DonutChart slice that sums the smallest parts. */
   other: string
+  /** After a DonutChart slice's share in the tooltip and announcements, as in "42% of total". */
+  ofTotal: string
+  /** The part column of a DonutChart data table. A header taken from a string accessor keeps the field name. */
+  headerPart: string
+  /** The share column of a DonutChart data table. */
+  headerShare: string
   /** The data-table column of a RunwayChart row's `sublabel`. */
   headerRunwayDetail: string
   /** A RunwayChart data-table column header. */
@@ -175,6 +181,9 @@ export const HEADER_CONTINUED = 'Continued'
 export const OF_PREVIOUS_STEP = 'of previous step'
 export const OF_FIRST_STEP = 'of first step'
 export const OTHER = 'Other'
+export const OF_TOTAL = 'of total'
+export const HEADER_PART = 'Part'
+export const HEADER_SHARE = 'Share'
 export const HEADER_RUNWAY_DETAIL = 'Detail'
 export const HEADER_RUNS_OUT = 'Runs out'
 export const HEADER_RESETS = 'Resets'
@@ -248,6 +257,9 @@ export const DEFAULT_MESSAGES: Readonly<ChartMessages> = {
   ofPreviousStep: OF_PREVIOUS_STEP,
   ofFirstStep: OF_FIRST_STEP,
   other: OTHER,
+  ofTotal: OF_TOTAL,
+  headerPart: HEADER_PART,
+  headerShare: HEADER_SHARE,
   headerRunwayDetail: HEADER_RUNWAY_DETAIL,
   headerRunsOut: HEADER_RUNS_OUT,
   headerResets: HEADER_RESETS,

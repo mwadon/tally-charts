@@ -377,6 +377,20 @@ describe('theme.css', () => {
     )
   })
 
+  it('marks the active donut slice by dimming the others and the active row name at 600', () => {
+    // Bold name of the active list row; text never dims.
+    expect(themed).toMatch(
+      /\[data-ch-part="donut-row"\]\[data-ch-active="true"\] \[data-ch-part="donut-name"\] \{\s*font-weight: 600;/,
+    )
+    expect(themed).toMatch(
+      /\[data-ch-part="donut-slice"\]\[data-ch-selectable="true"\],\s*\[data-ch-part="donut-hit"\]\[data-ch-selectable="true"\] \{\s*cursor: pointer;/,
+    )
+    // Forced colors, as bars: every slice is the tone's system colour, and the dimmed opacity
+    // (which forced colors keep) is what sets the active slice apart; nothing resets it.
+    expect(forced).not.toMatch(/data-ch-dimmed/)
+    expect(forced).not.toMatch(/donut-slice"\]\[data-ch-active/)
+  })
+
   it('inks the active funnel guide, Highlight in forced colors, and points at selectable steps', () => {
     expect(themed).toMatch(
       /\[data-ch-part="funnel-guide"\]\[data-ch-active="true"\] \{\s*stroke: var\(--ch-ink\);\s*stroke-width: 1\.5;/,

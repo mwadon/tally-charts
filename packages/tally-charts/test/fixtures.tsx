@@ -32,6 +32,8 @@ import {
   WaterfallChart,
   ZoneMeter,
 } from '../src'
+// Not exported yet: imported from its source until the package exports it.
+import { DonutChart } from '../src/react/charts/DonutChart'
 
 export const weeks = [
   { week: 'Jul 6', margin: 37.5 },
@@ -521,6 +523,31 @@ export function LeadFunnelBySource() {
         { id: 'ads', label: 'Ads', value: 'ads' },
         { id: 'other', label: 'Other', value: 'other', tone: 'neutral' },
       ]}
+    />
+  )
+}
+
+export const revenueLines = [
+  { line: 'Installs', revenue: 773000 },
+  { line: 'Service plans', revenue: 442000 },
+  { line: 'Repairs', revenue: 294000 },
+  { line: 'Inspections', revenue: 184000 },
+  { line: 'Maintenance', revenue: 62000 },
+  { line: 'Consulting', revenue: 41000 },
+  { line: 'Parts', revenue: 28000 },
+  { line: 'Permits', revenue: 16000 },
+]
+
+export function RevenueByLine({ initialWidth }: { initialWidth?: number } = {}) {
+  return (
+    <DonutChart
+      title="Revenue by service line"
+      data={revenueLines}
+      x="line"
+      y="revenue"
+      format="currency-compact"
+      centerLabel="total revenue"
+      initialWidth={initialWidth}
     />
   )
 }

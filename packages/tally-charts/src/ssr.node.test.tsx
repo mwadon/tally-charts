@@ -18,6 +18,7 @@ import {
   MarginOutlook,
   MonthlyCost,
   ProfitBridge,
+  RevenueByLine,
   SmallPieces,
   UnderTarget,
   UsageRunway,
@@ -199,6 +200,19 @@ describe('server rendering', () => {
     expect(split).toBe(renderToString(<LeadFunnelBySource />))
     expect(split).not.toContain('NaN')
     expect(split.match(/data-ch-part="funnel-area"/g)).toHaveLength(4)
+  })
+
+  it('renders the DonutChart without a DOM, deterministically', () => {
+    const html = renderToString(<RevenueByLine />)
+    expect(html).toBe(renderToString(<RevenueByLine />))
+    expect(html).not.toContain('NaN')
+    expect(html.match(/data-ch-part="donut-slice"/g)).toHaveLength(5)
+    expect(html.match(/data-ch-part="donut-row"/g)).toHaveLength(5)
+    expect(html.match(/data-ch-part="donut-hit"/g)).toHaveLength(5)
+    expect(html).toContain('data-ch-layout="right"')
+    expect(html).toContain('>$1.84M</text>')
+    expect(html).toContain('total revenue')
+    expect(html).toContain('data-ch-part="data-table"')
   })
 
   it('renders the runway without a DOM, with its strips drawn at the initial width', () => {

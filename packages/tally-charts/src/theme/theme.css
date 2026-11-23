@@ -742,6 +742,18 @@
   font-weight: 600;
 }
 
+/* The active slice: the others and their swatches dim through the shared rule (opacity, which
+   forced colors keep, so it also sets the active slice apart there); its name is bold. Text never
+   dims. */
+[data-ch-part="donut-row"][data-ch-active="true"] [data-ch-part="donut-name"] {
+  font-weight: 600;
+}
+
+[data-ch-part="donut-slice"][data-ch-selectable="true"],
+[data-ch-part="donut-hit"][data-ch-selectable="true"] {
+  cursor: pointer;
+}
+
 /* ---------- Tooltip pill ---------- */
 /* As wide as the content (not the space left of the anchor), capped at the chart width by an
    inline max-width; past that the pill wraps between, and then inside, its segments. */

@@ -89,6 +89,7 @@ const PARTS = [
   'delta-value',
   'donut',
   'donut-center-label',
+  'donut-hit',
   'donut-list',
   'donut-name',
   'donut-percent',

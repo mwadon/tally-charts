@@ -1,4 +1,4 @@
-import { type CSSProperties, useMemo } from 'react'
+import { type CSSProperties, useMemo, useRef } from 'react'
 import { resolveAccessor, resolveIds } from '../../core/accessor'
 import type { FormatSpec } from '../../core/format'
 import { round2 } from '../../core/path'
@@ -8,15 +8,24 @@ import { createWarner, DEV } from '../../core/warn'
 import { type ChartName, FittedChart } from '../Chart'
 import { useFormat, useMessages } from '../ChartsProvider'
 import { type Margin, useChartContext } from '../context'
-import { OTHER } from '../messages'
+import type { DataTableSpec } from '../DataTable'
+import { samePoints } from '../interaction'
+import { HEADER_PART, HEADER_SHARE, HEADER_VALUE, OF_TOTAL, OTHER } from '../messages'
+import { Tooltip, type TooltipProps } from '../overlays/Tooltip'
+import type { ChartPoint } from '../types'
 import { largestRemainder, percentText } from '../ui/share'
+import { TooltipPill } from '../ui/TooltipPill'
+import { useRegisterPoints } from '../useRegisterPoints'
 import { donutGeometry } from './donut-geometry'
 import {
   type ChartPassThroughProps,
   type ChartTooltip,
   type DataTableOptions,
+  headerOf,
   toNumber,
+  tooltipContent,
   userCallbacks,
+  withTableOptions,
 } from './shared'
 
 export type DonutChartProps<D> = ChartName &
@@ -64,7 +73,7 @@ export type DonutChartProps<D> = ChartName &
     tooltip?: ChartTooltip<D>
   }
 
-/** One data row: a part when `valid` and its value is above 0. */
+/** One data row: a part when `valid` and its value is above 0. The datum of its point. */
 interface DonutRow<D> {
   datum: D
   index: number
@@ -73,6 +82,25 @@ interface DonutRow<D> {
   value: number
   /** The value is a finite number ≥ 0. */
   valid: boolean
+}
+
+/** Same rows, so inline accessors keep the rows (and the points that hold them) they built. */
+function sameRows<D>(a: readonly DonutRow<D>[], b: readonly DonutRow<D>[]): boolean {
+  return (
+    a.length === b.length &&
+    a.every((r, i) => {
+      const t = b[i]
+      return (
+        t !== undefined &&
+        r.datum === t.datum &&
+        r.index === t.index &&
+        r.rowId === t.rowId &&
+        r.name === t.name &&
+        Object.is(r.value, t.value) &&
+        r.valid === t.valid
+      )
+    })
+  )
 }
 
 type Level = 5 | 4 | 3 | 2 | 'neutral'
@@ -109,6 +137,8 @@ interface DonutLayout {
 }
 
 const MARGIN: Margin = { top: 0, right: 0, bottom: 0, left: 0 }
+/** The id of the slice that sums the smallest parts. */
+const OTHER_ID = 'other'
 const UNIT_SCALE = { domain: [0, 1] } as const
 const STEPS: readonly Level[] = [5, 4, 3, 2]
 /** Room the ring keeps around its outer edge, in px. */
@@ -160,6 +190,7 @@ function DonutMarks<D>(props: {
   legendValue: 'both' | 'value' | 'percent'
 }) {
   const ctx = useChartContext('DonutChart')
+  const messages = useMessages()
   const { slices, tone, totalText, centerLabel, showTotal, legendValue } = props
   const layout = props.layoutAt(ctx.width)
   const outer = Math.max(0, layout.box / 2 - RING_PAD)
@@ -188,6 +219,50 @@ function DonutMarks<D>(props: {
   const label =
     showTotal && centerLabel ? truncateLabel(centerLabel, hole, charWidth(LABEL_SIZE)) : ''
   const totalY = label ? TOTAL_LINE : round2(totalSize * CENTRE_SHIFT)
+  // Under the total, or centred alone when the total does not fit.
+  const labelY = totalSize > 0 ? LABEL_LINE : round2(LABEL_SIZE * CENTRE_SHIFT)
+
+  // One point per slice, in ring order, at the slice centroid. "Other" has no row: its datum is
+  // undefined and it cannot be selected.
+  const ofTotal = messages.ofTotal ?? OF_TOTAL
+  const { cx, cy } = layout
+  const built = useMemo(
+    (): ChartPoint[] =>
+      slices.map((slice, i) => {
+        const [dx, dy] = arcs[i]?.centroid ?? [0, 0]
+        const share = `${slice.percentText} ${ofTotal}`
+        return {
+          id: slice.id,
+          index: slice.row ? slice.row.index : -1,
+          datum: slice.row ?? undefined,
+          x: round2(cx + dx),
+          y: round2(cy + dy),
+          label: [slice.name, slice.valueText, share].join(', '),
+          segments: [{ value: slice.name }, { value: slice.valueText }, { value: share }],
+          ...(slice.row ? {} : { selectable: false }),
+        }
+      }),
+    [slices, arcs, cx, cy, ofTotal],
+  )
+  // The format is often an inline function, so `built` is a new array on every render even when
+  // nothing it holds changed; keep the previous array while the content is the same.
+  const stable = useRef<ChartPoint[]>([])
+  if (!samePoints(stable.current, built)) stable.current = built
+  const points = stable.current
+  useRegisterPoints(points)
+
+  const active = ctx.activeId === null ? -1 : slices.findIndex((s) => s.id === ctx.activeId)
+  const dimmed = (i: number) =>
+    ctx.dimInactive && active >= 0 && i !== active ? 'true' : undefined
+  const selectable = (slice: DonutSlice<D>) => (ctx.selectable && slice.row ? 'true' : undefined)
+  // The slice of a slice or of its list row under the pointer.
+  const pointer = (slice: DonutSlice<D>, i: number) => ({
+    onPointerEnter: () => ctx.setActive(slice.id, 'pointer'),
+    onClick: () => {
+      const point = points[i]
+      if (point) ctx.select(point)
+    },
+  })
 
   // List columns: as wide as their widest text.
   const showValue = legendValue !== 'percent'
@@ -196,10 +271,13 @@ function DonutMarks<D>(props: {
     Math.max(0, ...slices.map((s) => textWidth(pick(s), LIST_SIZE)))
   const percentWidth = showPercent ? widest((s) => s.percentText) : 0
   const valueWidth = showValue ? widest((s) => s.valueText) : 0
-  const percentX = layout.listWidth
-  const valueX = showPercent ? percentX - percentWidth - COLUMN_GAP : percentX
   const columns =
     showValue && showPercent ? valueWidth + COLUMN_GAP + percentWidth : valueWidth + percentWidth
+  // The columns end at the list's right edge, but never start before the name column: in a list
+  // too narrow for them (a forced position) the values run past the right edge instead.
+  const rowEnd = Math.max(layout.listWidth, NAME_X + columns)
+  const percentX = rowEnd
+  const valueX = showPercent ? percentX - percentWidth - COLUMN_GAP : percentX
   const nameMax = layout.listWidth - NAME_X - columns - COLUMN_GAP
 
   return (
@@ -219,7 +297,10 @@ function DonutMarks<D>(props: {
             key={slice.key}
             data-ch-part="donut-slice"
             data-ch-level={slice.level}
+            data-ch-dimmed={dimmed(i)}
+            data-ch-selectable={selectable(slice)}
             d={arcs[i]?.path ?? ''}
+            {...pointer(slice, i)}
           />
         ))}
         {totalSize > 0 ? (
@@ -234,7 +315,7 @@ function DonutMarks<D>(props: {
           </text>
         ) : null}
         {label ? (
-          <text data-ch-part="donut-center-label" x={0} y={LABEL_LINE} textAnchor="middle">
+          <text data-ch-part="donut-center-label" x={0} y={labelY} textAnchor="middle">
             {label !== centerLabel ? <title>{centerLabel}</title> : null}
             {label}
           </text>
@@ -248,12 +329,13 @@ function DonutMarks<D>(props: {
               <g
                 key={slice.key}
                 data-ch-part="donut-row"
+                data-ch-active={i === active ? 'true' : undefined}
                 transform={`translate(${round2(layout.listX)},${round2(layout.listY + i * ROW)})`}
               >
-                {name !== slice.name ? <title>{slice.name}</title> : null}
                 <rect
                   data-ch-part="donut-swatch"
                   data-ch-level={slice.level}
+                  data-ch-dimmed={dimmed(i)}
                   x={0}
                   y={SWATCH_Y}
                   width={SWATCH}
@@ -261,6 +343,7 @@ function DonutMarks<D>(props: {
                   rx={2}
                 />
                 <text data-ch-part="donut-name" x={NAME_X} y={ROW_BASELINE}>
+                  {name !== slice.name ? <title>{slice.name}</title> : null}
                   {name}
                 </text>
                 {showValue ? (
@@ -287,11 +370,22 @@ function DonutMarks<D>(props: {
                   <line
                     data-ch-part="donut-rule"
                     x1={0}
-                    x2={round2(Math.max(0, layout.listWidth))}
+                    x2={round2(layout.listWidth)}
                     y1={ROW}
                     y2={ROW}
                   />
                 ) : null}
+                {/* The whole row, over the swatch and the rule. */}
+                <rect
+                  data-ch-part="donut-hit"
+                  data-ch-selectable={selectable(slice)}
+                  fill="transparent"
+                  x={0}
+                  y={0}
+                  width={round2(rowEnd)}
+                  height={ROW}
+                  {...pointer(slice, i)}
+                />
               </g>
             )
           })}
@@ -316,9 +410,8 @@ export function DonutChart<D>({
   legend = true,
   legendValue = 'both',
   legendPosition = 'auto',
-  // Points, the data table and the tooltip come with interaction.
-  dataTable: _dataTable = true,
-  tooltip: _tooltip = true,
+  dataTable = true,
+  tooltip = true,
   children,
   onSelect,
   onActiveChange,
@@ -336,7 +429,7 @@ export function DonutChart<D>({
     )
   }
 
-  const rows = useMemo((): DonutRow<D>[] => {
+  const built = useMemo((): DonutRow<D>[] => {
     const getName = resolveAccessor(x)
     const getValue = resolveAccessor(y)
     const ids = resolveIds(data, id, warn)
@@ -352,6 +445,10 @@ export function DonutChart<D>({
       }
     })
   }, [x, y, data, id, warn])
+  // Inline accessors rebuild the rows on every render; keep the previous ones while they match.
+  const stableRows = useRef(built)
+  if (!sameRows(stableRows.current, built)) stableRows.current = built
+  const rows = stableRows.current
 
   if (DEV && rows.some((r) => !r.valid)) {
     warn('donut-value', 'DonutChart skipped a row with a missing, non-numeric or negative value.')
@@ -373,8 +470,8 @@ export function DonutChart<D>({
       const row = kept[i] ?? null
       const percent = percents[i] ?? 0
       return {
-        key: row ? String(row.index) : 'other',
-        id: row ? row.rowId : 'other',
+        key: row ? String(row.index) : OTHER_ID,
+        id: row ? row.rowId : OTHER_ID,
         name: row ? row.name : otherName,
         value,
         percent,
@@ -386,6 +483,17 @@ export function DonutChart<D>({
     })
     return { slices, total }
   }, [rows, limit, sort, fmt, otherName])
+
+  if (
+    DEV &&
+    slices.some((s) => s.row === null) &&
+    slices.some((s) => s.row !== null && s.id === OTHER_ID)
+  ) {
+    warn(
+      'donut-other-id',
+      'DonutChart row id "other" repeats the id of the "Other" slice; give the row another id.',
+    )
+  }
 
   const layoutAt = (width: number): DonutLayout => {
     const w = Math.max(0, width)
@@ -408,7 +516,8 @@ export function DonutChart<D>({
         cy: height / 2,
         listX: box + LIST_GAP,
         listY: (height - list) / 2,
-        listWidth: w - box - LIST_GAP,
+        // A forced 'right' in a narrow chart leaves no room: never a negative width.
+        listWidth: Math.max(0, w - box - LIST_GAP),
       }
     }
     const below = position === 'bottom'
@@ -425,11 +534,47 @@ export function DonutChart<D>({
   }
   const layoutFor = (width: number) => ({ margin: MARGIN, height: layoutAt(width).height })
 
+  // One table row per data row, in data order; skipped rows keep their name with empty cells.
+  // Shares are of all valid rows, by the largest remainder, so they add up to 100.
+  let table: DataTableSpec<DonutRow<D>> | undefined
+  if (dataTable) {
+    const valid = rows.filter((r) => r.valid)
+    const percents = largestRemainder(valid.map((r) => (total > 0 ? (r.value / total) * 100 : 0)))
+    const shareAt = new Map(
+      valid.map((r, i) => [r.index, percentText(percents[i] ?? 0, r.value)] as const),
+    )
+    table = {
+      columns: [
+        { header: headerOf(x, messages.headerPart ?? HEADER_PART), value: (r) => r.name },
+        {
+          header: messages.headerValue ?? HEADER_VALUE,
+          value: (r) => (r.valid ? fmt(r.value) : ''),
+        },
+        {
+          header: messages.headerShare ?? HEADER_SHARE,
+          value: (r) => shareAt.get(r.index) ?? '',
+        },
+      ],
+    }
+  }
+
+  // A function tooltip is for the user's rows: "Other" has none and shows the default pill.
+  const userTooltip = tooltipContent(tooltip)
+  const content: TooltipProps['content'] = userTooltip
+    ? (point) =>
+        point.datum === undefined && point.selectable === false ? (
+          <TooltipPill segments={point.segments} />
+        ) : (
+          userTooltip(point)
+        )
+    : undefined
+
   return (
     <FittedChart<DonutRow<D>>
       {...chart}
       {...userCallbacks(onSelect, onActiveChange)}
       data={slices.length > 0 ? rows : []}
+      dataTable={withTableOptions(table, dataTable)}
       // The ring lays itself out from the chart width; fixed domains keep the scales quiet.
       x={UNIT_SCALE}
       y={UNIT_SCALE}
@@ -444,6 +589,7 @@ export function DonutChart<D>({
         showTotal={showTotal}
         legendValue={legendValue}
       />
+      {tooltip ? <Tooltip content={content} /> : null}
       {children}
     </FittedChart>
   )
