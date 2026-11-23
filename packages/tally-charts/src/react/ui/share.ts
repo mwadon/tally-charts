@@ -52,7 +52,7 @@ export function percentText(percent: number, value: number): string {
 }
 
 /** Whole percents that add up to round(sum of shares), by the largest remainder method. */
-function largestRemainder(shares: readonly number[]): number[] {
+export function largestRemainder(shares: readonly number[]): number[] {
   const floors = shares.map(Math.floor)
   let left = Math.round(shares.reduce((s, v) => s + v, 0)) - floors.reduce((s, v) => s + v, 0)
   const order = shares

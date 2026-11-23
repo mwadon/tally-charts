@@ -174,7 +174,8 @@
 [data-ch-root],
 [data-ch-part="legend"],
 [data-ch-part="heatmap"],
-[data-ch-part="runway"] {
+[data-ch-part="runway"],
+[data-ch-part="donut"] {
   --ch-seq-1: color-mix(
     in srgb,
     var(--ch-seq-base, var(--ch-loss)) var(--ch-seq-mix-1, 12%),
@@ -414,7 +415,8 @@
 }
 
 [data-ch-animate="true"] [data-ch-part="area"],
-[data-ch-animate="true"] [data-ch-part="funnel-area"] {
+[data-ch-animate="true"] [data-ch-part="funnel-area"],
+[data-ch-animate="true"] [data-ch-part="donut-slice"] {
   animation: ch-fade var(--ch-duration) var(--ch-ease) both;
 }
 
@@ -518,7 +520,8 @@
 }
 
 [data-ch-part="grid-line"],
-[data-ch-part="funnel-guide"] {
+[data-ch-part="funnel-guide"],
+[data-ch-part="donut-rule"] {
   stroke: var(--ch-grid);
   stroke-width: 1;
 }
@@ -565,7 +568,8 @@
 [data-ch-part="target-label"],
 [data-ch-part="forecast-label"],
 [data-ch-part="end-label"],
-[data-ch-part="funnel-name"] {
+[data-ch-part="funnel-name"],
+[data-ch-part="donut-center-label"] {
   fill: var(--ch-ink-muted);
   font-size: 12px;
 }
@@ -593,7 +597,8 @@
 }
 
 [data-ch-part="row-label"][data-ch-muted="true"],
-[data-ch-part="row-sublabel"] {
+[data-ch-part="row-sublabel"],
+[data-ch-part="donut-value"] {
   fill: var(--ch-ink-muted);
   font-size: 13px;
 }
@@ -691,6 +696,62 @@
 [data-ch-part="funnel-rate"][data-ch-weakest="true"] {
   fill: color-mix(in srgb, var(--ch-loss) var(--ch-tone-text-mix), var(--ch-ink));
   font-weight: 600;
+}
+
+/* ---------- Donut ---------- */
+/* Slices and their list swatches step through the sequential ramp of the chart's tone
+   (data-ch-seq-tone on the donut group); the fifth slice and "Other" are neutral. The gap between
+   slices is cut from the paths, so the surface shows through. */
+:is([data-ch-part="donut-slice"], [data-ch-part="donut-swatch"])[data-ch-level="5"] {
+  fill: var(--ch-seq-5);
+}
+
+:is([data-ch-part="donut-slice"], [data-ch-part="donut-swatch"])[data-ch-level="4"] {
+  fill: var(--ch-seq-4);
+}
+
+:is([data-ch-part="donut-slice"], [data-ch-part="donut-swatch"])[data-ch-level="3"] {
+  fill: var(--ch-seq-3);
+}
+
+:is([data-ch-part="donut-slice"], [data-ch-part="donut-swatch"])[data-ch-level="2"] {
+  fill: var(--ch-seq-2);
+}
+
+:is([data-ch-part="donut-slice"], [data-ch-part="donut-swatch"])[data-ch-level="neutral"] {
+  fill: color-mix(in srgb, var(--ch-neutral) var(--_ch-seq-neutral-3), var(--ch-surface));
+}
+
+[data-ch-part="donut-total"] {
+  fill: var(--ch-ink);
+  font-size: 28px;
+  font-weight: 600;
+}
+
+[data-ch-part="donut-total"][data-ch-size="small"] {
+  font-size: 20px;
+}
+
+[data-ch-part="donut-name"],
+[data-ch-part="donut-percent"] {
+  fill: var(--ch-ink);
+  font-size: 13px;
+}
+
+[data-ch-part="donut-percent"] {
+  font-weight: 600;
+}
+
+/* The active slice: the others and their swatches dim through the shared rule (opacity, which
+   forced colors keep, so it also sets the active slice apart there); its name is bold. Text never
+   dims. */
+[data-ch-part="donut-row"][data-ch-active="true"] [data-ch-part="donut-name"] {
+  font-weight: 600;
+}
+
+[data-ch-part="donut-slice"][data-ch-selectable="true"],
+[data-ch-part="donut-hit"][data-ch-selectable="true"] {
+  cursor: pointer;
 }
 
 /* ---------- Tooltip pill ---------- */
@@ -1745,7 +1806,9 @@
       [data-ch-part="end-label"],
       [data-ch-part="row-sublabel"],
       [data-ch-part="group-label"],
-      [data-ch-orientation="horizontal"] [data-ch-part="funnel-name"]
+      [data-ch-orientation="horizontal"] [data-ch-part="funnel-name"],
+      [data-ch-part="donut-center-label"],
+      [data-ch-part="donut-value"]
     ) {
     fill: GrayText;
   }
@@ -1912,6 +1975,11 @@
 
   [data-ch-part="funnel-guide"][data-ch-active="true"] {
     stroke: Highlight;
+  }
+
+  /* Slices and swatches in the tone's system colour, as bars are; the gaps show the Canvas. */
+  :is([data-ch-part="donut-slice"], [data-ch-part="donut-swatch"])[data-ch-level] {
+    fill: var(--_ch-tone-paint);
   }
 
   [data-ch-part="runway-dot"] {

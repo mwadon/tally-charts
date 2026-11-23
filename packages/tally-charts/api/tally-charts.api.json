@@ -4922,6 +4922,33 @@
             },
             {
               "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!ChartMessages#headerPart:member",
+              "docComment": "/**\n * The part column of a DonutChart data table. A header taken from a string accessor keeps the field name.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "headerPart: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "headerPart",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
               "canonicalReference": "tally-charts!ChartMessages#headerPeriod:member",
               "docComment": "/**\n * A data-table column header.\n */\n",
               "excerptTokens": [
@@ -5158,6 +5185,33 @@
               "isOptional": false,
               "releaseTag": "Public",
               "name": "headerRunwayDetail",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!ChartMessages#headerShare:member",
+              "docComment": "/**\n * The share column of a DonutChart data table.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "headerShare: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "headerShare",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2
@@ -5732,6 +5786,33 @@
             },
             {
               "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!ChartMessages#ofTotal:member",
+              "docComment": "/**\n * After a DonutChart slice's share in the tooltip and announcements, as in \"42% of total\".\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "ofTotal: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "ofTotal",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
               "canonicalReference": "tally-charts!ChartMessages#onPlan:member",
               "docComment": "/**\n * The change a ComparisonBars row shows when actual is within the tolerance.\n */\n",
               "excerptTokens": [
@@ -5752,6 +5833,33 @@
               "isOptional": false,
               "releaseTag": "Public",
               "name": "onPlan",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!ChartMessages#other:member",
+              "docComment": "/**\n * The DonutChart slice that sums the smallest parts.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "other: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "other",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2
@@ -8670,6 +8778,214 @@
             }
           ],
           "extendsTokenRanges": []
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "tally-charts!DonutChart:function(1)",
+          "docComment": "",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function DonutChart<D>(input: "
+            },
+            {
+              "kind": "Reference",
+              "text": "DonutChartProps",
+              "canonicalReference": "tally-charts!DonutChartProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<D>"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!React.JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "returnTypeTokenRange": {
+            "startIndex": 4,
+            "endIndex": 6
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "{ data, x, y, id, tone, format, sort, maxSlices, diameter, centerLabel, showTotal, legend, legendValue, legendPosition, dataTable, tooltip, children, onSelect, onActiveChange, ...chart }",
+              "parameterTypeTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              },
+              "isOptional": false
+            },
+            {
+              "parameterName": "input",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "isOptional": false
+            }
+          ],
+          "typeParameters": [
+            {
+              "typeParameterName": "D",
+              "constraintTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              },
+              "defaultTypeTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              }
+            }
+          ],
+          "name": "DonutChart"
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "tally-charts!DonutChartProps:type",
+          "docComment": "",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "type DonutChartProps<D> = "
+            },
+            {
+              "kind": "Reference",
+              "text": "ChartName",
+              "canonicalReference": "tally-charts!ChartName:type"
+            },
+            {
+              "kind": "Content",
+              "text": " & "
+            },
+            {
+              "kind": "Reference",
+              "text": "Omit",
+              "canonicalReference": "!Omit:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "ChartPassThroughProps",
+              "canonicalReference": "tally-charts!ChartPassThroughProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<D>, 'aspectRatio' | 'height' | 'margin'> & {\n  data: readonly D[];\n  x: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Accessor",
+              "canonicalReference": "tally-charts!Accessor:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<D, string>;\n  y: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Accessor",
+              "canonicalReference": "tally-charts!Accessor:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<D, number>;\n  id?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Accessor",
+              "canonicalReference": "tally-charts!Accessor:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<D, "
+            },
+            {
+              "kind": "Reference",
+              "text": "Id",
+              "canonicalReference": "tally-charts!Id:type"
+            },
+            {
+              "kind": "Content",
+              "text": ">;\n  tone?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Tone",
+              "canonicalReference": "tally-charts!Tone:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n  format?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "FormatSpec",
+              "canonicalReference": "tally-charts!FormatSpec:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n  sort?: 'value' | 'none';\n  maxSlices?: number;\n  diameter?: number;\n  centerLabel?: string;\n  showTotal?: boolean;\n  legend?: boolean;\n  legendValue?: 'both' | 'value' | 'percent';\n  legendPosition?: 'auto' | 'right' | 'bottom';\n  dataTable?: boolean | "
+            },
+            {
+              "kind": "Reference",
+              "text": "DataTableOptions",
+              "canonicalReference": "tally-charts!DataTableOptions:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n  tooltip?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ChartTooltip",
+              "canonicalReference": "tally-charts!ChartTooltip:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<D>;\n}"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "DonutChartProps",
+          "typeParameters": [
+            {
+              "typeParameterName": "D",
+              "constraintTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              },
+              "defaultTypeTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              }
+            }
+          ],
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 23
+          }
         },
         {
           "kind": "Function",

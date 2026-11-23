@@ -59,6 +59,14 @@ export default [
     gzip: true,
   },
   {
+    name: 'DonutChart',
+    path: 'dist/index.js',
+    import: '{ DonutChart }',
+    ignore: ['react', 'react-dom'],
+    limit: '15 KB',
+    gzip: true,
+  },
+  {
     name: 'ComparisonBars',
     path: 'dist/index.js',
     import: '{ ComparisonBars }',

@@ -82,6 +82,10 @@
           "slug": "funnel-chart"
         },
         {
+          "label": "DonutChart",
+          "slug": "donut-chart"
+        },
+        {
           "label": "DotHistogram",
           "slug": "dot-histogram"
         },

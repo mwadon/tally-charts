@@ -265,6 +265,7 @@ export function Chart<D>({
     setActive: interaction.setActive,
     registerPoints: interaction.registerPoints,
     unregisterPoints: interaction.unregisterPoints,
+    leave,
     select,
     selectable: onSelect !== undefined,
     overlay,

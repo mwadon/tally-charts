@@ -15,6 +15,7 @@ export const thumbNames = [
   'waterfall-chart',
   'bridge-chart',
   'funnel',
+  'donut',
   'dot-histogram',
   'strip-plot',
   'scatter',
@@ -149,6 +150,42 @@ const THUMBS: Record<ThumbName, ReactNode> = {
         className="ct-accent"
         d="M8 16h4.2c8.3 0 8.3 6.65 16.6 6.65h4.2c8.3 0 8.3 4.2 16.6 4.2h4.2c8.3 0 8.3 3.6 16.6 3.6h4.2c8.3 0 8.3 0.55 16.6 0.55H112v8H91.2c-8.3 0-8.3 0.55-16.6 0.55h-4.2c-8.3 0-8.3 3.6-16.6 3.6h-4.2c-8.3 0-8.3 4.2-16.6 4.2h-4.2c-8.3 0-8.3 6.65-16.6 6.65H8z"
       />
+    </>
+  ),
+  donut: (
+    <>
+      <path
+        className="ct-accent"
+        d="M34.75 3.01A25 25 0 0 1 42.44 51.53L39.65 42.97A16 16 0 0 0 34.75 12.02z"
+      />
+      <path
+        className="ct-accent ct-half"
+        d="M41.01 52A25 25 0 0 1 10.47 36.44L19.03 33.65A16 16 0 0 0 38.23 43.43z"
+      />
+      <path
+        className="ct-accent ct-third"
+        d="M10 35.01A25 25 0 0 1 16.35 10.3L22.51 16.86A16 16 0 0 0 18.57 32.23z"
+      />
+      <path
+        className="ct-track"
+        d="M17.44 9.27A25 25 0 0 1 33.25 3.01L33.25 12.02A16 16 0 0 0 23.61 15.84z"
+      />
+      <rect className="ct-accent" x="72" y="9" width="6" height="6" />
+      <rect className="ct-accent ct-half" x="72" y="21" width="6" height="6" />
+      <rect className="ct-accent ct-third" x="72" y="33" width="6" height="6" />
+      <rect className="ct-track" x="72" y="45" width="6" height="6" />
+      {cells(
+        'ct-track',
+        [
+          [82, 10],
+          [82, 22],
+          [82, 34],
+          [82, 46],
+        ],
+        30,
+        4,
+      )}
+      <path className="ct-rule" d="M72 18.5h40M72 30.5h40M72 42.5h40" />
     </>
   ),
   'dot-histogram': (
