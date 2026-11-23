@@ -1,9 +1,18 @@
 import { render } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
-import { autoTickLabels } from '../../core/date'
+import { autoTickLabels, createDateFormatter } from '../../core/date'
 import { CHAR_WIDTH } from '../../core/text'
 import { estimateWidth, type Tick, thinTicks } from '../../core/ticks'
-import { inferTimeDomain, niceTimeDomain, type TimeScale, timeScale, toTime } from '../../core/time'
+import {
+  DAY,
+  inferTimeDomain,
+  niceTimeDomain,
+  type TimeScale,
+  timeScale,
+  toTime,
+} from '../../core/time'
+import { ChartsProvider } from '../ChartsProvider'
+import type { ChartMessages } from '../messages'
 import { GanttChart, type GanttChartProps } from './GanttChart'
 import { doneShare, ganttColumns, ganttMark, ganttRows } from './gantt-geometry'
 
@@ -41,6 +50,8 @@ const remodel: Task[] = [
 
 const NOW = '2026-03-27'
 const TICK_ROW = 28
+const NOW_ROW = 28
+const KEY_LINE = 24
 
 type Props = Record<string, unknown>
 
@@ -54,8 +65,14 @@ const BASE = {
   now: NOW,
 }
 
-/** A 720 px chart of `remodel` without value labels or key, unless `props` says otherwise. */
-function renderChart(props: Props = {}) {
+/**
+ * A 720 px chart of `remodel` without value labels or key, unless `props` says otherwise; inside a
+ * `ChartsProvider` when `provider` is given.
+ */
+function renderChart(
+  props: Props = {},
+  provider?: { locale?: string; messages?: Partial<ChartMessages> },
+) {
   const all = {
     data: remodel,
     ...BASE,
@@ -66,7 +83,8 @@ function renderChart(props: Props = {}) {
     animate: false,
     ...props,
   } as unknown as GanttChartProps<Task>
-  return render(<GanttChart<Task> {...all} />)
+  const chart = <GanttChart<Task> {...all} />
+  return render(provider ? <ChartsProvider {...provider}>{chart}</ChartsProvider> : chart)
 }
 
 const parts = (root: Element, part: string) => [
@@ -113,12 +131,18 @@ function expected(
     width = 720,
     position = 'auto',
     domain,
-  }: { width?: number; position?: 'auto' | 'left' | 'top'; domain?: [string, string] } = {},
+    valueWidth = 0,
+  }: {
+    width?: number
+    position?: 'auto' | 'left' | 'top'
+    domain?: [string, string]
+    valueWidth?: number
+  } = {},
 ) {
   const widest = Math.max(
     ...data.flatMap((d) => [d.name, d.phase ?? ''].map((t) => t.length * CHAR_WIDTH)),
   )
-  const cols = ganttColumns({ width, nameWidth: widest, valueWidth: 0, position })
+  const cols = ganttColumns({ width, nameWidth: widest, valueWidth, position })
   const count = Math.max(2, Math.round(cols.plotWidth / 100))
   const times = data.flatMap((d) =>
     [d.start, d.end, d.plannedStart, d.plannedEnd].filter((v) => v != null).map(time),
@@ -176,7 +200,8 @@ describe('GanttChart rows', () => {
       ...container.querySelectorAll('[data-ch-part="gantt-row"], [data-ch-part="gantt-heading"]'),
     ]
     expect(drawn.map(translateY)).toEqual(layout.entries.map((e) => e.y + TICK_ROW))
-    expect(svgHeight(container)).toBe(TICK_ROW + layout.height)
+    // `now` is inside the domain, so the now label's row comes under the rows.
+    expect(svgHeight(container)).toBe(TICK_ROW + layout.height + NOW_ROW)
   })
 
   it('sizes the name column from the widest name or group name and keeps data order', () => {
@@ -672,5 +697,343 @@ describe('GanttChart groups', () => {
     expect(headings(container)).toEqual(['Demolition', 'Rough-in', 'Finishes'])
     expect(error).not.toHaveBeenCalled()
     error.mockRestore()
+  })
+})
+
+/** Estimated width of a glyph of 12 px text: `CHAR_WIDTH` is taken at 13 px. */
+const CW12 = (CHAR_WIDTH * 12) / 13
+/** A value label: its own (muted) text and the text of its overrun tspan. */
+const labelOf = (el: Element | null | undefined) => ({
+  text: [...(el?.childNodes ?? [])]
+    .filter((n) => n.nodeType === 3)
+    .map((n) => n.textContent)
+    .join('')
+    .trim(),
+  over: el ? (one(el, 'gantt-over')?.textContent ?? null) : null,
+})
+const valueLabelOf = (root: Element, name: string) => one(rowByName(root, name), 'gantt-value')
+/** A row by its data index, for names cut in a narrow label column (remodel draws in data order). */
+const rowAt = (root: Element, index: number) => parts(root, 'gantt-row')[index] as Element
+/** Value labels of remodel in row order, as the shared data lists them. */
+const LABELS: { text: string; over: string | null }[] = [
+  ['2d'],
+  ['5d', '+1d'],
+  ['1d'],
+  ['4d'],
+  ['7d', '+2d'],
+  ['5d'],
+  ['Mar 23', '+3d'],
+  ['50%'],
+  ['5d'],
+  ['3d'],
+  ['4d'],
+  ['4d'],
+  ['Apr 17', '+3d'],
+].map(([text, over]) => ({ text: text as string, over: over ?? null }))
+const labelWidth = (l: { text: string; over: string | null }) =>
+  (l.over ? `${l.text} ${l.over}` : l.text).length * CW12
+const WIDEST = Math.max(...LABELS.map(labelWidth))
+
+describe('GanttChart value labels', () => {
+  it('writes the duration, percent, overrun and milestone date of each row', () => {
+    const { container } = renderChart({ valueLabels: true })
+    expect(parts(container, 'gantt-value').map(labelOf)).toEqual(LABELS)
+    // Every "+Nd" is a gantt-over tspan.
+    expect(parts(container, 'gantt-over').map((t) => t.textContent)).toEqual([
+      '+1d',
+      '+2d',
+      '+3d',
+      '+3d',
+    ])
+  })
+
+  it('puts a label 8 px after its bar (14 px after a milestone centre), with the gutter for the widest', () => {
+    const { container } = renderChart({ valueLabels: true })
+    const plain = expected(remodel)
+    const { plotX, plotWidth, scale } = expected(remodel, { valueWidth: WIDEST })
+    expect(plotWidth).toBeCloseTo(plain.plotWidth - (WIDEST + 8), 1)
+    for (const d of remodel) {
+      const label = valueLabelOf(container, d.name)
+      const mark = markOf(d, scale, plotWidth)
+      const x = plotX + (mark.milestone ? mark.x + 14 : mark.x + mark.width + 8)
+      expect(num(label, 'x')).toBeCloseTo(x, 1)
+      expect(label?.getAttribute('data-ch-side')).toBe('right')
+      expect(label?.getAttribute('text-anchor') ?? 'start').toBe('start')
+    }
+    // The bars move with the narrower plot.
+    const bar = one(rowByName(container, 'Cabinets'), 'gantt-segment')
+    expect(num(bar, 'x')).toBeCloseTo(plotX + scale(time('2026-03-31')), 1)
+  })
+
+  it('draws no labels and keeps the full plot with valueLabels={false}', () => {
+    const { container } = renderChart()
+    expect(parts(container, 'gantt-value')).toHaveLength(0)
+    const { plotX, scale } = expected(remodel)
+    const [cx] = centreOf(one(rowByName(container, 'Final walkthrough'), 'gantt-milestone'))
+    expect(cx).toBeCloseTo(plotX + scale(time('2026-04-17')), 1)
+  })
+
+  it('flips a label that would cross the right edge to the left of its mark, inside the chart', () => {
+    const domain: [string, string] = ['2026-03-01', '2026-04-17']
+    const { container } = renderChart({
+      valueLabels: true,
+      domain,
+      labelPosition: 'left',
+      width: 300,
+    })
+    const { plotX, plotWidth } = expected(remodel, {
+      width: 300,
+      position: 'left',
+      domain,
+      valueWidth: WIDEST,
+    })
+    // The gutter is capped at 25% of the width.
+    expect(plotWidth).toBeCloseTo(300 - plotX - Math.min(WIDEST + 8, 75), 1)
+    const labels = parts(container, 'gantt-value')
+    expect(labels.length).toBeGreaterThan(0)
+    for (const label of labels) {
+      const width = (label.textContent ?? '').length * CW12
+      const x = num(label, 'x')
+      if (label.getAttribute('data-ch-side') === 'left') {
+        expect(label.getAttribute('text-anchor')).toBe('end')
+        expect(x - width).toBeGreaterThanOrEqual(plotX)
+      } else {
+        expect(label.getAttribute('data-ch-side')).toBe('right')
+        expect(x + width).toBeLessThanOrEqual(300)
+      }
+    }
+    // The last milestone sits on the plot's right edge: its label goes left of the diamond.
+    const walkthrough = one(rowAt(container, 12), 'gantt-value')
+    expect(walkthrough?.getAttribute('data-ch-side')).toBe('left')
+    const [cx] = centreOf(one(rowAt(container, 12), 'gantt-milestone'))
+    expect(num(walkthrough, 'x')).toBeCloseTo(cx - 14, 1)
+    for (const { name, value } of attributes(container)) {
+      if (name === 'x') expect(Number(value)).toBeGreaterThanOrEqual(0)
+    }
+  })
+
+  it('drops a flipped label that would meet its row baseline marker', () => {
+    // Ten days late: "Apr 17 +10d" is wider than the capped gutter, and the baseline diamond
+    // ten days before the milestone lies under the place the flipped label would take.
+    const narrow = (plannedStart: string) =>
+      renderChart({
+        data: remodel.map((d) => (d.name === 'Final walkthrough' ? { ...d, plannedStart } : d)),
+        valueLabels: true,
+        domain: ['2026-03-01', '2026-04-17'],
+        labelPosition: 'left',
+        width: 300,
+      }).container
+    const late = narrow('2026-04-07')
+    expect(one(rowAt(late, 12), 'gantt-milestone')).not.toBeNull()
+    expect(one(rowAt(late, 12), 'gantt-value')).toBeNull()
+    expect(one(rowAt(late, 6), 'gantt-value')).not.toBeNull()
+    // Ten days early: a label as wide, with the baseline right of the diamond, fits on the left.
+    const early = narrow('2026-04-27')
+    expect(labelOf(one(rowAt(early, 12), 'gantt-value')).text).toBe('Apr 17 −10d')
+    expect(one(rowAt(early, 12), 'gantt-value')?.getAttribute('data-ch-side')).toBe('left')
+  })
+
+  it('writes an early milestone as "−2d" in the muted text, and no slip under a day', () => {
+    const data: Task[] = [
+      { name: 'Inspection', phase: null, start: '2026-03-23', plannedStart: '2026-03-25' },
+      { name: 'Handover', phase: null, start: '2026-03-30T10:00Z', plannedStart: '2026-03-30' },
+      { name: 'Build', phase: null, start: '2026-03-01', end: '2026-03-20' },
+    ]
+    const { container } = renderChart({ data, group: undefined, valueLabels: true })
+    expect(labelOf(valueLabelOf(container, 'Inspection'))).toEqual({
+      text: 'Mar 23 −2d',
+      over: null,
+    })
+    expect(labelOf(valueLabelOf(container, 'Handover'))).toEqual({ text: 'Mar 30', over: null })
+  })
+
+  it('writes "<1d" for a two-hour task', () => {
+    const data: Task[] = [
+      { name: 'Quick fix', phase: null, start: '2026-03-10T08:00Z', end: '2026-03-10T10:00Z' },
+      { name: 'Long job', phase: null, start: '2026-03-01', end: '2026-04-01' },
+    ]
+    const { container } = renderChart({ data, group: undefined, valueLabels: true })
+    expect(labelOf(valueLabelOf(container, 'Quick fix'))).toEqual({ text: '<1d', over: null })
+  })
+
+  it('writes day counts and dates in the provider locale', () => {
+    const { container } = renderChart({ valueLabels: true }, { locale: 'pl-PL' })
+    const days = new Intl.NumberFormat('pl-PL', {
+      style: 'unit',
+      unit: 'day',
+      unitDisplay: 'narrow',
+    })
+    expect(labelOf(valueLabelOf(container, 'Demolition'))).toEqual({
+      text: days.format(5),
+      over: `+${days.format(1)}`,
+    })
+    const date = createDateFormatter({ month: 'short', day: 'numeric' }, { locale: 'pl-PL' })
+    expect(labelOf(valueLabelOf(container, 'Rough inspection')).text).toBe(date(time('2026-03-23')))
+  })
+
+  it('reads whole days across a DST change with zone="local"', () => {
+    // Local midnights around the spring change of the suite's zone (Europe/Warsaw, Mar 29).
+    const start = new Date(2026, 2, 28)
+    const end = new Date(2026, 2, 30)
+    expect(end.getTime() - start.getTime()).toBe(2 * DAY - 3600e3)
+    const data: Task[] = [
+      { name: 'Across DST', phase: null, start, end },
+      { name: 'Long job', phase: null, start: new Date(2026, 2, 1), end: new Date(2026, 3, 20) },
+    ]
+    const { container } = renderChart({
+      data,
+      group: undefined,
+      zone: 'local',
+      now: undefined,
+      valueLabels: true,
+    })
+    expect(labelOf(valueLabelOf(container, 'Across DST'))).toEqual({ text: '2d', over: null })
+  })
+})
+
+describe('GanttChart now line', () => {
+  it('draws the line at `now` across the rows and the label under them, 28 px taller', () => {
+    const { container } = renderChart()
+    const { plotX, scale } = expected(remodel)
+    const layout = ganttRows(
+      remodel.map((d) => d.phase),
+      false,
+    )
+    const line = one(container, 'gantt-now')
+    const x = plotX + scale(time(NOW))
+    expect(num(line, 'x1')).toBeCloseTo(x, 1)
+    expect(num(line, 'x2')).toBeCloseTo(x, 1)
+    expect(num(line, 'y1')).toBe(TICK_ROW)
+    expect(num(line, 'y2')).toBe(TICK_ROW + layout.height + 6)
+    const label = one(container, 'gantt-now-label')
+    expect(label?.textContent).toBe('Today · Mar 27')
+    expect(label?.getAttribute('text-anchor')).toBe('middle')
+    expect(num(label, 'x')).toBeCloseTo(x, 1)
+    expect(num(label, 'y')).toBeGreaterThan(TICK_ROW + layout.height)
+    expect(num(label, 'y')).toBeLessThanOrEqual(TICK_ROW + layout.height + NOW_ROW)
+    const without = renderChart({ now: undefined })
+    expect(svgHeight(container)).toBe(svgHeight(without.container) + NOW_ROW)
+  })
+
+  it('draws neither line nor label for a `now` outside the domain, and keeps the height', () => {
+    const { container } = renderChart({ now: '2026-06-01' })
+    expect(one(container, 'gantt-now')).toBeNull()
+    expect(one(container, 'gantt-now-label')).toBeNull()
+    const without = renderChart({ now: undefined })
+    expect(svgHeight(container)).toBe(svgHeight(without.container))
+    for (const d of remodel.filter((t) => t.end).slice(-4)) {
+      expect(segmentsOf(rowByName(container, d.name)).every((s) => s.fill === 'solid')).toBe(true)
+    }
+  })
+
+  it('takes "Today" from messages', () => {
+    const { container } = renderChart({}, { messages: { today: 'Dziś' } })
+    expect(one(container, 'gantt-now-label')?.textContent).toBe('Dziś · Mar 27')
+  })
+
+  it('keeps the label inside the plot when `now` is next to the domain start', () => {
+    const domain: [string, string] = ['2026-03-01', '2026-04-26']
+    const { container } = renderChart({ domain, now: '2026-03-02' })
+    const { plotX, plotWidth, scale } = expected(remodel, { domain })
+    const line = one(container, 'gantt-now')
+    expect(num(line, 'x1')).toBeCloseTo(plotX + scale(time('2026-03-02')), 1)
+    const label = one(container, 'gantt-now-label')
+    const half = ((label?.textContent ?? '').length * CW12) / 2
+    expect(num(label, 'x') - half).toBeGreaterThanOrEqual(plotX - 0.01)
+    expect(num(label, 'x') + half).toBeLessThanOrEqual(plotX + plotWidth + 0.01)
+    expect(num(label, 'x')).toBeGreaterThan(num(line, 'x1'))
+  })
+})
+
+const keyItems = (root: Element) => parts(root, 'gantt-key-item')
+const keyKinds = (root: Element) => keyItems(root).map((el) => el.getAttribute('data-ch-kind'))
+const keyTexts = (root: Element) =>
+  keyItems(root).map((el) => el.querySelector('text')?.textContent)
+const translateX = (el: Element) =>
+  Number(el.getAttribute('transform')?.match(/translate\(([-\d.]+),\s*([-\d.]+)\)/)?.[1])
+const firstTickY = (root: Element) => num(parts(root, 'gantt-tick')[0], 'y')
+const firstRowY = (root: Element) => translateY(parts(root, 'gantt-row')[0] as Element)
+
+describe('GanttChart key', () => {
+  it('shows the five kinds of remodel in order and moves everything under it down a line', () => {
+    const keyed = renderChart({ legend: true }).container
+    expect(keyKinds(keyed)).toEqual(['done', 'planned', 'overrun', 'baseline', 'milestone'])
+    expect(keyTexts(keyed)).toEqual(['Done', 'Planned', 'Overrun', 'Baseline', 'Milestone'])
+    // One line, items from x 0, each after the previous one's swatch, gap and text, plus 20.
+    let x = 0
+    keyItems(keyed).forEach((item, i) => {
+      expect(translateY(item)).toBe(0)
+      expect(translateX(item)).toBeCloseTo(x, 1)
+      x += 18 + 6 + (keyTexts(keyed)[i] ?? '').length * CHAR_WIDTH + 20
+    })
+    const plain = renderChart().container
+    expect(firstTickY(keyed)).toBe(firstTickY(plain) + KEY_LINE)
+    expect(firstRowY(keyed)).toBe(firstRowY(plain) + KEY_LINE)
+    expect(num(one(keyed, 'gantt-grid'), 'y1')).toBe(num(one(plain, 'gantt-grid'), 'y1') + KEY_LINE)
+    expect(num(one(keyed, 'gantt-now'), 'y1')).toBe(num(one(plain, 'gantt-now'), 'y1') + KEY_LINE)
+    expect(svgHeight(keyed)).toBe(svgHeight(plain) + KEY_LINE)
+  })
+
+  it('draws each swatch like its mark', () => {
+    const { container } = renderChart({ legend: true, chartId: 'g' })
+    const swatch = (kind: string) =>
+      keyItems(container)
+        .find((el) => el.getAttribute('data-ch-kind') === kind)
+        ?.querySelector('rect')
+    const done = swatch('done')
+    expect([num(done, 'width'), num(done, 'height')]).toEqual([18, 10])
+    expect(done?.style.fill).toBe('var(--ch-accent)')
+    expect(swatch('planned')?.style.fill).toMatch(/^url\("?#ch-g-hatch-accent"?\)$/)
+    expect(swatch('planned')?.getAttribute('data-ch-fill')).toBe('hatch')
+    expect(swatch('overrun')?.style.fill).toBe('var(--ch-loss)')
+    const baseline = swatch('baseline')
+    expect([num(baseline, 'width'), num(baseline, 'height')]).toEqual([18, 3])
+    const milestone = swatch('milestone')
+    expect(num(milestone, 'width')).toBe(9)
+    expect(milestone?.getAttribute('transform')).toMatch(/rotate\(45\)/)
+    const text = keyItems(container)[0]?.querySelector('text')
+    expect(num(text, 'x')).toBe(24)
+  })
+
+  it('draws no key for a plain schedule', () => {
+    const { container } = renderChart({
+      data: remodel.filter((d) => d.end),
+      legend: true,
+      now: undefined,
+      baselineStart: undefined,
+      baselineEnd: undefined,
+    })
+    expect(one(container, 'gantt-key')).toBeNull()
+    expect(firstTickY(container)).toBe(17)
+  })
+
+  it('shows done and milestone for tasks and one milestone', () => {
+    const { container } = renderChart({
+      data: remodel.filter((d) => d.end || d.name === 'Final walkthrough'),
+      legend: true,
+      now: undefined,
+      baselineStart: undefined,
+      baselineEnd: undefined,
+    })
+    expect(keyKinds(container)).toEqual(['done', 'milestone'])
+  })
+
+  it('wraps to more lines in a narrow chart and moves the plot down by all of them', () => {
+    const keyed = renderChart({ legend: true, width: 300 }).container
+    const lines = new Set(keyItems(keyed).map(translateY))
+    expect(lines.size).toBeGreaterThan(1)
+    expect([...lines].sort((a, b) => a - b)).toEqual([...lines].map((_, i) => i * KEY_LINE))
+    for (const item of keyItems(keyed)) {
+      const width = 18 + 6 + (item.querySelector('text')?.textContent ?? '').length * CHAR_WIDTH
+      expect(translateX(item) + width).toBeLessThanOrEqual(300)
+    }
+    const plain = renderChart({ width: 300 }).container
+    expect(firstRowY(keyed)).toBe(firstRowY(plain) + KEY_LINE * lines.size)
+    expect(svgHeight(keyed)).toBe(svgHeight(plain) + KEY_LINE * lines.size)
+  })
+
+  it('takes its words from messages', () => {
+    const { container } = renderChart({ legend: true }, { messages: { keyDone: 'Gotowe' } })
+    expect(keyTexts(container)[0]).toBe('Gotowe')
   })
 })

@@ -565,6 +565,7 @@
 }
 
 /* ---------- Labels and reference marks ---------- */
+[data-ch-part="gantt-value"],
 [data-ch-part="gantt-tick"],
 [data-ch-part="axis-label"],
 [data-ch-part="axis-title"],
@@ -784,6 +785,40 @@
   fill: var(--ch-ink);
 }
 
+/* Value labels are muted 12 px text (with the ticks above); an overrun or a late slip is loss mixed
+   with ink at 600, as toned text is. */
+[data-ch-part="gantt-over"] {
+  fill: color-mix(in srgb, var(--ch-loss) var(--ch-tone-text-mix), var(--ch-ink));
+  font-weight: 600;
+}
+
+/* The now line: 1 px ink over the grid and under the bars; its label under the rows. */
+[data-ch-part="gantt-now"] {
+  stroke: var(--ch-ink);
+  stroke-width: 1;
+}
+
+[data-ch-part="gantt-now-label"] {
+  fill: var(--ch-ink);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+/* Key swatches are drawn like the marks: bar parts paint inline (a hatched one gets the outline
+   below), the baseline is neutral and the milestone a reached diamond. */
+[data-ch-part="gantt-key-item"] text {
+  fill: var(--ch-ink-muted);
+  font-size: 13px;
+}
+
+[data-ch-part="gantt-key-item"][data-ch-kind="baseline"] rect {
+  fill: var(--ch-neutral);
+}
+
+[data-ch-part="gantt-key-item"][data-ch-kind="milestone"] rect {
+  fill: var(--ch-ink);
+}
+
 /* ---------- Tooltip pill ---------- */
 /* As wide as the content (not the space left of the anchor), capped at the chart width by an
    inline max-width; past that the pill wraps between, and then inside, its segments. */
@@ -946,6 +981,7 @@
 [data-ch-part="bar"][data-ch-fill="hatch"],
 [data-ch-part="region"][data-ch-fill="hatch"],
 [data-ch-part="gantt-segment"][data-ch-fill="hatch"],
+[data-ch-part="gantt-key-item"] [data-ch-fill="hatch"],
 [data-ch-part="bar"][data-ch-tone="accent-soft"],
 [data-ch-part="dot"][data-ch-tone="accent-soft"]:not([data-ch-soft]),
 [data-ch-part="bubble"][data-ch-tone="accent-soft"],
@@ -1838,6 +1874,8 @@
       [data-ch-part="row-sublabel"],
       [data-ch-part="group-label"],
       [data-ch-part="gantt-tick"],
+      [data-ch-part="gantt-value"],
+      [data-ch-part="gantt-key-item"] text,
       [data-ch-orientation="horizontal"] [data-ch-part="funnel-name"],
       [data-ch-part="donut-center-label"],
       [data-ch-part="donut-value"]
@@ -2021,6 +2059,14 @@
 
   [data-ch-part="gantt-milestone"][data-ch-reached="true"] {
     fill: CanvasText;
+  }
+
+  [data-ch-part="gantt-key-item"][data-ch-kind="milestone"] rect {
+    fill: CanvasText;
+  }
+
+  [data-ch-part="gantt-now"] {
+    stroke: CanvasText;
   }
 
   [data-ch-part="runway-dot"] {

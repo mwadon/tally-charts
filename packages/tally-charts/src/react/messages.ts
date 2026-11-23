@@ -143,6 +143,18 @@ export interface ChartMessages {
   deltaDown: string
   /** Read before a Delta's value when it did not change. */
   deltaFlat: string
+  /** The label of a GanttChart's now line, before the date, as in "Today · Mar 27". */
+  today: string
+  /** GanttChart key: the solid, done part of a bar. */
+  keyDone: string
+  /** GanttChart key: the hatched, planned part of a bar. */
+  keyPlanned: string
+  /** GanttChart key: the part of a bar past its baseline's length. */
+  keyOverrun: string
+  /** GanttChart key: the line under a bar. */
+  keyBaseline: string
+  /** GanttChart key: the diamond. */
+  keyMilestone: string
 }
 
 // One `const` per default, read at the call site as `messages.noData ?? NO_DATA`, so a bundle holds
@@ -218,6 +230,12 @@ export const HEATMAP_NAME = 'Heatmap'
 export const DELTA_UP = 'Up'
 export const DELTA_DOWN = 'Down'
 export const DELTA_FLAT = 'No change'
+export const TODAY = 'Today'
+export const KEY_DONE = 'Done'
+export const KEY_PLANNED = 'Planned'
+export const KEY_OVERRUN = 'Overrun'
+export const KEY_BASELINE = 'Baseline'
+export const KEY_MILESTONE = 'Milestone'
 
 /**
  * The English text of every key in `ChartMessages`. The wording isn't public and can change in any
@@ -294,6 +312,12 @@ export const DEFAULT_MESSAGES: Readonly<ChartMessages> = {
   deltaUp: DELTA_UP,
   deltaDown: DELTA_DOWN,
   deltaFlat: DELTA_FLAT,
+  today: TODAY,
+  keyDone: KEY_DONE,
+  keyPlanned: KEY_PLANNED,
+  keyOverrun: KEY_OVERRUN,
+  keyBaseline: KEY_BASELINE,
+  keyMilestone: KEY_MILESTONE,
 }
 
 /** Fills `{name}` placeholders from `values`; an unknown placeholder stays as text. */

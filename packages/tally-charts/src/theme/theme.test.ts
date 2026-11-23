@@ -425,6 +425,44 @@ describe('theme.css', () => {
     )
   })
 
+  it('styles the gantt value labels, now line and key from tokens, with forced-colors twins', () => {
+    // Value labels are muted 12 px text with the ticks; "+Nd" is loss text at 600.
+    expect(themed).toMatch(
+      /\[data-ch-part="gantt-value"\],\s*\[data-ch-part="gantt-tick"\],[^{]*\{\s*fill: var\(--ch-ink-muted\);\s*font-size: 12px;/,
+    )
+    expect(themed).toMatch(
+      /\[data-ch-part="gantt-over"\] \{\s*fill: color-mix\(in srgb, var\(--ch-loss\) var\(--ch-tone-text-mix\), var\(--ch-ink\)\);\s*font-weight: 600;/,
+    )
+    expect(themed).toMatch(
+      /\[data-ch-part="gantt-now"\] \{\s*stroke: var\(--ch-ink\);\s*stroke-width: 1;/,
+    )
+    expect(themed).toMatch(
+      /\[data-ch-part="gantt-now-label"\] \{\s*fill: var\(--ch-ink\);\s*font-size: 12px;\s*font-weight: 600;/,
+    )
+    expect(themed).toMatch(
+      /\[data-ch-part="gantt-key-item"\] text \{\s*fill: var\(--ch-ink-muted\);\s*font-size: 13px;/,
+    )
+    expect(themed).toMatch(
+      /\[data-ch-part="gantt-key-item"\]\[data-ch-kind="baseline"\] rect \{\s*fill: var\(--ch-neutral\);/,
+    )
+    expect(themed).toMatch(
+      /\[data-ch-part="gantt-key-item"\]\[data-ch-kind="milestone"\] rect \{\s*fill: var\(--ch-ink\);/,
+    )
+    // The hatched key swatch gets the outline of hatched marks.
+    const outline = css.match(/\[data-ch-part="bar"\]\[data-ch-fill="hatch"\],[^{]*\{/)?.[0]
+    expect(outline).toContain('[data-ch-part="gantt-key-item"] [data-ch-fill="hatch"]')
+    // Forced colors: muted texts in GrayText, the line and the key diamond in CanvasText.
+    const muted = forced.match(
+      /:is\(([^)]*\[data-ch-part="gantt-tick"\][^)]*)\) \{\s*fill: GrayText;/,
+    )
+    expect(muted?.[1]).toContain('[data-ch-part="gantt-value"]')
+    expect(muted?.[1]).toContain('[data-ch-part="gantt-key-item"] text')
+    expect(forced).toMatch(/\[data-ch-part="gantt-now"\] \{\s*stroke: CanvasText;/)
+    expect(forced).toMatch(
+      /\[data-ch-part="gantt-key-item"\]\[data-ch-kind="milestone"\] rect \{\s*fill: CanvasText;/,
+    )
+  })
+
   it('inks the active funnel guide, Highlight in forced colors, and points at selectable steps', () => {
     expect(themed).toMatch(
       /\[data-ch-part="funnel-guide"\]\[data-ch-active="true"\] \{\s*stroke: var\(--ch-ink\);\s*stroke-width: 1\.5;/,

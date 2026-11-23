@@ -533,3 +533,16 @@ describe('DonutChart messages', () => {
     })
   })
 })
+
+describe('GanttChart messages', () => {
+  it('have English defaults', () => {
+    expect(DEFAULT_MESSAGES).toMatchObject({
+      today: 'Today',
+      keyDone: 'Done',
+      keyPlanned: 'Planned',
+      keyOverrun: 'Overrun',
+      keyBaseline: 'Baseline',
+      keyMilestone: 'Milestone',
+    })
+  })
+})

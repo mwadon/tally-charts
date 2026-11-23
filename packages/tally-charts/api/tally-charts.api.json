@@ -5435,6 +5435,33 @@
             },
             {
               "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!ChartMessages#keyBaseline:member",
+              "docComment": "/**\n * GanttChart key: the line under a bar.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "keyBaseline: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "keyBaseline",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
               "canonicalReference": "tally-charts!ChartMessages#keyboardHint:member",
               "docComment": "/**\n * Read when a chart takes keyboard focus. An empty string removes the hint.\n */\n",
               "excerptTokens": [
@@ -5482,6 +5509,114 @@
               "isOptional": false,
               "releaseTag": "Public",
               "name": "keyboardHintSelect",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!ChartMessages#keyDone:member",
+              "docComment": "/**\n * GanttChart key: the solid, done part of a bar.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "keyDone: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "keyDone",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!ChartMessages#keyMilestone:member",
+              "docComment": "/**\n * GanttChart key: the diamond.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "keyMilestone: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "keyMilestone",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!ChartMessages#keyOverrun:member",
+              "docComment": "/**\n * GanttChart key: the part of a bar past its baseline's length.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "keyOverrun: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "keyOverrun",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!ChartMessages#keyPlanned:member",
+              "docComment": "/**\n * GanttChart key: the hatched, planned part of a bar.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "keyPlanned: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "keyPlanned",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2
@@ -6184,6 +6319,33 @@
               "isOptional": false,
               "releaseTag": "Public",
               "name": "targetLabel",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!ChartMessages#today:member",
+              "docComment": "/**\n * The label of a GanttChart's now line, before the date, as in \"Today · Mar 27\".\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "today: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "today",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2

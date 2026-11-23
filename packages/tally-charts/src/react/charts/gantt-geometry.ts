@@ -50,6 +50,13 @@ export interface GanttMark {
 
 const MIN_BAR = 2
 
+/** A task's duration minus its baseline's, never negative; 0 for a milestone or without a baseline. */
+export function ganttOverrun(item: GanttItem): number {
+  const { start, end, baselineStart, baselineEnd } = item
+  if (end === null || baselineStart === null || baselineEnd === null) return 0
+  return Math.max(0, end - start - (baselineEnd - baselineStart))
+}
+
 const hidden = (milestone: boolean): GanttMark => ({
   milestone,
   x: 0,
@@ -102,7 +109,7 @@ export function ganttMark(
       baseline = { x: round2(clip(b0)), width: round2(clip(b1) - clip(b0)) }
     }
   }
-  const overMs = hasBaseline ? Math.max(0, end - start - (baselineEnd - baselineStart)) : 0
+  const overMs = ganttOverrun(item)
 
   if (x1 < 0 || x0 > plotWidth) return { ...hidden(false), baseline, overMs }
 

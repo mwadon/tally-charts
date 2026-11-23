@@ -304,8 +304,13 @@ export interface ChartMessages {
     headerX: string;
     headerY: string;
     heatmapName: string;
+    keyBaseline: string;
     keyboardHint: string;
     keyboardHintSelect: string;
+    keyDone: string;
+    keyMilestone: string;
+    keyOverrun: string;
+    keyPlanned: string;
     legendLocked: string;
     legendNoForecast: string;
     legendProjectedUse: string;
@@ -332,6 +337,7 @@ export interface ChartMessages {
     statusRunsOut: string;
     target: string;
     targetLabel: string;
+    today: string;
     total: string;
     valueAbove: string;
     valueAgainst: string;
