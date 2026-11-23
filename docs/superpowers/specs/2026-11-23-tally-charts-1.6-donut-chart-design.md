@@ -46,7 +46,7 @@ type DonutChartProps<D> = ChartName &
     y: Accessor<D, number>
     /** Part id. Default: the data index. */
     id?: Accessor<D, Id>
-    /** Default 'accent'. The base tone of the slices; the last slice is neutral. */
+    /** Default 'accent'. The base tone of the slices; a fifth slice and the "Other" slice are neutral. */
     tone?: Tone
     /** Default 'number'. Formats part values and the total. */
     format?: FormatSpec

@@ -2812,3 +2812,24 @@ Gałąź `funnel-chart`. Spec: `docs/superpowers/specs/2026-11-19-tally-charts-1
 - Warstwa serii, która w części kroków ma zero, rysuje tam nadal jedną zamkniętą ścieżkę zerowej szerokości.
 - Wydanie 1.5.0 nie zostało zrobione (changeset jest).
 - `pnpm --filter docs seed` (nowa strona i kafelek w glokki).
+
+## DonutChart 1.6 (2026-11-23)
+
+Gałąź `donut-chart`. Spec: `docs/superpowers/specs/2026-11-23-tally-charts-1.6-donut-chart-design.md`. Wydanie 1.6.0 (minor, tylko dodatki, changeset `.changeset/donut-chart.md`).
+
+- Komponent `DonutChart`: pierścień (zewnętrzny promień `D / 2 − 16`, wewnętrzny 0,64 × zewnętrzny, `D = min(diameter, szerokość)`, domyślnie 232), wycinki od godziny 12 zgodnie z ruchem wskazówek, przerwa 2 px o stałej szerokości (brak przy jednym wycinku), wycinek ≥ 2 px na zewnętrznej krawędzi kosztem największego. Kolejność `sort` `'value'` (domyślnie, remisy w kolejności danych) albo `'none'`; `maxSlices` 2–5 (domyślnie 5, poza zakresem przycinane z ostrzeżeniem), nadmiar najmniejszych części sumowany w „Other” (id `'other'`, `selectable: false`). Kolory: wycinki 1–4 to kroki `--ch-seq-5…-2` tonu (`tone`, domyślnie accent), piąty wycinek i „Other” neutralne. Środek: suma 28 px, 20 px gdy za szeroka, pominięta gdy nadal za szeroka; `centerLabel` ucinany z `<title>`; `showTotal={false}` bez obu. Lista w SVG (wiersze 40 px, swatch, nazwa, wartość, procent; `legendValue`), z prawej przy szerokości ≥ `diameter + 252` w `'auto'`, inaczej pod pierścieniem; `legend={false}` sam pierścień. Najechanie na wycinek albo wiersz listy aktywuje go, wyjście do dziury albo przerwy czyści; aktywny wycinek przez przygaszenie pozostałych (`dimInactive`) i pogrubioną nazwę. „Other” można zogniskować i najechać, ma domyślny tooltip, nigdy nie trafia do `onSelect` ani funkcji `tooltip`, a `onActiveChange` raportuje go z `datum` undefined. Forced colors: wycinki w systemowym kolorze tonu, aktywny odróżnia przygaszenie pozostałych. Nowe klucze `ChartMessages`: `other`, `ofTotal`, `headerPart`, `headerShare`. TSDoc `tone` poprawiony (piąty wycinek i „Other” są neutralne, nie „ostatni”); komentarz jest w aliasie typu propsów, więc model API się nie zmienił.
+- Rozmiar: wpis `DonutChart` w `pnpm size` 11.53 kB, limit 15 KB.
+- Testy biblioteki 1763, testy docs 906, e2e docs 568 na darwin i 568 na linux (docker, tryb porównania), e2e Storybook 606 na darwin i linux (z Task 5), `test:scripts` 39.
+- Docs: strona `/docs/donut-chart` (fiksturka, nawigacja po FunnelChart) z czterema przykładami w `examples/donut-chart/` (`revenue-by-line` jak artboard, `many-parts` z dziewięcioma wierszami i „Other”, `list-below` z `legendPosition="bottom"` i `sort="none"`, `ring-only` z `legend={false}` obok `Stat`; wszystkie rscSafe), miniatura `donut` i kafelek w `chart-index`, nagłówek „Seventeen charts, one grammar”, nowe klucze w tabeli komunikatów na `/docs/hooks-and-providers`. Karty (zmierzone na darwin): przy 1280 px wykres 232 px z listą z prawej mieści się w domyślnym panelu, przy 375 px 440 px z listą pod pierścieniem, więc `many-parts` ma wpis 440 w `NARROW_CHART_HEIGHTS`, `list-below` `height` bloku 472 (440 przy obu szerokościach), `ring-only` (157–200 px) bez wpisów. Stron w nawigacji 31, `API coverage: 59/59`, `check:content` 0 błędów w 32 stronach. Wiersz DonutChart i uwaga (kolejność listy, nie sam kolor, identyfikuje wycinek) w `docs/a11y.md`. Baseline'y `/` odświeżone na darwin i linux (baseline'y `/docs/line-chart` bez zmian).
+
+**Otwarte kwestie:**
+- Wymuszone `legendPosition="right"` w wykresie za wąskim na listę przesuwa wartości poza prawą krawędź (wybór wywołującego).
+- W ciemnym motywie najjaśniejszy krok ma niski kontrast z kartą (bramki przechodzą).
+- `check:dev-strip` nie ma fraz FunnelChart (sprzed tej zmiany).
+- Wpis `LineChart` w `pnpm size` ma ok. 110 B zapasu.
+- Kafelków `chart-index` jest 18 (17 wykresów i Small pieces), więc przy 4 kolumnach ostatni wiersz ma dwa kafelki.
+- Przy oknie ok. 551–763 px leniwa karta `many-parts` maleje po zamontowaniu o 184 px (523 → 339): wykres ≥ 484 px ma już listę z prawej, a `[data-lazy-wide]` poniżej 764 px rezerwuje wąską wysokość (jak przy lejku; poprawka wymaga progu placeholdera per przykład).
+- Pierwsza (eager) karta `/docs/donut-chart` jest renderowana na serwerze przy `initialWidth` 640 (lista z prawej) i przy 375 px po zmierzeniu przenosi listę pod pierścień (zmiana wysokości po hydracji).
+- `<title>` uciętej nazwy w liście jest pod prostokątem trafień `donut-hit`, więc przeglądarka go nie pokazuje (pełna nazwa jest w tooltipie i tabeli).
+- Wydanie 1.6.0 nie zostało zrobione (changeset jest).
+- `pnpm --filter docs seed` (nowa strona i kafelek w glokki).

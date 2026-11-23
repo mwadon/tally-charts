@@ -1,0 +1,289 @@
+{
+  "versionId": "fixture-donut-chart-v1",
+  "version": 1,
+  "locale": "en",
+  "publishedAt": "2026-11-23T00:00:00.000Z",
+  "codeInjection": {},
+  "layout": {
+    "key": "default",
+    "header": null,
+    "footer": null
+  },
+  "pageId": "fixture-donut-chart",
+  "title": "DonutChart",
+  "slug": "donut-chart",
+  "seo": {
+    "metaTitle": "DonutChart · tally-charts",
+    "metaDescription": "How one total splits into a few parts: a ring of at most five slices in steps of one tone, the total in the centre, a list of values and shares, keyboard navigation and a hidden data table."
+  },
+  "componentTree": [
+    {
+      "id": "n1",
+      "type": "prose",
+      "props": {
+        "markdown": "How one total splits into a few parts. `DonutChart` draws a ring of at most five slices in steps of one tone, the total in the centre and a list of the parts with their values and shares beside the ring. It handles the layout, the tooltip, the keyboard and the screen reader."
+      }
+    },
+    {
+      "id": "n2",
+      "type": "heading",
+      "props": {
+        "text": "When to use it",
+        "level": "2",
+        "anchor": "when-to-use"
+      }
+    },
+    {
+      "id": "n3",
+      "type": "prose",
+      "props": {
+        "markdown": "Use it for the parts of one total that the reader takes in at a glance: revenue by service line, jobs by status, hours by trade. The reader sees the total, the biggest part and roughly how much of the whole it takes, and reads the exact values from the list. For parts that are compared with each other rather than with the whole, or for more than a handful of them, use [`BarChart`](/docs/bar-chart) or [`RankedBars`](/docs/ranked-bars); for the steps of a process use [`FunnelChart`](/docs/funnel-chart). It has no pie without a hole, no half ring, no nested rings (series), no labels or leader lines around the ring, no start angle or inner radius prop, no colour or tone per slice, no custom centre content, no custom percent format and no target."
+      }
+    },
+    {
+      "id": "n4",
+      "type": "heading",
+      "props": {
+        "text": "Import",
+        "level": "2",
+        "anchor": "install"
+      }
+    },
+    {
+      "id": "n5",
+      "type": "code-block",
+      "props": {
+        "code": "npm i tally-charts",
+        "lang": "bash"
+      }
+    },
+    {
+      "id": "n6",
+      "type": "code-block",
+      "props": {
+        "code": "import { DonutChart } from 'tally-charts'\nimport 'tally-charts/theme.css'",
+        "lang": "tsx",
+        "filename": "app/revenue.tsx"
+      }
+    },
+    {
+      "id": "n7",
+      "type": "heading",
+      "props": {
+        "text": "Examples",
+        "level": "2",
+        "anchor": "examples"
+      }
+    },
+    {
+      "id": "n8",
+      "type": "prose",
+      "props": {
+        "markdown": "`data` has one row per part. `x` names the part and `y` reads its value. Props stay serializable here (field names and a preset format), so the chart renders in a server component."
+      }
+    },
+    {
+      "id": "n9",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "donut-chart/revenue-by-line",
+        "defaultView": "preview"
+      }
+    },
+    {
+      "id": "n10",
+      "type": "heading",
+      "props": {
+        "text": "Slices",
+        "level": "2",
+        "anchor": "slices"
+      }
+    },
+    {
+      "id": "n11",
+      "type": "prose",
+      "props": {
+        "markdown": "A row is a part when its value is a finite number above 0. Each part is a slice, and the slices run clockwise from 12 o'clock. With `sort` at its default, `'value'`, the largest part comes first and ties keep the data order; `sort=\"none\"` keeps the data order. The angle of a slice is its share of the total. A 2 px gap separates neighbouring slices; a single part is a full ring with no gap. A slice is never shorter than 2 px along the outer edge, and that room is taken from the largest slice."
+      }
+    },
+    {
+      "id": "n12",
+      "type": "prose",
+      "props": {
+        "markdown": "`maxSlices` (default 5, from 2 to 5) caps the number of slices. With more parts than that, the largest `maxSlices − 1` parts keep a slice each and the rest are summed into one last slice named “Other”. With `sort=\"none\"` the summed parts are still the smallest ones: the kept parts stay in data order and “Other” comes last. A `maxSlices` outside 2–5 or not a whole number is floored and clamped, with a warning in development. The parts inside “Other” keep their own rows in the data table."
+      }
+    },
+    {
+      "id": "n13",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "donut-chart/many-parts",
+        "defaultView": "preview"
+      }
+    },
+    {
+      "id": "n14",
+      "type": "heading",
+      "props": {
+        "text": "Colour",
+        "level": "2",
+        "anchor": "colour"
+      }
+    },
+    {
+      "id": "n15",
+      "type": "prose",
+      "props": {
+        "markdown": "The slices use one tone in steps: the first slice is the base `tone` (default `accent`), and the second, third and fourth are lighter steps of the same tone, from the library's sequential ramp for that tone. A fifth slice and the “Other” slice are neutral grey. With four parts or fewer and no “Other”, every slice is a step of the tone. There is no colour per slice: the order of the slices carries the rest, and the list repeats them in ring order, so the colour is never the only way to tell the parts apart."
+      }
+    },
+    {
+      "id": "n16",
+      "type": "heading",
+      "props": {
+        "text": "The centre",
+        "level": "2",
+        "anchor": "centre"
+      }
+    },
+    {
+      "id": "n17",
+      "type": "prose",
+      "props": {
+        "markdown": "The hole shows the total, formatted with `format` (default `'number'`): the sum of all the parts, “Other” included. `centerLabel` adds a line of text under it, such as “total revenue”, cut with an ellipsis when it is wider than the hole (the full text is in a `<title>`). When the total is too wide for the hole at 28 px (by the library's estimate of text width; it does not measure text), it is drawn at 20 px, and when it is still too wide it is not drawn; the label then sits alone in the centre. `showTotal={false}` draws neither the total nor the label."
+      }
+    },
+    {
+      "id": "n18",
+      "type": "heading",
+      "props": {
+        "text": "The list",
+        "level": "2",
+        "anchor": "list"
+      }
+    },
+    {
+      "id": "n19",
+      "type": "prose",
+      "props": {
+        "markdown": "The list has a row per slice, in ring order: a swatch in the slice colour, the name, the value and the percent. `legendValue` picks what a row shows on the right: `'both'` (default), `'value'` or `'percent'`. The percents are whole and add up to 100 (largest remainder); a part above 0 that rounds to 0 reads “<1%”. Rows are 40 px high, the value and percent columns are as wide as their widest text, and a name too long for what is left is cut, with the full text in a `<title>`, the tooltip and the data table. Values are never cut."
+      }
+    },
+    {
+      "id": "n20",
+      "type": "prose",
+      "props": {
+        "markdown": "With `legendPosition` at its default, `'auto'`, the list is right of the ring when the chart is at least `diameter` + 252 px wide (484 px with the default `diameter` of 232), and under the ring, at full width, when it is narrower; the cards on this page switch at a phone width. `'right'` and `'bottom'` never switch; in a forced `'right'` that is too narrow for the list, the values run past the right edge. The ring is `diameter` px wide, or the chart width when that is smaller, and there is no `height` prop: the chart is as tall as the taller of the ring and the list, or the ring, 8 px and the list when the list is under it. The server render and the first client render use `initialWidth` (default 640), so the chart may move the list once it has measured its width."
+      }
+    },
+    {
+      "id": "n21",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "donut-chart/list-below",
+        "defaultView": "preview",
+        "height": 472
+      }
+    },
+    {
+      "id": "n22",
+      "type": "prose",
+      "props": {
+        "markdown": "`legend={false}` draws the ring alone, centred, and the chart is as tall as the ring. Put the headline number beside it with `Stat`, as here, or say the parts in the title or the description: without the list, the values are in the tooltip, the announcements and the data table only."
+      }
+    },
+    {
+      "id": "n23",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "donut-chart/ring-only",
+        "defaultView": "preview"
+      }
+    },
+    {
+      "id": "n24",
+      "type": "heading",
+      "props": {
+        "text": "Rows that are not drawn",
+        "level": "2",
+        "anchor": "skipped"
+      }
+    },
+    {
+      "id": "n25",
+      "type": "prose",
+      "props": {
+        "markdown": "A row whose value is missing, not a number or negative is skipped, with a warning in development: it is not a slice and has no point and no stop for the keyboard, and it is not in the total. It keeps its row in the data table, with empty value and share cells. A row of 0 is not drawn either, with no warning, and its share in the data table is “0%”. When no row is a part (no data, or every value is 0), the chart shows the “No data” message."
+      }
+    },
+    {
+      "id": "n26",
+      "type": "heading",
+      "props": {
+        "text": "Props",
+        "level": "2",
+        "anchor": "props"
+      }
+    },
+    {
+      "id": "n27",
+      "type": "props-table",
+      "props": {
+        "symbol": "DonutChart"
+      }
+    },
+    {
+      "id": "n28",
+      "type": "heading",
+      "props": {
+        "text": "Points and the tooltip",
+        "level": "2",
+        "anchor": "points"
+      }
+    },
+    {
+      "id": "n29",
+      "type": "prose",
+      "props": {
+        "markdown": "Each slice is one point, in ring order, “Other” included. Its id is the `id` accessor or the data index; the id of “Other” is the string `'other'`, so give no row that id. In `onSelect`, `onActiveChange` and a `tooltip` function, `point.datum` is your row. The pointer activates the slice under it, or the slice whose list row is under it, and leaving it for the hole, a gap or the space around the chart clears it. The default tooltip shows the name, the value and the share of the total (“42% of total”)."
+      }
+    },
+    {
+      "id": "n30",
+      "type": "prose",
+      "props": {
+        "markdown": "“Other” has no data row. It can be focused and hovered and shows the default tooltip, also when `tooltip` is a function (the function is not called for it); `onSelect` is never called for it, and `onActiveChange` reports it with the id `'other'` and a point whose `datum` is `undefined`. With `dimInactive` (default true) the other slices and their swatches dim while a slice is active, and the active row's name turns bold. Text never dims, and the ring does not move."
+      }
+    },
+    {
+      "id": "n31",
+      "type": "heading",
+      "props": {
+        "text": "Keyboard and screen readers",
+        "level": "2",
+        "anchor": "keyboard"
+      }
+    },
+    {
+      "id": "n32",
+      "type": "prose",
+      "props": {
+        "markdown": "The chart is a single tab stop. The arrow keys move between the slices in ring order: Right and Down to the next slice (clockwise), Left and Up to the previous one. `Home` and `End` jump to the first and last slice, `Enter` or `Space` selects the active slice when the chart has `onSelect` (never “Other”), and `Esc` clears it. A chart with no slice has no tab stop."
+      }
+    },
+    {
+      "id": "n33",
+      "type": "prose",
+      "props": {
+        "markdown": "The list is part of the picture, which is hidden from assistive technology as in every chart. Screen readers get the title and description, then an announcement for each slice the keyboard moves to, such as “1 of 5, Installs, $773K, 42% of total”: the position among the slices, the name, the value and the share. A visually hidden data table follows the chart, with one row per data row in data order, zero and skipped rows included and the parts inside “Other” on their own rows: the name, the value and the share of the total. `dataTable` takes `false` to remove it, or `{ caption, columns }` to set the caption and rename the headers. The default headers and words can also be translated with the `headerPart` (used when `x` is a function; a string field gives its name in sentence case), `headerValue`, `headerShare`, `ofTotal` and `other` keys of [`ChartsProvider` messages](/docs/hooks-and-providers)."
+      }
+    },
+    {
+      "id": "n34",
+      "type": "prose",
+      "props": {
+        "markdown": "The full model is in the [accessibility guide](https://github.com/mwadon/tally-charts/blob/main/docs/a11y.md)."
+      }
+    }
+  ]
+}
