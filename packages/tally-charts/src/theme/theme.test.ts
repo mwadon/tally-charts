@@ -391,6 +391,40 @@ describe('theme.css', () => {
     expect(forced).not.toMatch(/donut-(slice|swatch)[^{]*\{[^}]*opacity/)
   })
 
+  it('styles the gantt from the shared rules and tokens', () => {
+    // Segments paint inline like bars; a hatched one gets the inked outline of hatched bars.
+    const outline = css.match(/\[data-ch-part="bar"\]\[data-ch-fill="hatch"\],[^{]*\{/)?.[0]
+    expect(outline).toContain('[data-ch-part="gantt-segment"][data-ch-fill="hatch"]')
+    expect(themed).toMatch(
+      /\[data-ch-part="gantt-grid"\],\s*\[data-ch-part="gantt-heading-rule"\],\s*\[data-ch-part="grid-line"\],[^{]*\{\s*stroke: var\(--ch-grid\);\s*stroke-width: 1;/,
+    )
+    expect(themed).toMatch(
+      /\[data-ch-part="gantt-tick"\],\s*\[data-ch-part="axis-label"\],[^{]*\{\s*fill: var\(--ch-ink-muted\);\s*font-size: 12px;/,
+    )
+    expect(themed).toMatch(
+      /\[data-ch-part="gantt-name"\],\s*\[data-ch-part="gantt-heading"\] text,\s*\[data-ch-part="donut-name"\],[^{]*\{\s*fill: var\(--ch-ink\);\s*font-size: 13px;/,
+    )
+    expect(themed).toMatch(
+      /\[data-ch-part="gantt-heading"\] text,\s*\[data-ch-part="donut-percent"\] \{\s*font-weight: 600;/,
+    )
+    expect(themed).toMatch(/\[data-ch-part="gantt-baseline"\] \{\s*fill: var\(--ch-neutral\);/)
+    expect(themed).toMatch(
+      /\[data-ch-part="gantt-milestone-baseline"\] \{\s*fill: none;\s*stroke: var\(--ch-neutral\);\s*stroke-width: 1\.5;/,
+    )
+    expect(themed).toMatch(
+      /\[data-ch-part="gantt-milestone"\] \{\s*fill: var\(--ch-surface\);\s*stroke: var\(--ch-ink\);\s*stroke-width: 2;/,
+    )
+    expect(themed).toMatch(
+      /\[data-ch-part="gantt-milestone"\]\[data-ch-reached="true"\] \{\s*fill: var\(--ch-ink\);/,
+    )
+    // Forced colors: muted ticks as axis labels, diamonds in CanvasText.
+    expect(forced).toMatch(/\[data-ch-part="gantt-tick"\],[\s\S]*?\) \{\s*fill: GrayText;/)
+    expect(forced).toMatch(/\[data-ch-part="gantt-milestone"\] \{\s*stroke: CanvasText;/)
+    expect(forced).toMatch(
+      /\[data-ch-part="gantt-milestone"\]\[data-ch-reached="true"\] \{\s*fill: CanvasText;/,
+    )
+  })
+
   it('inks the active funnel guide, Highlight in forced colors, and points at selectable steps', () => {
     expect(themed).toMatch(
       /\[data-ch-part="funnel-guide"\]\[data-ch-active="true"\] \{\s*stroke: var\(--ch-ink\);\s*stroke-width: 1\.5;/,

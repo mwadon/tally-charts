@@ -519,6 +519,8 @@
   animation: ch-fade var(--ch-duration) var(--ch-ease) both;
 }
 
+[data-ch-part="gantt-grid"],
+[data-ch-part="gantt-heading-rule"],
 [data-ch-part="grid-line"],
 [data-ch-part="funnel-guide"],
 [data-ch-part="donut-rule"] {
@@ -563,6 +565,7 @@
 }
 
 /* ---------- Labels and reference marks ---------- */
+[data-ch-part="gantt-tick"],
 [data-ch-part="axis-label"],
 [data-ch-part="axis-title"],
 [data-ch-part="target-label"],
@@ -732,12 +735,15 @@
   font-size: 20px;
 }
 
+[data-ch-part="gantt-name"],
+[data-ch-part="gantt-heading"] text,
 [data-ch-part="donut-name"],
 [data-ch-part="donut-percent"] {
   fill: var(--ch-ink);
   font-size: 13px;
 }
 
+[data-ch-part="gantt-heading"] text,
 [data-ch-part="donut-percent"] {
   font-weight: 600;
 }
@@ -752,6 +758,30 @@
 [data-ch-part="donut-slice"][data-ch-selectable="true"],
 [data-ch-part="donut-hit"][data-ch-selectable="true"] {
   cursor: pointer;
+}
+
+/* ---------- Gantt ---------- */
+/* Bar segments paint their tone or its hatch inline, as bars do; names, headings, ticks, the grid
+   and the heading rules share the rules above. The baseline sits under the bar in neutral; a
+   milestone is an ink diamond, filled once reached, over its hollow neutral baseline diamond. */
+[data-ch-part="gantt-baseline"] {
+  fill: var(--ch-neutral);
+}
+
+[data-ch-part="gantt-milestone-baseline"] {
+  fill: none;
+  stroke: var(--ch-neutral);
+  stroke-width: 1.5;
+}
+
+[data-ch-part="gantt-milestone"] {
+  fill: var(--ch-surface);
+  stroke: var(--ch-ink);
+  stroke-width: 2;
+}
+
+[data-ch-part="gantt-milestone"][data-ch-reached="true"] {
+  fill: var(--ch-ink);
 }
 
 /* ---------- Tooltip pill ---------- */
@@ -915,6 +945,7 @@
    outline in the same inked tone, so their edge keeps 3:1 on the surface. */
 [data-ch-part="bar"][data-ch-fill="hatch"],
 [data-ch-part="region"][data-ch-fill="hatch"],
+[data-ch-part="gantt-segment"][data-ch-fill="hatch"],
 [data-ch-part="bar"][data-ch-tone="accent-soft"],
 [data-ch-part="dot"][data-ch-tone="accent-soft"]:not([data-ch-soft]),
 [data-ch-part="bubble"][data-ch-tone="accent-soft"],
@@ -1806,6 +1837,7 @@
       [data-ch-part="end-label"],
       [data-ch-part="row-sublabel"],
       [data-ch-part="group-label"],
+      [data-ch-part="gantt-tick"],
       [data-ch-orientation="horizontal"] [data-ch-part="funnel-name"],
       [data-ch-part="donut-center-label"],
       [data-ch-part="donut-value"]
@@ -1980,6 +2012,15 @@
   /* Slices and swatches in the tone's system colour, as bars are; the gaps show the Canvas. */
   :is([data-ch-part="donut-slice"], [data-ch-part="donut-swatch"])[data-ch-level] {
     fill: var(--_ch-tone-paint);
+  }
+
+  /* Gantt bar parts follow their tone's system colour, as bars do; diamonds are CanvasText. */
+  [data-ch-part="gantt-milestone"] {
+    stroke: CanvasText;
+  }
+
+  [data-ch-part="gantt-milestone"][data-ch-reached="true"] {
+    fill: CanvasText;
   }
 
   [data-ch-part="runway-dot"] {
