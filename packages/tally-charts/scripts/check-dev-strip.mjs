@@ -64,6 +64,9 @@ const phrases = [
   'must be greater than min',
   'which is not finite; it counts as 0',
   'is not finite; it shows No data',
+  'DonutChart skipped a row',
+  'DonutChart maxSlices must be',
+  'DonutChart row id "other"',
 ]
 const leaks = phrases.filter((phrase) => code.includes(phrase))
 if (leaks.length > 0) {

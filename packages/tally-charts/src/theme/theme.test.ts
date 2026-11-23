@@ -388,7 +388,7 @@ describe('theme.css', () => {
     // Forced colors, as bars: every slice is the tone's system colour, and the dimmed opacity
     // (which forced colors keep) is what sets the active slice apart; nothing resets it.
     expect(forced).not.toMatch(/data-ch-dimmed/)
-    expect(forced).not.toMatch(/donut-slice"\]\[data-ch-active/)
+    expect(forced).not.toMatch(/donut-(slice|swatch)[^{]*\{[^}]*opacity/)
   })
 
   it('inks the active funnel guide, Highlight in forced colors, and points at selectable steps', () => {

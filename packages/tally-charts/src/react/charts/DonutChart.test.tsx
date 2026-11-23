@@ -720,6 +720,82 @@ describe('DonutChart pointer and tooltip', () => {
     ])
   })
 
+  it('clears the active slice when the mouse moves into the hole or a gap', () => {
+    const { container } = renderChart()
+    const svg = container.querySelector('svg') as Element
+    fireEvent.pointerEnter(slicesOf(container)[2] as Element, { pointerType: 'mouse' })
+    expect(tooltipOf(container)).toHaveTextContent('Repairs')
+    fireEvent.pointerLeave(slicesOf(container)[2] as Element, {
+      pointerType: 'mouse',
+      relatedTarget: svg,
+    })
+    expect(tooltipOf(container)).toBeNull()
+    expect(container.querySelector('[data-ch-dimmed], [data-ch-active]')).toBeNull()
+    // The same for a list row left for the space beside the list.
+    fireEvent.pointerEnter(hits(container)[1] as Element, { pointerType: 'mouse' })
+    expect(tooltipOf(container)).toHaveTextContent('Service plans')
+    fireEvent.pointerLeave(hits(container)[1] as Element, {
+      pointerType: 'mouse',
+      relatedTarget: svg,
+    })
+    expect(tooltipOf(container)).toBeNull()
+  })
+
+  it('falls back to the keyboard slice when the hover ends while the plot has focus', () => {
+    const { container } = renderChart()
+    fireEvent.focus(chartEl())
+    expect(live(container)).toBe('1 of 5, Installs, 773,000, 42% of total')
+    fireEvent.pointerEnter(slicesOf(container)[2] as Element, { pointerType: 'mouse' })
+    expect(flags(container, 'donut-row', 'data-ch-active')).toEqual([
+      false,
+      false,
+      true,
+      false,
+      false,
+    ])
+    fireEvent.pointerLeave(slicesOf(container)[2] as Element, {
+      pointerType: 'mouse',
+      relatedTarget: container.querySelector('svg'),
+    })
+    expect(flags(container, 'donut-row', 'data-ch-active')).toEqual([
+      true,
+      false,
+      false,
+      false,
+      false,
+    ])
+    expect(tooltipOf(container)).toHaveTextContent('Installs')
+  })
+
+  it('keeps a slice active when the mouse moves straight to the next slice or row', () => {
+    const onActiveChange = vi.fn()
+    const { container } = renderChart({ onActiveChange })
+    const slices = slicesOf(container)
+    fireEvent.pointerEnter(slices[1] as Element, { pointerType: 'mouse' })
+    fireEvent.pointerLeave(slices[1] as Element, {
+      pointerType: 'mouse',
+      relatedTarget: slices[2],
+    })
+    expect(tooltipOf(container)).toHaveTextContent('Repairs')
+    fireEvent.pointerLeave(slices[2] as Element, {
+      pointerType: 'mouse',
+      relatedTarget: hits(container)[3],
+    })
+    expect(tooltipOf(container)).toHaveTextContent('Inspections')
+    // Never cleared on the way.
+    expect(onActiveChange.mock.calls.map((c) => c[0])).toEqual([1, 2, 3])
+  })
+
+  it('keeps a tapped slice when a touch leaves it', () => {
+    const { container } = renderChart()
+    fireEvent.pointerEnter(slicesOf(container)[2] as Element, { pointerType: 'touch' })
+    fireEvent.pointerLeave(slicesOf(container)[2] as Element, {
+      pointerType: 'touch',
+      relatedTarget: container.querySelector('svg'),
+    })
+    expect(tooltipOf(container)).toHaveTextContent('Repairs')
+  })
+
   it('clears the active slice when the mouse leaves', () => {
     const { container } = renderChart()
     fireEvent.pointerEnter(slicesOf(container)[1] as Element, { pointerType: 'mouse' })

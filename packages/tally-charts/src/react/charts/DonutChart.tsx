@@ -1,4 +1,4 @@
-import { type CSSProperties, useMemo, useRef } from 'react'
+import { type CSSProperties, type PointerEvent, useMemo, useRef } from 'react'
 import { resolveAccessor, resolveIds } from '../../core/accessor'
 import type { FormatSpec } from '../../core/format'
 import { round2 } from '../../core/path'
@@ -139,6 +139,8 @@ interface DonutLayout {
 const MARGIN: Margin = { top: 0, right: 0, bottom: 0, left: 0 }
 /** The id of the slice that sums the smallest parts. */
 const OTHER_ID = 'other'
+/** What a pointer can move to and stay on a slice: another slice or list row. */
+const HIT_PARTS: readonly (string | null)[] = ['donut-slice', 'donut-hit']
 const UNIT_SCALE = { domain: [0, 1] } as const
 const STEPS: readonly Level[] = [5, 4, 3, 2]
 /** Room the ring keeps around its outer edge, in px. */
@@ -258,6 +260,20 @@ function DonutMarks<D>(props: {
   // The slice of a slice or of its list row under the pointer.
   const pointer = (slice: DonutSlice<D>, i: number) => ({
     onPointerEnter: () => ctx.setActive(slice.id, 'pointer'),
+    // Into the hole, a gap or past the list: the hover ends, as when the pointer leaves the
+    // chart. Into another slice or row, its own enter takes over. A touch tap keeps its slice.
+    onPointerLeave: (event: PointerEvent<SVGElement>) => {
+      if (event.pointerType === 'touch') return
+      const to = event.relatedTarget
+      const svg = event.currentTarget.ownerSVGElement
+      if (
+        to instanceof Element &&
+        HIT_PARTS.includes(to.getAttribute('data-ch-part')) &&
+        svg?.contains(to)
+      )
+        return
+      ctx.leave()
+    },
     onClick: () => {
       const point = points[i]
       if (point) ctx.select(point)
@@ -562,7 +578,7 @@ export function DonutChart<D>({
   const userTooltip = tooltipContent(tooltip)
   const content: TooltipProps['content'] = userTooltip
     ? (point) =>
-        point.datum === undefined && point.selectable === false ? (
+        point.id === OTHER_ID && point.index === -1 ? (
           <TooltipPill segments={point.segments} />
         ) : (
           userTooltip(point)

@@ -56,6 +56,11 @@ export interface InternalChartContext extends ChartContextValue {
   radius: number
   registerPoints: (key: string, points: readonly ChartPoint[]) => void
   unregisterPoints: (key: string) => void
+  /**
+   * Ends a hover, as the pointer leaving the figure does: the active point falls back to the
+   * keyboard's while the plot has focus, else nothing is active.
+   */
+  leave: () => void
 }
 
 export const ChartContext = /* @__PURE__ */ createContext<InternalChartContext | null>(null)
