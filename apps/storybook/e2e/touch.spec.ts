@@ -62,3 +62,17 @@ test('a touch tap on a donut slice activates that slice', async ({ page }) => {
   )
   await expect(page.locator('[data-ch-root] [aria-live]')).toHaveText('')
 })
+
+test('a touch tap on a gantt row activates that row', async ({ page }) => {
+  await open(page, 'charts-ganttchart--light')
+  // The third row, Haul-away: tap its hit rect in the plot, right of the names.
+  const box = await page.locator('[data-ch-part="gantt-hit"]').nth(2).boundingBox()
+  if (!box) throw new Error('no gantt row to tap')
+  await page.touchscreen.tap(box.x + box.width * 0.6, box.y + box.height / 2)
+  await expect(page.locator(tooltip)).toContainText('Haul-away')
+  const active = page.locator('[data-ch-part="gantt-row"][data-ch-active="true"]')
+  await expect(active).toHaveCount(1)
+  await expect(active).toContainText('Haul-away')
+  await expect(page.locator('[data-ch-part="gantt-bar"][data-ch-dimmed="true"]')).toHaveCount(10)
+  await expect(page.locator('[data-ch-root] [aria-live]')).toHaveText('')
+})
