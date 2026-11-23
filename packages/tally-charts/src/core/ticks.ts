@@ -160,3 +160,45 @@ export function thinTicks(
   const end = target === last ? pin(last, 1) : target
   return fits([start, end], measure) ? [start, end] : [pinned ? end : start]
 }
+
+/** Labels for a run of time tick values, in epoch ms. */
+export type TimeLabels = (values: readonly number[]) => string[]
+
+/** Index of the tick whose value is `highlight` (compared as strings); undefined when none. */
+export function indexOfValue(
+  ticks: readonly Tick[],
+  highlight: string | number | undefined,
+): number | undefined {
+  const i = ticks.findIndex((t) => String(t.value) === String(highlight))
+  return highlight === undefined || i < 0 ? undefined : i
+}
+
+/** The ticks with labels for their (epoch ms) values. */
+export function withLabels(ticks: readonly Tick[], label: TimeLabels): Tick[] {
+  const labels = label(ticks.map((tick) => tick.value as number))
+  return ticks.map((tick, i) => ({ ...tick, label: labels[i] ?? '' }))
+}
+
+/**
+ * Time labels for the ticks thinning kept. Labels are written again, since a dropped tick may
+ * have carried the year; a tick whose label repeats the one before it (a coarse format on fine
+ * ticks) is dropped; and the new labels are thinned again until nothing changes, so they fit.
+ */
+export function fitTimeTicks(
+  ticks: readonly Tick[],
+  label: TimeLabels,
+  measure?: MeasureTick,
+  highlight?: string | number,
+): Tick[] {
+  let kept = withLabels(ticks, label)
+  for (let pass = 0; pass < 4; pass++) {
+    const distinct = kept.filter((tick, i) => i === 0 || tick.label !== kept[i - 1]?.label)
+    const keep = indexOfValue(distinct, highlight)
+    const next = withLabels(measure ? thinTicks(distinct, measure, { keep }) : distinct, label)
+    if (next.length === kept.length && next.every((tick, i) => tick.label === kept[i]?.label)) {
+      return next
+    }
+    kept = next
+  }
+  return kept
+}

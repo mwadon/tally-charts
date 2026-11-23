@@ -1,7 +1,17 @@
 import { describe, expect, it } from 'vitest'
 import { bandScale, pointScale } from './band'
 import { linearScale } from './linear'
-import { categoryTicks, estimateWidth, fits, linearTicks, type Tick, thinTicks } from './ticks'
+import {
+  categoryTicks,
+  estimateWidth,
+  fits,
+  fitTimeTicks,
+  indexOfValue,
+  linearTicks,
+  type Tick,
+  thinTicks,
+  withLabels,
+} from './ticks'
 
 const band = bandScale(['a', 'b', 'c', 'd'], [0, 400], 0, 0)
 
@@ -256,5 +266,40 @@ describe('categoryTicks on a point scale', () => {
       'JUL',
     ])
     expect(categoryTicks(pointScale([], [0, 1], 0), 'all', String)).toEqual([])
+  })
+})
+
+describe('time tick helpers', () => {
+  const tick = (value: number, position: number): Tick => ({
+    value,
+    position,
+    label: '',
+    anchor: 'middle',
+  })
+  // Labels that name the tick and, on the first one kept, say so: written again after thinning.
+  const label = (values: readonly number[]) => values.map((v, i) => (i ? `t${v}` : `first t${v}`))
+
+  it('labels ticks from their values and finds a value by its string', () => {
+    const ticks = withLabels([tick(1, 0), tick(2, 50)], label)
+    expect(ticks.map((t) => t.label)).toEqual(['first t1', 't2'])
+    expect(indexOfValue(ticks, '2')).toBe(1)
+    expect(indexOfValue(ticks, 3)).toBeUndefined()
+    expect(indexOfValue(ticks, undefined)).toBeUndefined()
+  })
+
+  it('thins overlapping labels, writes them again and keeps the highlighted one', () => {
+    const ticks = [0, 1, 2, 3, 4].map((v) => tick(v, v * 20))
+    const fitted = fitTimeTicks(ticks, label, estimateWidth)
+    expect(fits(fitted, estimateWidth)).toBe(true)
+    expect(fitted[0]?.label).toBe('first t0')
+    expect(fitted.length).toBeLessThan(5)
+    const kept = fitTimeTicks(ticks, label, estimateWidth, 3)
+    expect(kept.map((t) => t.value)).toContain(3)
+  })
+
+  it('drops a label that repeats the one before it, and does not thin without a measure', () => {
+    const same = (values: readonly number[]) => values.map((v) => (v < 2 ? 'a' : 'b'))
+    const fitted = fitTimeTicks([tick(0, 0), tick(1, 100), tick(2, 200)], same)
+    expect(fitted.map((t) => t.value)).toEqual([0, 2])
   })
 })

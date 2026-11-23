@@ -76,6 +76,11 @@ const one = (root: Element, part: string) =>
   root.querySelector<SVGElement>(`[data-ch-part="${part}"]`)
 const num = (el: Element | null | undefined, attr: string) => Number(el?.getAttribute(attr))
 const svgHeight = (root: Element) => num(root.querySelector('svg'), 'height')
+/** A diamond's centre: the first `translate(x,y)` of its transform. */
+const centreOf = (el: Element | null | undefined): [number, number] => {
+  const m = el?.getAttribute('transform')?.match(/^translate\(([-\d.]+),([-\d.]+)\) rotate\(45\)/)
+  return [Number(m?.[1]), Number(m?.[2])]
+}
 const translateY = (el: Element) =>
   Number(el.getAttribute('transform')?.match(/translate\(([-\d.]+),\s*([-\d.]+)\)/)?.[2])
 const rowByName = (root: Element, name: string) =>
@@ -285,9 +290,11 @@ describe('GanttChart milestones', () => {
       [inspection, '2026-03-23'],
       [walkthrough, '2026-04-17'],
     ] as const) {
-      expect(num(el, 'x') + num(el, 'width') / 2).toBeCloseTo(plotX + scale(time(date)), 1)
-      expect(num(el, 'y') + num(el, 'height') / 2).toBe(16)
-      expect(el?.getAttribute('transform')).toMatch(/^rotate\(45 /)
+      const [cx, cy] = centreOf(el)
+      expect(cx).toBeCloseTo(plotX + scale(time(date)), 1)
+      expect(cy).toBe(16)
+      expect(num(el, 'width')).toBe(12)
+      expect(el?.getAttribute('transform')).toMatch(/rotate\(45\) translate\(-6,-6\)$/)
     }
   })
 })
@@ -517,7 +524,7 @@ describe('GanttChart degenerate spans', () => {
     const diamonds = parts(container, 'gantt-milestone')
     expect(diamonds).toHaveLength(1)
     const { plotX, plotWidth } = expected(data)
-    const cx = num(diamonds[0], 'x') + 6 - plotX
+    const cx = centreOf(diamonds[0])[0] - plotX
     expect(cx).toBeGreaterThanOrEqual(0)
     expect(cx).toBeLessThanOrEqual(plotWidth)
   })
@@ -557,12 +564,25 @@ describe('GanttChart baselines that cannot be drawn', () => {
 })
 
 describe('GanttChart layout', () => {
-  it('draws no NaN and no negative width, height or x at 60 px', () => {
-    for (const labelPosition of ['auto', 'left']) {
-      const { container, unmount } = renderChart({ width: 60, labelPosition })
+  it('draws no NaN and no negative width, height, x or y at 60 px or at the plot edge', () => {
+    // A milestone and its baseline on the domain's start, names on top: the plot's left edge.
+    const atEdge = [
+      { name: 'Kick-off', phase: null, start: '2026-03-01', plannedStart: '2026-03-01' },
+      ...remodel,
+    ]
+    for (const props of [
+      { width: 60 },
+      { width: 60, labelPosition: 'left' },
+      { data: atEdge, labelPosition: 'top', domain: ['2026-03-01', '2026-04-26'] },
+    ]) {
+      const { container, unmount } = renderChart(props)
+      if (props.data) {
+        expect(centreOf(one(rowByName(container, 'Kick-off'), 'gantt-milestone'))[0]).toBe(0)
+        expect(one(rowByName(container, 'Kick-off'), 'gantt-milestone-baseline')).not.toBeNull()
+      }
       for (const { name, value } of attributes(container)) {
         expect(value).not.toMatch(/NaN|Infinity/)
-        if (['width', 'height', 'x', 'rx'].includes(name)) {
+        if (['width', 'height', 'x', 'y', 'rx'].includes(name)) {
           expect(Number(value)).toBeGreaterThanOrEqual(0)
         }
       }

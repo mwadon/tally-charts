@@ -3,7 +3,7 @@ import { resolveAccessor, resolveIds } from '../../core/accessor'
 import { autoTickLabels } from '../../core/date'
 import { round2 } from '../../core/path'
 import { CHAR_WIDTH, truncateLabel } from '../../core/text'
-import { estimateWidth, type Tick, thinTicks } from '../../core/ticks'
+import { estimateWidth, fitTimeTicks } from '../../core/ticks'
 import {
   inferTimeDomain,
   niceTimeDomain,
@@ -123,36 +123,19 @@ const MILESTONE_BASELINE = 8
 
 const textWidth = (text: string) => text.length * CHAR_WIDTH
 
-/** A diamond: a square of side `size` centred on (cx, cy), turned 45° about its centre. */
+/**
+ * A diamond: a square of side `size` centred on (cx, cy), turned 45°. The square is drawn at the
+ * origin and moved by its transform, so no attribute goes negative near the plot's left edge.
+ */
 const diamond = (cx: number, cy: number, size: number) => ({
-  x: round2(cx - size / 2),
-  y: round2(cy - size / 2),
+  x: 0,
+  y: 0,
   width: size,
   height: size,
-  transform: `rotate(45 ${round2(cx)} ${round2(cy)})`,
+  transform: `translate(${round2(cx)},${round2(cy)}) rotate(45) translate(${-size / 2},${-size / 2})`,
 })
 
 const isMissing = (v: unknown) => v === null || v === undefined
-
-/**
- * Tick labels as `Axis` writes them for a time axis: thinned until they stop overlapping, then
- * written again for the ticks that stay (a dropped tick may have carried the year), until nothing
- * changes.
- */
-function fitTicks(ticks: readonly Tick[], label: (values: readonly number[]) => string[]): Tick[] {
-  const withLabels = (list: readonly Tick[]) => {
-    const labels = label(list.map((t) => t.value as number))
-    return list.map((t, i) => ({ ...t, label: labels[i] ?? '' }))
-  }
-  let kept = withLabels(ticks)
-  for (let pass = 0; pass < 4; pass++) {
-    const distinct = kept.filter((t, i) => i === 0 || t.label !== kept[i - 1]?.label)
-    const next = withLabels(thinTicks(distinct, estimateWidth))
-    if (next.length === kept.length && next.every((t, i) => t.label === kept[i]?.label)) break
-    kept = next
-  }
-  return kept
-}
 
 function GanttMarks<D>(props: {
   rows: readonly GanttRow<D>[]
@@ -169,7 +152,9 @@ function GanttMarks<D>(props: {
   const values = scale.ticks(layout.count)
   const [a, b] = values
   const step = a !== undefined && b !== undefined ? b - a : undefined
-  const ticks = fitTicks(
+  // Thinned and labelled as Axis does for a time axis. A label that would cross the chart's right
+  // edge goes; its grid line stays.
+  const ticks = fitTimeTicks(
     values.map((value) => ({
       value,
       position: scale(value) + TICK_GAP,
@@ -177,7 +162,7 @@ function GanttMarks<D>(props: {
       anchor: 'start',
     })),
     (list) => autoTickLabels(list, { locale, zone, step }),
-    // A label that would cross the chart's right edge goes; its grid line stays.
+    estimateWidth,
   ).filter((t) => plotX + t.position + estimateWidth(t) <= ctx.width)
 
   const nameMax = top ? ctx.width : plotX - NAME_GAP
@@ -294,7 +279,7 @@ function GanttMarks<D>(props: {
                         rx={round2(corner(mark.width, BAR_HEIGHT))}
                       />
                     </clipPath>
-                    {mark.segments.map((s) => {
+                    {mark.segments.map((s, i) => {
                       const segmentTone: Tone = s.over ? 'loss' : tone
                       const style = {
                         fill: paintFor(ctx.chartId, segmentTone, s.fill).fill,
@@ -303,7 +288,8 @@ function GanttMarks<D>(props: {
                       } as CSSProperties
                       return (
                         <rect
-                          key={s.x}
+                          // biome-ignore lint/suspicious/noArrayIndexKey: segments are positional (left to right, never reordered), and two can round to the same x
+                          key={i}
                           data-ch-part="gantt-segment"
                           data-ch-tone={segmentTone}
                           data-ch-fill={s.fill}
