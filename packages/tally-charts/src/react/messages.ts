@@ -67,6 +67,8 @@ export interface ChartMessages {
   ofPreviousStep: string
   /** After a FunnelChart step's share of the first step in the tooltip, as in "24% of first step". */
   ofFirstStep: string
+  /** The DonutChart slice that sums the smallest parts. */
+  other: string
   /** The data-table column of a RunwayChart row's `sublabel`. */
   headerRunwayDetail: string
   /** A RunwayChart data-table column header. */
@@ -172,6 +174,7 @@ export const HEADER_STEP = 'Step'
 export const HEADER_CONTINUED = 'Continued'
 export const OF_PREVIOUS_STEP = 'of previous step'
 export const OF_FIRST_STEP = 'of first step'
+export const OTHER = 'Other'
 export const HEADER_RUNWAY_DETAIL = 'Detail'
 export const HEADER_RUNS_OUT = 'Runs out'
 export const HEADER_RESETS = 'Resets'
@@ -244,6 +247,7 @@ export const DEFAULT_MESSAGES: Readonly<ChartMessages> = {
   headerContinued: HEADER_CONTINUED,
   ofPreviousStep: OF_PREVIOUS_STEP,
   ofFirstStep: OF_FIRST_STEP,
+  other: OTHER,
   headerRunwayDetail: HEADER_RUNWAY_DETAIL,
   headerRunsOut: HEADER_RUNS_OUT,
   headerResets: HEADER_RESETS,

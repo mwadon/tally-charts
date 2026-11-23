@@ -520,3 +520,9 @@ describe('FunnelChart messages', () => {
     })
   })
 })
+
+describe('DonutChart messages', () => {
+  it('have English defaults', () => {
+    expect(DEFAULT_MESSAGES).toMatchObject({ other: 'Other' })
+  })
+})
