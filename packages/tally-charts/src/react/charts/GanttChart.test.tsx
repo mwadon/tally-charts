@@ -1,4 +1,4 @@
-import { render } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { autoTickLabels, createDateFormatter } from '../../core/date'
 import { CHAR_WIDTH } from '../../core/text'
@@ -13,8 +13,22 @@ import {
 } from '../../core/time'
 import { ChartsProvider } from '../ChartsProvider'
 import type { ChartMessages } from '../messages'
+import type { ChartPoint } from '../types'
 import { GanttChart, type GanttChartProps } from './GanttChart'
 import { doneShare, ganttColumns, ganttMark, ganttRows } from './gantt-geometry'
+
+// Records every points array a mark registers, so a test can see whether a re-render with the
+// same props registers a new array. The real hook still runs.
+const registered = vi.hoisted(() => [] as (readonly ChartPoint[])[])
+vi.mock('../useRegisterPoints', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../useRegisterPoints')>()
+  return {
+    useRegisterPoints: (points: readonly ChartPoint[]) => {
+      if (points.length > 0) registered.push(points)
+      actual.useRegisterPoints(points)
+    },
+  }
+})
 
 type Task = {
   name: string
@@ -1035,5 +1049,402 @@ describe('GanttChart key', () => {
   it('takes its words from messages', () => {
     const { container } = renderChart({ legend: true }, { messages: { keyDone: 'Gotowe' } })
     expect(keyTexts(container)[0]).toBe('Gotowe')
+  })
+})
+
+const chartEl = () => screen.getByRole('application', { name: 'Kitchen remodel' })
+const live = (root: Element) => root.querySelector('[aria-live]')?.textContent
+const press = (root: Element, ...keys: string[]) =>
+  keys.map((key) => {
+    fireEvent.keyDown(chartEl(), { key })
+    return live(root)
+  })
+const hits = (root: Element) => parts(root, 'gantt-hit')
+const hitOf = (root: Element, name: string) => one(rowByName(root, name), 'gantt-hit') as Element
+const tooltipOf = (root: Element) => root.querySelector('[data-ch-part="tooltip"]')
+const flags = (root: Element, part: string, attr: string) =>
+  parts(root, part).map((el) => el.getAttribute(attr) === 'true')
+const headers = () =>
+  within(screen.getByRole('table'))
+    .getAllByRole('columnheader')
+    .map((th) => th.textContent)
+const tableRows = () => within(screen.getByRole('table')).getAllByRole('row').slice(1)
+const rowText = (row: Element) => ({
+  name: within(row as HTMLElement).getByRole('rowheader').textContent,
+  cells: within(row as HTMLElement)
+    .getAllByRole('cell')
+    .map((c) => c.textContent),
+})
+const tableRowOf = (name: string) =>
+  rowText(tableRows().find((r) => rowText(r).name === name) as Element)
+const EMPTY = '—no value'
+
+describe('GanttChart keyboard and announcements', () => {
+  it('announces each row in drawn order: position, name, range, days, status and overrun', () => {
+    const { container } = renderChart()
+    fireEvent.focus(chartEl())
+    expect(live(container)).toBe('1 of 13, Site protection, Mar 2 – Mar 4, 2 days, done')
+    const demolition = '2 of 13, Demolition, Mar 4 – Mar 9, 5 days, done, 1 day over baseline'
+    const first = '1 of 13, Site protection, Mar 2 – Mar 4, 2 days, done'
+    expect(press(container, 'ArrowDown', 'ArrowUp', 'ArrowRight', 'ArrowLeft', 'End')).toEqual([
+      demolition,
+      first,
+      demolition,
+      first,
+      '13 of 13, Final walkthrough, milestone, Apr 17, upcoming, 3 days late',
+    ])
+    press(container, 'Home')
+    const steps = press(container, ...Array(7).fill('ArrowDown'))
+    expect(steps[5]).toBe('7 of 13, Rough inspection, milestone, Mar 23, reached, 3 days late')
+    expect(steps[6]).toBe('8 of 13, Drywall and paint, Mar 23 – Mar 31, 8 days, in progress, 50%')
+  })
+
+  it('reads a planned task as planned', () => {
+    const { container } = renderChart()
+    fireEvent.focus(chartEl())
+    press(container, 'End')
+    expect(press(container, 'ArrowUp')).toEqual([
+      '12 of 13, Fixtures and appliances, Apr 12 – Apr 16, 4 days, planned',
+    ])
+  })
+
+  it('takes the words from ChartsProvider messages and day counts from its locale', () => {
+    const { container, unmount } = renderChart(
+      {},
+      { messages: { statusDone: 'gotowe', overBaseline: '{duration} ponad plan' } },
+    )
+    fireEvent.focus(chartEl())
+    expect(press(container, 'ArrowDown')).toEqual([
+      '2 of 13, Demolition, Mar 4 – Mar 9, 5 days, gotowe, 1 day ponad plan',
+    ])
+    unmount()
+    const pl = renderChart({}, { locale: 'pl-PL' })
+    fireEvent.focus(chartEl())
+    const days = new Intl.NumberFormat('pl-PL', {
+      style: 'unit',
+      unit: 'day',
+      unitDisplay: 'long',
+    }).format(5)
+    expect(press(pl.container, 'ArrowDown')[0]).toContain(`, ${days}, `)
+  })
+
+  it('counts valid rows only: a skipped row has no point, but keeps its table row', () => {
+    quiet()
+    const data = [
+      ...remodel.slice(0, 2),
+      { name: 'Broken', phase: 'Prep', start: null },
+      ...remodel.slice(2),
+    ]
+    const { container } = renderChart({ data })
+    fireEvent.focus(chartEl())
+    expect(live(container)).toBe('1 of 13, Site protection, Mar 2 – Mar 4, 2 days, done')
+    expect(hits(container)).toHaveLength(13)
+    expect(tableRows()).toHaveLength(14)
+    expect(rowText(tableRows()[2] as Element)).toEqual({
+      name: 'Broken',
+      cells: Array(7).fill(EMPTY),
+    })
+    vi.restoreAllMocks()
+  })
+
+  it('keeps a row outside an explicit domain as a point, anchored at the plot edge', () => {
+    const domain = ['2026-03-15', '2026-04-19']
+    const { container } = renderChart({ domain })
+    const points = registered.at(-1) ?? []
+    expect(points).toHaveLength(13)
+    for (const p of points) {
+      expect(Number.isFinite(p.x)).toBe(true)
+      expect(Number.isFinite(p.y)).toBe(true)
+    }
+    const { plotX } = expected(remodel, { domain: domain as [string, string] })
+    expect(points[0]?.x).toBe(plotX)
+    fireEvent.focus(chartEl())
+    expect(live(container)).toBe('1 of 13, Site protection, Mar 2 – Mar 4, 2 days, done')
+  })
+
+  it('warns about repeated ids and does not throw', () => {
+    const spy = quiet()
+    const { container } = renderChart({ id: (d: Task, i: number) => (i < 2 ? 'same' : d.name) })
+    expect(warnings(spy, 'duplicate id')).toHaveLength(1)
+    fireEvent.focus(chartEl())
+    expect(press(container, 'End')).toEqual([
+      '13 of 13, Final walkthrough, milestone, Apr 17, upcoming, 3 days late',
+    ])
+    spy.mockRestore()
+  })
+})
+
+describe('GanttChart points', () => {
+  it('registers one point per row at the middle of its bar or the diamond centre', () => {
+    renderChart()
+    const { plotX, plotWidth, scale } = expected(remodel)
+    const layout = ganttRows(
+      remodel.map((d) => d.phase),
+      false,
+    )
+    const rowEntries = layout.entries.filter((e) => e.row !== null)
+    const points = registered.at(-1) ?? []
+    expect(points.map((p) => p.id)).toEqual(remodel.map((_, i) => i))
+    points.forEach((p, i) => {
+      const d = remodel[i] as Task
+      const mark = markOf(d, scale, plotWidth)
+      const top = TICK_ROW + (rowEntries[i]?.y ?? Number.NaN)
+      expect(p.x).toBeCloseTo(plotX + mark.x + mark.width / 2, 1)
+      expect(p.y).toBe(top + (mark.milestone ? 16 : 14))
+      expect((p.datum as { datum: Task }).datum).toBe(d)
+    })
+  })
+
+  it('registers the same points array again when re-rendered with the same props', () => {
+    const view = () => (
+      <GanttChart<Task>
+        data={remodel}
+        x={(d) => d.name}
+        start={(d) => d.start as string}
+        end={(d) => d.end as string | undefined}
+        group={(d) => d.phase}
+        baselineStart={(d) => d.plannedStart as string | undefined}
+        baselineEnd={(d) => d.plannedEnd as string | undefined}
+        id={(d) => d.name}
+        now={NOW}
+        domain={['2026-03-01', '2026-04-26']}
+        width={720}
+        title="Kitchen remodel"
+        animate={false}
+      />
+    )
+    const { rerender } = render(view())
+    const first = registered.at(-1)
+    expect(first).toHaveLength(13)
+    rerender(view())
+    rerender(view())
+    expect(registered.at(-1)).toBe(first)
+  })
+
+  it('registers new points when a row changes', () => {
+    const chart = (data: Task[]) => {
+      const all = { data, ...BASE, width: 720, title: 'R', animate: false }
+      return <GanttChart<Task> {...(all as unknown as GanttChartProps<Task>)} />
+    }
+    const { rerender } = render(chart(remodel))
+    const first = registered.at(-1)
+    rerender(chart(remodel.map((d, i) => (i === 1 ? { ...d, end: '2026-03-10' } : d))))
+    expect(registered.at(-1)).not.toBe(first)
+  })
+})
+
+describe('GanttChart pointer and tooltip', () => {
+  it('covers each row with a hit rect over the names, the plot and the gutter', () => {
+    const { container } = renderChart({ valueLabels: true })
+    const rects = hits(container)
+    expect(rects).toHaveLength(13)
+    for (const r of rects) {
+      expect([num(r, 'x'), num(r, 'y'), num(r, 'width'), num(r, 'height')]).toEqual([0, 0, 720, 32])
+      expect(r.getAttribute('fill')).toBe('transparent')
+      expect(r.parentElement?.getAttribute('data-ch-part')).toBe('gantt-row')
+      // Last in its row, over the name, the bar and the value label.
+      expect(r.parentElement?.lastElementChild).toBe(r)
+    }
+    expect(parts(container, 'gantt-heading').some((h) => one(h, 'gantt-hit'))).toBe(false)
+    const top = renderChart({ width: 400 }).container
+    expect(num(hits(top)[0], 'height')).toBe(52)
+    expect(num(hits(top)[0], 'width')).toBe(400)
+  })
+
+  it('shows the name, range, days, overrun and baseline on hover of a row', () => {
+    const { container } = renderChart()
+    fireEvent.pointerEnter(hitOf(container, 'Plumbing rough-in'))
+    const tip = tooltipOf(container)
+    for (const text of [
+      'Plumbing rough-in',
+      'Mar 14 – Mar 21',
+      '7 days',
+      '2 days over baseline',
+      'baseline Mar 13 – Mar 18',
+    ]) {
+      expect(tip).toHaveTextContent(text)
+    }
+    expect(tip).not.toHaveTextContent('done')
+    fireEvent.pointerEnter(hitOf(container, 'Drywall and paint'))
+    expect(tooltipOf(container)).toHaveTextContent('50% done')
+    expect(tooltipOf(container)).toHaveTextContent('baseline Mar 20 – Mar 28')
+    fireEvent.pointerEnter(hitOf(container, 'Final walkthrough'))
+    const segments = [
+      ...(tooltipOf(container)?.querySelectorAll('[data-ch-part="pill-segment"]') ?? []),
+    ]
+    expect(segments.map((s) => s.textContent)).toEqual([
+      'Final walkthrough',
+      'Apr 17',
+      '3 days late',
+    ])
+  })
+
+  it('draws no tooltip with tooltip={false}', () => {
+    const { container } = renderChart({ tooltip: false })
+    fireEvent.pointerEnter(hitOf(container, 'Plumbing rough-in'))
+    expect(tooltipOf(container)).toBeNull()
+  })
+
+  it('passes the user row to a function tooltip', () => {
+    const seen: unknown[] = []
+    const { container } = renderChart({
+      tooltip: (point: ChartPoint<Task>) => {
+        seen.push(point.datum)
+        return <span>custom</span>
+      },
+    })
+    fireEvent.pointerEnter(hitOf(container, 'Plumbing rough-in'))
+    expect(tooltipOf(container)).toHaveTextContent('custom')
+    expect(seen).toContain(remodel[4])
+  })
+
+  it('activates the tapped row on touch, and keeps it when the tap ends', () => {
+    const { container } = renderChart()
+    const row = hits(container)[2] as Element
+    fireEvent.pointerEnter(row, { pointerType: 'touch' })
+    fireEvent.pointerDown(row, { pointerType: 'touch' })
+    fireEvent.pointerLeave(row, {
+      pointerType: 'touch',
+      relatedTarget: container.querySelector('svg'),
+    })
+    fireEvent.pointerLeave(container.querySelector('figure') as Element, { pointerType: 'touch' })
+    expect(tooltipOf(container)).toHaveTextContent('Haul-away')
+    expect(flags(container, 'gantt-row', 'data-ch-active').indexOf(true)).toBe(2)
+  })
+
+  it('keeps a row active when the mouse moves to the next row, and clears it off the rows', () => {
+    const onActiveChange = vi.fn()
+    const { container } = renderChart({ onActiveChange })
+    const rects = hits(container)
+    fireEvent.pointerEnter(rects[1] as Element, { pointerType: 'mouse' })
+    fireEvent.pointerLeave(rects[1] as Element, { pointerType: 'mouse', relatedTarget: rects[2] })
+    fireEvent.pointerEnter(rects[2] as Element, { pointerType: 'mouse' })
+    expect(tooltipOf(container)).toHaveTextContent('Haul-away')
+    expect(onActiveChange.mock.calls.map((c) => c[0])).toEqual([1, 2])
+    // Into a heading: the hover ends.
+    fireEvent.pointerLeave(rects[2] as Element, {
+      pointerType: 'mouse',
+      relatedTarget: parts(container, 'gantt-heading')[1],
+    })
+    expect(tooltipOf(container)).toBeNull()
+    expect(container.querySelector('[data-ch-dimmed], [data-ch-active]')).toBeNull()
+  })
+})
+
+describe('GanttChart selection', () => {
+  it('selects on click of a row with the row id and the user row', () => {
+    const onSelect = vi.fn()
+    const { container, unmount } = renderChart({ onSelect })
+    fireEvent.click(hits(container)[2] as Element)
+    const [id, point] = onSelect.mock.calls[0] as [unknown, ChartPoint<Task>]
+    expect(id).toBe(2)
+    expect(point.datum).toBe(remodel[2])
+    expect(flags(container, 'gantt-hit', 'data-ch-selectable').every(Boolean)).toBe(true)
+    // Headings are not points: no hit rect, nothing to click, never reached by the keyboard.
+    fireEvent.click(parts(container, 'gantt-heading')[0] as Element)
+    expect(onSelect).toHaveBeenCalledTimes(1)
+    fireEvent.focus(chartEl())
+    press(container, 'Home', 'Enter')
+    expect(onSelect.mock.calls[1]?.[0]).toBe(0)
+    unmount()
+    const byName = vi.fn()
+    const named = renderChart({ onSelect: byName, id: 'name' })
+    fireEvent.click(hits(named.container)[1] as Element)
+    expect(byName.mock.calls[0]?.[0]).toBe('Demolition')
+  })
+
+  it('marks nothing selectable without onSelect', () => {
+    const { container } = renderChart()
+    expect(container.querySelector('[data-ch-selectable]')).toBeNull()
+  })
+})
+
+describe('GanttChart active row', () => {
+  const others = (n: number, at: number) => Array.from({ length: n }, (_, i) => i !== at)
+
+  it('dims the other rows bars, baselines and diamonds, and marks the active row', () => {
+    const { container } = renderChart({ activeId: 2 })
+    // Haul-away is the third of 11 bars and baselines; both diamonds belong to other rows.
+    expect(flags(container, 'gantt-bar', 'data-ch-dimmed')).toEqual(others(11, 2))
+    expect(flags(container, 'gantt-baseline', 'data-ch-dimmed')).toEqual(others(11, 2))
+    expect(flags(container, 'gantt-milestone', 'data-ch-dimmed')).toEqual([true, true])
+    expect(flags(container, 'gantt-milestone-baseline', 'data-ch-dimmed')).toEqual([true, true])
+    expect(flags(container, 'gantt-row', 'data-ch-active')).toEqual(
+      Array.from({ length: 13 }, (_, i) => i === 2),
+    )
+    // Text is never dimmed.
+    expect(container.querySelector('text[data-ch-dimmed], tspan[data-ch-dimmed]')).toBeNull()
+  })
+
+  it('dims nothing with dimInactive={false}, and still marks the active row', () => {
+    const { container } = renderChart({ activeId: 2, dimInactive: false })
+    expect(container.querySelector('[data-ch-dimmed]')).toBeNull()
+    expect(flags(container, 'gantt-row', 'data-ch-active').indexOf(true)).toBe(2)
+  })
+
+  it('never changes the segments', () => {
+    const geometry = (props: Props) =>
+      parts(renderChart(props).container, 'gantt-segment').map((s) =>
+        ['x', 'y', 'width', 'height'].map((a) => s.getAttribute(a)).join(),
+      )
+    expect(geometry({ activeId: 2 })).toEqual(geometry({}))
+  })
+})
+
+describe('GanttChart data table', () => {
+  it('lists every row in data order: name, phase, dates, baseline, progress and status', () => {
+    renderChart()
+    expect(headers()).toEqual([
+      'Name',
+      'Phase',
+      'Start',
+      'End',
+      'Baseline start',
+      'Baseline end',
+      'Progress',
+      'Status',
+    ])
+    const rows = tableRows()
+    expect(rows.map((r) => rowText(r).name)).toEqual(remodel.map((d) => d.name))
+    expect(tableRowOf('Drywall and paint')).toEqual({
+      name: 'Drywall and paint',
+      cells: [
+        'Rough-in',
+        'Mar 23, 2026',
+        'Mar 31, 2026',
+        'Mar 20, 2026',
+        'Mar 28, 2026',
+        '50%',
+        'in progress',
+      ],
+    })
+    expect(tableRowOf('Final walkthrough')).toEqual({
+      name: 'Final walkthrough',
+      cells: [
+        'Finishes',
+        'Apr 17, 2026',
+        EMPTY,
+        'Apr 14, 2026',
+        EMPTY,
+        EMPTY,
+        'milestone, upcoming',
+      ],
+    })
+    expect(tableRowOf('Site protection').cells.slice(-2)).toEqual(['100%', 'done'])
+    expect(tableRowOf('Cabinets').cells.slice(-2)).toEqual(['0%', 'planned'])
+    expect(tableRowOf('Rough inspection').cells.at(-1)).toBe('milestone, reached')
+  })
+
+  it('leaves out the group and baseline columns without those accessors', () => {
+    renderChart({ group: undefined, baselineStart: undefined, baselineEnd: undefined })
+    expect(headers()).toEqual(['Name', 'Start', 'End', 'Progress', 'Status'])
+  })
+
+  it('renames columns with dataTable.columns, and drops the table with dataTable={false}', () => {
+    const { unmount } = renderChart({ dataTable: { columns: { Start: 'Starts' } } })
+    expect(headers()[2]).toBe('Starts')
+    unmount()
+    renderChart({ dataTable: false })
+    expect(screen.queryByRole('table')).toBeNull()
   })
 })

@@ -12,6 +12,7 @@ import {
   LeadFunnel,
   LeadFunnelBySource,
   MonthlyCost,
+  RemodelSchedule,
   RevenueByLine,
 } from '../test/fixtures'
 import { thresholds } from './core/thresholds'
@@ -245,6 +246,73 @@ describe('hydration', () => {
     expect(onRecoverableError).not.toHaveBeenCalled()
     expect(errors).not.toHaveBeenCalled()
     expect(layout()).toBe('bottom')
+    expect(container.querySelector('svg')?.getAttribute('width')).toBe('320')
+    await act(async () => {
+      root?.unmount()
+    })
+    container.remove()
+    rect.mockRestore()
+    errors.mockRestore()
+  })
+
+  // Measured at the 640 px of the server render, so the labels, key and now line stay drawn after
+  // hydration too (jsdom measures 0 otherwise).
+  it('hydrates GanttChart server markup with its value labels, key and now line without mismatches', async () => {
+    const html = renderToString(<RemodelSchedule />)
+    const errors = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const rect = vi
+      .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+      .mockReturnValue({ width: 640 } as DOMRect)
+    const container = document.createElement('div')
+    container.innerHTML = html
+    const count = (part: string) => container.querySelectorAll(`[data-ch-part="${part}"]`).length
+    const drawn = () => ({
+      rows: count('gantt-row'),
+      values: count('gantt-value'),
+      key: count('gantt-key-item'),
+      now: count('gantt-now'),
+      nowLabel: count('gantt-now-label'),
+    })
+    const expected = { rows: 13, values: 13, key: 5, now: 1, nowLabel: 1 }
+    expect(drawn()).toEqual(expected)
+    document.body.appendChild(container)
+    const onRecoverableError = vi.fn()
+    let root: ReturnType<typeof hydrateRoot> | undefined
+    await act(async () => {
+      root = hydrateRoot(container, <RemodelSchedule />, { onRecoverableError })
+    })
+    expect(onRecoverableError).not.toHaveBeenCalled()
+    expect(errors).not.toHaveBeenCalled()
+    expect(drawn()).toEqual(expected)
+    await act(async () => {
+      root?.unmount()
+    })
+    container.remove()
+    rect.mockRestore()
+    errors.mockRestore()
+  })
+
+  // Names left of the bars at 640 px on the server; the 320 px container moves them above the
+  // bars after hydration, not during it.
+  it('hydrates a GanttChart rendered wide into a narrow container, then moves the names on top', async () => {
+    const html = renderToString(<RemodelSchedule initialWidth={640} />)
+    const errors = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const rect = vi
+      .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+      .mockReturnValue({ width: 320 } as DOMRect)
+    const container = document.createElement('div')
+    container.innerHTML = html
+    const labels = () => container.querySelector('[data-ch-labels]')?.getAttribute('data-ch-labels')
+    expect(labels()).toBe('left')
+    document.body.appendChild(container)
+    const onRecoverableError = vi.fn()
+    let root: ReturnType<typeof hydrateRoot> | undefined
+    await act(async () => {
+      root = hydrateRoot(container, <RemodelSchedule initialWidth={640} />, { onRecoverableError })
+    })
+    expect(onRecoverableError).not.toHaveBeenCalled()
+    expect(errors).not.toHaveBeenCalled()
+    expect(labels()).toBe('top')
     expect(container.querySelector('svg')?.getAttribute('width')).toBe('320')
     await act(async () => {
       root?.unmount()

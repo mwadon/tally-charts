@@ -129,6 +129,7 @@ const PARTS = [
   'gantt-grid',
   'gantt-heading',
   'gantt-heading-rule',
+  'gantt-hit',
   'gantt-key',
   'gantt-key-item',
   'gantt-milestone',

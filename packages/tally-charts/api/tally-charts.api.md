@@ -267,6 +267,7 @@ export interface ChartContextValue {
 
 // @public
 export interface ChartMessages {
+    baselineRange: string;
     binAll: string;
     binOver: string;
     binRange: string;
@@ -275,19 +276,24 @@ export interface ChartMessages {
     deltaDown: string;
     deltaFlat: string;
     deltaUp: string;
+    early: string;
     headerActual: string;
+    headerBaselineEnd: string;
+    headerBaselineStart: string;
     headerCategory: string;
     headerChange: string;
     headerColumn: string;
     headerContinued: string;
     headerDate: string;
     headerDifference: string;
+    headerEnd: string;
     headerGroup: string;
     headerItem: string;
     headerName: string;
     headerPart: string;
     headerPeriod: string;
     headerPlan: string;
+    headerProgress: string;
     headerProjectedAtReset: string;
     headerRange: string;
     headerRankedDetails: string;
@@ -297,6 +303,7 @@ export interface ChartMessages {
     headerRunwayDetail: string;
     headerShare: string;
     headerSize: string;
+    headerStart: string;
     headerStatus: string;
     headerStep: string;
     headerTotal: string;
@@ -311,12 +318,14 @@ export interface ChartMessages {
     keyMilestone: string;
     keyOverrun: string;
     keyPlanned: string;
+    late: string;
     legendLocked: string;
     legendNoForecast: string;
     legendProjectedUse: string;
     legendReset: string;
     legendRunsOut: string;
     legendUnderShare: string;
+    milestone: string;
     noData: string;
     noValue: string;
     now: string;
@@ -325,16 +334,23 @@ export interface ChartMessages {
     ofTotal: string;
     onPlan: string;
     other: string;
+    overBaseline: string;
     peak: string;
+    percentDone: string;
     planActual: string;
     position: string;
     resetMark: string;
     runningTotalLabel: string;
     statusAtReset: string;
     statusDisconnected: string;
+    statusDone: string;
+    statusInProgress: string;
     statusNoForecast: string;
+    statusPlanned: string;
+    statusReached: string;
     statusResets: string;
     statusRunsOut: string;
+    statusUpcoming: string;
     target: string;
     targetLabel: string;
     today: string;

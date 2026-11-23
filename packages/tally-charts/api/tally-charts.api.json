@@ -4436,6 +4436,33 @@
           "members": [
             {
               "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!ChartMessages#baselineRange:member",
+              "docComment": "/**\n * A GanttChart task's baseline dates in the tooltip. Placeholder: `{range}`, as in \"Mar 13 – Mar 18\".\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "baselineRange: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "baselineRange",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
               "canonicalReference": "tally-charts!ChartMessages#binAll:member",
               "docComment": "/**\n * The default Heatmap legend label when there are no breaks.\n */\n",
               "excerptTokens": [
@@ -4652,6 +4679,33 @@
             },
             {
               "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!ChartMessages#early:member",
+              "docComment": "/**\n * A GanttChart milestone before its baseline, as in \"2 days early\". Placeholder: `{duration}`.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "early: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "early",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
               "canonicalReference": "tally-charts!ChartMessages#headerActual:member",
               "docComment": "/**\n * A data-table column header.\n */\n",
               "excerptTokens": [
@@ -4672,6 +4726,60 @@
               "isOptional": false,
               "releaseTag": "Public",
               "name": "headerActual",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!ChartMessages#headerBaselineEnd:member",
+              "docComment": "/**\n * A GanttChart data-table column header.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "headerBaselineEnd: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "headerBaselineEnd",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!ChartMessages#headerBaselineStart:member",
+              "docComment": "/**\n * A GanttChart data-table column header.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "headerBaselineStart: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "headerBaselineStart",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2
@@ -4841,6 +4949,33 @@
             },
             {
               "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!ChartMessages#headerEnd:member",
+              "docComment": "/**\n * A GanttChart data-table column header.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "headerEnd: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "headerEnd",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
               "canonicalReference": "tally-charts!ChartMessages#headerGroup:member",
               "docComment": "/**\n * A data-table column header.\n */\n",
               "excerptTokens": [
@@ -4996,6 +5131,33 @@
               "isOptional": false,
               "releaseTag": "Public",
               "name": "headerPlan",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!ChartMessages#headerProgress:member",
+              "docComment": "/**\n * The done-share column of a GanttChart data table.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "headerProgress: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "headerProgress",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2
@@ -5239,6 +5401,33 @@
               "isOptional": false,
               "releaseTag": "Public",
               "name": "headerSize",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!ChartMessages#headerStart:member",
+              "docComment": "/**\n * A GanttChart data-table column header.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "headerStart: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "headerStart",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2
@@ -5624,6 +5813,33 @@
             },
             {
               "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!ChartMessages#late:member",
+              "docComment": "/**\n * A GanttChart milestone after its baseline, as in \"3 days late\". Placeholder: `{duration}`.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "late: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "late",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
               "canonicalReference": "tally-charts!ChartMessages#legendLocked:member",
               "docComment": "/**\n * RunwayChart legend.\n */\n",
               "excerptTokens": [
@@ -5779,6 +5995,33 @@
               "isOptional": false,
               "releaseTag": "Public",
               "name": "legendUnderShare",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!ChartMessages#milestone:member",
+              "docComment": "/**\n * What a GanttChart milestone is called when read aloud and in the data table.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "milestone: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "milestone",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2
@@ -6002,6 +6245,33 @@
             },
             {
               "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!ChartMessages#overBaseline:member",
+              "docComment": "/**\n * A GanttChart task's overrun, as in \"2 days over baseline\". Placeholder: `{duration}`.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "overBaseline: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "overBaseline",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
               "canonicalReference": "tally-charts!ChartMessages#peak:member",
               "docComment": "/**\n * The first line of a WaffleColumns callout.\n */\n",
               "excerptTokens": [
@@ -6022,6 +6292,33 @@
               "isOptional": false,
               "releaseTag": "Public",
               "name": "peak",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!ChartMessages#percentDone:member",
+              "docComment": "/**\n * A running GanttChart task's share in the tooltip, as in \"50% done\". Placeholder: `{value}`.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "percentDone: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "percentDone",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2
@@ -6191,6 +6488,60 @@
             },
             {
               "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!ChartMessages#statusDone:member",
+              "docComment": "/**\n * A finished GanttChart task, read aloud and in the data table.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "statusDone: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "statusDone",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!ChartMessages#statusInProgress:member",
+              "docComment": "/**\n * A running GanttChart task, read aloud before its percent and in the data table.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "statusInProgress: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "statusInProgress",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
               "canonicalReference": "tally-charts!ChartMessages#statusNoForecast:member",
               "docComment": "/**\n * Default status of a RunwayChart row without a forecast.\n */\n",
               "excerptTokens": [
@@ -6211,6 +6562,60 @@
               "isOptional": false,
               "releaseTag": "Public",
               "name": "statusNoForecast",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!ChartMessages#statusPlanned:member",
+              "docComment": "/**\n * A GanttChart task not started yet, read aloud and in the data table.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "statusPlanned: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "statusPlanned",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!ChartMessages#statusReached:member",
+              "docComment": "/**\n * A GanttChart milestone that is reached.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "statusReached: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "statusReached",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2
@@ -6265,6 +6670,33 @@
               "isOptional": false,
               "releaseTag": "Public",
               "name": "statusRunsOut",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!ChartMessages#statusUpcoming:member",
+              "docComment": "/**\n * A GanttChart milestone that is not reached yet.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "statusUpcoming: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "statusUpcoming",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2

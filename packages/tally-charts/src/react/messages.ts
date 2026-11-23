@@ -155,6 +155,38 @@ export interface ChartMessages {
   keyBaseline: string
   /** GanttChart key: the diamond. */
   keyMilestone: string
+  /** A finished GanttChart task, read aloud and in the data table. */
+  statusDone: string
+  /** A running GanttChart task, read aloud before its percent and in the data table. */
+  statusInProgress: string
+  /** A GanttChart task not started yet, read aloud and in the data table. */
+  statusPlanned: string
+  /** What a GanttChart milestone is called when read aloud and in the data table. */
+  milestone: string
+  /** A GanttChart milestone that is reached. */
+  statusReached: string
+  /** A GanttChart milestone that is not reached yet. */
+  statusUpcoming: string
+  /** A running GanttChart task's share in the tooltip, as in "50% done". Placeholder: `{value}`. */
+  percentDone: string
+  /** A GanttChart task's overrun, as in "2 days over baseline". Placeholder: `{duration}`. */
+  overBaseline: string
+  /** A GanttChart milestone after its baseline, as in "3 days late". Placeholder: `{duration}`. */
+  late: string
+  /** A GanttChart milestone before its baseline, as in "2 days early". Placeholder: `{duration}`. */
+  early: string
+  /** A GanttChart task's baseline dates in the tooltip. Placeholder: `{range}`, as in "Mar 13 – Mar 18". */
+  baselineRange: string
+  /** A GanttChart data-table column header. */
+  headerStart: string
+  /** A GanttChart data-table column header. */
+  headerEnd: string
+  /** A GanttChart data-table column header. */
+  headerBaselineStart: string
+  /** A GanttChart data-table column header. */
+  headerBaselineEnd: string
+  /** The done-share column of a GanttChart data table. */
+  headerProgress: string
 }
 
 // One `const` per default, read at the call site as `messages.noData ?? NO_DATA`, so a bundle holds
@@ -236,6 +268,22 @@ export const KEY_PLANNED = 'Planned'
 export const KEY_OVERRUN = 'Overrun'
 export const KEY_BASELINE = 'Baseline'
 export const KEY_MILESTONE = 'Milestone'
+export const STATUS_DONE = 'done'
+export const STATUS_IN_PROGRESS = 'in progress'
+export const STATUS_PLANNED = 'planned'
+export const MILESTONE = 'milestone'
+export const STATUS_REACHED = 'reached'
+export const STATUS_UPCOMING = 'upcoming'
+export const PERCENT_DONE = '{value} done'
+export const OVER_BASELINE = '{duration} over baseline'
+export const LATE = '{duration} late'
+export const EARLY = '{duration} early'
+export const BASELINE_RANGE = 'baseline {range}'
+export const HEADER_START = 'Start'
+export const HEADER_END = 'End'
+export const HEADER_BASELINE_START = 'Baseline start'
+export const HEADER_BASELINE_END = 'Baseline end'
+export const HEADER_PROGRESS = 'Progress'
 
 /**
  * The English text of every key in `ChartMessages`. The wording isn't public and can change in any
@@ -318,6 +366,22 @@ export const DEFAULT_MESSAGES: Readonly<ChartMessages> = {
   keyOverrun: KEY_OVERRUN,
   keyBaseline: KEY_BASELINE,
   keyMilestone: KEY_MILESTONE,
+  statusDone: STATUS_DONE,
+  statusInProgress: STATUS_IN_PROGRESS,
+  statusPlanned: STATUS_PLANNED,
+  milestone: MILESTONE,
+  statusReached: STATUS_REACHED,
+  statusUpcoming: STATUS_UPCOMING,
+  percentDone: PERCENT_DONE,
+  overBaseline: OVER_BASELINE,
+  late: LATE,
+  early: EARLY,
+  baselineRange: BASELINE_RANGE,
+  headerStart: HEADER_START,
+  headerEnd: HEADER_END,
+  headerBaselineStart: HEADER_BASELINE_START,
+  headerBaselineEnd: HEADER_BASELINE_END,
+  headerProgress: HEADER_PROGRESS,
 }
 
 /** Fills `{name}` placeholders from `values`; an unknown placeholder stays as text. */

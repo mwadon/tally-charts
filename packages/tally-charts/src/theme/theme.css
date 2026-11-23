@@ -761,6 +761,16 @@
   cursor: pointer;
 }
 
+/* The active Gantt row: the other rows' bars, baselines and diamonds dim through the shared rule;
+   its name is bold. Text never dims. */
+[data-ch-part="gantt-row"][data-ch-active="true"] [data-ch-part="gantt-name"] {
+  font-weight: 600;
+}
+
+[data-ch-part="gantt-hit"][data-ch-selectable="true"] {
+  cursor: pointer;
+}
+
 /* ---------- Gantt ---------- */
 /* Bar segments paint their tone or its hatch inline, as bars do; names, headings, ticks, the grid
    and the heading rules share the rules above. The baseline sits under the bar in neutral; a
@@ -2067,6 +2077,27 @@
 
   [data-ch-part="gantt-now"] {
     stroke: CanvasText;
+  }
+
+  /* The active row in Highlight: its bar parts paint their tone inline, so this overrides them
+     (the hatch stays a pattern and takes a Highlight outline); its diamond is outlined, and filled
+     once reached, in Highlight. */
+  [data-ch-part="gantt-row"][data-ch-active="true"] [data-ch-part="gantt-segment"] {
+    --_ch-swatch-color: Highlight !important;
+  }
+
+  [data-ch-part="gantt-row"][data-ch-active="true"]
+    [data-ch-part="gantt-segment"][data-ch-fill="solid"] {
+    fill: Highlight !important;
+  }
+
+  [data-ch-part="gantt-row"][data-ch-active="true"] [data-ch-part="gantt-milestone"] {
+    stroke: Highlight;
+  }
+
+  [data-ch-part="gantt-row"][data-ch-active="true"]
+    [data-ch-part="gantt-milestone"][data-ch-reached="true"] {
+    fill: Highlight;
   }
 
   [data-ch-part="runway-dot"] {

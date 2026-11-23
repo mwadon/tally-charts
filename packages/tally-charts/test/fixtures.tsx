@@ -33,6 +33,8 @@ import {
   WaterfallChart,
   ZoneMeter,
 } from '../src'
+// Not exported from the package yet.
+import { GanttChart } from '../src/react/charts/GanttChart'
 
 export const weeks = [
   { week: 'Jul 6', margin: 37.5 },
@@ -546,6 +548,54 @@ export function RevenueByLine({ initialWidth }: { initialWidth?: number } = {}) 
       y="revenue"
       format="currency-compact"
       centerLabel="total revenue"
+      initialWidth={initialWidth}
+    />
+  )
+}
+
+/** A fictional kitchen remodel: 13 rows in three phases, two of them milestones (no `end`). */
+export const remodelTasks: {
+  name: string
+  phase: string
+  start: string
+  end?: string
+  plannedStart: string
+  plannedEnd?: string
+}[] = [
+  ['Site protection', 'Prep', '03-02', '03-04', '03-02', '03-04'],
+  ['Demolition', 'Prep', '03-04', '03-09', '03-04', '03-08'],
+  ['Haul-away', 'Prep', '03-09', '03-10', '03-08', '03-09'],
+  ['Framing changes', 'Rough-in', '03-10', '03-14', '03-09', '03-13'],
+  ['Plumbing rough-in', 'Rough-in', '03-14', '03-21', '03-13', '03-18'],
+  ['Electrical rough-in', 'Rough-in', '03-16', '03-21', '03-15', '03-20'],
+  ['Rough inspection', 'Rough-in', '03-23', null, '03-20', null],
+  ['Drywall and paint', 'Rough-in', '03-23', '03-31', '03-20', '03-28'],
+  ['Cabinets', 'Finishes', '03-31', '04-05', '03-28', '04-02'],
+  ['Countertops', 'Finishes', '04-05', '04-08', '04-02', '04-05'],
+  ['Tile backsplash', 'Finishes', '04-08', '04-12', '04-05', '04-09'],
+  ['Fixtures and appliances', 'Finishes', '04-12', '04-16', '04-09', '04-13'],
+  ['Final walkthrough', 'Finishes', '04-17', null, '04-14', null],
+].map(([name, phase, start, end, plannedStart, plannedEnd]) => ({
+  name: name as string,
+  phase: phase as string,
+  start: `2026-${start}`,
+  ...(end ? { end: `2026-${end}` } : {}),
+  plannedStart: `2026-${plannedStart}`,
+  ...(plannedEnd ? { plannedEnd: `2026-${plannedEnd}` } : {}),
+}))
+
+export function RemodelSchedule({ initialWidth }: { initialWidth?: number } = {}) {
+  return (
+    <GanttChart
+      title="Kitchen remodel"
+      data={remodelTasks}
+      x="name"
+      start="start"
+      end="end"
+      group="phase"
+      baselineStart="plannedStart"
+      baselineEnd="plannedEnd"
+      now="2026-03-27"
       initialWidth={initialWidth}
     />
   )

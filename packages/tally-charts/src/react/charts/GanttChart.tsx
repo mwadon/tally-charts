@@ -1,6 +1,6 @@
-import { type CSSProperties, useMemo } from 'react'
+import { type CSSProperties, type PointerEvent, useMemo, useRef } from 'react'
 import { resolveAccessor, resolveIds } from '../../core/accessor'
-import { autoTickLabels } from '../../core/date'
+import { autoTickLabels, createDateFormatter } from '../../core/date'
 import { round2 } from '../../core/path'
 import { CHAR_WIDTH, truncateLabel } from '../../core/text'
 import { estimateWidth, fitTimeTicks } from '../../core/ticks'
@@ -19,7 +19,38 @@ import { paintFor } from '../../theme/patterns'
 import { type ChartName, FittedChart } from '../Chart'
 import { useLocale, useMessages } from '../ChartsProvider'
 import { type Margin, useChartContext } from '../context'
-import { KEY_BASELINE, KEY_DONE, KEY_MILESTONE, KEY_OVERRUN, KEY_PLANNED, TODAY } from '../messages'
+import type { DataTableSpec } from '../DataTable'
+import { samePoints } from '../interaction'
+import {
+  BASELINE_RANGE,
+  EARLY,
+  HEADER_BASELINE_END,
+  HEADER_BASELINE_START,
+  HEADER_END,
+  HEADER_GROUP,
+  HEADER_NAME,
+  HEADER_PROGRESS,
+  HEADER_START,
+  HEADER_STATUS,
+  KEY_BASELINE,
+  KEY_DONE,
+  KEY_MILESTONE,
+  KEY_OVERRUN,
+  KEY_PLANNED,
+  LATE,
+  MILESTONE,
+  OVER_BASELINE,
+  PERCENT_DONE,
+  STATUS_DONE,
+  STATUS_IN_PROGRESS,
+  STATUS_PLANNED,
+  STATUS_REACHED,
+  STATUS_UPCOMING,
+  TODAY,
+} from '../messages'
+import { Tooltip } from '../overlays/Tooltip'
+import type { ChartPoint } from '../types'
+import { useRegisterPoints } from '../useRegisterPoints'
 import {
   doneShare,
   type GanttEntry,
@@ -29,12 +60,25 @@ import {
   ganttOverrun,
   ganttRows,
 } from './gantt-geometry'
-import { dayText, type GanttValue, ganttDate, ganttValue } from './gantt-text'
+import {
+  dayText,
+  donePercent,
+  type GanttValue,
+  type GanttValueRow,
+  type GanttWords,
+  ganttDate,
+  ganttStatus,
+  ganttTexts,
+  ganttValue,
+} from './gantt-text'
 import {
   type ChartPassThroughProps,
   type ChartTooltip,
   type DataTableOptions,
+  headerOf,
+  tooltipContent,
   userCallbacks,
+  withTableOptions,
 } from './shared'
 
 export type GanttChartProps<D> = ChartName &
@@ -95,6 +139,34 @@ interface GanttRow<D> {
   valid: boolean
 }
 
+/** Same rows, so inline accessors keep the rows (and the points that hold them) they built. */
+function sameRows<D>(a: readonly GanttRow<D>[], b: readonly GanttRow<D>[]): boolean {
+  return (
+    a.length === b.length &&
+    a.every((r, i) => {
+      const t = b[i]
+      return (
+        t !== undefined &&
+        r.datum === t.datum &&
+        r.index === t.index &&
+        r.rowId === t.rowId &&
+        r.name === t.name &&
+        r.group === t.group &&
+        r.start === t.start &&
+        r.end === t.end &&
+        r.milestone === t.milestone &&
+        r.baselineStart === t.baselineStart &&
+        r.baselineEnd === t.baselineEnd &&
+        r.done === t.done &&
+        r.valid === t.valid
+      )
+    })
+  )
+}
+
+/** What a pointer can move to and stay on a row: another row's hit rect. */
+const HIT_PARTS: readonly (string | null)[] = ['gantt-hit']
+
 /** The key's kinds, in the order the key lists them. */
 type GanttKind = 'done' | 'planned' | 'overrun' | 'baseline' | 'milestone'
 const KINDS: readonly GanttKind[] = ['done', 'planned', 'overrun', 'baseline', 'milestone']
@@ -149,7 +221,7 @@ const BASELINE_Y = 24
 const BASELINE_HEIGHT = 3
 const BASELINE_RADIUS = 2
 const CENTRE = 16
-const MILESTONE = 12
+const MILESTONE_SIZE = 12
 const MILESTONE_BASELINE = 8
 /** Value labels: 8 px after a bar's end, 14 px after a milestone's centre; text 4 px under the centre line. */
 const VALUE_GAP = 8
@@ -226,10 +298,12 @@ function GanttMarks<D>(props: {
   keyWords: Readonly<Record<GanttKind, string>>
   /** "Today · Mar 27", or '' without `now`. */
   nowText: string
+  /** One per row: the announcement and the tooltip lines. */
+  texts: readonly { label: string; tooltip: string[] }[]
 }) {
   const ctx = useChartContext('GanttChart')
   const { locale } = useLocale()
-  const { rows, zone, tone, values, keyWords, nowText } = props
+  const { rows, zone, tone, values, keyWords, nowText, texts } = props
   const layout = props.layoutAt(ctx.width)
   const { top, plotX, plotWidth, scale, entries, marks, rowsTop, rowsHeight, keyHeight, nowX } =
     layout
@@ -260,6 +334,66 @@ function GanttMarks<D>(props: {
       // The tone, for the outline theme.css draws on hatched parts.
       '--_ch-swatch-color': `var(--ch-${t})`,
     }) as CSSProperties
+
+  // One point per row in drawn order, at the middle of its bar (a milestone's centre) on the bar
+  // centre line; a row outside the plot sits at the nearest plot edge.
+  const built: ChartPoint[] = []
+  for (const entry of entries) {
+    if (entry.row === null) continue
+    const row = rows[entry.row] as GanttRow<D>
+    const mark = marks[entry.row] as GanttMark
+    const text = texts[entry.row]
+    const mid = row.end === null ? (row.start as number) : ((row.start as number) + row.end) / 2
+    const outside = scale(mid)
+    const x = mark.visible
+      ? mark.x + mark.width / 2
+      : Number.isFinite(outside)
+        ? Math.min(plotWidth, Math.max(0, outside))
+        : 0
+    built.push({
+      id: row.rowId,
+      index: row.index,
+      datum: row,
+      x: round2(plotX + x),
+      y: rowsTop + entry.y + barTop + (row.milestone ? CENTRE : BAR_Y + BAR_HEIGHT / 2),
+      label: text?.label ?? row.name,
+      segments: (text?.tooltip ?? [row.name]).map((value) => ({ value })),
+    })
+  }
+  // Inline accessors and layouts build a new array on every render even when nothing it holds
+  // changed; keep the previous array while the content is the same.
+  const stable = useRef<ChartPoint[]>([])
+  if (!samePoints(stable.current, built)) stable.current = built
+  const points = stable.current
+  useRegisterPoints(points)
+
+  const activeOf = (row: GanttRow<D>) => ctx.activeId !== null && row.rowId === ctx.activeId
+  const anyActive = ctx.activeId !== null && rows.some(activeOf)
+  const dimmed = (row: GanttRow<D>) =>
+    ctx.dimInactive && anyActive && !activeOf(row) ? 'true' : undefined
+  const pointAt = (row: GanttRow<D>) => points.find((p) => p.index === row.index)
+  // The row under the pointer: its hit rect covers the name, the plot and the gutter.
+  const pointer = (row: GanttRow<D>) => ({
+    onPointerEnter: () => ctx.setActive(row.rowId, 'pointer'),
+    // Into a heading or past the rows: the hover ends, as when the pointer leaves the chart. Into
+    // another row, its own enter takes over. A touch tap keeps its row.
+    onPointerLeave: (event: PointerEvent<SVGElement>) => {
+      if (event.pointerType === 'touch') return
+      const to = event.relatedTarget
+      const svg = event.currentTarget.ownerSVGElement
+      if (
+        to instanceof Element &&
+        HIT_PARTS.includes(to.getAttribute('data-ch-part')) &&
+        svg?.contains(to)
+      )
+        return
+      ctx.leave()
+    },
+    onClick: () => {
+      const point = pointAt(row)
+      if (point) ctx.select(point)
+    },
+  })
 
   // The now label is centred on the line and kept inside the plot.
   const nowHalf = smallWidth(nowText) / 2
@@ -398,11 +532,13 @@ function GanttMarks<D>(props: {
         const value = values?.[entry.row]
         const place = layout.labels[entry.row]
         const clipId = `${ctx.chartId}-gantt-clip-${row.index}`
+        const dim = dimmed(row)
         return (
           <g
             key={row.index}
             data-ch-part="gantt-row"
             data-ch-kind={row.milestone ? 'milestone' : 'task'}
+            data-ch-active={activeOf(row) ? 'true' : undefined}
             transform={`translate(0,${y})`}
           >
             <text data-ch-part="gantt-name" x={0} y={top ? TOP_LINE : ROW_LINE}>
@@ -414,21 +550,23 @@ function GanttMarks<D>(props: {
                 {mark.baseline ? (
                   <rect
                     data-ch-part="gantt-milestone-baseline"
+                    data-ch-dimmed={dim}
                     {...diamond(plotX + mark.baseline.x, barTop + CENTRE, MILESTONE_BASELINE)}
                   />
                 ) : null}
                 {mark.visible ? (
                   <rect
                     data-ch-part="gantt-milestone"
+                    data-ch-dimmed={dim}
                     data-ch-reached={row.done >= 1 ? 'true' : 'false'}
-                    {...diamond(plotX + mark.x, barTop + CENTRE, MILESTONE)}
+                    {...diamond(plotX + mark.x, barTop + CENTRE, MILESTONE_SIZE)}
                   />
                 ) : null}
               </>
             ) : (
               <>
                 {mark.visible ? (
-                  <g data-ch-part="gantt-bar" clipPath={`url(#${clipId})`}>
+                  <g data-ch-part="gantt-bar" data-ch-dimmed={dim} clipPath={`url(#${clipId})`}>
                     {/* The bar's corners round its outer ends; the joints between parts stay square. */}
                     <clipPath id={clipId}>
                       <rect
@@ -461,6 +599,7 @@ function GanttMarks<D>(props: {
                 {mark.baseline ? (
                   <rect
                     data-ch-part="gantt-baseline"
+                    data-ch-dimmed={dim}
                     x={round2(plotX + mark.baseline.x)}
                     y={barTop + BASELINE_Y}
                     width={mark.baseline.width}
@@ -482,6 +621,20 @@ function GanttMarks<D>(props: {
                 {value.over ? <tspan data-ch-part="gantt-over">{value.over}</tspan> : null}
               </text>
             ) : null}
+            {/* The whole row, over the name, the bar and the value label. */}
+            <rect
+              data-ch-part="gantt-hit"
+              data-ch-selectable={ctx.selectable ? 'true' : undefined}
+              fill="transparent"
+              x={0}
+              y={0}
+              width={round2(Math.max(0, ctx.width))}
+              height={entry.height}
+              {...pointer(row)}
+            >
+              {/* The hit rect covers the name, so a cut name's native tooltip lives here too. */}
+              {name !== row.name ? <title>{row.name}</title> : null}
+            </rect>
           </g>
         )
       })}
@@ -506,9 +659,8 @@ export function GanttChart<D>({
   labelPosition = 'auto',
   valueLabels = true,
   legend = true,
-  // The data table and the tooltip come with later work on this chart.
-  dataTable: _dataTable = true,
-  tooltip: _tooltip = true,
+  dataTable = true,
+  tooltip = true,
   children,
   onSelect,
   onActiveChange,
@@ -533,7 +685,7 @@ export function GanttChart<D>({
     )
   }
 
-  const { rows, badDate, badBaseline, badProgress } = useMemo(() => {
+  const built = useMemo(() => {
     const getName = resolveAccessor(x)
     const getStart = resolveAccessor(start)
     const getEnd = end === undefined ? undefined : resolveAccessor(end)
@@ -608,6 +760,11 @@ export function GanttChart<D>({
     })
     return { rows, badDate, badBaseline, badProgress }
   }, [data, x, start, end, id, group, baselineStart, baselineEnd, progress, nowMs, warn])
+  const { badDate, badBaseline, badProgress } = built
+  // Inline accessors rebuild the rows on every render; keep the previous ones while they match.
+  const stableRows = useRef(built.rows)
+  if (!sameRows(stableRows.current, built.rows)) stableRows.current = built.rows
+  const rows = stableRows.current
 
   if (DEV && badDate) {
     warn(
@@ -647,21 +804,41 @@ export function GanttChart<D>({
   const [g0, g1] = given ?? inferTimeDomain(times)
   const date = useMemo(() => ganttDate(locale, zone, [g0, g1]), [locale, zone, g0, g1])
   const days = useMemo(() => dayText(locale, 'narrow'), [locale])
-  const values = useMemo(
+  const longDays = useMemo(() => dayText(locale, 'long'), [locale])
+  // One per drawn row: what the geometry and the texts are built from.
+  const items = useMemo(
     () =>
-      valueLabels
-        ? drawn.map((r) => {
-            const item = {
-              start: r.start as number,
-              end: r.end,
-              baselineStart: r.baselineStart,
-              baselineEnd: r.baselineEnd,
-              done: r.done,
-            }
-            return ganttValue({ ...item, overMs: ganttOverrun(item) }, days, date)
-          })
-        : null,
-    [valueLabels, drawn, days, date],
+      drawn.map((r): GanttValueRow => {
+        const item = {
+          start: r.start as number,
+          end: r.end,
+          baselineStart: r.baselineStart,
+          baselineEnd: r.baselineEnd,
+          done: r.done,
+        }
+        return { ...item, overMs: ganttOverrun(item) }
+      }),
+    [drawn],
+  )
+  const values = useMemo(
+    () => (valueLabels ? items.map((item) => ganttValue(item, days, date)) : null),
+    [valueLabels, items, days, date],
+  )
+  const words: GanttWords = {
+    statusDone: messages.statusDone ?? STATUS_DONE,
+    statusInProgress: messages.statusInProgress ?? STATUS_IN_PROGRESS,
+    statusPlanned: messages.statusPlanned ?? STATUS_PLANNED,
+    milestone: messages.milestone ?? MILESTONE,
+    statusReached: messages.statusReached ?? STATUS_REACHED,
+    statusUpcoming: messages.statusUpcoming ?? STATUS_UPCOMING,
+    percentDone: messages.percentDone ?? PERCENT_DONE,
+    overBaseline: messages.overBaseline ?? OVER_BASELINE,
+    late: messages.late ?? LATE,
+    early: messages.early ?? EARLY,
+    baselineRange: messages.baselineRange ?? BASELINE_RANGE,
+  }
+  const texts = items.map((item, i) =>
+    ganttTexts({ ...item, name: (drawn[i] as GanttRow<D>).name }, words, longDays, date),
   )
   const widestValue = values ? Math.max(0, ...values.map(valueWidth)) : 0
   const nowText = nowMs === undefined ? '' : `${messages.today ?? TODAY} · ${date(nowMs)}`
@@ -685,19 +862,7 @@ export function GanttChart<D>({
     const range = given ?? niceTimeDomain(inferTimeDomain(times), zone, count)
     const scale = timeScale(range, [0, plotWidth], zone)
     const { entries, height: rowsHeight } = ganttRows(groups, top)
-    const marks = drawn.map((r) =>
-      ganttMark(
-        {
-          start: r.start as number,
-          end: r.end,
-          baselineStart: r.baselineStart,
-          baselineEnd: r.baselineEnd,
-          done: r.done,
-        },
-        scale,
-        plotWidth,
-      ),
-    )
+    const marks = items.map((item) => ganttMark(item, scale, plotWidth))
     const labels = values
       ? marks.map((mark, i) => placeValue(mark, valueWidth(values[i] as GanttValue), plotX, width))
       : []
@@ -750,11 +915,55 @@ export function GanttChart<D>({
   }
   const layoutFor = (width: number) => ({ margin: MARGIN, height: layoutAt(width).height })
 
+  // One table row per data row, in data order; a skipped row keeps its name with empty cells.
+  let table: DataTableSpec<GanttRow<D>> | undefined
+  if (dataTable) {
+    const day = createDateFormatter('day', { locale, zone })
+    const at = (ms: number | null) => (ms === null ? '' : day(ms))
+    const baseline = baselineStart !== undefined || baselineEnd !== undefined
+    table = {
+      columns: [
+        { header: headerOf(x, messages.headerName ?? HEADER_NAME), value: (r) => r.name },
+        ...(group === undefined
+          ? []
+          : [
+              {
+                header: headerOf(group, messages.headerGroup ?? HEADER_GROUP),
+                value: (r: GanttRow<D>) => r.group ?? '',
+              },
+            ]),
+        { header: messages.headerStart ?? HEADER_START, value: (r) => at(r.start) },
+        { header: messages.headerEnd ?? HEADER_END, value: (r) => at(r.end) },
+        ...(baseline
+          ? [
+              {
+                header: messages.headerBaselineStart ?? HEADER_BASELINE_START,
+                value: (r: GanttRow<D>) => at(r.baselineStart),
+              },
+              {
+                header: messages.headerBaselineEnd ?? HEADER_BASELINE_END,
+                value: (r: GanttRow<D>) => at(r.baselineEnd),
+              },
+            ]
+          : []),
+        {
+          header: messages.headerProgress ?? HEADER_PROGRESS,
+          value: (r) => (r.valid && !r.milestone ? `${donePercent(r.done)}%` : ''),
+        },
+        {
+          header: messages.headerStatus ?? HEADER_STATUS,
+          value: (r) => (r.valid ? ganttStatus(r, words) : ''),
+        },
+      ],
+    }
+  }
+
   return (
     <FittedChart<GanttRow<D>>
       {...chart}
       {...userCallbacks(onSelect, onActiveChange)}
       data={drawn.length > 0 ? rows : []}
+      dataTable={withTableOptions(table, dataTable)}
       // The chart lays itself out from its width; fixed domains keep the scales quiet.
       x={UNIT_SCALE}
       y={UNIT_SCALE}
@@ -768,7 +977,9 @@ export function GanttChart<D>({
         values={values}
         keyWords={keyWords}
         nowText={nowText}
+        texts={texts}
       />
+      {tooltip ? <Tooltip content={tooltipContent(tooltip)} /> : null}
       {children}
     </FittedChart>
   )

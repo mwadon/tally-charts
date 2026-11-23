@@ -463,6 +463,29 @@ describe('theme.css', () => {
     )
   })
 
+  it('marks the active gantt row: the name at 600, Highlight in forced colors', () => {
+    expect(themed).toMatch(
+      /\[data-ch-part="gantt-row"\]\[data-ch-active="true"\] \[data-ch-part="gantt-name"\] \{\s*font-weight: 600;/,
+    )
+    expect(themed).toMatch(
+      /\[data-ch-part="gantt-hit"\]\[data-ch-selectable="true"\] \{\s*cursor: pointer;/,
+    )
+    // Forced colors: the active row's bar parts (which paint inline) and its diamond in
+    // Highlight; a hatched part keeps its pattern and takes a Highlight outline.
+    expect(forced).toMatch(
+      /\[data-ch-part="gantt-row"\]\[data-ch-active="true"\] \[data-ch-part="gantt-segment"\] \{\s*--_ch-swatch-color: Highlight !important;/,
+    )
+    expect(forced).toMatch(
+      /\[data-ch-part="gantt-row"\]\[data-ch-active="true"\]\s+\[data-ch-part="gantt-segment"\]\[data-ch-fill="solid"\] \{\s*fill: Highlight !important;/,
+    )
+    expect(forced).toMatch(
+      /\[data-ch-part="gantt-row"\]\[data-ch-active="true"\] \[data-ch-part="gantt-milestone"\] \{\s*stroke: Highlight;/,
+    )
+    expect(forced).toMatch(
+      /\[data-ch-part="gantt-row"\]\[data-ch-active="true"\]\s+\[data-ch-part="gantt-milestone"\]\[data-ch-reached="true"\] \{\s*fill: Highlight;/,
+    )
+  })
+
   it('inks the active funnel guide, Highlight in forced colors, and points at selectable steps', () => {
     expect(themed).toMatch(
       /\[data-ch-part="funnel-guide"\]\[data-ch-active="true"\] \{\s*stroke: var\(--ch-ink\);\s*stroke-width: 1\.5;/,
