@@ -5,6 +5,7 @@ import {
   Chart,
   ComparisonBars,
   Delta,
+  DonutChart,
   DotCount,
   DotHistogram,
   FunnelChart,
@@ -32,8 +33,6 @@ import {
   WaterfallChart,
   ZoneMeter,
 } from '../src'
-// Not exported yet: imported from its source until the package exports it.
-import { DonutChart } from '../src/react/charts/DonutChart'
 
 export const weeks = [
   { week: 'Jul 6', margin: 37.5 },

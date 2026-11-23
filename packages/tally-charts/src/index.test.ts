@@ -28,6 +28,7 @@ describe('public entry points', () => {
     'RunwayChart',
     'ScatterChart',
     'FunnelChart',
+    'DonutChart',
     'RowLabels',
     'RowDividers',
     'DataTable',

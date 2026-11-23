@@ -285,6 +285,7 @@ export interface ChartMessages {
     headerGroup: string;
     headerItem: string;
     headerName: string;
+    headerPart: string;
     headerPeriod: string;
     headerPlan: string;
     headerProjectedAtReset: string;
@@ -294,6 +295,7 @@ export interface ChartMessages {
     headerRow: string;
     headerRunsOut: string;
     headerRunwayDetail: string;
+    headerShare: string;
     headerSize: string;
     headerStatus: string;
     headerStep: string;
@@ -315,7 +317,9 @@ export interface ChartMessages {
     now: string;
     ofFirstStep: string;
     ofPreviousStep: string;
+    ofTotal: string;
     onPlan: string;
+    other: string;
     peak: string;
     planActual: string;
     position: string;
@@ -532,6 +536,29 @@ export interface DeltaProps {
     tone?: Tone;
     value: number;
 }
+
+// @public (undocumented)
+export function DonutChart<D>(input: DonutChartProps<D>): JSX.Element;
+
+// @public (undocumented)
+export type DonutChartProps<D> = ChartName & Omit<ChartPassThroughProps<D>, 'aspectRatio' | 'height' | 'margin'> & {
+    data: readonly D[];
+    x: Accessor<D, string>;
+    y: Accessor<D, number>;
+    id?: Accessor<D, Id>;
+    tone?: Tone;
+    format?: FormatSpec;
+    sort?: 'value' | 'none';
+    maxSlices?: number;
+    diameter?: number;
+    centerLabel?: string;
+    showTotal?: boolean;
+    legend?: boolean;
+    legendValue?: 'both' | 'value' | 'percent';
+    legendPosition?: 'auto' | 'right' | 'bottom';
+    dataTable?: boolean | DataTableOptions;
+    tooltip?: ChartTooltip<D>;
+};
 
 // @public
 export function DotCount(input: DotCountProps): JSX.Element;

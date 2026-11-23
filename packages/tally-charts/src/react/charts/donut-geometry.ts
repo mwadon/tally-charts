@@ -10,7 +10,7 @@ export interface DonutArc {
   centroid: [number, number]
 }
 
-const TAU = Math.PI * 2
+const TAU = 6.283185307179586
 
 const at = (angle: number, radius: number): string =>
   `${round2(radius * Math.sin(angle))},${round2(-radius * Math.cos(angle))}`
