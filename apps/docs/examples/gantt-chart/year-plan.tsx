@@ -23,8 +23,8 @@ const items = [
   { task: 'Launch campaign', stream: 'Launch', from: '2026-10-19', to: '2026-12-18' },
 ]
 
-// A year of work: in a docs card the axis has quarter ticks (a wider plot gets months), and the
-// value labels count the days.
+// A year of work: in a docs card the axis has quarter ticks (a wider plot gets months). The value
+// labels count the days of each task, and give the done share of the two running on June 15.
 export default function YearPlan() {
   return (
     <GanttChart

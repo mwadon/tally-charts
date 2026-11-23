@@ -180,7 +180,7 @@
       "id": "n21",
       "type": "prose",
       "props": {
-        "markdown": "Each row gets a value label after its bar where it fits (`valueLabels`, default true): the length of a task in whole days (“5d”, or “<1d” under half a day), or the done share of a running task (“50%”, a whole percent from 1 to 99), followed by the overrun (“+2d”) in the loss tone. A milestone's label is its date, followed by its slip against its baseline: “+3d” late in the loss tone, “−2d” early in the muted text. An overrun or a slip is shown only when it rounds to at least one whole day. Day counts are written by the locale of the [`ChartsProvider`](/docs/hooks-and-providers) (`Intl` unit formatting), so they need no plural forms; under `locale=\"pl-PL\"` the tooltip reads “7 dni”."
+        "markdown": "Each row gets a value label where it fits (`valueLabels`, default true): the length of a task in whole days (“5d”, or “<1d” under half a day), or the done share of a running task (“50%”, a whole percent from 1 to 99), followed by the overrun (“+2d”) in the loss tone. A milestone's label is its date, followed by its slip against its baseline: “+3d” late in the loss tone, “−2d” early in the muted text. An overrun or a slip is shown only when it rounds to at least one whole day. Day counts are written by the locale of the [`ChartsProvider`](/docs/hooks-and-providers) (`Intl` unit formatting), so they need no plural forms; under `locale=\"pl-PL\"` the tooltip reads “7 dni”."
       }
     },
     {
