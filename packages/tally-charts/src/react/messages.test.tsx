@@ -16,6 +16,7 @@ import { RankedBars } from './charts/RankedBars'
 import { RunwayChart } from './charts/RunwayChart'
 import { ScatterChart } from './charts/ScatterChart'
 import { StripPlot } from './charts/StripPlot'
+import { Treemap } from './charts/Treemap'
 import { WaffleColumns } from './charts/WaffleColumns'
 import { WaterfallChart } from './charts/WaterfallChart'
 import { Bars } from './marks/Bars'
@@ -306,6 +307,10 @@ describe('table headers', () => {
       for (const h of heads(container)) seen.add(h)
       // The row header of a Heatmap is read, not tabulated.
       for (const el of container.querySelectorAll('.ch-sr-only')) seen.add(el.textContent)
+      // A Treemap names its shade measure above the legend.
+      for (const el of container.querySelectorAll('[data-ch-part="treemap-legend-title"]')) {
+        seen.add(el.textContent)
+      }
       unmount()
     }
     take(<BarChart<Row> data={data} x={by.a} y={by.v} {...common} />)
@@ -388,6 +393,9 @@ describe('table headers', () => {
         baselineEnd={(d) => d.e}
         {...common}
       />,
+    )
+    take(
+      <Treemap<Row> data={data} name={by.a} value={by.v} shade={by.w} breaks={[2.5]} title="M" />,
     )
     const missing = headerKeys.filter((k) => !seen.has(`«${k}»`))
     expect(missing).toEqual([])
@@ -572,6 +580,15 @@ describe('GanttChart messages', () => {
       headerBaselineEnd: 'Baseline end',
       headerProgress: 'Progress',
       headerStatus: 'Status',
+    })
+  })
+})
+
+describe('Treemap messages', () => {
+  it('have English defaults', () => {
+    expect(DEFAULT_MESSAGES).toMatchObject({
+      treemapName: 'Treemap',
+      headerShade: 'Shade',
     })
   })
 })

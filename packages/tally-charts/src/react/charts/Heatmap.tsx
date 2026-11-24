@@ -10,29 +10,18 @@ import {
   useState,
 } from 'react'
 import { resolveAccessor } from '../../core/accessor'
-import type { FormatSpec, Formatter } from '../../core/format'
+import type { FormatSpec } from '../../core/format'
 import { toNumber } from '../../core/number'
 import { binLevels, levelFor, MAX_BREAKS, sequentialBreaks } from '../../core/thresholds'
 import type { Accessor, SeqLevel, Tone } from '../../core/types'
 import { createWarner, DEV, type Warn } from '../../core/warn'
 import type { ChartName } from '../Chart'
 import { useFormat, useMessages } from '../ChartsProvider'
-import {
-  BIN_ALL,
-  BIN_OVER,
-  BIN_RANGE,
-  BIN_UNDER,
-  type ChartMessages,
-  formatMessage,
-  HEADER_ROW,
-  HEATMAP_NAME,
-  NO_DATA,
-  TOTAL,
-} from '../messages'
+import { HEADER_ROW, HEATMAP_NAME, NO_DATA, TOTAL } from '../messages'
 import { Legend } from '../ui/Legend'
 import { cx } from '../ui/util'
 import { useIsoLayoutEffect } from '../useIsoLayoutEffect'
-import { headerOf } from './shared'
+import { defaultLabels, headerOf } from './shared'
 
 export interface HeatmapCell<D> {
   /** `"<row>:<column>"`. */
@@ -146,26 +135,6 @@ function cleanBreaks(breaks: readonly number[], warn: Warn): number[] {
     }
   }
   return edges
-}
-
-function defaultLabels(
-  breaks: readonly number[],
-  fmt: Formatter,
-  messages: Partial<ChartMessages>,
-): string[] {
-  const first = breaks[0]
-  const last = breaks[breaks.length - 1]
-  if (first === undefined || last === undefined) return [messages.binAll ?? BIN_ALL]
-  return [
-    formatMessage(messages.binUnder ?? BIN_UNDER, { value: fmt(first) }),
-    ...breaks.slice(1).map((b, i) =>
-      formatMessage(messages.binRange ?? BIN_RANGE, {
-        from: fmt(breaks[i] as number),
-        to: fmt(b),
-      }),
-    ),
-    formatMessage(messages.binOver ?? BIN_OVER, { value: fmt(last) }),
-  ]
 }
 
 function sum(values: readonly number[]): number {
