@@ -5,6 +5,7 @@ import {
   Fragment,
   type KeyboardEvent,
   type ReactNode,
+  useEffect,
   useId,
   useMemo,
   useRef,
@@ -375,7 +376,12 @@ export function Treemap<D>({
     const parts = [tile.name, fmt(tile.value), shareOf(tile)]
     // A finite shade means shades are on and the tile has a level from 1 to 5.
     if (Number.isFinite(tile.shade) && tile.level !== 0) {
-      const lower = shadeName.charAt(0).toLowerCase() + shadeName.slice(1)
+      // "Margin" reads "margin" mid-sentence; an acronym ("NPS") stays as written.
+      const second = shadeName.charAt(1)
+      const lower =
+        second !== second.toLowerCase()
+          ? shadeName
+          : shadeName.charAt(0).toLowerCase() + shadeName.slice(1)
       parts.push(`${lower} ${shadeFmt(tile.shade)}`, labels[levels.indexOf(tile.level)] ?? '')
     }
     return parts.join(', ')
@@ -395,6 +401,22 @@ export function Treemap<D>({
       prev && prev.width === w && prev.height === h ? prev : { width: w, height: h },
     )
   })
+  // A tooltip opened by hover closes on Escape wherever focus is (WCAG 1.4.13), as the pill does
+  // in charts; a focused tile handles its own Escape.
+  const [byPointer, setByPointer] = useState(false)
+  const hovering = byPointer && active !== null
+  const setActiveLatest = useRef(setActive)
+  setActiveLatest.current = setActive
+  useEffect(() => {
+    if (!hovering) return
+    const onEscape = (event: globalThis.KeyboardEvent) => {
+      if (event.key !== 'Escape' || plotRef.current?.contains(document.activeElement)) return
+      setActiveLatest.current(null)
+    }
+    document.addEventListener('keydown', onEscape)
+    return () => document.removeEventListener('keydown', onEscape)
+  }, [hovering])
+
   const plotWidth = Math.max(0, width)
   const tipAt = tipSize && tipRect ? tooltipAt(tipRect, tipSize, plotWidth, boxHeight) : null
 
@@ -447,6 +469,7 @@ export function Treemap<D>({
         onPointerLeave={(event) => {
           // Keyboard focus keeps its tile active; the pointer only clears what it activated.
           const focused = event.currentTarget.contains(document.activeElement)
+          setByPointer(false)
           setActive(focused ? known(focusId) : null)
         }}
         onBlur={(event) => {
@@ -500,10 +523,14 @@ export function Treemap<D>({
                 data-ch-selectable={onSelect ? 'true' : undefined}
                 style={place(r)}
                 onFocus={() => {
+                  setByPointer(false)
                   setFocusId(tile.id)
                   setActive(tile.id)
                 }}
-                onPointerEnter={() => setActive(tile.id)}
+                onPointerEnter={() => {
+                  setByPointer(true)
+                  setActive(tile.id)
+                }}
                 onClick={() => onSelect?.(tile.id, tile)}
                 onKeyDown={(event) => onKeyDown(event, index)}
               >

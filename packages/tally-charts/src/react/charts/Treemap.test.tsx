@@ -499,6 +499,9 @@ describe('<Treemap> roles and names', () => {
     render(element({ height: 150, initialWidth: 600 }))
     const groups = within(listbox()).getAllByRole('group')
     expect(groups).toHaveLength(4)
+    expect(groups[3]?.querySelector('[data-ch-part="treemap-group-name"]')).toBeNull()
+    expect(groups[3]).toHaveAttribute('aria-label', 'Maintenance plans 124')
+    expect(groups[3]).not.toHaveAttribute('aria-labelledby')
     expect(groups[3]).toHaveAccessibleName('Maintenance plans 124')
   })
 
@@ -534,6 +537,14 @@ describe('<Treemap> roles and names', () => {
       'Handyman, $54K, 2.9% of total, margin 18%, 10 to 20',
     )
     expect(option(7)).toHaveAccessibleName('Handyman, $54K, 2.9% of total, margin 18%, 10 to 20')
+  })
+
+  it('keeps an acronym shade label as written in the accessible text', () => {
+    renderTreemap({ ...dollars, shadeLabel: 'NPS' })
+    expect(option(7)).toHaveAttribute(
+      'aria-label',
+      'Handyman, $54K, 2.9% of total, NPS 18%, 10 to 20',
+    )
   })
 
   it('says only the name, value and share for a level-0 tile and without shade', () => {
@@ -704,6 +715,45 @@ describe('<Treemap> active tile', () => {
     act(() => (document.activeElement as HTMLElement).blur())
     expect(activeNames(container)).toEqual([])
     expect(onActiveChange).toHaveBeenLastCalledWith(null, null)
+  })
+
+  it('closes a hover tooltip on Escape wherever focus is', () => {
+    const onActiveChange = vi.fn()
+    const { container } = renderTreemap({ onActiveChange })
+    fireEvent.pointerEnter(option(2))
+    expect(tooltips(container)).toHaveLength(1)
+    fireEvent.keyDown(document, { key: 'Escape' })
+    expect(activeNames(container)).toEqual([])
+    expect(tooltips(container)).toHaveLength(0)
+    expect(onActiveChange).toHaveBeenLastCalledWith(null, null)
+    // Other keys leave it open.
+    fireEvent.pointerEnter(option(3))
+    fireEvent.keyDown(document, { key: 'a' })
+    expect(activeNames(container)).toEqual(['Whole-home'])
+  })
+
+  it('listens on the document only while a hover is open', () => {
+    const add = vi.spyOn(document, 'addEventListener')
+    const remove = vi.spyOn(document, 'removeEventListener')
+    const keydowns = (spy: typeof add) =>
+      spy.mock.calls.filter(([type]) => type === 'keydown').map(([, fn]) => fn)
+    const { unmount } = renderTreemap()
+    expect(keydowns(add)).toHaveLength(0)
+    fireEvent.pointerEnter(option(2))
+    const [first] = keydowns(add)
+    expect(first).toBeDefined()
+    fireEvent.pointerLeave(listbox())
+    expect(keydowns(remove)).toContain(first)
+    fireEvent.pointerEnter(option(4))
+    const second = keydowns(add)[1]
+    expect(second).toBeDefined()
+    unmount()
+    expect(keydowns(remove)).toContain(second)
+    // Focus is not a hover: a focused tile handles its own Escape.
+    add.mockClear()
+    renderTreemap()
+    act(() => option(0).focus())
+    expect(keydowns(add)).toHaveLength(0)
   })
 
   it('follows a controlled activeId; a parent that ignores changes keeps it', async () => {
