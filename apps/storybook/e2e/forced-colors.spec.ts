@@ -669,6 +669,89 @@ for (const colorScheme of ['light', 'dark'] as const) {
       expect(ring.color).toBe(await systemColor(page, 'Highlight'))
     })
 
+    test(`treemap tiles, the active tile and the text stay visible (${colorScheme})`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width: 1280, height: 760 })
+      await openForced(page, 'charts-treemap--light', colorScheme)
+      const { canvas, resolve, isRealColor } = await colorHelpers(page)
+      const root = '#storybook-root'
+      const canvasRgba = await resolve(canvas)
+      const highlight = await resolve(await systemColor(page, 'Highlight'))
+      expect(highlight).not.toBeNull()
+      const tiles = await page.locator(`${root} [data-ch-part="treemap-tile"]`).evaluateAll((els) =>
+        els.map((el) => {
+          const style = getComputedStyle(el)
+          return {
+            name: el.getAttribute('aria-label')?.split(',')[0],
+            level: el.getAttribute('data-ch-level'),
+            background: style.backgroundColor,
+            border: style.borderTopColor,
+            borderStyle: style.borderTopStyle,
+            borderWidth: Number.parseFloat(style.borderTopWidth),
+          }
+        }),
+      )
+      expect(tiles).toHaveLength(13)
+      // Fills are forced to the page, so each tile needs a border (or a fill) that is not Canvas;
+      // as with heatmap cells, the border width carries the level.
+      for (const tile of tiles) {
+        const border =
+          tile.borderStyle !== 'none' && tile.borderWidth >= 1 && (await isRealColor(tile.border))
+        const fill =
+          (await isRealColor(tile.background)) &&
+          JSON.stringify(await resolve(tile.background)) !== JSON.stringify(canvasRgba)
+        expect(border || fill, `${tile.name} has no visible edge or fill`).toBe(true)
+        expect(tile.borderWidth, tile.name).toBe(Number(tile.level) || 1)
+      }
+      // Group headers, tile text and the legend are painted in real colours.
+      for (const [part, min] of [
+        ['treemap-group-name', 4],
+        ['treemap-group-total', 4],
+        ['treemap-tile-name', 8],
+        ['treemap-tile-value', 4],
+        ['treemap-legend-title', 1],
+        ['legend-label', 5],
+      ] as const) {
+        const colors = await page
+          .locator(`${root} [data-ch-part="${part}"]`)
+          .evaluateAll((els) =>
+            els
+              .filter((el) => el.getBoundingClientRect().width > 0)
+              .map((el) => getComputedStyle(el).color),
+          )
+        expect(colors.length, part).toBeGreaterThanOrEqual(min)
+        for (const color of colors) expect(await isRealColor(color), part).toBe(true)
+      }
+      // The active tile, by keyboard and by hover, has a solid Highlight outline.
+      const ringOf = (name: RegExp) =>
+        page.getByRole('option', { name }).evaluate((el) => {
+          const style = getComputedStyle(el)
+          return {
+            style: style.outlineStyle,
+            width: Number.parseFloat(style.outlineWidth),
+            color: style.outlineColor,
+          }
+        })
+      await page.keyboard.press('Tab')
+      await expect(page.getByRole('option', { name: /^Kitchen, / })).toBeFocused()
+      const focusRing = await ringOf(/^Kitchen, /)
+      expect(focusRing.style).toBe('solid')
+      expect(focusRing.width).toBe(2)
+      expect(await resolve(focusRing.color)).toEqual(highlight)
+      // Another tile, under the pointer, while the focus stays on Kitchen.
+      await page.getByRole('option', { name: /^Decks, / }).hover()
+      await expect(
+        page.locator(`${root} [data-ch-part="treemap-tile"][data-ch-active="true"]`),
+      ).toHaveAccessibleName(/^Decks, /)
+      const hoverRing = await ringOf(/^Decks, /)
+      expect(hoverRing.style).toBe('solid')
+      expect(hoverRing.width).toBe(2)
+      expect(await resolve(hoverRing.color)).toEqual(highlight)
+      // A tile that is neither active nor focused has no ring.
+      expect((await ringOf(/^Bath, /)).style).toBe('none')
+    })
+
     test(`runway cells keep a visible edge (${colorScheme})`, async ({ page }) => {
       await openForced(page, 'charts-runwaychart--states-light', colorScheme)
       const strokes = await page
