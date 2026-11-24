@@ -5354,6 +5354,33 @@
             },
             {
               "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!ChartMessages#headerShade:member",
+              "docComment": "/**\n * The name of a Treemap's shade measure when `shade` is a function.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "headerShade: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "headerShade",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
               "canonicalReference": "tally-charts!ChartMessages#headerShare:member",
               "docComment": "/**\n * The share column of a DonutChart data table.\n */\n",
               "excerptTokens": [
@@ -6805,6 +6832,33 @@
               "isOptional": false,
               "releaseTag": "Public",
               "name": "total",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!ChartMessages#treemapName:member",
+              "docComment": "/**\n * The accessible name of a Treemap that has no title.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "treemapName: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "treemapName",
               "propertyTypeTokenRange": {
                 "startIndex": 1,
                 "endIndex": 2
@@ -22717,6 +22771,538 @@
                   "kind": "Reference",
                   "text": "ReactNode",
                   "canonicalReference": "@types/react!React.ReactNode:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "value",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            }
+          ],
+          "extendsTokenRanges": []
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "tally-charts!Treemap:function(1)",
+          "docComment": "",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function Treemap<D>(input: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TreemapProps",
+              "canonicalReference": "tally-charts!TreemapProps:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<D>"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Content",
+              "text": "import(\"react\")."
+            },
+            {
+              "kind": "Reference",
+              "text": "JSX.Element",
+              "canonicalReference": "@types/react!React.JSX.Element:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "returnTypeTokenRange": {
+            "startIndex": 4,
+            "endIndex": 6
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "{ data, name, value, id, group, shade, breaks, binLabels, format, shadeFormat, shadeLabel, tone, height, initialWidth, legend, tooltip, title, 'aria-labelledby': labelledBy, description, activeId, onActiveChange, onSelect, empty, className, style, chartId }",
+              "parameterTypeTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              },
+              "isOptional": false
+            },
+            {
+              "parameterName": "input",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "isOptional": false
+            }
+          ],
+          "typeParameters": [
+            {
+              "typeParameterName": "D",
+              "constraintTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              },
+              "defaultTypeTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              }
+            }
+          ],
+          "name": "Treemap"
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "tally-charts!TreemapProps:type",
+          "docComment": "",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "type TreemapProps<D> = "
+            },
+            {
+              "kind": "Reference",
+              "text": "ChartName",
+              "canonicalReference": "tally-charts!ChartName:type"
+            },
+            {
+              "kind": "Content",
+              "text": " & {\n  data: readonly D[];\n  name: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Accessor",
+              "canonicalReference": "tally-charts!Accessor:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<D, string>;\n  value: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Accessor",
+              "canonicalReference": "tally-charts!Accessor:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<D, number>;\n  id?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Accessor",
+              "canonicalReference": "tally-charts!Accessor:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<D, "
+            },
+            {
+              "kind": "Reference",
+              "text": "Id",
+              "canonicalReference": "tally-charts!Id:type"
+            },
+            {
+              "kind": "Content",
+              "text": ">;\n  group?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Accessor",
+              "canonicalReference": "tally-charts!Accessor:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<D, string>;\n  shade?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Accessor",
+              "canonicalReference": "tally-charts!Accessor:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<D, number>;\n  breaks?: readonly number[];\n  binLabels?: readonly string[];\n  format?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "FormatSpec",
+              "canonicalReference": "tally-charts!FormatSpec:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n  shadeFormat?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "FormatSpec",
+              "canonicalReference": "tally-charts!FormatSpec:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n  shadeLabel?: string;\n  tone?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Tone",
+              "canonicalReference": "tally-charts!Tone:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n  height?: number;\n  initialWidth?: number;\n  legend?: boolean;\n  tooltip?: boolean | ((tile: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TreemapTile",
+              "canonicalReference": "tally-charts!TreemapTile:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "<D>) => "
+            },
+            {
+              "kind": "Reference",
+              "text": "ReactNode",
+              "canonicalReference": "@types/react!React.ReactNode:type"
+            },
+            {
+              "kind": "Content",
+              "text": ");\n  description?: string;\n  activeId?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Id",
+              "canonicalReference": "tally-charts!Id:type"
+            },
+            {
+              "kind": "Content",
+              "text": " | null;\n  onActiveChange?: (id: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Id",
+              "canonicalReference": "tally-charts!Id:type"
+            },
+            {
+              "kind": "Content",
+              "text": " | null, tile: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TreemapTile",
+              "canonicalReference": "tally-charts!TreemapTile:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "<D> | null) => void;\n  onSelect?: (id: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Id",
+              "canonicalReference": "tally-charts!Id:type"
+            },
+            {
+              "kind": "Content",
+              "text": ", tile: "
+            },
+            {
+              "kind": "Reference",
+              "text": "TreemapTile",
+              "canonicalReference": "tally-charts!TreemapTile:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "<D>) => void;\n  empty?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "ReactNode",
+              "canonicalReference": "@types/react!React.ReactNode:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n  className?: string;\n  style?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "CSSProperties",
+              "canonicalReference": "@types/react!React.CSSProperties:interface"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n  chartId?: string;\n}"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "TreemapProps",
+          "typeParameters": [
+            {
+              "typeParameterName": "D",
+              "constraintTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              },
+              "defaultTypeTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              }
+            }
+          ],
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 39
+          }
+        },
+        {
+          "kind": "Interface",
+          "canonicalReference": "tally-charts!TreemapTile:interface",
+          "docComment": "",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "interface TreemapTile<D> "
+            }
+          ],
+          "releaseTag": "Public",
+          "typeParameters": [
+            {
+              "typeParameterName": "D",
+              "constraintTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              },
+              "defaultTypeTokenRange": {
+                "startIndex": 0,
+                "endIndex": 0
+              }
+            }
+          ],
+          "name": "TreemapTile",
+          "preserveMemberOrder": false,
+          "members": [
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!TreemapTile#datum:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "datum: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "D"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "datum",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!TreemapTile#group:member",
+              "docComment": "/**\n * Group name; undefined without `group`.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "group: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string | undefined"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "group",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!TreemapTile#id:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "id: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Id",
+                  "canonicalReference": "tally-charts!Id:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "id",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!TreemapTile#level:member",
+              "docComment": "/**\n * Sequential level 1–5; 0 when `shade` is set and the row has no number.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "level: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "SeqLevel",
+                  "canonicalReference": "tally-charts!SeqLevel:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | 0"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "level",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!TreemapTile#name:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "name: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "name",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!TreemapTile#shade:member",
+              "docComment": "/**\n * NaN without `shade` or when the row has no shade number.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "shade: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "number"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "shade",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!TreemapTile#share:member",
+              "docComment": "/**\n * Share of the total, 0–1.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "share: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "number"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isReadonly": false,
+              "isOptional": false,
+              "releaseTag": "Public",
+              "name": "share",
+              "propertyTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            },
+            {
+              "kind": "PropertySignature",
+              "canonicalReference": "tally-charts!TreemapTile#value:member",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "value: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "number"
                 },
                 {
                   "kind": "Content",

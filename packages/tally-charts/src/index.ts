@@ -82,6 +82,8 @@ export type {
   ChartTooltip,
   DataTableOptions,
 } from './react/charts/shared'
+export type { TreemapProps, TreemapTile } from './react/charts/Treemap'
+export { Treemap } from './react/charts/Treemap'
 export type { WaffleColumnsProps } from './react/charts/WaffleColumns'
 export { WaffleColumns } from './react/charts/WaffleColumns'
 export type {

@@ -57,6 +57,7 @@ describe('public entry points', () => {
     'heatmapLevel',
     'LineChart',
     'Heatmap',
+    'Treemap',
     'Line',
     'Band',
     'Grid',
