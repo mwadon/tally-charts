@@ -73,6 +73,27 @@ describe('squarify', () => {
   })
 })
 
+/** For each rect with a neighbour after it on `axis` (sharing some of the other axis), the gap to the nearest one. */
+function nearestGaps(rects: readonly TreemapRect[], axis: 'x' | 'y'): number[] {
+  const [pos, len, opos, olen] =
+    axis === 'x'
+      ? (['x', 'width', 'y', 'height'] as const)
+      : (['y', 'height', 'x', 'width'] as const)
+  const out: number[] = []
+  for (const a of rects) {
+    const gaps = rects
+      .filter(
+        (b) =>
+          b !== a &&
+          Math.min(a[opos] + a[olen], b[opos] + b[olen]) - Math.max(a[opos], b[opos]) > 1e-6,
+      )
+      .map((b) => b[pos] - (a[pos] + a[len]))
+      .filter((gap) => gap > -1e-6)
+    if (gaps.length > 0) out.push(Math.min(...gaps))
+  }
+  return out
+}
+
 const GROUPS = [
   [412, 286, 148, 96],
   [188, 142, 96, 54],
@@ -93,41 +114,22 @@ describe('treemapLayout', () => {
     expect(near(Math.max(...layout.map((g) => g.box.y + g.box.height)), 480)).toBe(true)
   })
 
-  it('keeps group boxes 8 apart where they are side by side', () => {
-    let pairs = 0
-    for (const a of layout.map((g) => g.box)) {
-      // The nearest box to the right that shares some height is exactly 8 away.
-      const gaps = layout
-        .map((g) => g.box)
-        .filter(
-          (b) => b !== a && Math.min(a.y + a.height, b.y + b.height) - Math.max(a.y, b.y) > 1e-6,
-        )
-        .map((b) => b.x - (a.x + a.width))
-        .filter((gap) => gap > -1e-6)
-      if (gaps.length > 0) {
-        expect(near(Math.min(...gaps), 8)).toBe(true)
-        pairs++
-      }
-    }
-    expect(pairs).toBeGreaterThan(0)
+  it('keeps group boxes exactly 8 apart on both axes', () => {
+    const boxes = layout.map((g) => g.box)
+    expect(nearestGaps(boxes, 'x').every((g) => near(g, 8))).toBe(true)
+    expect(nearestGaps(boxes, 'y').every((g) => near(g, 8))).toBe(true)
+    expect(nearestGaps(boxes, 'x').length).toBeGreaterThan(0)
+    expect(nearestGaps(boxes, 'y').length).toBeGreaterThan(0)
   })
 
-  it('starts tiles under the 24 px header and keeps them 2 apart', () => {
-    layout.forEach((g) => {
+  it('starts tiles under the 24 px header and keeps them exactly 2 apart', () => {
+    for (const g of layout) {
       expect(g.header).toBe(true)
       expect(near(Math.min(...g.tiles.map((t) => t.y)), g.box.y + 24)).toBe(true)
-      for (let i = 0; i < g.tiles.length; i++) {
-        for (let j = i + 1; j < g.tiles.length; j++) {
-          const a = g.tiles[i]!
-          const b = g.tiles[j]!
-          const gapX = Math.max(b.x - (a.x + a.width), a.x - (b.x + b.width))
-          const gapY = Math.max(b.y - (a.y + a.height), a.y - (b.y + b.height))
-          if (near(gapX, 2))
-            expect(Math.min(a.y + a.height, b.y + b.height) > Math.max(a.y, b.y)).toBe(true)
-          expect(Math.max(gapX, gapY)).toBeGreaterThanOrEqual(2 - 1e-6)
-        }
-      }
-    })
+      const gaps = [...nearestGaps(g.tiles, 'x'), ...nearestGaps(g.tiles, 'y')]
+      expect(gaps.length).toBeGreaterThan(0)
+      expect(gaps.every((gap) => near(gap, 2))).toBe(true)
+    }
   })
 
   it('shares each group in proportion to the values (within 1 %)', () => {
@@ -186,6 +188,12 @@ describe('treemapLayout', () => {
     }
   })
 
+  it('gives a zero-width group no header', () => {
+    const out = treemapLayout([[1], [0]], 100, 100, true)
+    expect(out[1]!.box.width).toBe(0)
+    expect(out[1]!.header).toBe(false)
+  })
+
   it('returns zero-sized rects for bad totals and no groups', () => {
     expect(treemapLayout([], 100, 100, true)).toEqual([])
     const [g] = treemapLayout([[0, 0]], 100, 100, true)
@@ -241,6 +249,15 @@ describe('treemapNeighbour', () => {
       { x: 10, y: 3, width: 10, height: 7 },
     ]
     expect(treemapNeighbour(col, 0, 'right')).toBe(2)
+  })
+
+  it('treats edges within 0.5 px as tied and takes the nearer centre', () => {
+    const r: TreemapRect[] = [
+      { x: 0, y: 0, width: 10, height: 10 },
+      { x: 10, y: 0, width: 10, height: 3 },
+      { x: 10.3, y: 3, width: 10, height: 7 },
+    ]
+    expect(treemapNeighbour(r, 0, 'right')).toBe(2)
   })
 
   it('ignores rects that only touch on a corner or overlap by 0.5 px', () => {

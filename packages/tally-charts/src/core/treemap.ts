@@ -121,7 +121,7 @@ export function treemapLayout(
       raw.width > 0 && raw.height > 0
         ? inset(raw, GROUP_INSET)
         : empty({ x: 0, y: 0, width: 0, height: 0 })
-    const header = headers && box.height >= MIN_HEADER_BOX
+    const header = headers && box.width > 0 && box.height >= MIN_HEADER_BOX
     const top = header ? HEADER : 0
     const tiles = squarify(values, {
       x: box.x - TILE_INSET,
@@ -168,9 +168,11 @@ export function treemapNeighbour(
     if (edge < -TOLERANCE) return
     if (Math.min(c.b1, s.b1) - Math.max(c.b0, s.b0) <= TOLERANCE) return
     const cross = Math.abs((s.b0 + s.b1) / 2 - centre)
-    if (edge < bestEdge || (edge === bestEdge && cross < bestCross)) {
+    const nearer = edge < bestEdge - TOLERANCE
+    const tied = Math.abs(edge - bestEdge) <= TOLERANCE && cross < bestCross
+    if (nearer || tied) {
       best = i
-      bestEdge = edge
+      bestEdge = Math.min(edge, bestEdge)
       bestCross = cross
     }
   })
