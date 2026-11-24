@@ -1,16 +1,34 @@
-import { type CSSProperties, Fragment, type ReactNode, useId, useMemo, useRef } from 'react'
+// biome-ignore-all lint/a11y/useSemanticElements: tiles are ARIA options placed absolutely; <select> can't hold them
+// biome-ignore-all lint/a11y/useFocusableInteractive: one roving tab stop on the options (APG listbox); the listbox and groups are not focusable
+import {
+  type CSSProperties,
+  Fragment,
+  type KeyboardEvent,
+  type ReactNode,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import { resolveAccessor, resolveIds } from '../../core/accessor'
 import type { FormatSpec, Formatter } from '../../core/format'
 import { toNumber } from '../../core/number'
 import { binLevels, levelFor, MAX_BREAKS, sequentialBreaks } from '../../core/thresholds'
-import { type TreemapRect, treemapLayout } from '../../core/treemap'
+import {
+  type TreemapDirection,
+  type TreemapRect,
+  treemapLayout,
+  treemapNeighbour,
+} from '../../core/treemap'
 import type { Accessor, Id, SeqLevel, Tone } from '../../core/types'
 import { createWarner, DEV } from '../../core/warn'
 import type { ChartName } from '../Chart'
 import { useFormat, useMessages } from '../ChartsProvider'
-import { HEADER_SHADE, NO_DATA, TREEMAP_NAME } from '../messages'
+import { HEADER_SHADE, NO_DATA, OF_TOTAL, TREEMAP_NAME } from '../messages'
 import { Legend } from '../ui/Legend'
+import { TooltipPill } from '../ui/TooltipPill'
 import { cx } from '../ui/util'
+import { useIsoLayoutEffect } from '../useIsoLayoutEffect'
 import { useWidth } from '../useWidth'
 import { defaultLabels, headerOf } from './shared'
 
@@ -50,8 +68,6 @@ export type TreemapProps<D> = ChartName & {
   format?: FormatSpec
   /** Default 'number'. Formats shade values and the default bin labels. */
   shadeFormat?: FormatSpec
-  /** Name of the value in the tooltip and the accessible text. Default: the `value` field name in sentence case, or "Value" for a function. */
-  valueLabel?: string
   /** Name of the shade measure in the legend, the tooltip and the accessible text. Default: the `shade` field name in sentence case, or "Shade" for a function. */
   shadeLabel?: string
   /** Base tone of the shades and the legend. Default: a `--ch-seq-base` set on an ancestor, else accent. */
@@ -90,6 +106,16 @@ const NAME_HEIGHT = 28
 const VALUE_WIDTH = 96
 const VALUE_HEIGHT = 48
 
+/** Gap between a tile and its tooltip in px. */
+const TOOLTIP_GAP = 6
+
+const DIRECTIONS: Partial<Record<string, TreemapDirection>> = {
+  ArrowUp: 'up',
+  ArrowDown: 'down',
+  ArrowLeft: 'left',
+  ArrowRight: 'right',
+}
+
 const px = (n: number) => `${Math.round(n * 100) / 100}px`
 const place = (r: TreemapRect): CSSProperties => ({
   left: px(r.x),
@@ -105,6 +131,26 @@ const place = (r: TreemapRect): CSSProperties => ({
 export function shareText(share: number, percent: Formatter): string {
   const text = percent(share * 100)
   return share > 0 && text === percent(0) ? `<${percent(0.1)}` : text
+}
+
+/**
+ * Where a tooltip of `size` goes for tile `r` in a box `width` × `height`: centred on the tile and
+ * inside the box horizontally; above the tile when that fits, else below it, else inside its top.
+ */
+function tooltipAt(
+  r: TreemapRect,
+  size: { width: number; height: number },
+  width: number,
+  height: number,
+): { left: number; top: number } {
+  const left = Math.min(
+    Math.max(0, r.x + r.width / 2 - size.width / 2),
+    Math.max(0, width - size.width),
+  )
+  const above = r.y - size.height - TOOLTIP_GAP
+  const below = r.y + r.height + TOOLTIP_GAP
+  const top = above >= 0 ? above : below + size.height <= height ? below : r.y + TOOLTIP_GAP
+  return { left, top }
 }
 
 export function Treemap<D>({
@@ -123,9 +169,13 @@ export function Treemap<D>({
   height = 480,
   initialWidth = 640,
   legend = true,
+  tooltip = true,
   title,
   'aria-labelledby': labelledBy,
   description,
+  activeId,
+  onActiveChange,
+  onSelect,
   empty,
   className,
   style,
@@ -138,6 +188,8 @@ export function Treemap<D>({
   const shadeFmt = useMemo(() => create(shadeFormat), [create, shadeFormat])
   const reactId = useId()
   const baseId = `ch-${(chartId ?? reactId).replace(/[^a-zA-Z0-9_-]/g, '')}`
+  const titleId = `${baseId}-title`
+  const descId = `${baseId}-desc`
   // Shades need both `shade` and `breaks`; with one of them the chart is drawn without shades.
   const shaded = shade !== undefined && breaks !== undefined
   if (DEV && (shade === undefined) !== (breaks === undefined)) {
@@ -248,6 +300,104 @@ export function Treemap<D>({
     [groups, width, boxHeight, group],
   )
 
+  // Tiles and their rects in DOM order (largest group first, largest tile first), which is also
+  // the order of `treemapNeighbour`'s indices and of Home / End.
+  const tileList = useMemo(() => groups.flatMap((g) => g.tiles), [groups])
+  const rects = useMemo(() => layout.flatMap((g) => g.tiles), [layout])
+  const indexById = useMemo(() => new Map(tileList.map((t, i) => [t.id, i])), [tileList])
+
+  const [innerActive, setInnerActive] = useState<Id | null>(null)
+  const controlled = activeId !== undefined
+  // An id that is not (or no longer) in the data activates nothing.
+  const known = (tileId: Id | null | undefined): Id | null =>
+    tileId != null && indexById.has(tileId) ? tileId : null
+  const active = known(controlled ? activeId : innerActive)
+  // Kept in step with renders; a second call in the same event must see the first one's id.
+  const activeRef = useRef(active)
+  activeRef.current = active
+  const activeProp = useRef(known(activeId))
+  activeProp.current = known(activeId)
+  const [focusId, setFocusId] = useState<Id | null>(null)
+  // The tab stop: the last focused tile while it exists, else the first.
+  const tabId = known(focusId) ?? tileList[0]?.id
+  const refs = useRef(new Map<Id, HTMLElement>())
+
+  const setActive = (next: Id | null) => {
+    if (next === activeRef.current) return
+    activeRef.current = next
+    if (controlled) {
+      // The parent decides. Drop the optimistic value once the event is over, so a parent that
+      // ignores the change doesn't leave the ref stale.
+      queueMicrotask(() => {
+        activeRef.current = activeProp.current
+      })
+    } else {
+      setInnerActive(next)
+    }
+    const tile = next === null ? undefined : tileList[indexById.get(next) ?? -1]
+    onActiveChange?.(tile ? tile.id : null, tile ?? null)
+  }
+
+  const onKeyDown = (event: KeyboardEvent<HTMLElement>, index: number) => {
+    const tile = tileList[index] as TreemapTile<D>
+    if (event.key === 'Enter' || event.key === ' ') {
+      // Space must not scroll the page under the focused tile, with or without onSelect.
+      event.preventDefault()
+      onSelect?.(tile.id, tile)
+      return
+    }
+    if (event.key === 'Escape') {
+      // Only handled when it clears something, so an enclosing dialog can still close.
+      if (activeRef.current !== null) {
+        event.preventDefault()
+        setActive(null)
+      }
+      return
+    }
+    const direction = DIRECTIONS[event.key]
+    const jump = event.key === 'Home' ? 0 : event.key === 'End' ? tileList.length - 1 : -1
+    if (!direction && jump < 0) return
+    // Modified keys stay the browser's (Alt+arrows navigate); Ctrl/Cmd+Home and End still jump.
+    if (event.altKey || (direction && (event.ctrlKey || event.metaKey))) return
+    event.preventDefault()
+    const to = direction ? treemapNeighbour(rects, index, direction) : jump
+    const next = tileList[to]
+    if (!next || to === index) return
+    setFocusId(next.id)
+    refs.current.get(next.id)?.focus()
+  }
+
+  const ofTotal = messages.ofTotal ?? OF_TOTAL
+  const shadeName = shadeLabel || headerOf(shade, messages.headerShade ?? HEADER_SHADE)
+  const shareOf = (tile: TreemapTile<D>) => `${shareText(tile.share, percent)} ${ofTotal}`
+  /** Name, value, share and, with a shade number, the shade and its bin: the option's name. */
+  const tileLabel = (tile: TreemapTile<D>) => {
+    const parts = [tile.name, fmt(tile.value), shareOf(tile)]
+    // A finite shade means shades are on and the tile has a level from 1 to 5.
+    if (Number.isFinite(tile.shade) && tile.level !== 0) {
+      const lower = shadeName.charAt(0).toLowerCase() + shadeName.slice(1)
+      parts.push(`${lower} ${shadeFmt(tile.shade)}`, labels[levels.indexOf(tile.level)] ?? '')
+    }
+    return parts.join(', ')
+  }
+
+  const activeIndex = active === null ? -1 : (indexById.get(active) ?? -1)
+  const tipTile = tooltip === false ? undefined : tileList[activeIndex]
+  const tipRect = rects[activeIndex]
+  const tipRef = useRef<HTMLDivElement>(null)
+  const [tipSize, setTipSize] = useState<{ width: number; height: number } | null>(null)
+  // Measure after every render so placement uses the real size before paint.
+  useIsoLayoutEffect(() => {
+    const el = tipRef.current
+    if (!el) return
+    const { width: w, height: h } = el.getBoundingClientRect()
+    setTipSize((prev) =>
+      prev && prev.width === w && prev.height === h ? prev : { width: w, height: h },
+    )
+  })
+  const plotWidth = Math.max(0, width)
+  const tipAt = tipSize && tipRect ? tooltipAt(tipRect, tipSize, plotWidth, boxHeight) : null
+
   // Only an explicit tone overrides a --ch-seq-base set on an ancestor (theme.css falls back to
   // accent); the legend inside inherits the root's levels.
   const rootProps = {
@@ -267,68 +417,153 @@ export function Treemap<D>({
     )
   }
 
+  const starts = groups.map((_, gi) => groups.slice(0, gi).reduce((n, g) => n + g.tiles.length, 0))
+
   return (
     <div {...rootProps}>
       {labelledBy ? null : (
-        <span hidden id={`${baseId}-title`}>
+        <span hidden id={titleId}>
           {title || (messages.treemapName ?? TREEMAP_NAME)}
         </span>
       )}
       {description ? (
-        <span hidden id={`${baseId}-desc`}>
+        <span hidden id={descId}>
           {description}
         </span>
       ) : null}
       {legend && shaded ? (
         <div data-ch-part="treemap-legend">
-          <span data-ch-part="treemap-legend-title">
-            {shadeLabel || headerOf(shade, messages.headerShade ?? HEADER_SHADE)}
-          </span>
+          <span data-ch-part="treemap-legend-title">{shadeName}</span>
           <Legend items={labels.map((label, i) => ({ label, level: levels[i] }))} />
         </div>
       ) : null}
-      <div ref={plotRef} data-ch-part="treemap-plot" style={{ height: px(boxHeight) }}>
+      <div
+        ref={plotRef}
+        role="listbox"
+        data-ch-part="treemap-plot"
+        aria-labelledby={labelledBy ?? titleId}
+        aria-describedby={description ? descId : undefined}
+        style={{ height: px(boxHeight) }}
+        onPointerLeave={(event) => {
+          // Keyboard focus keeps its tile active; the pointer only clears what it activated.
+          const focused = event.currentTarget.contains(document.activeElement)
+          setActive(focused ? known(focusId) : null)
+        }}
+        onBlur={(event) => {
+          if (!event.currentTarget.contains(event.relatedTarget)) setActive(null)
+        }}
+      >
         {groups.map((g, gi) => {
           const placed = layout[gi]
           if (!placed) return null
+          // A named group is a role=group labelled by its header; rows without a group name (and
+          // a chart without `group`) put their tiles straight into the listbox. An unnamed group
+          // still gets the layout's header band, left empty.
+          const named = group !== undefined && g.name !== ''
+          const nameId = `${baseId}-g${gi}`
+          const header =
+            named && placed.header ? (
+              <div
+                data-ch-part="treemap-group"
+                style={{
+                  left: px(placed.box.x),
+                  top: px(placed.box.y),
+                  width: px(placed.box.width),
+                }}
+              >
+                <span id={nameId} data-ch-part="treemap-group-name">
+                  {g.name}
+                </span>
+                <span id={`${nameId}-total`} data-ch-part="treemap-group-total">
+                  {fmt(g.total)}
+                </span>
+              </div>
+            ) : null
+          const tileNodes = g.tiles.map((tile, k) => {
+            const r = placed.tiles[k] as TreemapRect
+            const index = (starts[gi] as number) + k
+            const textName = r.width >= NAME_WIDTH && r.height >= NAME_HEIGHT
+            const valued = r.width >= VALUE_WIDTH && r.height >= VALUE_HEIGHT
+            return (
+              <div
+                key={g.index[k]}
+                ref={(el) => {
+                  if (el) refs.current.set(tile.id, el)
+                  else refs.current.delete(tile.id)
+                }}
+                role="option"
+                tabIndex={tile.id === tabId ? 0 : -1}
+                aria-label={tileLabel(tile)}
+                data-ch-part="treemap-tile"
+                data-ch-level={tile.level}
+                data-ch-active={tile.id === active ? 'true' : undefined}
+                data-ch-selectable={onSelect ? 'true' : undefined}
+                style={place(r)}
+                onFocus={() => {
+                  setFocusId(tile.id)
+                  setActive(tile.id)
+                }}
+                onPointerEnter={() => setActive(tile.id)}
+                onClick={() => onSelect?.(tile.id, tile)}
+                onKeyDown={(event) => onKeyDown(event, index)}
+              >
+                {textName ? (
+                  <span aria-hidden="true" data-ch-part="treemap-tile-name">
+                    {tile.name}
+                  </span>
+                ) : null}
+                {valued ? (
+                  <span aria-hidden="true" data-ch-part="treemap-tile-value">
+                    {`${fmt(tile.value)} · ${shareText(tile.share, percent)}`}
+                  </span>
+                ) : null}
+              </div>
+            )
+          })
+          if (!named) return <Fragment key={g.name ?? ''}>{tileNodes}</Fragment>
           return (
-            <Fragment key={g.name ?? ''}>
-              {placed.header ? (
-                <div
-                  data-ch-part="treemap-group"
-                  style={{
-                    left: px(placed.box.x),
-                    top: px(placed.box.y),
-                    width: px(placed.box.width),
-                  }}
-                >
-                  <span data-ch-part="treemap-group-name">{g.name}</span>
-                  <span data-ch-part="treemap-group-total">{fmt(g.total)}</span>
-                </div>
-              ) : null}
-              {g.tiles.map((tile, k) => {
-                const r = placed.tiles[k] as TreemapRect
-                const named = r.width >= NAME_WIDTH && r.height >= NAME_HEIGHT
-                const valued = r.width >= VALUE_WIDTH && r.height >= VALUE_HEIGHT
-                return (
-                  <div
-                    key={g.index[k]}
-                    data-ch-part="treemap-tile"
-                    data-ch-level={tile.level}
-                    style={place(r)}
-                  >
-                    {named ? <span data-ch-part="treemap-tile-name">{tile.name}</span> : null}
-                    {valued ? (
-                      <span data-ch-part="treemap-tile-value">
-                        {`${fmt(tile.value)} · ${shareText(tile.share, percent)}`}
-                      </span>
-                    ) : null}
-                  </div>
-                )
-              })}
-            </Fragment>
+            <div
+              key={g.name}
+              role="group"
+              {...(header
+                ? { 'aria-labelledby': `${nameId} ${nameId}-total` }
+                : { 'aria-label': `${g.name} ${fmt(g.total)}` })}
+            >
+              {header}
+              {tileNodes}
+            </div>
           )
         })}
+        {tipTile ? (
+          // The tile's accessible name says the same; the pill is for the eye only.
+          <div
+            ref={tipRef}
+            aria-hidden="true"
+            className="ch-tooltip"
+            data-ch-part="treemap-tooltip"
+            style={{
+              left: tipAt ? px(tipAt.left) : 0,
+              top: tipAt ? px(tipAt.top) : 0,
+              maxWidth: px(plotWidth),
+              visibility: tipAt ? undefined : 'hidden',
+            }}
+          >
+            {typeof tooltip === 'function' ? (
+              tooltip(tipTile)
+            ) : (
+              <TooltipPill
+                segments={[
+                  { value: tipTile.name },
+                  { value: fmt(tipTile.value) },
+                  { value: shareOf(tipTile) },
+                  ...(Number.isFinite(tipTile.shade)
+                    ? [{ value: `${shadeName} ${shadeFmt(tipTile.shade)}` }]
+                    : []),
+                ]}
+              />
+            )}
+          </div>
+        ) : null}
       </div>
     </div>
   )

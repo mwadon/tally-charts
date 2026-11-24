@@ -14,8 +14,10 @@ import {
   MonthlyCost,
   RemodelSchedule,
   RevenueByLine,
+  RevenueTreemap,
 } from '../test/fixtures'
 import { thresholds } from './core/thresholds'
+import { treemapLayout } from './core/treemap'
 import { ShareBar } from './react/ui/ShareBar'
 import { ZoneMeter } from './react/ui/ZoneMeter'
 
@@ -314,6 +316,81 @@ describe('hydration', () => {
     expect(errors).not.toHaveBeenCalled()
     expect(labels()).toBe('top')
     expect(container.querySelector('svg')?.getAttribute('width')).toBe('320')
+    await act(async () => {
+      root?.unmount()
+    })
+    container.remove()
+    rect.mockRestore()
+    errors.mockRestore()
+  })
+
+  const TREEMAP_VALUES = [
+    [412, 286, 148, 96],
+    [188, 142, 96, 54],
+    [164, 82, 48],
+    [86, 38],
+  ]
+  const tileStyles = (container: HTMLElement) =>
+    [...container.querySelectorAll<HTMLElement>('[data-ch-part="treemap-tile"]')].map((t) =>
+      [t.style.left, t.style.top, t.style.width, t.style.height].join(' '),
+    )
+  const layoutStyles = (width: number) => {
+    const px = (n: number) => `${Math.round(n * 100) / 100}px`
+    return treemapLayout(TREEMAP_VALUES, width, 480, true)
+      .flatMap((g) => g.tiles)
+      .map((r) => [px(r.x), px(r.y), px(r.width), px(r.height)].join(' '))
+  }
+
+  // Measured at the 640 px of the server render, so nothing moves.
+  it('hydrates Treemap server markup without mismatches', async () => {
+    const html = renderToString(<RevenueTreemap />)
+    const errors = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const rect = vi
+      .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+      .mockReturnValue({ width: 640 } as DOMRect)
+    const container = document.createElement('div')
+    container.innerHTML = html
+    expect(container.querySelectorAll('[role="option"]')).toHaveLength(13)
+    document.body.appendChild(container)
+    const onRecoverableError = vi.fn()
+    let root: ReturnType<typeof hydrateRoot> | undefined
+    await act(async () => {
+      root = hydrateRoot(container, <RevenueTreemap />, { onRecoverableError })
+    })
+    expect(onRecoverableError).not.toHaveBeenCalled()
+    expect(errors).not.toHaveBeenCalled()
+    expect(tileStyles(container)).toEqual(layoutStyles(640))
+    await act(async () => {
+      root?.unmount()
+    })
+    container.remove()
+    rect.mockRestore()
+    errors.mockRestore()
+  })
+
+  // Laid out at 1024 px on the server; the 375 px container lays the tiles out again after
+  // hydration, not during it.
+  it('hydrates a Treemap rendered wide into a narrow container, then lays it out again', async () => {
+    const html = renderToString(<RevenueTreemap initialWidth={1024} />)
+    const errors = vi.spyOn(console, 'error').mockImplementation(() => {})
+    const rect = vi
+      .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+      .mockReturnValue({ width: 375 } as DOMRect)
+    const container = document.createElement('div')
+    container.innerHTML = html
+    expect(tileStyles(container)).toEqual(layoutStyles(1024))
+    document.body.appendChild(container)
+    const onRecoverableError = vi.fn()
+    let root: ReturnType<typeof hydrateRoot> | undefined
+    await act(async () => {
+      root = hydrateRoot(container, <RevenueTreemap initialWidth={1024} />, {
+        onRecoverableError,
+      })
+    })
+    expect(onRecoverableError).not.toHaveBeenCalled()
+    expect(errors).not.toHaveBeenCalled()
+    expect(tileStyles(container)).toEqual(layoutStyles(375))
+    expect(container.querySelectorAll('[role="option"]')).toHaveLength(13)
     await act(async () => {
       root?.unmount()
     })

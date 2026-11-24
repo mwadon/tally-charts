@@ -96,8 +96,6 @@ type TreemapProps<D> = ChartName & {
   format?: FormatSpec
   /** Default 'number'. Formats shade values and the default bin labels. */
   shadeFormat?: FormatSpec
-  /** Name of the value in the tooltip and the accessible text. Default: the `value` field name in sentence case, or "Value" for a function. */
-  valueLabel?: string
   /** Name of the shade measure in the legend, the tooltip and the accessible text. Default: the `shade` field name in sentence case, or "Shade" for a function. */
   shadeLabel?: string
   /** Base tone of the shades and the legend. Default: a `--ch-seq-base` set on an ancestor, else accent. */
@@ -322,7 +320,9 @@ Author's calls (the owner saw the list on approval; the first is confirmed expli
   tiles are HTML options with a full accessible text each, so a table would repeat them; the
   listbox is the accessible representation. A sighted reader gets a small tile's numbers
   from the tooltip (hover, touch, or keyboard focus). Adding `dataTable` later is additive.
-- The prop names of §3, `shadeFormat`, `valueLabel` / `shadeLabel` and their defaults, the
+- No `valueLabel` prop (removed during implementation, 2026-11-24): the pill tooltip and the
+  accessible text give the value without a label, so the prop had nothing to name.
+- The prop names of §3, `shadeFormat`, `shadeLabel` and their defaults, the
   default tone accent, level 3 for a chart without `shade`, level 0 for a missing shade.
 - Always largest first, no sort prop; headers hidden for groups lower than 48 px; the text
   thresholds 64 × 28 and 96 × 48 from the artboard; share with one decimal.

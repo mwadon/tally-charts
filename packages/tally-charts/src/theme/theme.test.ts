@@ -253,6 +253,22 @@ describe('theme.css', () => {
     expect(themed).toMatch(/\[data-ch-part="heatmap-cell"\] \{[^}]*outline: none;/)
   })
 
+  it('rings the active and the focused treemap tile in ink, Highlight in forced colors', () => {
+    const ring =
+      /\[data-ch-part="treemap-tile"\]\[data-ch-active="true"\],\s*\[data-ch-part="treemap-tile"\]:focus-visible \{\s*z-index: 1;\s*outline: 2px solid var\(--ch-ink\);\s*outline-offset: 2px;/
+    expect(themed).toMatch(ring)
+    expect(forced).toMatch(
+      /\[data-ch-part="treemap-tile"\]\[data-ch-active="true"\],\s*\[data-ch-part="treemap-tile"\]:focus-visible \{\s*outline: 2px solid Highlight;/,
+    )
+    expect(themed).toMatch(
+      /\[data-ch-part="treemap-tile"\]\[data-ch-selectable="true"\] \{\s*cursor: pointer;/,
+    )
+    // The tooltip sits over the raised tile and keeps the pill's pointer behaviour.
+    expect(themed).toMatch(
+      /\[data-ch-part="treemap-tooltip"\] \{\s*z-index: 2;\s*pointer-events: auto;/,
+    )
+  })
+
   it.each([
     '--ch-hatch-angle:',
     '--ch-hatch-width:',

@@ -254,6 +254,7 @@ const PARTS = [
   'treemap-tile',
   'treemap-tile-name',
   'treemap-tile-value',
+  'treemap-tooltip',
   'value-label',
   'value-label-pill',
   'value-labels',

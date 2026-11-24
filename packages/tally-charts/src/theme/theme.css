@@ -1722,6 +1722,26 @@
   font-size: 12px;
 }
 
+/* The active tile (hover or focus) and the focused one: a 2px ink ring, raised over its
+   neighbours so the ring is not under them. Other tiles are not dimmed. */
+[data-ch-part="treemap-tile"][data-ch-active="true"],
+[data-ch-part="treemap-tile"]:focus-visible {
+  z-index: 1;
+  outline: 2px solid var(--ch-ink);
+  outline-offset: 2px;
+}
+
+[data-ch-part="treemap-tile"][data-ch-selectable="true"] {
+  cursor: pointer;
+}
+
+/* The pill (.ch-tooltip) over the raised tile. The pointer can rest on it (WCAG 1.4.13): it stays
+   inside the box, so the box does not lose the pointer. */
+[data-ch-part="treemap-tooltip"] {
+  z-index: 2;
+  pointer-events: auto;
+}
+
 /* ---------- Motion off ---------- */
 [data-ch-animate="false"] * {
   animation: none !important;
@@ -2142,6 +2162,11 @@
 
   [data-ch-part="heatmap-cell"][data-ch-peak="true"] {
     box-shadow: none;
+  }
+
+  [data-ch-part="treemap-tile"][data-ch-active="true"],
+  [data-ch-part="treemap-tile"]:focus-visible {
+    outline: 2px solid Highlight;
   }
 
   /* Runway: SVG fills aren't forced; paint the levels with steps of the text color. */
