@@ -17,6 +17,7 @@ export const thumbNames = [
   'funnel',
   'donut',
   'gantt',
+  'treemap',
   'dot-histogram',
   'strip-plot',
   'scatter',
@@ -198,6 +199,16 @@ const THUMBS: Record<ThumbName, ReactNode> = {
       <rect className="ct-loss" x="72" y="30" width="8" height="8" />
       <rect className="ct-hatch" x="92.5" y="42.5" width="19" height="7" />
       <path className="ct-hatch" d="M92 44l2-2M92 50l8-8M98 50l8-8M104 50l8-8M110 50l2-2" />
+    </>
+  ),
+  treemap: (
+    <>
+      <rect className="ct-accent" x="8" y="4" width="50" height="48" />
+      <rect className="ct-accent ct-half" x="60" y="4" width="30" height="26" />
+      <rect className="ct-accent" x="92" y="4" width="20" height="26" />
+      <rect className="ct-accent ct-third" x="60" y="32" width="20" height="20" />
+      <rect className="ct-accent ct-half" x="82" y="32" width="16" height="20" />
+      <rect className="ct-accent ct-third" x="100" y="32" width="12" height="20" />
     </>
   ),
   'dot-histogram': (

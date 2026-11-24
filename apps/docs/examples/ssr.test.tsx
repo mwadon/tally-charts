@@ -21,11 +21,12 @@ test('there is at least one rscSafe and one non-rscSafe example', () => {
   expect(all.length - safe.length).toBeGreaterThan(0)
 })
 
-// Charts draw an <svg>. The small pieces (Stat, Meter, Legend…) and the Heatmap are plain HTML
-// and CSS, so their examples may have none, but they must still render some HTML.
+// Charts draw an <svg>. The small pieces (Stat, Meter, Legend…), the Heatmap and the Treemap are
+// plain HTML and CSS, so their examples may have none, but they must still render some HTML.
 const mayOmitSvg = (id: string) =>
   id.startsWith('small-pieces/') ||
   id.startsWith('heatmap/') ||
+  id.startsWith('treemap/') ||
   id === 'migration/small-pieces-pinned'
 
 test.each(safe)('$id (rscSafe) renders to an HTML string', async (entry) => {
