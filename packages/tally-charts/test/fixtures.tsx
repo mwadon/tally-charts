@@ -28,14 +28,13 @@ import {
   StripPlot,
   Target,
   Tooltip,
+  Treemap,
   thresholds,
   ValueLabel,
   WaffleColumns,
   WaterfallChart,
   ZoneMeter,
 } from '../src'
-// Not exported yet: imported from its source file until the package exports it.
-import { Treemap } from '../src/react/charts/Treemap'
 
 export const weeks = [
   { week: 'Jul 6', margin: 37.5 },
