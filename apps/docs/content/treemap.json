@@ -275,7 +275,7 @@
       "id": "n33",
       "type": "prose",
       "props": {
-        "markdown": "Screen readers get a `listbox` named by `title` (or `aria-labelledby`; “Treemap” when the title is empty) and described by `description`. Each named group is a `group` named by its header, such as “Remodels $942K”, and each tile is an `option` whose name says everything, whether or not the text fits: the name, the value, the share and, with a shade number, the shade and its bin, such as “Handyman, $54K, 2.9% of total, gross margin 18%, 10% to 20%”. The options have no selected state. There is no hidden data table, as in `Heatmap`: the tiles are HTML that assistive technology reads directly, so a table would repeat them. The legend is read as a list; the tile text and the tooltip are hidden, since the accessible name says the same."
+        "markdown": "Screen readers get a `listbox` named by `title` (or `aria-labelledby`; “Treemap” when the title is empty) and described by `description`. Each named group is a `group` named by its header, such as “Remodels $942K”, and each tile is an `option` whose name says everything, whether or not the text fits: the name, the value, the share and, with a shade number, the shade and its bin, such as “Handyman, $54K, 2.9% of total, gross margin 18%, 10% to 20%”. The options have no selected state. Like `Heatmap`, there is no hidden data table: the tiles are HTML that assistive technology reads directly, so a table would repeat them. The legend is read as a list; the tile text and the tooltip are hidden, since the accessible name says the same."
       }
     },
     {
