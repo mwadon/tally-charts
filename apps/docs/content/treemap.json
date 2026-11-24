@@ -1,0 +1,296 @@
+{
+  "versionId": "fixture-treemap-v1",
+  "version": 1,
+  "locale": "en",
+  "publishedAt": "2026-11-24T00:00:00.000Z",
+  "codeInjection": {},
+  "layout": {
+    "key": "default",
+    "header": null,
+    "footer": null
+  },
+  "pageId": "fixture-treemap",
+  "title": "Treemap",
+  "slug": "treemap",
+  "seo": {
+    "metaTitle": "Treemap · tally-charts",
+    "metaDescription": "Many parts of one total as tiles sized by value, in optional groups, with a second measure as the shade."
+  },
+  "componentTree": [
+    {
+      "id": "n1",
+      "type": "prose",
+      "props": {
+        "markdown": "Many parts of one total, as rectangles whose area is the value. `Treemap` lays the parts out largest first, optionally in a few named groups, and can shade each tile by a second measure in bins, so a big part that is weak on the second measure stands out. It handles the layout, the text in the tiles, the tooltip, the keyboard and the screen reader."
+      }
+    },
+    {
+      "id": "n2",
+      "type": "heading",
+      "props": {
+        "text": "When to use it",
+        "level": "2",
+        "anchor": "when-to-use"
+      }
+    },
+    {
+      "id": "n3",
+      "type": "prose",
+      "props": {
+        "markdown": "Use it when one total splits into many parts of very different size, a dozen or a few dozen, and you want to see the big ones, which group they belong to and, with `shade`, how they do on a second measure: revenue by service line with gross margin as the shade, hours by job with the overrun as the shade. For a handful of parts use [`DonutChart`](/docs/donut-chart); to compare parts with each other precisely use [`RankedBars`](/docs/ranked-bars), since areas are harder to compare than lengths. The shades are the bins of [`Heatmap`](/docs/heatmap). It has no nested data and no more than one level of groups, no drill-down or zoom, no sort prop (always largest first), no colour per tile or group, no continuous colour scale, no custom tile content, no padding or gap props, no “Other” tile for the smallest rows, no labels outside the tiles and no negative values."
+      }
+    },
+    {
+      "id": "n4",
+      "type": "heading",
+      "props": {
+        "text": "Import",
+        "level": "2",
+        "anchor": "install"
+      }
+    },
+    {
+      "id": "n5",
+      "type": "code-block",
+      "props": {
+        "code": "npm i tally-charts",
+        "lang": "bash"
+      }
+    },
+    {
+      "id": "n6",
+      "type": "code-block",
+      "props": {
+        "code": "import { Treemap } from 'tally-charts'\nimport 'tally-charts/theme.css'",
+        "lang": "tsx",
+        "filename": "app/revenue.tsx"
+      }
+    },
+    {
+      "id": "n7",
+      "type": "heading",
+      "props": {
+        "text": "Examples",
+        "level": "2",
+        "anchor": "examples"
+      }
+    },
+    {
+      "id": "n8",
+      "type": "prose",
+      "props": {
+        "markdown": "`data` has one row per tile. `name` names the tile, `value` reads its area, `group` its group and `shade` the second measure, binned by `breaks`. `format` writes the values and the group totals, `shadeFormat` the shade values and the default bin labels. Props stay serializable here (field names, preset formats and literal breaks), so the chart renders in a server component."
+      }
+    },
+    {
+      "id": "n9",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "treemap/revenue-by-line",
+        "defaultView": "preview"
+      }
+    },
+    {
+      "id": "n10",
+      "type": "heading",
+      "props": {
+        "text": "Tiles and groups",
+        "level": "2",
+        "anchor": "tiles"
+      }
+    },
+    {
+      "id": "n11",
+      "type": "prose",
+      "props": {
+        "markdown": "A row is a tile when its value is a finite number above 0 (a numeric string is read as a number). The total is the sum of the tiles, and a tile's share is its value over that total. Groups come largest total first, and the tiles of a group largest value first; ties keep the data order. That order is the order of the tiles in the page, for screen readers and for `Home` and `End`. The layout is squarified: rectangles as close to squares as the values allow, groups first in the whole box, then the tiles of each group in its box."
+      }
+    },
+    {
+      "id": "n12",
+      "type": "prose",
+      "props": {
+        "markdown": "With `group`, each group has a header above its tiles: the name in bold and the formatted total in muted text. A narrow group's name is cut with an ellipsis before the total. A group whose box is lower than 48 px has no header, and its tiles take the whole box. Rows whose group is empty or missing form one more group without a name: it takes its place by total like the others, but has no header text and its tiles are not inside a named group. Groups are 8 px apart, tiles 2 px, and the outer tiles touch the edges of the box."
+      }
+    },
+    {
+      "id": "n13",
+      "type": "prose",
+      "props": {
+        "markdown": "Without `group`, the tiles fill the whole box and there are no headers."
+      }
+    },
+    {
+      "id": "n14",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "treemap/flat",
+        "defaultView": "preview",
+        "height": 430
+      }
+    },
+    {
+      "id": "n15",
+      "type": "heading",
+      "props": {
+        "text": "Shade and bins",
+        "level": "2",
+        "anchor": "shade"
+      }
+    },
+    {
+      "id": "n16",
+      "type": "prose",
+      "props": {
+        "markdown": "`shade` reads a second number per row and needs `breaks`: ascending bin edges, as in `Heatmap`, where 1 to 4 edges give 2 to 5 bins and a value equal to an edge falls into the higher bin. Each tile is filled with the level of its bin, from a light to a strong step of the tone, and its text keeps its contrast on every level, as in a `Heatmap` cell. The legend above the tiles shows the shade's name and one swatch and label per bin (`legend`, default true), and wraps on a narrow chart. Unsorted or repeated `breaks` are sorted and deduplicated and more than four are cut to four, with a warning in development. `shade` without `breaks`, or `breaks` without `shade`, draws the chart without shades, with a warning in development."
+      }
+    },
+    {
+      "id": "n17",
+      "type": "prose",
+      "props": {
+        "markdown": "Without `shade` every tile is the middle level of the tone and there is no legend. `tone` sets the tone of the levels and the legend; without it the chart uses a `--ch-seq-base` set on an ancestor, else the accent."
+      }
+    },
+    {
+      "id": "n18",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "treemap/value-only",
+        "defaultView": "preview",
+        "height": 352
+      }
+    },
+    {
+      "id": "n19",
+      "type": "prose",
+      "props": {
+        "markdown": "The default bin labels are written with `shadeFormat`: “Under 10%”, “10% to 20%”, …, “40% and up” in the first example; `binLabels` replaces them with one label per bin (with another count, the defaults stay, with a warning in development). `shadeLabel` names the measure in the legend, the tooltip and the tile's accessible name; by default it is the `shade` field name in sentence case (“Overrun” here), or “Shade” when `shade` is a function. A row with `shade` set but no number (here the warranty visit, with `null`) has no fill: an outline in the grid colour and muted text."
+      }
+    },
+    {
+      "id": "n20",
+      "type": "chart-example",
+      "props": {
+        "exampleId": "treemap/tone-and-labels",
+        "defaultView": "preview",
+        "height": 470
+      }
+    },
+    {
+      "id": "n21",
+      "type": "heading",
+      "props": {
+        "text": "Text in the tiles",
+        "level": "2",
+        "anchor": "text"
+      }
+    },
+    {
+      "id": "n22",
+      "type": "prose",
+      "props": {
+        "markdown": "A tile shows its name when it is at least 64 px wide and 28 px high, and under it the value and the share (“$412K · 22.4%”) when it is at least 96 × 48 px. Both are single lines cut with an ellipsis. The share has one decimal, and a share above 0 that would round to 0.0% reads “<0.1%”. A tile too small for text is read through its tooltip and its accessible name."
+      }
+    },
+    {
+      "id": "n23",
+      "type": "prose",
+      "props": {
+        "markdown": "The box is as wide as its container and `height` px high (default 480). The server render and the first client render use `initialWidth` (default 640), so they agree, and the layout follows the measured width afterwards. In a narrow container, as on a phone, the same layout holds with fewer labels."
+      }
+    },
+    {
+      "id": "n24",
+      "type": "heading",
+      "props": {
+        "text": "Rows that are not drawn",
+        "level": "2",
+        "anchor": "skipped"
+      }
+    },
+    {
+      "id": "n25",
+      "type": "prose",
+      "props": {
+        "markdown": "A row whose value is missing, not a number or negative is skipped, with a warning in development: it has no tile and no stop for the keyboard, and it is not in the total. A row of 0 is not drawn either, with no warning. When no row is a tile, the chart shows `empty`, by default the “No data” message."
+      }
+    },
+    {
+      "id": "n26",
+      "type": "heading",
+      "props": {
+        "text": "Props",
+        "level": "2",
+        "anchor": "props"
+      }
+    },
+    {
+      "id": "n27",
+      "type": "props-table",
+      "props": {
+        "symbol": "Treemap"
+      }
+    },
+    {
+      "id": "n28",
+      "type": "heading",
+      "props": {
+        "text": "Tiles and the tooltip",
+        "level": "2",
+        "anchor": "tooltip"
+      }
+    },
+    {
+      "id": "n29",
+      "type": "prose",
+      "props": {
+        "markdown": "Each tile's id is the `id` accessor or the data index. In `onSelect`, `onActiveChange` and a `tooltip` function, `tile.datum` is your row. The tile under the pointer is active, and leaving the box clears it unless a tile has keyboard focus. The active tile, and the focused one, get a 2 px outline in the ink colour; other tiles are not dimmed. With `onSelect`, a click on a tile selects it and tiles get a pointer cursor."
+      }
+    },
+    {
+      "id": "n30",
+      "type": "prose",
+      "props": {
+        "markdown": "The tooltip of the active tile (hover or keyboard focus) shows the name, the value, the share (“22.4% of total”) and, with a shade number, the shade (“Gross margin 34%”). It sits above the tile, or below it when there is no room above, or inside the tile's top when there is room for neither, and it never leaves the box, so a card does not clip it. The pointer can move onto it, and `Esc` closes a tooltip opened by hovering wherever focus is. `tooltip={false}` turns it off, and a function replaces its content."
+      }
+    },
+    {
+      "id": "n31",
+      "type": "heading",
+      "props": {
+        "text": "Keyboard and screen readers",
+        "level": "2",
+        "anchor": "keyboard"
+      }
+    },
+    {
+      "id": "n32",
+      "type": "prose",
+      "props": {
+        "markdown": "The tiles are one tab stop, a roving `tabindex` on the first tile until another tile has had focus. Focus shows the tile's tooltip. The arrow keys move to the nearest tile in that direction (one that lies beyond the current tile's edge and overlaps it on the other axis); when there is none, focus stays. `Home` and `End` go to the first and last tile (largest group first, largest tile first). `Enter` or `Space` calls `onSelect`, and `Esc` clears the active tile, only when there is one. Arrows, `Home` and `End` with `Alt`, and arrows with `Ctrl` or `Cmd`, stay the browser's; `Ctrl+Home` and `Ctrl+End` also go to the first and last tile."
+      }
+    },
+    {
+      "id": "n33",
+      "type": "prose",
+      "props": {
+        "markdown": "Screen readers get a `listbox` named by `title` (or `aria-labelledby`; “Treemap” when the title is empty) and described by `description`. Each named group is a `group` named by its header, such as “Remodels $942K”, and each tile is an `option` whose name says everything, whether or not the text fits: the name, the value, the share and, with a shade number, the shade and its bin, such as “Handyman, $54K, 2.9% of total, gross margin 18%, 10% to 20%”. The options have no selected state. Like `Heatmap`, there is no hidden data table: the tiles are HTML that assistive technology reads directly, so a table would repeat them. The legend is read as a list; the tile text and the tooltip are hidden, since the accessible name says the same."
+      }
+    },
+    {
+      "id": "n34",
+      "type": "prose",
+      "props": {
+        "markdown": "The words have English fallbacks and can be translated with the `treemapName`, `headerShade`, `ofTotal`, `noData`, `binAll`, `binUnder`, `binRange` and `binOver` keys of [`ChartsProvider` messages](/docs/hooks-and-providers)."
+      }
+    },
+    {
+      "id": "n35",
+      "type": "prose",
+      "props": {
+        "markdown": "The full model is in the [accessibility guide](https://github.com/mwadon/tally-charts/blob/main/docs/a11y.md)."
+      }
+    }
+  ]
+}

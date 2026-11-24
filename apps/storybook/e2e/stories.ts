@@ -52,6 +52,13 @@ export const STORIES = [
   'charts-ganttchart--months',
   'charts-ganttchart--narrow',
   'charts-ganttchart--milestones',
+  'charts-treemap--light',
+  'charts-treemap--dark',
+  'charts-treemap--flat',
+  'charts-treemap--plain',
+  'charts-treemap--tone',
+  'charts-treemap--many',
+  'charts-treemap--narrow',
   'reference-estimate-vs-actual--light',
   'reference-estimate-vs-actual--dark',
   'reference-result--light',
@@ -121,6 +128,8 @@ export const VIEWPORTS: Record<string, { width: number; height: number }> = {
   'reference-usage-runway--dark': { width: 1280, height: 760 },
   'reference-performance--light': { width: 1280, height: 760 },
   'reference-performance--dark': { width: 1280, height: 760 },
+  'charts-treemap--light': { width: 1280, height: 760 },
+  'charts-treemap--dark': { width: 1280, height: 760 },
 }
 
 // Stories without a theme of their own follow the toolbar global: axe checks them in both themes.
@@ -143,6 +152,7 @@ export const THEMELESS = new Set([
   'charts-donutchart--plain',
   'charts-donutchart--many',
   'charts-ganttchart--plain',
+  'charts-treemap--plain',
   'primitives-small-pieces--default',
   'primitives-small-pieces--sparklines',
   'primitives-small-pieces--small-bars',

@@ -152,6 +152,14 @@ export default [
     gzip: true,
   },
   {
+    name: 'Treemap',
+    path: 'dist/index.js',
+    import: '{ Treemap }',
+    ignore: ['react', 'react-dom'],
+    limit: '15 KB',
+    gzip: true,
+  },
+  {
     name: 'Small UI pieces',
     path: 'dist/index.js',
     import: '{ Stat, Delta, Meter, RangeMeter, InlineBar, DotCount, ShareBar, ZoneMeter }',

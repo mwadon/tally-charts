@@ -118,6 +118,10 @@
           "slug": "heatmap"
         },
         {
+          "label": "Treemap",
+          "slug": "treemap"
+        },
+        {
           "label": "RunwayChart",
           "slug": "runway-chart"
         }

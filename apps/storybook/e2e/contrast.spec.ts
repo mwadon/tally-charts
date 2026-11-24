@@ -54,6 +54,37 @@ function collect(): TextRun[] {
     ) {
       continue
     }
+    // Text under an open tooltip pill or its drop shadow, even in part, is covered by it, not
+    // drawn on it: the treemap's pill can lie over or just above a neighbouring tile's name, and
+    // the pill's pixels are not that text's background. Such text was measured with nothing
+    // active; the pill's own text still is. The shadow reaches |offset| + blur + spread. Only the
+    // treemap's pill: other charts' tooltips keep the measurement they had.
+    const covered = [...document.querySelectorAll('[data-ch-part="treemap-tooltip"]')].some(
+      (tip) => {
+        if (tip.contains(el) || getComputedStyle(tip).visibility === 'hidden') return false
+        return [tip, ...tip.querySelectorAll('*')].some((part) => {
+          const shadow = getComputedStyle(part).boxShadow
+          let reach = 0
+          if (shadow !== 'none') {
+            // Each shadow is "color x y blur spread"; the colour comes first in computed values.
+            for (const one of shadow.split(/,(?![^(]*\))/)) {
+              const [x = 0, y = 0, blur = 0, spread = 0] = (
+                one.replace(/rgba?\([^)]*\)|color\([^)]*\)/g, '').match(/-?[\d.]+px/g) ?? []
+              ).map((v) => Math.abs(Number.parseFloat(v)))
+              reach = Math.max(reach, Math.max(x, y) + blur + spread)
+            }
+          }
+          const t = part.getBoundingClientRect()
+          return (
+            box.left < t.right + reach &&
+            box.right > t.left - reach &&
+            box.top < t.bottom + reach &&
+            box.bottom > t.top - reach
+          )
+        })
+      },
+    )
+    if (covered) continue
     let opacity = 1
     for (let e: Element | null = el; e && e !== document.body; e = e.parentElement) {
       opacity *= Number(getComputedStyle(e).opacity)
@@ -171,6 +202,16 @@ for (const id of [...STORIES, 'reference-last-12-weeks--selectable']) {
         await expect(page.locator('[data-ch-part="tooltip"]').first()).toBeVisible()
         const active = await measure(page)
         expect(active.length, 'no rendered text found').toBeGreaterThan(0)
+        expect(failing(active)).toEqual([])
+      }
+      // A treemap is a listbox of focusable tiles, not an application: focus the first tile for
+      // its pill and the active tile's ring.
+      const tile = page.locator('#storybook-root [data-ch-part="treemap-tile"]').first()
+      if ((await tile.count()) > 0) {
+        await tile.focus()
+        await expect(page.locator('[data-ch-part="treemap-tooltip"]')).toBeVisible()
+        const active = await measure(page)
+        expect(active.some((r) => r.text.endsWith('of total'))).toBe(true)
         expect(failing(active)).toEqual([])
       }
     })

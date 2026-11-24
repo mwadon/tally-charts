@@ -20,10 +20,12 @@ import {
   ProfitBridge,
   RemodelSchedule,
   RevenueByLine,
+  RevenueTreemap,
   SmallPieces,
   UnderTarget,
   UsageRunway,
 } from '../test/fixtures'
+import { treemapLayout } from './core/treemap'
 import { Chart } from './react/Chart'
 import { RunwayChart } from './react/charts/RunwayChart'
 import { Sparkline } from './react/ui/Sparkline'
@@ -142,6 +144,37 @@ describe('server rendering', () => {
     expect(heatmap.match(/data-ch-part="heatmap-cell"/g)).toHaveLength(6)
     expect(heatmap).toContain('$14.8K')
     expect(heatmap).toContain('$13K and up')
+  })
+
+  it('renders the Treemap without a DOM, deterministically, laid out at initialWidth', () => {
+    const html = renderToString(<RevenueTreemap />)
+    expect(html).toBe(renderToString(<RevenueTreemap />))
+    expect(html).not.toContain('NaN')
+    expect(html).toContain('role="listbox"')
+    expect(html.match(/role="group"/g)).toHaveLength(4)
+    expect(html.match(/role="option"/g)).toHaveLength(13)
+    // No tooltip before anything is active.
+    expect(html).not.toContain('treemap-tooltip')
+    const px = (n: number) => `${Math.round(n * 100) / 100}px`
+    const styles = [...html.matchAll(/data-ch-part="treemap-tile"[^>]*style="([^"]*)"/g)].map(
+      (m) => m[1],
+    )
+    const layout = treemapLayout(
+      [
+        [412, 286, 148, 96],
+        [188, 142, 96, 54],
+        [164, 82, 48],
+        [86, 38],
+      ],
+      640,
+      480,
+      true,
+    )
+    expect(styles).toEqual(
+      layout
+        .flatMap((g) => g.tiles)
+        .map((r) => `left:${px(r.x)};top:${px(r.y)};width:${px(r.width)};height:${px(r.height)}`),
+    )
   })
 
   it('renders the GroupedBarChart without a DOM, deterministically', () => {

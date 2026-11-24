@@ -28,6 +28,7 @@ import {
   StripPlot,
   Target,
   Tooltip,
+  Treemap,
   thresholds,
   ValueLabel,
   WaffleColumns,
@@ -595,6 +596,41 @@ export function RemodelSchedule({ initialWidth }: { initialWidth?: number } = {}
       baselineStart="plannedStart"
       baselineEnd="plannedEnd"
       now="2026-03-27"
+      initialWidth={initialWidth}
+    />
+  )
+}
+
+export const serviceLines = [
+  { line: 'Kitchen', group: 'Remodels', revenue: 412, margin: 34 },
+  { line: 'Bath', group: 'Remodels', revenue: 286, margin: 31 },
+  { line: 'Basement', group: 'Remodels', revenue: 148, margin: 22 },
+  { line: 'Whole-home', group: 'Remodels', revenue: 96, margin: 8 },
+  { line: 'Plumbing', group: 'Repairs', revenue: 188, margin: 42 },
+  { line: 'Electrical', group: 'Repairs', revenue: 142, margin: 38 },
+  { line: 'Roofing', group: 'Repairs', revenue: 96, margin: 16 },
+  { line: 'Handyman', group: 'Repairs', revenue: 54, margin: 18 },
+  { line: 'Decks', group: 'Outdoor', revenue: 164, margin: 27 },
+  { line: 'Fencing', group: 'Outdoor', revenue: 82, margin: 24 },
+  { line: 'Landscaping', group: 'Outdoor', revenue: 48, margin: 12 },
+  { line: 'Annual plans', group: 'Maintenance plans', revenue: 86, margin: 46 },
+  { line: 'Seasonal', group: 'Maintenance plans', revenue: 38, margin: 41 },
+]
+
+export function RevenueTreemap({ initialWidth }: { initialWidth?: number } = {}) {
+  return (
+    <Treemap
+      title="Revenue by service line"
+      description="Remodels bring in half the revenue; maintenance plans have the best margin."
+      data={serviceLines}
+      id="line"
+      name="line"
+      value="revenue"
+      group="group"
+      shade="margin"
+      breaks={[10, 20, 30, 40]}
+      shadeLabel="Gross margin"
+      shadeFormat={{ preset: 'percent', digits: 0 }}
       initialWidth={initialWidth}
     />
   )

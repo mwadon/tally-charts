@@ -1,9 +1,18 @@
 export { toNumber } from '../../core/number'
 
 import type { ReactNode } from 'react'
+import type { Formatter } from '../../core/format'
 import type { Id } from '../../core/types'
 import type { ChartProps } from '../Chart'
 import type { DataTableSpec } from '../DataTable'
+import {
+  BIN_ALL,
+  BIN_OVER,
+  BIN_RANGE,
+  BIN_UNDER,
+  type ChartMessages,
+  formatMessage,
+} from '../messages'
 import type { TooltipProps } from '../overlays/Tooltip'
 import type { ChartPoint } from '../types'
 
@@ -120,4 +129,25 @@ export function userCallbacks<D>(
           onActiveChange(id, point ? unwrapPoint<D>(point) : null)
       : undefined,
   }
+}
+
+/** Default bin labels of sequential `breaks` (Heatmap, Treemap): "Under X", "X to Y", …, "Z and up". */
+export function defaultLabels(
+  breaks: readonly number[],
+  fmt: Formatter,
+  messages: Partial<ChartMessages>,
+): string[] {
+  const first = breaks[0]
+  const last = breaks[breaks.length - 1]
+  if (first === undefined || last === undefined) return [messages.binAll ?? BIN_ALL]
+  return [
+    formatMessage(messages.binUnder ?? BIN_UNDER, { value: fmt(first) }),
+    ...breaks.slice(1).map((b, i) =>
+      formatMessage(messages.binRange ?? BIN_RANGE, {
+        from: fmt(breaks[i] as number),
+        to: fmt(b),
+      }),
+    ),
+    formatMessage(messages.binOver ?? BIN_OVER, { value: fmt(last) }),
+  ]
 }

@@ -301,6 +301,7 @@ export interface ChartMessages {
     headerRow: string;
     headerRunsOut: string;
     headerRunwayDetail: string;
+    headerShade: string;
     headerShare: string;
     headerSize: string;
     headerStart: string;
@@ -355,6 +356,7 @@ export interface ChartMessages {
     targetLabel: string;
     today: string;
     total: string;
+    treemapName: string;
     valueAbove: string;
     valueAgainst: string;
     valueBelow: string;
@@ -1575,6 +1577,53 @@ export interface TooltipSegment {
     tone?: Tone;
     // (undocumented)
     value: ReactNode;
+}
+
+// @public (undocumented)
+export function Treemap<D>(input: TreemapProps<D>): JSX.Element;
+
+// @public (undocumented)
+export type TreemapProps<D> = ChartName & {
+    data: readonly D[];
+    name: Accessor<D, string>;
+    value: Accessor<D, number>;
+    id?: Accessor<D, Id>;
+    group?: Accessor<D, string>;
+    shade?: Accessor<D, number>;
+    breaks?: readonly number[];
+    binLabels?: readonly string[];
+    format?: FormatSpec;
+    shadeFormat?: FormatSpec;
+    shadeLabel?: string;
+    tone?: Tone;
+    height?: number;
+    initialWidth?: number;
+    legend?: boolean;
+    tooltip?: boolean | ((tile: TreemapTile<D>) => ReactNode);
+    description?: string;
+    activeId?: Id | null;
+    onActiveChange?: (id: Id | null, tile: TreemapTile<D> | null) => void;
+    onSelect?: (id: Id, tile: TreemapTile<D>) => void;
+    empty?: ReactNode;
+    className?: string;
+    style?: CSSProperties;
+    chartId?: string;
+};
+
+// @public (undocumented)
+export interface TreemapTile<D> {
+    // (undocumented)
+    datum: D;
+    group: string | undefined;
+    // (undocumented)
+    id: Id;
+    level: SeqLevel | 0;
+    // (undocumented)
+    name: string;
+    shade: number;
+    share: number;
+    // (undocumented)
+    value: number;
 }
 
 // @public

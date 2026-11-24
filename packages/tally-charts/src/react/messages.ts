@@ -187,6 +187,10 @@ export interface ChartMessages {
   headerBaselineEnd: string
   /** The done-share column of a GanttChart data table. */
   headerProgress: string
+  /** The accessible name of a Treemap that has no title. */
+  treemapName: string
+  /** The name of a Treemap's shade measure when `shade` is a function. */
+  headerShade: string
 }
 
 // One `const` per default, read at the call site as `messages.noData ?? NO_DATA`, so a bundle holds
@@ -284,6 +288,8 @@ export const HEADER_END = 'End'
 export const HEADER_BASELINE_START = 'Baseline start'
 export const HEADER_BASELINE_END = 'Baseline end'
 export const HEADER_PROGRESS = 'Progress'
+export const TREEMAP_NAME = 'Treemap'
+export const HEADER_SHADE = 'Shade'
 
 /**
  * The English text of every key in `ChartMessages`. The wording isn't public and can change in any
@@ -382,6 +388,8 @@ export const DEFAULT_MESSAGES: Readonly<ChartMessages> = {
   headerBaselineStart: HEADER_BASELINE_START,
   headerBaselineEnd: HEADER_BASELINE_END,
   headerProgress: HEADER_PROGRESS,
+  treemapName: TREEMAP_NAME,
+  headerShade: HEADER_SHADE,
 }
 
 /** Fills `{name}` placeholders from `values`; an unknown placeholder stays as text. */

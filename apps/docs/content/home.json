@@ -75,7 +75,7 @@
       "id": "n7",
       "type": "chart-index",
       "props": {
-        "heading": "Eighteen charts, one grammar",
+        "heading": "Nineteen charts, one grammar",
         "lede": "Pick the chart by the question it answers. Each page has live examples and a props table.",
         "items": [
           {
@@ -137,6 +137,12 @@
             "text": "A schedule against its plan",
             "href": "/docs/gantt-chart",
             "thumb": "gantt"
+          },
+          {
+            "label": "Treemap",
+            "text": "Many parts of one total, in groups",
+            "href": "/docs/treemap",
+            "thumb": "treemap"
           },
           {
             "label": "DotHistogram",

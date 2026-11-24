@@ -58,6 +58,8 @@ const NARROW_CHART_HEIGHTS: Readonly<Record<string, number>> = {
   'runway-chart/gpu-budgets': 574,
   'small-pieces/sparkline': 595,
   'stacked-area-chart/with-legend': 309,
+  'treemap/flat': 482,
+  'treemap/tone-and-labels': 494,
 }
 
 /**

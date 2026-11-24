@@ -391,6 +391,119 @@ test('hovering a gantt row name or its bar shows that row; off the chart the hov
   }
 })
 
+test('the treemap names its listbox, groups and tiles', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 760 })
+  await open(page, 'charts-treemap--light')
+  const box = page.getByRole('listbox', { name: 'Revenue by service line', exact: true })
+  await expect(box).toHaveAccessibleDescription(
+    'Remodels bring in just over half of revenue; whole-home remodels run at an 8% margin.',
+  )
+  await expect(box.getByRole('group')).toHaveCount(4)
+  await expect(box.getByRole('option')).toHaveCount(13)
+  for (const [name, count] of [
+    ['Remodels $942K', 4],
+    ['Repairs $480K', 4],
+    ['Outdoor $294K', 3],
+    ['Maintenance plans $124K', 2],
+  ] as const) {
+    await expect(box.getByRole('group', { name, exact: true }).getByRole('option')).toHaveCount(
+      count,
+    )
+  }
+  await expect(
+    box.getByRole('group', { name: 'Repairs $480K', exact: true }).getByRole('option').nth(3),
+  ).toHaveAccessibleName('Handyman, $54K, 2.9% of total, gross margin 18%, 10% to 20%')
+})
+
+test('the treemap walks its tiles with the arrow keys, Home and End, and Escape clears', async ({
+  page,
+}) => {
+  // The artboard: the chart 1024 × 480. Remodels on the left (Kitchen a full-height column, Bath
+  // over Basement and Whole-home), then Repairs (Plumbing over Electrical over Roofing and
+  // Handyman), then Outdoor over Maintenance plans.
+  await page.setViewportSize({ width: 1280, height: 760 })
+  await open(page, 'charts-treemap--light')
+  const box = page.getByRole('listbox', { name: 'Revenue by service line', exact: true })
+  const focused = box.locator('[role="option"]:focus')
+  const tooltip = page.locator('[data-ch-part="treemap-tooltip"]')
+  const active = box.locator('[data-ch-part="treemap-tile"][data-ch-active="true"]')
+  // One tab stop for the whole box.
+  await expect(box.locator('[role="option"][tabindex="0"]')).toHaveCount(1)
+  await page.keyboard.press('Tab')
+  await expect(focused).toHaveAccessibleName(
+    'Kitchen, $412K, 22.4% of total, gross margin 34%, 30% to 40%',
+  )
+  await expect(active).toHaveCount(1)
+  await expect(tooltip.locator('[data-ch-part="pill-segment"]')).toHaveText([
+    'Kitchen',
+    '$412K',
+    '22.4% of total',
+    'Gross margin 34%',
+  ])
+  // Kitchen is the top-left tile: up and left keep the focus where it is.
+  await page.keyboard.press('ArrowUp')
+  await page.keyboard.press('ArrowLeft')
+  await expect(focused).toHaveAccessibleName(/^Kitchen, /)
+  const steps = [
+    ['ArrowRight', 'Bath, $286K, 15.5% of total, gross margin 31%, 30% to 40%'],
+    ['ArrowDown', 'Basement, $148K, 8.0% of total, gross margin 22%, 20% to 30%'],
+    ['ArrowRight', 'Whole-home, $96K, 5.2% of total, gross margin 8%, Under 10%'],
+    ['ArrowRight', 'Roofing, $96K, 5.2% of total, gross margin 16%, 10% to 20%'],
+    ['ArrowUp', 'Electrical, $142K, 7.7% of total, gross margin 38%, 30% to 40%'],
+    ['ArrowUp', 'Plumbing, $188K, 10.2% of total, gross margin 42%, 40% and up'],
+    ['ArrowLeft', 'Bath, $286K, 15.5% of total, gross margin 31%, 30% to 40%'],
+    ['ArrowLeft', 'Kitchen, $412K, 22.4% of total, gross margin 34%, 30% to 40%'],
+    ['End', 'Seasonal, $38K, 2.1% of total, gross margin 41%, 40% and up'],
+    ['Home', 'Kitchen, $412K, 22.4% of total, gross margin 34%, 30% to 40%'],
+  ] as const
+  for (const [key, name] of steps) {
+    await page.keyboard.press(key)
+    await expect(focused).toHaveAccessibleName(name)
+    // The roving tab stop follows the focus, and the focused tile is the active one.
+    await expect(box.locator('[role="option"][tabindex="0"]')).toHaveAccessibleName(name)
+    await expect(active).toHaveAccessibleName(name)
+  }
+  await page.keyboard.press('End')
+  await expect(tooltip.locator('[data-ch-part="pill-segment"]')).toHaveText([
+    'Seasonal',
+    '$38K',
+    '2.1% of total',
+    'Gross margin 41%',
+  ])
+  // Escape clears the active tile and its tooltip; the focus stays on the tile.
+  await page.keyboard.press('Escape')
+  await expect(tooltip).toHaveCount(0)
+  await expect(active).toHaveCount(0)
+  await expect(focused).toHaveAccessibleName(
+    'Seasonal, $38K, 2.1% of total, gross margin 41%, 40% and up',
+  )
+})
+
+test('hovering a treemap tile shows its tooltip, and Escape closes it', async ({ page }) => {
+  await page.setViewportSize({ width: 1280, height: 760 })
+  await open(page, 'charts-treemap--light')
+  const tooltip = page.locator('[data-ch-part="treemap-tooltip"]')
+  await page.getByRole('option', { name: /^Plumbing, / }).hover()
+  await expect(tooltip).toContainText('Plumbing')
+  await expect(tooltip).toContainText('10.2% of total')
+  // Plumbing sits right under its group header at the top of the box: no room for the pill
+  // above it, so the pill goes below it, inside the box.
+  const pill = await tooltip.boundingBox()
+  const tile = await page.getByRole('option', { name: /^Plumbing, / }).boundingBox()
+  const plot = await page.locator('[data-ch-part="treemap-plot"]').boundingBox()
+  if (!pill || !tile || !plot) throw new Error('no pill, tile or plot')
+  expect(tile.y - plot.y).toBeCloseTo(24, 0)
+  expect(tile.y - plot.y).toBeLessThan(pill.height + 6)
+  expect(pill.y).toBeGreaterThan(tile.y + tile.height)
+  expect(pill.y + pill.height).toBeLessThanOrEqual(plot.y + plot.height + 0.5)
+  expect(pill.x).toBeGreaterThanOrEqual(plot.x)
+  expect(pill.x + pill.width).toBeLessThanOrEqual(plot.x + plot.width + 0.5)
+  // Nothing has focus: Escape still closes the hover tooltip.
+  await expect(page.locator('[role="option"]:focus')).toHaveCount(0)
+  await page.keyboard.press('Escape')
+  await expect(tooltip).toHaveCount(0)
+})
+
 test('hovering near a strip dot shows its tooltip', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 600 })
   await open(page, 'reference-dallas-installs--light')

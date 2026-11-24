@@ -253,6 +253,22 @@ describe('theme.css', () => {
     expect(themed).toMatch(/\[data-ch-part="heatmap-cell"\] \{[^}]*outline: none;/)
   })
 
+  it('rings the active and the focused treemap tile in ink, Highlight in forced colors', () => {
+    const ring =
+      /\[data-ch-part="treemap-tile"\]\[data-ch-active="true"\],\s*\[data-ch-part="treemap-tile"\]:focus-visible \{\s*z-index: 1;\s*outline: 2px solid var\(--ch-ink\);\s*outline-offset: 2px;/
+    expect(themed).toMatch(ring)
+    expect(forced).toMatch(
+      /\[data-ch-part="treemap-tile"\]\[data-ch-active="true"\],\s*\[data-ch-part="treemap-tile"\]:focus-visible \{\s*outline: 2px solid Highlight;/,
+    )
+    expect(themed).toMatch(
+      /\[data-ch-part="treemap-tile"\]\[data-ch-selectable="true"\] \{\s*cursor: pointer;/,
+    )
+    // The tooltip sits over the raised tile and keeps the pill's pointer behaviour.
+    expect(themed).toMatch(
+      /\[data-ch-part="treemap-tooltip"\] \{\s*z-index: 2;\s*pointer-events: auto;/,
+    )
+  })
+
   it.each([
     '--ch-hatch-angle:',
     '--ch-hatch-width:',
@@ -616,6 +632,22 @@ describe('theme.css', () => {
     }
   })
 
+  it('defaults a treemap and its legend to the accent ramp; a tone or an ancestor base still wins', () => {
+    const tree = declarations(
+      /\[data-ch-part="treemap"\],\s*\[data-ch-part="treemap"\] \[data-ch-part="legend"\]/,
+    )
+    const treeRamp = (theme: keyof typeof THEMES, tone?: string) => {
+      const env = seqEnv(theme, tone)
+      return LEVELS.map((level) => hex(resolve(tree.get(`--ch-seq-${level}`) ?? '', env)))
+    }
+    for (const theme of ['light', 'dark'] as const) {
+      expect(treeRamp(theme)).toEqual(ramp(theme, 'accent'))
+      for (const tone of TONES) expect(treeRamp(theme, tone)).toEqual(ramp(theme, tone))
+    }
+    // The outline of the two lightest levels follows the same default base.
+    expect(tree.get('--_ch-seq-default-base')).toBe('var(--ch-accent)')
+  })
+
   it('makes the dark top level the pure base, with dark text, and the light one darker, with white', () => {
     for (const tone of TONES) {
       expect(ramp('dark', tone)[4]).toEqual(hex(THEMES.dark.get(`--ch-${tone}`)))
@@ -628,7 +660,7 @@ describe('theme.css', () => {
 
   it('outlines the two lightest levels in the light theme only', () => {
     expect(css).toMatch(
-      /\[data-ch-part="heatmap-cell"\]:is\(\[data-ch-level="1"\], \[data-ch-level="2"\]\),\s*\[data-ch-part="legend-swatch"\]:is\(\[data-ch-level="1"\], \[data-ch-level="2"\]\) \{\s*box-shadow: inset 0 0 0 var\(--_ch-seq-outline\)\s+color-mix\(in srgb, var\(--ch-seq-base, var\(--ch-loss\)\) 45%, var\(--ch-surface\)\)/,
+      /:is\(\s*\[data-ch-part="heatmap-cell"\],\s*\[data-ch-part="treemap-tile"\],\s*\[data-ch-part="legend-swatch"\]\s*\):is\(\[data-ch-level="1"\], \[data-ch-level="2"\]\) \{\s*box-shadow: inset 0 0 0 var\(--_ch-seq-outline\)\s+color-mix\(\s*in srgb,\s*var\(--ch-seq-base, var\(--_ch-seq-default-base, var\(--ch-loss\)\)\) 45%,\s*var\(--ch-surface\)\s*\)/,
     )
     expect(THEMES.light.get('--_ch-seq-outline')).toBe('1px')
     expect(THEMES.dark.get('--_ch-seq-outline')).toBe('0px')
@@ -636,7 +668,7 @@ describe('theme.css', () => {
 
   it('puts white text only on the darkest heatmap level', () => {
     expect(css).toMatch(
-      /\[data-ch-part="heatmap-cell"\]\[data-ch-level="5"\] \{[^}]*color: var\(--_ch-seq-ink-strong\)/,
+      /:is\(\[data-ch-part="heatmap-cell"\], \[data-ch-part="treemap-tile"\]\)\[data-ch-level="5"\] \{[^}]*color: var\(--_ch-seq-ink-strong\)/,
     )
     expect(css).toMatch(/\[data-ch-part="heatmap-cell"\] \{[^}]*color: var\(--ch-ink\)/)
     expect(css).toMatch(

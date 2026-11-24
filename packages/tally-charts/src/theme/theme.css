@@ -1503,38 +1503,45 @@
   transition: box-shadow 150ms ease;
 }
 
-[data-ch-part="heatmap-cell"][data-ch-level="0"] {
+:is([data-ch-part="heatmap-cell"], [data-ch-part="treemap-tile"])[data-ch-level="0"] {
   color: var(--ch-ink-muted);
   box-shadow: inset 0 0 0 1px var(--ch-grid);
 }
 
-[data-ch-part="heatmap-cell"][data-ch-level="1"] {
+:is([data-ch-part="heatmap-cell"], [data-ch-part="treemap-tile"])[data-ch-level="1"] {
   background: var(--ch-seq-1);
 }
 
-[data-ch-part="heatmap-cell"][data-ch-level="2"] {
+:is([data-ch-part="heatmap-cell"], [data-ch-part="treemap-tile"])[data-ch-level="2"] {
   background: var(--ch-seq-2);
 }
 
-[data-ch-part="heatmap-cell"][data-ch-level="3"] {
+:is([data-ch-part="heatmap-cell"], [data-ch-part="treemap-tile"])[data-ch-level="3"] {
   background: var(--ch-seq-3);
 }
 
-[data-ch-part="heatmap-cell"][data-ch-level="4"] {
+:is([data-ch-part="heatmap-cell"], [data-ch-part="treemap-tile"])[data-ch-level="4"] {
   background: var(--ch-seq-4);
 }
 
-[data-ch-part="heatmap-cell"][data-ch-level="5"] {
+:is([data-ch-part="heatmap-cell"], [data-ch-part="treemap-tile"])[data-ch-level="5"] {
   background: var(--ch-seq-5);
   color: var(--_ch-seq-ink-strong);
 }
 
 /* The two lightest levels are close to the light surface: a 1px outline keeps them shapes. The
    width is 0 in the dark themes. */
-[data-ch-part="heatmap-cell"]:is([data-ch-level="1"], [data-ch-level="2"]),
-[data-ch-part="legend-swatch"]:is([data-ch-level="1"], [data-ch-level="2"]) {
+:is(
+  [data-ch-part="heatmap-cell"],
+  [data-ch-part="treemap-tile"],
+  [data-ch-part="legend-swatch"]
+):is([data-ch-level="1"], [data-ch-level="2"]) {
   box-shadow: inset 0 0 0 var(--_ch-seq-outline)
-    color-mix(in srgb, var(--ch-seq-base, var(--ch-loss)) 45%, var(--ch-surface));
+    color-mix(
+      in srgb,
+      var(--ch-seq-base, var(--_ch-seq-default-base, var(--ch-loss))) 45%,
+      var(--ch-surface)
+    );
 }
 
 /* The top-value cell glows in the base color, unless the user asks for less transparency. */
@@ -1605,6 +1612,134 @@
 [data-ch-part="heatmap-total"]:focus-visible {
   outline: 2px solid var(--ch-accent);
   outline-offset: 2px;
+}
+
+/* ---------- Treemap ---------- */
+/* The levels of the shared sequential block, but accent where no base is set: a --ch-seq-base and
+   mixes from an ancestor or data-ch-seq-tone still win. The legend inside resolves the same
+   levels, and the private default base tints the outline of the two lightest levels. */
+[data-ch-part="treemap"],
+[data-ch-part="treemap"] [data-ch-part="legend"] {
+  --_ch-seq-default-base: var(--ch-accent);
+  --ch-seq-1: color-mix(
+    in srgb,
+    var(--ch-seq-base, var(--ch-accent)) var(--ch-seq-mix-1, 12%),
+    var(--ch-surface)
+  );
+  --ch-seq-2: color-mix(
+    in srgb,
+    var(--ch-seq-base, var(--ch-accent)) var(--ch-seq-mix-2, var(--_ch-seq-accent-2)),
+    var(--ch-surface)
+  );
+  --ch-seq-3: color-mix(
+    in srgb,
+    var(--ch-seq-base, var(--ch-accent)) var(--ch-seq-mix-3, var(--_ch-seq-accent-3)),
+    var(--ch-surface)
+  );
+  --ch-seq-4: color-mix(
+    in srgb,
+    var(--ch-seq-base, var(--ch-accent)) var(--ch-seq-mix-4, var(--_ch-seq-accent-4)),
+    var(--ch-surface)
+  );
+  --ch-seq-5: color-mix(
+    in srgb,
+    var(--ch-seq-base, var(--ch-accent)) var(--ch-seq-mix-5, var(--_ch-seq-accent-5)),
+    #000
+  );
+}
+
+[data-ch-part="treemap"] {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+  color: var(--ch-ink);
+  font-variant-numeric: var(--ch-font-numeric);
+}
+
+/* The shade name, then the bins; wraps on a narrow chart. */
+[data-ch-part="treemap-legend"] {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 16px;
+  font-size: 13px;
+}
+
+[data-ch-part="treemap-plot"] {
+  position: relative;
+}
+
+/* A narrow group cuts its name with an ellipsis; the total does not shrink, so the row's
+   overflow hides it last. */
+[data-ch-part="treemap-group"] {
+  position: absolute;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  height: 24px;
+  overflow: hidden;
+  font-size: 13px;
+  line-height: 24px;
+  white-space: nowrap;
+}
+
+[data-ch-part="treemap-group-name"] {
+  min-width: 0;
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+}
+
+[data-ch-part="treemap-group-total"] {
+  flex: none;
+  color: var(--ch-ink-muted);
+}
+
+[data-ch-part="treemap-tile"] {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  padding: 6px 8px;
+  overflow: hidden;
+  border-radius: 3px;
+  color: var(--ch-ink);
+}
+
+[data-ch-part="treemap-tile-name"],
+[data-ch-part="treemap-tile-value"] {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+[data-ch-part="treemap-tile-name"] {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+[data-ch-part="treemap-tile-value"] {
+  font-size: 12px;
+}
+
+/* The active tile (hover or focus) and the focused one: a 2px ink ring, raised over its
+   neighbours so the ring is not under them. Other tiles are not dimmed. */
+[data-ch-part="treemap-tile"][data-ch-active="true"],
+[data-ch-part="treemap-tile"]:focus-visible {
+  z-index: 1;
+  outline: 2px solid var(--ch-ink);
+  outline-offset: 2px;
+}
+
+[data-ch-part="treemap-tile"][data-ch-selectable="true"] {
+  cursor: pointer;
+}
+
+/* The pill (.ch-tooltip) over the raised tile. The pointer can rest on it (WCAG 1.4.13): it stays
+   inside the box, so the box does not lose the pointer. */
+[data-ch-part="treemap-tooltip"] {
+  z-index: 2;
+  pointer-events: auto;
 }
 
 /* ---------- Motion off ---------- */
@@ -1974,28 +2109,45 @@
 
   /* Heatmap levels (and their swatches) differ by border width, as fills are forced away. */
   [data-ch-part="heatmap-cell"],
+  [data-ch-part="treemap-tile"],
   [data-ch-part="legend-swatch"][data-ch-level] {
     box-sizing: border-box;
     border: 1px solid CanvasText;
   }
 
-  [data-ch-part="heatmap-cell"][data-ch-level="0"] {
+  :is([data-ch-part="heatmap-cell"], [data-ch-part="treemap-tile"])[data-ch-level="0"] {
     border-style: dashed;
   }
 
-  :is([data-ch-part="heatmap-cell"], [data-ch-part="legend-swatch"])[data-ch-level="2"] {
+  :is(
+    [data-ch-part="heatmap-cell"],
+    [data-ch-part="treemap-tile"],
+    [data-ch-part="legend-swatch"]
+  )[data-ch-level="2"] {
     border-width: 2px;
   }
 
-  :is([data-ch-part="heatmap-cell"], [data-ch-part="legend-swatch"])[data-ch-level="3"] {
+  :is(
+    [data-ch-part="heatmap-cell"],
+    [data-ch-part="treemap-tile"],
+    [data-ch-part="legend-swatch"]
+  )[data-ch-level="3"] {
     border-width: 3px;
   }
 
-  :is([data-ch-part="heatmap-cell"], [data-ch-part="legend-swatch"])[data-ch-level="4"] {
+  :is(
+    [data-ch-part="heatmap-cell"],
+    [data-ch-part="treemap-tile"],
+    [data-ch-part="legend-swatch"]
+  )[data-ch-level="4"] {
     border-width: 4px;
   }
 
-  :is([data-ch-part="heatmap-cell"], [data-ch-part="legend-swatch"])[data-ch-level="5"] {
+  :is(
+    [data-ch-part="heatmap-cell"],
+    [data-ch-part="treemap-tile"],
+    [data-ch-part="legend-swatch"]
+  )[data-ch-level="5"] {
     border-width: 5px;
   }
 
@@ -2010,6 +2162,11 @@
 
   [data-ch-part="heatmap-cell"][data-ch-peak="true"] {
     box-shadow: none;
+  }
+
+  [data-ch-part="treemap-tile"][data-ch-active="true"],
+  [data-ch-part="treemap-tile"]:focus-visible {
+    outline: 2px solid Highlight;
   }
 
   /* Runway: SVG fills aren't forced; paint the levels with steps of the text color. */

@@ -76,3 +76,21 @@ test('a touch tap on a gantt row activates that row', async ({ page }) => {
   await expect(page.locator('[data-ch-part="gantt-bar"][data-ch-dimmed="true"]')).toHaveCount(10)
   await expect(page.locator('[data-ch-root] [aria-live]')).toHaveText('')
 })
+
+test('a touch tap on a treemap tile activates that tile', async ({ page }) => {
+  await open(page, 'charts-treemap--light')
+  const tile = page.getByRole('option', { name: /^Decks, / })
+  const box = await tile.boundingBox()
+  if (!box) throw new Error('no treemap tile to tap')
+  await page.touchscreen.tap(box.x + box.width / 2, box.y + box.height / 2)
+  const tip = page.locator('[data-ch-part="treemap-tooltip"]')
+  await expect(tip).toContainText('Decks')
+  await expect(tip).toContainText('8.9% of total')
+  const active = page.locator('[data-ch-part="treemap-tile"][data-ch-active="true"]')
+  await expect(active).toHaveCount(1)
+  await expect(active).toHaveAccessibleName(/^Decks, /)
+  // A tap outside the chart takes the active tile and its tooltip with it.
+  await page.touchscreen.tap(4, 4)
+  await expect(tip).toHaveCount(0)
+  await expect(active).toHaveCount(0)
+})
