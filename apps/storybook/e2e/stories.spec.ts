@@ -504,6 +504,118 @@ test('hovering a treemap tile shows its tooltip, and Escape closes it', async ({
   await expect(tooltip).toHaveCount(0)
 })
 
+test('the pointer moves from a small treemap tile onto its tooltip and the tooltip stays', async ({
+  page,
+}) => {
+  // Electrical sits under Plumbing: its pill opens above it, over Plumbing, and the way up to the
+  // pill crosses the 6 px gap, whose top 4 px are Plumbing's.
+  await page.setViewportSize({ width: 1280, height: 760 })
+  await open(page, 'charts-treemap--light')
+  const tooltip = page.locator('[data-ch-part="treemap-tooltip"]')
+  const active = page.locator('[data-ch-part="treemap-tile"][data-ch-active="true"]')
+  const electrical = page.getByRole('option', { name: /^Electrical, / })
+  const tile = await electrical.boundingBox()
+  if (!tile) throw new Error('no Electrical tile')
+  const x = tile.x + tile.width / 2
+  await page.mouse.move(x, tile.y + tile.height / 2)
+  await expect(tooltip).toContainText('Electrical')
+  await expect(tooltip).toHaveAttribute('data-ch-placement', 'above')
+  const pill = await tooltip.boundingBox()
+  if (!pill) throw new Error('no pill')
+  expect(pill.y + pill.height).toBeLessThan(tile.y)
+  expect(pill.x).toBeLessThanOrEqual(x)
+  expect(pill.x + pill.width).toBeGreaterThanOrEqual(x)
+  // Straight up, one pixel at a time, onto the middle of the pill.
+  const to = pill.y + pill.height / 2
+  await page.mouse.move(x, to, { steps: Math.ceil(tile.y + tile.height / 2 - to) })
+  await expect(tooltip).toContainText('Electrical')
+  await expect(active).toHaveCount(1)
+  await expect(active).toHaveAccessibleName(/^Electrical, /)
+  // The pill did not move under the pointer.
+  expect(await tooltip.boundingBox()).toEqual(pill)
+})
+
+test('a click on the treemap tooltip inside a box-tall tile selects that tile', async ({
+  page,
+}) => {
+  // Kitchen runs the full height of the box: its pill opens inside the tile's top strip.
+  await page.setViewportSize({ width: 1280, height: 760 })
+  await open(page, 'charts-treemap--selectable')
+  const tooltip = page.locator('[data-ch-part="treemap-tooltip"]')
+  const kitchen = page.getByRole('option', { name: /^Kitchen, / })
+  const tile = await kitchen.boundingBox()
+  if (!tile) throw new Error('no Kitchen tile')
+  await page.mouse.move(tile.x + tile.width / 2, tile.y + tile.height / 2)
+  await expect(tooltip).toContainText('Kitchen')
+  await expect(tooltip).toHaveAttribute('data-ch-placement', 'inside')
+  const pill = await tooltip.boundingBox()
+  if (!pill) throw new Error('no pill')
+  const at = { x: pill.x + pill.width / 2, y: pill.y + pill.height / 2 }
+  // The point is on the pill and in Kitchen's top strip.
+  expect(at.x).toBeGreaterThan(tile.x)
+  expect(at.x).toBeLessThan(tile.x + tile.width)
+  expect(at.y).toBeGreaterThan(tile.y)
+  expect(at.y).toBeLessThan(tile.y + 48)
+  await page.mouse.click(at.x, at.y)
+  await expect(page.getByTestId('selected')).toHaveText('Selected: kitchen')
+  await expect(tooltip).toContainText('Kitchen')
+})
+
+// Each tile is drawn exactly at its rect (no padding floor, no forced-colors border widening a
+// small tile), so tiles never overlap and never leave the box.
+for (const width of [800, 320]) {
+  for (const forced of [false, true]) {
+    test(`every long-tail treemap tile is drawn at its rect inside the box (${width} px${forced ? ', forced colors' : ''})`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width, height: 800 })
+      if (forced) await page.emulateMedia({ forcedColors: 'active' })
+      await open(page, 'charts-treemap--long-tail')
+      const tiles = await page.locator('[data-ch-part="treemap-plot"]').evaluate((plot) => {
+        const box = plot.getBoundingClientRect()
+        return [...plot.querySelectorAll<HTMLElement>('[data-ch-part="treemap-tile"]')].map(
+          (el) => {
+            const r = el.getBoundingClientRect()
+            const after = getComputedStyle(el, '::after')
+            return {
+              name: el.getAttribute('aria-label')?.split(',')[0],
+              empty: el.childElementCount === 0,
+              width: r.width,
+              height: r.height,
+              rectWidth: Number.parseFloat(el.style.width),
+              rectHeight: Number.parseFloat(el.style.height),
+              left: r.left - box.left,
+              top: r.top - box.top,
+              right: box.right - r.right,
+              bottom: box.bottom - r.bottom,
+              edge: Number.parseFloat(getComputedStyle(el).borderTopWidth),
+              overlay: after.content === 'none' ? 0 : Number.parseFloat(after.borderTopWidth),
+            }
+          },
+        )
+      })
+      expect(tiles).toHaveLength(30)
+      const off = tiles.filter(
+        (t) =>
+          Math.abs(t.width - t.rectWidth) > 0.5 ||
+          Math.abs(t.height - t.rectHeight) > 0.5 ||
+          Math.min(t.left, t.top, t.right, t.bottom) < -0.5,
+      )
+      expect(off).toEqual([])
+      // Non-vacuity: tiles without text, and at 320 px tiles below the old 16 × 12 px floor.
+      expect(tiles.filter((t) => t.empty).length).toBeGreaterThan(0)
+      if (width === 320) {
+        expect(tiles.filter((t) => t.rectWidth < 16 || t.rectHeight < 12).length).toBeGreaterThan(0)
+      }
+      // In forced colors every tile keeps the border of its level (3 px without shade): on the
+      // tile with text, on the overlay without.
+      if (forced) {
+        for (const t of tiles) expect(t.empty ? t.overlay : t.edge, t.name).toBe(3)
+      }
+    })
+  }
+}
+
 test('hovering near a strip dot shows its tooltip', async ({ page }) => {
   await page.setViewportSize({ width: 1280, height: 600 })
   await open(page, 'reference-dallas-installs--light')

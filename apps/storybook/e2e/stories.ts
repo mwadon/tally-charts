@@ -59,6 +59,7 @@ export const STORIES = [
   'charts-treemap--tone',
   'charts-treemap--many',
   'charts-treemap--narrow',
+  'charts-treemap--long-tail',
   'reference-estimate-vs-actual--light',
   'reference-estimate-vs-actual--dark',
   'reference-result--light',

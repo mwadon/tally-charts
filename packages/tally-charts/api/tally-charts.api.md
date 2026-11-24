@@ -1579,7 +1579,7 @@ export interface TooltipSegment {
     value: ReactNode;
 }
 
-// @public (undocumented)
+// @public
 export function Treemap<D>(input: TreemapProps<D>): JSX.Element;
 
 // @public (undocumented)

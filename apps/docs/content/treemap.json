@@ -110,7 +110,7 @@
       "id": "n12",
       "type": "prose",
       "props": {
-        "markdown": "With `group`, each group has a header above its tiles: the name in bold and the formatted total in muted text. A narrow group's name is cut with an ellipsis before the total. A group whose box is lower than 48 px has no header, and its tiles take the whole box. Rows whose group is empty or missing form one more group without a name: it takes its place by total like the others, but has no header text and its tiles are not inside a named group. Groups are 8 px apart, tiles 2 px, and the outer tiles touch the edges of the box."
+        "markdown": "With `group`, each group has a header above its tiles: the name in bold and the formatted total in muted text. A narrow group's name is cut with an ellipsis before the total. A group whose box is lower than 48 px has no header, and its tiles take the whole box. Rows whose group is empty or missing form one more group without a name: it takes its place by total like the others, but has no header text and its tiles are not inside a named group. Its box still keeps the 24 px band of a header above its tiles, left empty, when it is at least 48 px high. Groups are 8 px apart, tiles 2 px, and the outer tiles touch the edges of the box."
       }
     },
     {
@@ -197,7 +197,7 @@
       "id": "n23",
       "type": "prose",
       "props": {
-        "markdown": "The box is as wide as its container and `height` px high (default 480). The server render and the first client render use `initialWidth` (default 640), so they agree, and the layout follows the measured width afterwards. In a narrow container, as on a phone, the same layout holds with fewer labels."
+        "markdown": "The box is as wide as its container and `height` px high (default 480). The server render and the first client render use `initialWidth` (default 640), so they agree, and the layout follows the measured width afterwards. Until the width is measured (and without JavaScript) the box clips its tiles, so a layout wider than the container does not widen the page. In a narrow container, as on a phone, the same layout holds with fewer labels."
       }
     },
     {
@@ -245,14 +245,14 @@
       "id": "n29",
       "type": "prose",
       "props": {
-        "markdown": "Each tile's id is the `id` accessor or the data index. In `onSelect`, `onActiveChange` and a `tooltip` function, `tile.datum` is your row. The tile under the pointer is active, and leaving the box clears it unless a tile has keyboard focus. The active tile, and the focused one, get a 2 px outline in the ink colour; other tiles are not dimmed. With `onSelect`, a click on a tile selects it and tiles get a pointer cursor."
+        "markdown": "Each tile's id is the `id` accessor or the data index. In `onSelect`, `onActiveChange` and a `tooltip` function, `tile.datum` is your row. The tile under the pointer is active, and leaving the box clears it unless a tile has keyboard focus (a tile focused by a click does not count, nor one whose tooltip `Esc` closed, until focus moves). The active tile, and the focused one, get a 2 px outline in the ink colour; other tiles are not dimmed. With `onSelect`, a click on a tile selects it and tiles get a pointer cursor."
       }
     },
     {
       "id": "n30",
       "type": "prose",
       "props": {
-        "markdown": "The tooltip of the active tile (hover or keyboard focus) shows the name, the value, the share (“22.4% of total”) and, with a shade number, the shade (“Gross margin 34%”). It sits above the tile, or below it when there is no room above, or inside the tile's top when there is room for neither, and it never leaves the box, so a card does not clip it. The pointer can move onto it, and `Esc` closes a tooltip opened by hovering wherever focus is. `tooltip={false}` turns it off, and a function replaces its content."
+        "markdown": "The tooltip of the active tile (hover or keyboard focus) shows the name, the value, the share (“22.4% of total”) and, with a shade number, the shade (“Gross margin 34%”). It sits above the tile, or below it when there is no room above, or inside the tile's top when there is room for neither, and it never leaves the box, so a card does not clip it. Above or below its tile the pointer can move onto it and rest there without activating another tile; inside a tile it lets the pointer through, so a click there still selects the tile. `Esc` closes a tooltip opened by hovering wherever focus is. `tooltip={false}` turns it off, and a function replaces its content."
       }
     },
     {

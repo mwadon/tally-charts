@@ -1665,8 +1665,16 @@
   font-size: 13px;
 }
 
+/* Isolated, so the raised tile and the tooltip cannot paint over a page's sticky header. */
 [data-ch-part="treemap-plot"] {
   position: relative;
+  isolation: isolate;
+}
+
+/* Before the width is measured (server render, first client render, no JavaScript) the tiles
+   are laid out at initialWidth: clip them so they cannot widen a narrower page. */
+[data-ch-part="treemap-plot"][data-ch-unmeasured] {
+  overflow: hidden;
 }
 
 /* A narrow group cuts its name with an ellipsis; the total does not shrink, so the row's
@@ -1706,6 +1714,12 @@
   color: var(--ch-ink);
 }
 
+/* A tile without text needs no padding, which would floor it at 16 × 12 px, larger than its
+   rect. */
+[data-ch-part="treemap-tile"]:empty {
+  padding: 0;
+}
+
 [data-ch-part="treemap-tile-name"],
 [data-ch-part="treemap-tile-value"] {
   overflow: hidden;
@@ -1735,11 +1749,36 @@
   cursor: pointer;
 }
 
-/* The pill (.ch-tooltip) over the raised tile. The pointer can rest on it (WCAG 1.4.13): it stays
+/* The pill (.ch-tooltip) over the raised tile. Above or below its tile the pointer can move
+   onto it and rest there (WCAG 1.4.13): a transparent bridge covers the 6 px gap (TOOLTIP_GAP in
+   Treemap.tsx), so the pointer does not cross a neighbouring tile on the way, and the pill stays
    inside the box, so the box does not lose the pointer. */
 [data-ch-part="treemap-tooltip"] {
   z-index: 2;
   pointer-events: auto;
+}
+
+[data-ch-part="treemap-tooltip"][data-ch-placement="above"]::before,
+[data-ch-part="treemap-tooltip"][data-ch-placement="below"]::before {
+  position: absolute;
+  right: 0;
+  left: 0;
+  height: 6px;
+  content: "";
+}
+
+[data-ch-part="treemap-tooltip"][data-ch-placement="above"]::before {
+  top: 100%;
+}
+
+[data-ch-part="treemap-tooltip"][data-ch-placement="below"]::before {
+  bottom: 100%;
+}
+
+/* Inside the top of its tile the pill is not interactive: the pointer stays on the tile, which
+   keeps the pill open and gets the clicks. */
+[data-ch-part="treemap-tooltip"][data-ch-placement="inside"] {
+  pointer-events: none;
 }
 
 /* ---------- Motion off ---------- */
@@ -2167,6 +2206,42 @@
   [data-ch-part="treemap-tile"][data-ch-active="true"],
   [data-ch-part="treemap-tile"]:focus-visible {
     outline: 2px solid Highlight;
+  }
+
+  /* A tile without text draws its border on an overlay it clips, so the border (up to 5 px)
+     cannot make a small tile larger than its rect. */
+  [data-ch-part="treemap-tile"]:empty {
+    border-style: none;
+  }
+
+  [data-ch-part="treemap-tile"]:empty::after {
+    position: absolute;
+    inset: 0;
+    box-sizing: border-box;
+    border: 1px solid CanvasText;
+    border-radius: inherit;
+    content: "";
+    pointer-events: none;
+  }
+
+  [data-ch-part="treemap-tile"][data-ch-level="0"]:empty::after {
+    border-style: dashed;
+  }
+
+  [data-ch-part="treemap-tile"][data-ch-level="2"]:empty::after {
+    border-width: 2px;
+  }
+
+  [data-ch-part="treemap-tile"][data-ch-level="3"]:empty::after {
+    border-width: 3px;
+  }
+
+  [data-ch-part="treemap-tile"][data-ch-level="4"]:empty::after {
+    border-width: 4px;
+  }
+
+  [data-ch-part="treemap-tile"][data-ch-level="5"]:empty::after {
+    border-width: 5px;
   }
 
   /* Runway: SVG fills aren't forced; paint the levels with steps of the text color. */

@@ -351,6 +351,9 @@ describe('hydration', () => {
     const container = document.createElement('div')
     container.innerHTML = html
     expect(container.querySelectorAll('[role="option"]')).toHaveLength(13)
+    const plot = () => container.querySelector('[data-ch-part="treemap-plot"]')
+    // Clipped (theme.css) until the client has measured the width.
+    expect(plot()).toHaveAttribute('data-ch-unmeasured', 'true')
     document.body.appendChild(container)
     const onRecoverableError = vi.fn()
     let root: ReturnType<typeof hydrateRoot> | undefined
@@ -360,6 +363,7 @@ describe('hydration', () => {
     expect(onRecoverableError).not.toHaveBeenCalled()
     expect(errors).not.toHaveBeenCalled()
     expect(tileStyles(container)).toEqual(layoutStyles(640))
+    expect(plot()).not.toHaveAttribute('data-ch-unmeasured')
     await act(async () => {
       root?.unmount()
     })

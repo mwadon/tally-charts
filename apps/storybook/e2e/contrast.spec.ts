@@ -203,7 +203,8 @@ const ALLOWED: {
 // Counted on darwin with the first tile focused (rest − covered): light and dark 23 − 4 (the
 // pill opens inside the top of Kitchen, a full-height tile), flat 24 − 2, plain 24 − 1, tone
 // 22 − 4, many 52 − 3, narrow 17 − 5 (the pill below Kitchen, wrapped to two lines). Linux
-// covers the same, except narrow 17 − 0 (a one-line pill).
+// covers the same, except narrow 17 − 0 (a one-line pill). long-tail: 19 measured on darwin
+// with Item 1 focused (most of its 30 tiles are too small for text).
 const TILE_TEXT_ACTIVE: Record<string, number> = {
   'charts-treemap--light': 19,
   'charts-treemap--dark': 19,
@@ -212,6 +213,7 @@ const TILE_TEXT_ACTIVE: Record<string, number> = {
   'charts-treemap--tone': 18,
   'charts-treemap--many': 49,
   'charts-treemap--narrow': 12,
+  'charts-treemap--long-tail': 19,
 }
 
 for (const id of [...STORIES, 'reference-last-12-weeks--selectable']) {
