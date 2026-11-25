@@ -33,6 +33,29 @@ test('/docs/treemap is a page, and the sidebar links to it', async ({ page }) =>
   await expect(nav.locator('.nav-soon', { hasText: 'Treemap' })).toHaveCount(0)
 })
 
+test.describe('without JavaScript', () => {
+  test.use({ javaScriptEnabled: false, viewport: { width: 375, height: 800 } })
+
+  // The first card is server-rendered at initialWidth 640: until the plot is measured it clips
+  // its tiles, so the page does not scroll sideways (spec §5 reflow).
+  test('the server-rendered treemap does not widen a 375 px page', async ({ page }) => {
+    await page.goto('/docs/treemap')
+    const plot = page.locator('[data-ch-part="treemap-plot"]').first()
+    await expect(plot).toHaveAttribute('data-ch-unmeasured', 'true')
+    // Non-vacuity: the tiles are laid out wider than the page.
+    const widest = await plot.evaluate((el) =>
+      Math.max(
+        ...[...el.querySelectorAll<HTMLElement>('[data-ch-part="treemap-tile"]')].map(
+          (t) => Number.parseFloat(t.style.left) + Number.parseFloat(t.style.width),
+        ),
+      ),
+    )
+    expect(widest).toBeGreaterThan(375)
+    const scrollWidth = await page.evaluate(() => document.documentElement.scrollWidth)
+    expect(scrollWidth).toBeLessThanOrEqual(375)
+  })
+})
+
 test('/docs/treemap documents the Treemap props once', async ({ page }) => {
   await page.goto('/docs/treemap')
 

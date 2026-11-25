@@ -15,6 +15,8 @@ interface TextRun {
   color: string
   opacity: number
   large: boolean
+  /** The nearest `data-ch-part` of the text, e.g. `treemap-tile-name`. */
+  part: string | null
 }
 
 /** Visible text the library renders (charts, heatmaps and their HTML pieces), not story copy. */
@@ -54,34 +56,15 @@ function collect(): TextRun[] {
     ) {
       continue
     }
-    // Text under an open tooltip pill or its drop shadow, even in part, is covered by it, not
-    // drawn on it: the treemap's pill can lie over or just above a neighbouring tile's name, and
-    // the pill's pixels are not that text's background. Such text was measured with nothing
-    // active; the pill's own text still is. The shadow reaches |offset| + blur + spread. Only the
-    // treemap's pill: other charts' tooltips keep the measurement they had.
+    // Text the open treemap pill lies over, even in part, is hidden by it: the opaque pill's
+    // pixels are not that text's background. Only the pill's own box counts (not its shadow), and
+    // only the treemap's pill: other charts' tooltips keep the measurement they had. The covered
+    // text was measured with nothing active; the pill's own text still is.
     const covered = [...document.querySelectorAll('[data-ch-part="treemap-tooltip"]')].some(
       (tip) => {
         if (tip.contains(el) || getComputedStyle(tip).visibility === 'hidden') return false
-        return [tip, ...tip.querySelectorAll('*')].some((part) => {
-          const shadow = getComputedStyle(part).boxShadow
-          let reach = 0
-          if (shadow !== 'none') {
-            // Each shadow is "color x y blur spread"; the colour comes first in computed values.
-            for (const one of shadow.split(/,(?![^(]*\))/)) {
-              const [x = 0, y = 0, blur = 0, spread = 0] = (
-                one.replace(/rgba?\([^)]*\)|color\([^)]*\)/g, '').match(/-?[\d.]+px/g) ?? []
-              ).map((v) => Math.abs(Number.parseFloat(v)))
-              reach = Math.max(reach, Math.max(x, y) + blur + spread)
-            }
-          }
-          const t = part.getBoundingClientRect()
-          return (
-            box.left < t.right + reach &&
-            box.right > t.left - reach &&
-            box.top < t.bottom + reach &&
-            box.bottom > t.top - reach
-          )
-        })
+        const t = tip.getBoundingClientRect()
+        return box.left < t.right && box.right > t.left && box.top < t.bottom && box.bottom > t.top
       },
     )
     if (covered) continue
@@ -100,6 +83,7 @@ function collect(): TextRun[] {
       color: el instanceof SVGElement ? style.fill : style.color,
       opacity,
       large: size >= 24 || (size >= 18.66 && bold),
+      part: el.closest('[data-ch-part]')?.getAttribute('data-ch-part') ?? null,
     })
   }
   return runs
@@ -113,6 +97,7 @@ interface Result {
   /** The median ratio, or null when no pixel under the box could be sampled. */
   ratio: number | null
   need: number
+  part: string | null
 }
 
 /** The median contrast of each run against the pixels under it, in a text-free screenshot. */
@@ -172,6 +157,7 @@ async function measure(page: Page): Promise<Result[]> {
           // No sampled pixel is a failure, reported by name in failing(): never a pass.
           ratio: ratios.length > 0 ? (ratios[Math.floor(ratios.length / 2)] ?? null) : null,
           need: run.large ? 3 : 4.5,
+          part: run.part,
         }
       })
     },
@@ -185,6 +171,50 @@ const failing = (results: Result[]) =>
     .map((r) =>
       r.ratio === null ? `${r.text} no pixels sampled` : `${r.text} ${r.ratio.toFixed(2)}`,
     )
+
+/**
+ * Known low ratios on the treemap's active pass, still measured and still failing below `floor`.
+ * Each entry must match a run on its platform (a stale entry fails) and stay under the bar.
+ */
+const ALLOWED: {
+  story: string
+  platform: NodeJS.Platform
+  part: string
+  text: string
+  floor: number
+}[] = [
+  // A neighbouring tile's name under the open tooltip's transient drop shadow: with Kitchen
+  // focused, the one-line pill ends just above "Electrical" and its shadow darkens the tile
+  // under the name to 4.37:1 (linux fonts; on darwin the pill wraps to two lines and covers the
+  // name). The shadow token --ch-tooltip-shadow is shared by all charts and is not changed here.
+  {
+    story: 'charts-treemap--narrow',
+    platform: 'linux',
+    part: 'treemap-tile-name',
+    text: 'Electrical',
+    floor: 4,
+  },
+]
+
+/**
+ * Tile names and value lines the treemap's active pass must still measure (the text the stories
+ * show, less what the open pill covers), so the pass cannot go vacuous.
+ */
+// Counted on darwin with the first tile focused (rest − covered): light and dark 23 − 4 (the
+// pill opens inside the top of Kitchen, a full-height tile), flat 24 − 2, plain 24 − 1, tone
+// 22 − 4, many 52 − 3, narrow 17 − 5 (the pill below Kitchen, wrapped to two lines). Linux
+// covers the same, except narrow 17 − 0 (a one-line pill). long-tail: 19 measured on darwin
+// with Item 1 focused (most of its 30 tiles are too small for text).
+const TILE_TEXT_ACTIVE: Record<string, number> = {
+  'charts-treemap--light': 19,
+  'charts-treemap--dark': 19,
+  'charts-treemap--flat': 22,
+  'charts-treemap--plain': 23,
+  'charts-treemap--tone': 18,
+  'charts-treemap--many': 49,
+  'charts-treemap--narrow': 12,
+  'charts-treemap--long-tail': 19,
+}
 
 for (const id of [...STORIES, 'reference-last-12-weeks--selectable']) {
   for (const theme of THEMELESS.has(id) ? (['light', 'dark'] as const) : [undefined]) {
@@ -211,8 +241,30 @@ for (const id of [...STORIES, 'reference-last-12-weeks--selectable']) {
         await tile.focus()
         await expect(page.locator('[data-ch-part="treemap-tooltip"]')).toBeVisible()
         const active = await measure(page)
-        expect(active.some((r) => r.text.endsWith('of total'))).toBe(true)
-        expect(failing(active)).toEqual([])
+        const tileText = active.filter((r) => r.part?.startsWith('treemap-tile-'))
+        // Non-vacuity: the pill's text and the tiles' text it does not cover are measured.
+        expect(active.some((r) => r.part?.startsWith('pill-') && r.text.endsWith('of total'))).toBe(
+          true,
+        )
+        const min = TILE_TEXT_ACTIVE[id]
+        expect(min, `${id} needs an entry in TILE_TEXT_ACTIVE`).toBeDefined()
+        expect(tileText.length).toBeGreaterThanOrEqual(min ?? Number.POSITIVE_INFINITY)
+        // Allowlisted runs are still measured: each must be found, stay at or above its floor and
+        // still be under the bar (else the entry is stale and must go).
+        const allowed = ALLOWED.filter((a) => a.story === id && a.platform === process.platform)
+        const isAllowed = (r: Result) => allowed.some((a) => a.part === r.part && a.text === r.text)
+        for (const a of allowed) {
+          const run = active.find((r) => r.part === a.part && r.text === a.text)
+          expect(run, `allowlisted "${a.text}" is no longer measured`).toBeDefined()
+          const ratio = run?.ratio ?? 0
+          expect(ratio, `allowlisted "${a.text}" fell below ${a.floor}`).toBeGreaterThanOrEqual(
+            a.floor,
+          )
+          expect(ratio, `allowlisted "${a.text}" now passes: remove the entry`).toBeLessThan(
+            run?.need ?? 0,
+          )
+        }
+        expect(failing(active.filter((r) => !isAllowed(r)))).toEqual([])
       }
     })
   }

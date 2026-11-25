@@ -72,6 +72,18 @@ const phrases = [
   'GanttChart skipped a row with',
   'GanttChart ignored a baseline that is',
   'GanttChart progress must be a number',
+  'Heatmap `breaks` must be finite',
+  'Heatmap shows at most 5 bins',
+  'Heatmap `binLabels` needs one label',
+  'Heatmap skipped an item without',
+  'Heatmap skipped a repeated cell',
+  'Heatmap shows a dash for',
+  'Treemap `breaks` need `shade`',
+  'Treemap `shade` needs `breaks`',
+  'Treemap `breaks` must be finite',
+  'Treemap shows at most 5 bins',
+  'Treemap `binLabels` needs one label',
+  'with a missing, non-numeric or negative value',
 ]
 const leaks = phrases.filter((phrase) => code.includes(phrase))
 if (leaks.length > 0) {

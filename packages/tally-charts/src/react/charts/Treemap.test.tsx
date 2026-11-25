@@ -1,4 +1,5 @@
 import { act, fireEvent, render, screen, within } from '@testing-library/react'
+import { renderToString } from 'react-dom/server'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createFormatter } from '../../core/format'
 import {
@@ -148,6 +149,17 @@ describe('<Treemap> tiles and groups', () => {
     )
     const plot = parts(container, 'treemap-plot')[0] as HTMLElement
     expect(plot.style.height).toBe('480px')
+  })
+
+  // theme.css clips an unmeasured plot, so tiles laid out at initialWidth cannot widen the page
+  // before hydration (or without JavaScript).
+  it('marks the plot unmeasured in server markup and drops the mark once measured', () => {
+    const html = renderToString(element())
+    const server = document.createElement('div')
+    server.innerHTML = html
+    expect(parts(server, 'treemap-plot')[0]).toHaveAttribute('data-ch-unmeasured', 'true')
+    const { container } = renderTreemap()
+    expect(parts(container, 'treemap-plot')[0]).not.toHaveAttribute('data-ch-unmeasured')
   })
 
   it('takes the box height from height', () => {
@@ -706,6 +718,60 @@ describe('<Treemap> active tile', () => {
     expect(onActiveChange).not.toHaveBeenCalledWith(null, null)
   })
 
+  // jsdom does not match :focus-visible, so the chart tracks how a tile got focus: a focus that
+  // follows a pointerdown on a tile is a pointer focus; any other focus, and any key on a tile,
+  // is keyboard focus.
+  it('does not return to a tile focused by a click when the pointer leaves', () => {
+    const onActiveChange = vi.fn()
+    const { container } = renderTreemap({ onActiveChange })
+    fireEvent.pointerEnter(option(0))
+    fireEvent.pointerDown(option(0))
+    act(() => option(0).focus())
+    fireEvent.click(option(0))
+    expect(activeNames(container)).toEqual(['Kitchen'])
+    fireEvent.pointerLeave(listbox())
+    expect(activeNames(container)).toEqual([])
+    expect(tooltips(container)).toHaveLength(0)
+    expect(onActiveChange).toHaveBeenLastCalledWith(null, null)
+    // A key on the clicked tile makes it keyboard focus again (as :focus-visible would).
+    fireEvent.keyDown(option(0), { key: 'ArrowRight' })
+    expect(document.activeElement).toBe(option(1))
+    fireEvent.pointerEnter(option(5))
+    fireEvent.pointerLeave(listbox())
+    expect(activeNames(container)).toEqual(['Bath'])
+  })
+
+  it('does not reopen a tooltip dismissed with Escape when the pointer passes through', () => {
+    const { container } = renderTreemap()
+    act(() => option(0).focus())
+    fireEvent.keyDown(option(0), { key: 'Escape' })
+    expect(tooltips(container)).toHaveLength(0)
+    fireEvent.pointerEnter(option(3))
+    expect(activeNames(container)).toEqual(['Whole-home'])
+    fireEvent.pointerLeave(listbox())
+    expect(activeNames(container)).toEqual([])
+    expect(tooltips(container)).toHaveLength(0)
+    expect(document.activeElement).toBe(option(0))
+    // Until a key moves the focus: then the pointer returns to the newly focused tile.
+    fireEvent.keyDown(option(0), { key: 'ArrowRight' })
+    expect(activeNames(container)).toEqual(['Bath'])
+    fireEvent.pointerEnter(option(3))
+    fireEvent.pointerLeave(listbox())
+    expect(activeNames(container)).toEqual(['Bath'])
+  })
+
+  it('keeps focus on its tile when the data is reordered', () => {
+    const { rerender } = render(element({ id: 'line' }))
+    act(() => option(0).focus())
+    fireEvent.keyDown(option(0), { key: 'ArrowRight' })
+    const bath = document.activeElement as HTMLElement
+    expect(bath.getAttribute('aria-label')).toMatch(/^Bath, /)
+    rerender(element({ id: 'line', data: [...lines].reverse() }))
+    expect(document.activeElement).toBe(bath)
+    expect(bath.getAttribute('aria-label')).toMatch(/^Bath, /)
+    expect(bath.tabIndex).toBe(0)
+  })
+
   it('clears the active tile when focus leaves the box', () => {
     const onActiveChange = vi.fn()
     const { container } = renderTreemap({ onActiveChange })
@@ -908,6 +974,36 @@ describe('<Treemap> tooltip placement', () => {
       top: r2(r.y - PILL.height - 6),
       visibility: '',
     })
+  })
+
+  // theme.css gives an above or below tooltip a transparent bridge over the gap on the side of
+  // its tile (so the pointer can move onto it), and makes one inside a tile click-through.
+  it('marks where the tooltip is: above, below or inside its tile', () => {
+    const placement = (i: number) => {
+      fireEvent.pointerEnter(option(i))
+      return tooltips(document.body)[0]?.getAttribute('data-ch-placement')
+    }
+    renderTreemap()
+    const above = RECTS.findIndex((r) => r.y - PILL.height - 6 >= 0)
+    const below = RECTS.findIndex(
+      (r) => r.y - PILL.height - 6 < 0 && r.y + r.height + 6 + PILL.height <= 480,
+    )
+    expect(placement(above)).toBe('above')
+    expect(placement(below)).toBe('below')
+    expect(placement(0)).toBe('inside')
+  })
+
+  it('does not change the active tile while the pointer is on the tooltip', () => {
+    const { container } = renderTreemap()
+    const i = RECTS.findIndex((r) => r.y - PILL.height - 6 >= 0)
+    fireEvent.pointerEnter(option(i))
+    const tip = tooltips(container)[0] as HTMLElement
+    const name = activeNames(container)
+    fireEvent.pointerEnter(tip)
+    fireEvent.pointerMove(tip)
+    fireEvent.pointerDown(tip)
+    expect(activeNames(container)).toEqual(name)
+    expect(tooltips(container)).toHaveLength(1)
   })
 
   it('stays inside the box at the right edge', () => {

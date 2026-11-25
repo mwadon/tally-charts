@@ -14,7 +14,14 @@ import {
 import { resolveAccessor, resolveIds } from '../../core/accessor'
 import type { FormatSpec, Formatter } from '../../core/format'
 import { toNumber } from '../../core/number'
-import { binLevels, levelFor, MAX_BREAKS, sequentialBreaks } from '../../core/thresholds'
+import {
+  binLevels,
+  breaksInOrder,
+  distinctBreaks,
+  levelFor,
+  MAX_BREAKS,
+  sequentialBreaks,
+} from '../../core/thresholds'
 import {
   type TreemapDirection,
   type TreemapRect,
@@ -41,7 +48,7 @@ export interface TreemapTile<D> {
   value: number
   /** Share of the total, 0–1. */
   share: number
-  /** NaN without `shade` or when the row has no shade number. */
+  /** NaN without `shade`, without `breaks`, or when the row has no shade number. */
   shade: number
   /** Sequential level 1–5; 0 when `shade` is set and the row has no number. */
   level: SeqLevel | 0
@@ -97,8 +104,6 @@ interface TreemapGroup<D> {
   name: string | undefined
   total: number
   tiles: TreemapTile<D>[]
-  /** Data index per tile, for React keys. */
-  index: number[]
 }
 
 /** Tile text thresholds in px: the name, then the "value · share" line. */
@@ -143,17 +148,24 @@ function tooltipAt(
   size: { width: number; height: number },
   width: number,
   height: number,
-): { left: number; top: number } {
+): { left: number; top: number; placement: 'above' | 'below' | 'inside' } {
   const left = Math.min(
     Math.max(0, r.x + r.width / 2 - size.width / 2),
     Math.max(0, width - size.width),
   )
   const above = r.y - size.height - TOOLTIP_GAP
+  if (above >= 0) return { left, top: above, placement: 'above' }
   const below = r.y + r.height + TOOLTIP_GAP
-  const top = above >= 0 ? above : below + size.height <= height ? below : r.y + TOOLTIP_GAP
-  return { left, top }
+  if (below + size.height <= height) return { left, top: below, placement: 'below' }
+  return { left, top: r.y + TOOLTIP_GAP, placement: 'inside' }
 }
 
+/**
+ * Many parts of one total as tiles whose area is the value, largest first, optionally in named
+ * groups and shaded by a second measure in bins. The tiles are HTML: a `listbox` of `option`s
+ * with one roving tab stop and arrow keys between neighbouring tiles, each option named by its
+ * name, value, share and shade, and a tooltip pill for the active tile.
+ */
 export function Treemap<D>({
   data,
   name,
@@ -204,18 +216,18 @@ export function Treemap<D>({
 
   const edges = useMemo(() => {
     const raw = breaks ?? []
-    if (DEV && shaded) {
-      const sorted = [...new Set(raw.filter(Number.isFinite))].sort((a, b) => a - b)
-      if (sorted.length !== raw.length || sorted.some((b, i) => b !== raw[i])) {
-        warn(
-          'treemap-breaks-order',
-          'Treemap `breaks` must be finite and ascending; they were sorted and deduplicated.',
-        )
-      }
-      if (sorted.length > MAX_BREAKS) {
-        warn('treemap-bins', 'Treemap shows at most 5 bins; breaks after the fourth were dropped.')
-      }
-    }
+    // Expressions, not a block with declarations, so production builds drop the messages.
+    DEV &&
+      shaded &&
+      !breaksInOrder(raw) &&
+      warn(
+        'treemap-breaks-order',
+        'Treemap `breaks` must be finite and ascending; they were sorted and deduplicated.',
+      )
+    DEV &&
+      shaded &&
+      distinctBreaks(raw) > MAX_BREAKS &&
+      warn('treemap-bins', 'Treemap shows at most 5 bins; breaks after the fourth were dropped.')
     return sequentialBreaks(raw)
   }, [breaks, shaded, warn])
   const levels = useMemo(() => binLevels(edges.length + 1), [edges])
@@ -247,12 +259,11 @@ export function Treemap<D>({
       const s = shaded && getShade ? toNumber(getShade(d, i)) : Number.NaN
       let entry = byName.get(g)
       if (!entry) {
-        entry = { name: g, total: 0, tiles: [], index: [] }
+        entry = { name: g, total: 0, tiles: [] }
         byName.set(g, entry)
       }
       entry.total += v
       total += v
-      entry.index.push(i)
       entry.tiles.push({
         id: ids[i] as Id,
         name: String(getName(d, i) ?? ''),
@@ -273,22 +284,24 @@ export function Treemap<D>({
     // Largest first; sort is stable, so ties keep the data order.
     const sorted = [...byName.values()].sort((a, b) => b.total - a.total)
     for (const entry of sorted) {
-      const { tiles, index } = entry
-      const order = tiles.map((_, k) => k)
-      order.sort((a, b) => (tiles[b] as TreemapTile<D>).value - (tiles[a] as TreemapTile<D>).value)
-      entry.tiles = order.map((k) => {
-        const tile = tiles[k] as TreemapTile<D>
-        tile.share = tile.value / total
-        return tile
-      })
-      entry.index = order.map((k) => index[k] as number)
+      entry.tiles.sort((a, b) => b.value - a.value)
+      for (const tile of entry.tiles) tile.share = tile.value / total
     }
     return sorted
   }, [data, name, value, id, group, shade, shaded, edges, levels, warn])
 
   const count = groups.reduce((n, g) => n + g.tiles.length, 0)
   const plotRef = useRef<HTMLDivElement>(null)
-  const width = useWidth(plotRef, initialWidth, count > 0)
+  const hasTiles = count > 0
+  const width = useWidth(plotRef, initialWidth, hasTiles)
+  // False on the server and in the first client render: theme.css clips the plot until then, so
+  // tiles laid out at `initialWidth` cannot widen a narrower page (nor without JavaScript). Set
+  // after useWidth has measured, in the same layout phase; unclipped afterwards, so neither the
+  // ring of a tile at the edge nor the tooltip is cut.
+  const [measured, setMeasured] = useState(false)
+  useIsoLayoutEffect(() => {
+    if (hasTiles) setMeasured(true)
+  }, [hasTiles])
   const boxHeight = Number.isFinite(height) ? Math.max(0, height) : 0
   const layout = useMemo(
     () =>
@@ -322,6 +335,13 @@ export function Treemap<D>({
   // The tab stop: the last focused tile while it exists, else the first.
   const tabId = known(focusId) ?? tileList[0]?.id
   const refs = useRef(new Map<Id, HTMLElement>())
+  // How the focused tile got focus, as :focus-visible would tell (and jsdom cannot): a focus that
+  // follows a pointerdown on a tile is the pointer's; any other focus, and a key on a tile, is
+  // the keyboard's. Leaving the box returns to the focused tile only for keyboard focus, and not
+  // after Escape dismissed it, until the focus moves.
+  const pointerDown = useRef(false)
+  const keyboardFocus = useRef(false)
+  const dismissed = useRef(false)
 
   const setActive = (next: Id | null) => {
     if (next === activeRef.current) return
@@ -341,6 +361,8 @@ export function Treemap<D>({
 
   const onKeyDown = (event: KeyboardEvent<HTMLElement>, index: number) => {
     const tile = tileList[index] as TreemapTile<D>
+    pointerDown.current = false
+    keyboardFocus.current = true
     if (event.key === 'Enter' || event.key === ' ') {
       // Space must not scroll the page under the focused tile, with or without onSelect.
       event.preventDefault()
@@ -348,6 +370,7 @@ export function Treemap<D>({
       return
     }
     if (event.key === 'Escape') {
+      dismissed.current = true
       // Only handled when it clears something, so an enclosing dialog can still close.
       if (activeRef.current !== null) {
         event.preventDefault()
@@ -465,15 +488,22 @@ export function Treemap<D>({
         data-ch-part="treemap-plot"
         aria-labelledby={labelledBy ?? titleId}
         aria-describedby={description ? descId : undefined}
+        data-ch-unmeasured={measured ? undefined : 'true'}
         style={{ height: px(boxHeight) }}
         onPointerLeave={(event) => {
-          // Keyboard focus keeps its tile active; the pointer only clears what it activated.
-          const focused = event.currentTarget.contains(document.activeElement)
+          // Keyboard focus keeps its tile active (unless Escape dismissed it); the pointer only
+          // clears what it activated, and a tile focused by a click is the pointer's.
+          const focused =
+            event.currentTarget.contains(document.activeElement) &&
+            keyboardFocus.current &&
+            !dismissed.current
           setByPointer(false)
           setActive(focused ? known(focusId) : null)
         }}
         onBlur={(event) => {
-          if (!event.currentTarget.contains(event.relatedTarget)) setActive(null)
+          if (event.currentTarget.contains(event.relatedTarget)) return
+          pointerDown.current = false
+          setActive(null)
         }}
       >
         {groups.map((g, gi) => {
@@ -509,7 +539,7 @@ export function Treemap<D>({
             const valued = r.width >= VALUE_WIDTH && r.height >= VALUE_HEIGHT
             return (
               <div
-                key={g.index[k]}
+                key={`${typeof tile.id}:${tile.id}`}
                 ref={(el) => {
                   if (el) refs.current.set(tile.id, el)
                   else refs.current.delete(tile.id)
@@ -523,6 +553,9 @@ export function Treemap<D>({
                 data-ch-selectable={onSelect ? 'true' : undefined}
                 style={place(r)}
                 onFocus={() => {
+                  keyboardFocus.current = !pointerDown.current
+                  pointerDown.current = false
+                  dismissed.current = false
                   setByPointer(false)
                   setFocusId(tile.id)
                   setActive(tile.id)
@@ -530,6 +563,9 @@ export function Treemap<D>({
                 onPointerEnter={() => {
                   setByPointer(true)
                   setActive(tile.id)
+                }}
+                onPointerDown={() => {
+                  pointerDown.current = true
                 }}
                 onClick={() => onSelect?.(tile.id, tile)}
                 onKeyDown={(event) => onKeyDown(event, index)}
@@ -568,6 +604,7 @@ export function Treemap<D>({
             aria-hidden="true"
             className="ch-tooltip"
             data-ch-part="treemap-tooltip"
+            data-ch-placement={tipAt?.placement}
             style={{
               left: tipAt ? px(tipAt.left) : 0,
               top: tipAt ? px(tipAt.top) : 0,

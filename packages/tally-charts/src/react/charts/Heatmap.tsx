@@ -12,7 +12,14 @@ import {
 import { resolveAccessor } from '../../core/accessor'
 import type { FormatSpec } from '../../core/format'
 import { toNumber } from '../../core/number'
-import { binLevels, levelFor, MAX_BREAKS, sequentialBreaks } from '../../core/thresholds'
+import {
+  binLevels,
+  breaksInOrder,
+  distinctBreaks,
+  levelFor,
+  MAX_BREAKS,
+  sequentialBreaks,
+} from '../../core/thresholds'
 import type { Accessor, SeqLevel, Tone } from '../../core/types'
 import { createWarner, DEV, type Warn } from '../../core/warn'
 import type { ChartName } from '../Chart'
@@ -121,20 +128,17 @@ const keyOf = (cell: { row: string; column: string }) => cellKey(cell.row, cell.
 
 /** The breaks Heatmap bins by (see `heatmapLevel`), warning about what it had to clean up. */
 function cleanBreaks(breaks: readonly number[], warn: Warn): number[] {
-  const edges = sequentialBreaks(breaks)
-  if (DEV) {
-    const sorted = [...new Set(breaks.filter(Number.isFinite))].sort((a, b) => a - b)
-    if (sorted.length !== breaks.length || sorted.some((b, i) => b !== breaks[i])) {
-      warn(
-        'heatmap-breaks',
-        'Heatmap `breaks` must be finite and ascending; they were sorted and deduplicated.',
-      )
-    }
-    if (sorted.length > MAX_BREAKS) {
-      warn('heatmap-bins', 'Heatmap shows at most 5 bins; breaks after the fourth were dropped.')
-    }
-  }
-  return edges
+  // Expressions, not a block with declarations, so production builds drop the messages.
+  DEV &&
+    !breaksInOrder(breaks) &&
+    warn(
+      'heatmap-breaks',
+      'Heatmap `breaks` must be finite and ascending; they were sorted and deduplicated.',
+    )
+  DEV &&
+    distinctBreaks(breaks) > MAX_BREAKS &&
+    warn('heatmap-bins', 'Heatmap shows at most 5 bins; breaks after the fourth were dropped.')
+  return sequentialBreaks(breaks)
 }
 
 function sum(values: readonly number[]): number {

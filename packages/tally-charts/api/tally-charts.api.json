@@ -22792,7 +22792,7 @@
         {
           "kind": "Function",
           "canonicalReference": "tally-charts!Treemap:function(1)",
-          "docComment": "",
+          "docComment": "/**\n * Many parts of one total as tiles whose area is the value, largest first, optionally in named\n * groups and shaded by a second measure in bins. The tiles are HTML: a `listbox` of `option`s\n * with one roving tab stop and arrow keys between neighbouring tiles, each option named by its\n * name, value, share and shade, and a tooltip pill for the active tile.\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
@@ -23240,7 +23240,7 @@
             {
               "kind": "PropertySignature",
               "canonicalReference": "tally-charts!TreemapTile#shade:member",
-              "docComment": "/**\n * NaN without `shade` or when the row has no shade number.\n */\n",
+              "docComment": "/**\n * NaN without `shade`, without `breaks`, or when the row has no shade number.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",

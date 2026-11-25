@@ -269,6 +269,50 @@ describe('theme.css', () => {
     )
   })
 
+  it('never draws a treemap tile larger than its rect', () => {
+    // A tile without text has no padding to floor its size at 16 × 12 px.
+    expect(themed).toMatch(/\[data-ch-part="treemap-tile"\]:empty \{\s*padding: 0;\s*\}/)
+    // In forced colors such a tile draws its level border on an overlay the tile clips, so a
+    // 5 px border cannot widen a 2 px tile.
+    expect(forced).toMatch(/\[data-ch-part="treemap-tile"\]:empty \{\s*border-style: none;\s*\}/)
+    expect(forced).toMatch(
+      /\[data-ch-part="treemap-tile"\]:empty::after \{\s*position: absolute;\s*inset: 0;\s*box-sizing: border-box;\s*border: 1px solid CanvasText;\s*border-radius: inherit;\s*content: "";\s*pointer-events: none;\s*\}/,
+    )
+    expect(forced).toMatch(
+      /\[data-ch-part="treemap-tile"\]\[data-ch-level="0"\]:empty::after \{\s*border-style: dashed;/,
+    )
+    for (const level of [2, 3, 4, 5]) {
+      expect(forced).toContain(
+        `[data-ch-part="treemap-tile"][data-ch-level="${level}"]:empty::after {\n    border-width: ${level}px;`,
+      )
+    }
+  })
+
+  it('keeps the treemap tooltip hoverable above or below its tile and click-through inside it', () => {
+    // A transparent bridge over the 6 px gap on the side of the tile.
+    expect(themed).toMatch(
+      /\[data-ch-part="treemap-tooltip"\]\[data-ch-placement="above"\]::before,\s*\[data-ch-part="treemap-tooltip"\]\[data-ch-placement="below"\]::before \{\s*position: absolute;\s*right: 0;\s*left: 0;\s*height: 6px;\s*content: "";/,
+    )
+    expect(themed).toMatch(
+      /\[data-ch-part="treemap-tooltip"\]\[data-ch-placement="above"\]::before \{\s*top: 100%;/,
+    )
+    expect(themed).toMatch(
+      /\[data-ch-part="treemap-tooltip"\]\[data-ch-placement="below"\]::before \{\s*bottom: 100%;/,
+    )
+    expect(themed).toMatch(
+      /\[data-ch-part="treemap-tooltip"\]\[data-ch-placement="inside"\] \{\s*pointer-events: none;/,
+    )
+  })
+
+  it('clips an unmeasured treemap plot and isolates its stacking', () => {
+    expect(themed).toMatch(
+      /\[data-ch-part="treemap-plot"\] \{\s*position: relative;\s*isolation: isolate;\s*\}/,
+    )
+    expect(themed).toMatch(
+      /\[data-ch-part="treemap-plot"\]\[data-ch-unmeasured\] \{\s*overflow: hidden;\s*\}/,
+    )
+  })
+
   it.each([
     '--ch-hatch-angle:',
     '--ch-hatch-width:',

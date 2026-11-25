@@ -305,6 +305,7 @@ const STATES = [
   'tone',
   'tone-text',
   'totals',
+  'unmeasured',
   'variant',
   'weakest',
 ]

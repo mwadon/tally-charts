@@ -107,6 +107,19 @@ export function sequentialBreaks(breaks: readonly number[]): number[] {
   return [...new Set(breaks.filter(Number.isFinite))].sort((a, b) => a - b).slice(0, MAX_BREAKS)
 }
 
+/**
+ * Internal: whether `breaks` are finite and strictly ascending, i.e. `sequentialBreaks` neither
+ * sorts nor drops any of them (it may still cut them at `MAX_BREAKS`).
+ */
+export function breaksInOrder(breaks: readonly number[]): boolean {
+  return breaks.every((b, i) => Number.isFinite(b) && (i === 0 || b > (breaks[i - 1] as number)))
+}
+
+/** Internal: the number of distinct finite `breaks`, before the cut at `MAX_BREAKS`. */
+export function distinctBreaks(breaks: readonly number[]): number {
+  return new Set(breaks.filter(Number.isFinite)).size
+}
+
 /** Internal: bins spread over the five levels with the ends pinned; four bins use 1, 2, 4 and 5. */
 export function binLevels(bins: number): SeqLevel[] {
   if (bins <= 1) return [3]

@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite'
-import type { CSSProperties } from 'react'
+import { type CSSProperties, useState } from 'react'
 import { Treemap } from 'tally-charts'
 
 // Fictional revenue of a contractor by service line in four groups, with gross margin as the
@@ -35,9 +35,11 @@ const ARTBOARD: CSSProperties = { maxWidth: 1080 }
 function RevenueByLine({
   style = ARTBOARD,
   grouped = true,
+  onSelect,
 }: {
   style?: CSSProperties
   grouped?: boolean
+  onSelect?: (id: string | number) => void
 }) {
   return (
     <article className="card card-wide" style={style}>
@@ -58,6 +60,7 @@ function RevenueByLine({
         shadeLabel="Gross margin"
         title="Revenue by service line"
         description="Remodels bring in just over half of revenue; whole-home remodels run at an 8% margin."
+        onSelect={onSelect}
       />
     </article>
   )
@@ -221,6 +224,50 @@ export const Many: Story = {
         shadeLabel="Gross margin"
         title="Revenue by job"
         description="Dallas brings the most revenue; most jobs run between 20% and 40% margin."
+      />
+    </article>
+  ),
+}
+
+// The service lines with `onSelect`: the selected tile's id is written under the chart. No
+// screenshot; e2e clicks tiles here.
+function SelectableLines() {
+  const [selected, setSelected] = useState<string | number>('none')
+  return (
+    <div style={{ display: 'grid', gap: 16 }}>
+      <RevenueByLine onSelect={setSelected} />
+      <output data-testid="selected">Selected: {selected}</output>
+    </div>
+  )
+}
+
+export const Selectable: Story = {
+  parameters: { theme: 'light' },
+  render: () => <SelectableLines />,
+}
+
+// A long tail, without groups: 30 items whose values fall as 10000 / i^1.5, so the last tiles
+// are a few px across and draw no text.
+const tail = Array.from({ length: 30 }, (_, k) => ({
+  item: `Item ${k + 1}`,
+  value: 10000 / (k + 1) ** 1.5,
+}))
+
+export const LongTail: Story = {
+  parameters: { theme: 'light' },
+  render: () => (
+    <article className="card card-wide">
+      <header className="card-header">
+        <h2 className="card-title">Long tail</h2>
+        <span className="card-meta">30 items</span>
+      </header>
+      <Treemap
+        data={tail}
+        name="item"
+        value="value"
+        format={{ preset: 'number', digits: 0 }}
+        title="Long tail"
+        description="Item 1 is 44% of the total; the last twenty items are 11% together."
       />
     </article>
   ),

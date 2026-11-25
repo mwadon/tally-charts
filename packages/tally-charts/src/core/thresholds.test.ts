@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { heatmapLevel, thresholds } from './thresholds'
+import { breaksInOrder, distinctBreaks, heatmapLevel, thresholds } from './thresholds'
 
 const margin = () =>
   thresholds(
@@ -77,5 +77,22 @@ describe('heatmapLevel', () => {
     expect(heatmapLevel(Number.NaN, [10])).toBe(0)
     expect(heatmapLevel(null, [10])).toBe(0)
     expect(heatmapLevel('7', [5])).toBe(5)
+  })
+})
+
+describe('breaksInOrder and distinctBreaks', () => {
+  it('accepts only finite, strictly ascending breaks', () => {
+    expect(breaksInOrder([])).toBe(true)
+    expect(breaksInOrder([10, 20, 30, 40, 50])).toBe(true)
+    expect(breaksInOrder([20, 10])).toBe(false)
+    expect(breaksInOrder([10, 10, 20])).toBe(false)
+    expect(breaksInOrder([10, Number.NaN])).toBe(false)
+    expect(breaksInOrder([Number.POSITIVE_INFINITY])).toBe(false)
+  })
+
+  it('counts the distinct finite breaks', () => {
+    expect(distinctBreaks([])).toBe(0)
+    expect(distinctBreaks([30, 10, 10, Number.NaN, 20])).toBe(3)
+    expect(distinctBreaks([1, 2, 3, 4, 5, 5])).toBe(5)
   })
 })
